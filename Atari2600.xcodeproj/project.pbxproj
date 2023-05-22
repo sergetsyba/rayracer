@@ -13,6 +13,7 @@
 		954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18662A1AEE5800EBC582 /* AppDelegate.swift */; };
 		954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 954A18682A1AEE5A00EBC582 /* Assets.xcassets */; };
 		954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 954A186A2A1AEE5A00EBC582 /* MainMenu.xib */; };
+		954A18722A1AEF4400EBC582 /* DebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18712A1AEF4400EBC582 /* DebugView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +26,7 @@
 		954A18682A1AEE5A00EBC582 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		954A186B2A1AEE5A00EBC582 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atari2600.entitlements; sourceTree = "<group>"; };
+		954A18712A1AEF4400EBC582 /* DebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +82,7 @@
 				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
 				954A186A2A1AEE5A00EBC582 /* MainMenu.xib */,
 				954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */,
+				954A18712A1AEF4400EBC582 /* DebugView.swift */,
 			);
 			path = Atari2600;
 			sourceTree = "<group>";
@@ -165,8 +168,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				953D92A62A1AEB7400EC52AC /* Atari2600Kit */,
 				954A18632A1AEE5800EBC582 /* Atari2600 */,
+				953D92A62A1AEB7400EC52AC /* Atari2600Kit */,
 			);
 		};
 /* End PBXProject section */
@@ -204,6 +207,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				954A18722A1AEF4400EBC582 /* DebugView.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

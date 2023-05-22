@@ -6,25 +6,33 @@
 //
 
 import Cocoa
+import SwiftUI
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
-
+	private var debuggerWindowController: NSWindowController?
+	
 	@IBOutlet var window: NSWindow!
-
-
-	func applicationDidFinishLaunching(_ aNotification: Notification) {
-		// Insert code here to initialize your application
+	
+	@IBAction func showDebuggerWindow(_ sender: AnyObject) {
+		let debuggerView = DebugView()
+			.frame(width: 400, height: 600)
+		
+		let viewController = NSHostingController(rootView: debuggerView)
+		let debuggerWindow = NSWindow(contentViewController: viewController)
+		debuggerWindow.title = "Debugger"
+		debuggerWindow.delegate = self
+		
+		self.debuggerWindowController = NSWindowController(window: debuggerWindow)
+		self.debuggerWindowController?.showWindow(nil)
 	}
-
-	func applicationWillTerminate(_ aNotification: Notification) {
-		// Insert code here to tear down your application
-	}
-
-	func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
-		return true
-	}
-
-
 }
 
+extension AppDelegate: NSWindowDelegate {
+	func windowWillClose(_ notification: Notification) {
+		if let window = notification.object as? NSWindow,
+		   window == self.debuggerWindowController?.window {
+			self.debuggerWindowController = nil
+		}
+	}
+}
