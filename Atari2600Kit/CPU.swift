@@ -16,6 +16,16 @@ public struct MOS6507 {
 	
 	private(set) public var stackPointer: Word
 	private(set) public var programCounter: Address
+	
+	public init() {
+		self.accumulator = 0x00
+		self.X = 0x00
+		self.Y = 0x00
+		self.status = []
+		
+		self.stackPointer = 0x00
+		self.programCounter = 0x0000
+	}
 }
 
 public extension MOS6507 {

@@ -15,7 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	@IBOutlet var window: NSWindow!
 	
 	@IBAction func showDebuggerWindow(_ sender: AnyObject) {
-		let debuggerView = DebugView()
+		let debuggerView = DebuggerView()
 			.frame(width: 400, height: 600)
 		
 		let viewController = NSHostingController(rootView: debuggerView)
