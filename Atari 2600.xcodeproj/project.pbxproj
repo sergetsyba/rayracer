@@ -10,6 +10,9 @@
 		953D92AA2A1AEB7400EC52AC /* Atari2600Kit.h in Headers */ = {isa = PBXBuildFile; fileRef = 953D92A92A1AEB7400EC52AC /* Atari2600Kit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92AE2A1AEB8300EC52AC /* Console.swift */; };
 		953D92B12A1AEB9E00EC52AC /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92B02A1AEB9E00EC52AC /* CPU.swift */; };
+		954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18662A1AEE5800EBC582 /* AppDelegate.swift */; };
+		954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 954A18682A1AEE5A00EBC582 /* Assets.xcassets */; };
+		954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 954A186A2A1AEE5A00EBC582 /* MainMenu.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -17,10 +20,22 @@
 		953D92A92A1AEB7400EC52AC /* Atari2600Kit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Atari2600Kit.h; sourceTree = "<group>"; };
 		953D92AE2A1AEB8300EC52AC /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		953D92B02A1AEB9E00EC52AC /* CPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPU.swift; sourceTree = "<group>"; };
+		954A18642A1AEE5800EBC582 /* Atari2600.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atari2600.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		954A18662A1AEE5800EBC582 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		954A18682A1AEE5A00EBC582 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		954A186B2A1AEE5A00EBC582 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atari2600.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		953D92A42A1AEB7400EC52AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		954A18612A1AEE5800EBC582 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +48,7 @@
 		951E2F7A2A18B11900E6902F = {
 			isa = PBXGroup;
 			children = (
+				954A18652A1AEE5800EBC582 /* Atari2600 */,
 				953D92A82A1AEB7400EC52AC /* Atari2600Kit */,
 				951E2F842A18B11900E6902F /* Products */,
 			);
@@ -42,6 +58,7 @@
 			isa = PBXGroup;
 			children = (
 				953D92A72A1AEB7400EC52AC /* Atari2600Kit.framework */,
+				954A18642A1AEE5800EBC582 /* Atari2600.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -54,6 +71,17 @@
 				953D92B02A1AEB9E00EC52AC /* CPU.swift */,
 			);
 			path = Atari2600Kit;
+			sourceTree = "<group>";
+		};
+		954A18652A1AEE5800EBC582 /* Atari2600 */ = {
+			isa = PBXGroup;
+			children = (
+				954A18662A1AEE5800EBC582 /* AppDelegate.swift */,
+				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
+				954A186A2A1AEE5A00EBC582 /* MainMenu.xib */,
+				954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */,
+			);
+			path = Atari2600;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -88,6 +116,23 @@
 			productReference = 953D92A72A1AEB7400EC52AC /* Atari2600Kit.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		954A18632A1AEE5800EBC582 /* Atari2600 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 954A186E2A1AEE5A00EBC582 /* Build configuration list for PBXNativeTarget "Atari2600" */;
+			buildPhases = (
+				954A18602A1AEE5800EBC582 /* Sources */,
+				954A18612A1AEE5800EBC582 /* Frameworks */,
+				954A18622A1AEE5800EBC582 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Atari2600;
+			productName = Atari2600;
+			productReference = 954A18642A1AEE5800EBC582 /* Atari2600.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -101,6 +146,9 @@
 					953D92A62A1AEB7400EC52AC = {
 						CreatedOnToolsVersion = 14.3;
 						LastSwiftMigration = 1430;
+					};
+					954A18632A1AEE5800EBC582 = {
+						CreatedOnToolsVersion = 14.3;
 					};
 				};
 			};
@@ -118,6 +166,7 @@
 			projectRoot = "";
 			targets = (
 				953D92A62A1AEB7400EC52AC /* Atari2600Kit */,
+				954A18632A1AEE5800EBC582 /* Atari2600 */,
 			);
 		};
 /* End PBXProject section */
@@ -127,6 +176,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		954A18622A1AEE5800EBC582 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
+				954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,7 +200,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		954A18602A1AEE5800EBC582 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		954A186A2A1AEE5A00EBC582 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				954A186B2A1AEE5A00EBC582 /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		951E2F902A18B11A00E6902F /* Debug */ = {
@@ -325,6 +402,56 @@
 			};
 			name = Release;
 		};
+		954A186F2A1AEE5A00EBC582 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Atari2600/Atari2600.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainNibFile = MainMenu;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.tsyba.Atari2600;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		954A18702A1AEE5A00EBC582 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Atari2600/Atari2600.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainNibFile = MainMenu;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.tsyba.Atari2600;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -342,6 +469,15 @@
 			buildConfigurations = (
 				953D92AC2A1AEB7400EC52AC /* Debug */,
 				953D92AD2A1AEB7400EC52AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		954A186E2A1AEE5A00EBC582 /* Build configuration list for PBXNativeTarget "Atari2600" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				954A186F2A1AEE5A00EBC582 /* Debug */,
+				954A18702A1AEE5A00EBC582 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
