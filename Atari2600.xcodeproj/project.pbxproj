@@ -152,7 +152,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 951E2F7E2A18B11900E6902F /* Build configuration list for PBXProject "Atari 2600" */;
+			buildConfigurationList = 951E2F7E2A18B11900E6902F /* Build configuration list for PBXProject "Atari2600" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -455,7 +455,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		951E2F7E2A18B11900E6902F /* Build configuration list for PBXProject "Atari 2600" */ = {
+		951E2F7E2A18B11900E6902F /* Build configuration list for PBXProject "Atari2600" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				951E2F902A18B11A00E6902F /* Debug */,
