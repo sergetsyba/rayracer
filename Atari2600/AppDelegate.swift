@@ -7,24 +7,37 @@
 
 import Cocoa
 import SwiftUI
+import Atari2600Kit
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 	private var debuggerWindowController: NSWindowController?
+	private var console = Atari2600()
 	
 	@IBOutlet var window: NSWindow!
 	
 	@IBAction func showDebuggerWindow(_ sender: AnyObject) {
-		let debuggerView = DebuggerView()
+		let debuggerView = DebuggerView(console: self.console)
 			.frame(width: 400, height: 600)
 		
-		let viewController = NSHostingController(rootView: debuggerView)
-		let debuggerWindow = NSWindow(contentViewController: viewController)
+		let debuggerViewController = NSHostingController(rootView: debuggerView)
+		let debuggerWindow = NSWindow(contentViewController: debuggerViewController)
 		debuggerWindow.title = "Debugger"
 		debuggerWindow.delegate = self
 		
 		self.debuggerWindowController = NSWindowController(window: debuggerWindow)
 		self.debuggerWindowController?.showWindow(nil)
+	}
+	
+	@IBAction func insertCartridgeMenuItemSelected(_ sender: NSMenuItem) {
+		let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/ROMS/Pac-Man.bin")
+		do {
+			let data = try Data(contentsOf: url)
+			self.console.insertCartridge(data: data)
+		} catch {
+			// TODO: handle error
+			print(error)
+		}
 	}
 }
 

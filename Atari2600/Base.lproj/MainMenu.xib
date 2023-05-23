@@ -64,6 +64,19 @@
                         </items>
                     </menu>
                 </menuItem>
+                <menuItem title="Console" id="Hva-v7-MDX">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Console" autoenablesItems="NO" id="Grf-NX-OUb">
+                        <items>
+                            <menuItem title="Insert Cartridge" id="G6B-pP-Kya">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="insertCartridgeMenuItemSelected:" target="-1" id="Ik2-Km-sfa"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
                 <menuItem title="File" id="dMs-cI-mzQ">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="File" id="bib-Uj-vzu">
