@@ -82,6 +82,19 @@
                         </items>
                     </menu>
                 </menuItem>
+                <menuItem title="Debug" id="AYR-5t-LOm">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Debug" id="oFx-a1-OL4">
+                        <items>
+                            <menuItem title="Step" keyEquivalent="n" id="eNY-Yg-lVd">
+                                <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                                <connections>
+                                    <action selector="stepMenuItemSelected:" target="-1" id="8oP-4O-Ju8"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
                 <menuItem title="File" id="dMs-cI-mzQ">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="File" id="bib-Uj-vzu">

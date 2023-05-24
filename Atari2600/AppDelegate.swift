@@ -25,7 +25,7 @@ extension AppDelegate {
 		let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/ROMS/Pac-Man.bin")
 		do {
 			let data = try Data(contentsOf: url)
-			self.console.insertCartridge(data: data)
+			self.console.memory.rom = data
 		} catch {
 			// TODO: handle error
 			print(error)
@@ -34,6 +34,10 @@ extension AppDelegate {
 	
 	@IBAction func gameResetMenuItemSelected(_ sender: NSMenuItem) {
 		self.console.cpu.reset()
+	}
+	
+	@IBAction func stepMenuItemSelected(_ sender: AnyObject) {
+		self.console.cpu.step()
 	}
 	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {

@@ -17,11 +17,6 @@ public class Atari2600: ObservableObject {
 	}
 }
 
-public extension Atari2600 {
-	func insertCartridge(data: Data) {
-		self.memory.rom = data
-	}
-}
 
 // MARK: -
 extension Atari2600: MOS6502Bus {
