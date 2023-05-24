@@ -68,10 +68,15 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Console" autoenablesItems="NO" id="Grf-NX-OUb">
                         <items>
-                            <menuItem title="Insert Cartridge" id="G6B-pP-Kya">
-                                <modifierMask key="keyEquivalentModifierMask"/>
+                            <menuItem title="Insert Cartridge" keyEquivalent="o" id="G6B-pP-Kya">
                                 <connections>
                                     <action selector="insertCartridgeMenuItemSelected:" target="-1" id="Ik2-Km-sfa"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="kK0-KW-5of"/>
+                            <menuItem title="Game Reset" keyEquivalent="r" id="Pg0-pC-YRK">
+                                <connections>
+                                    <action selector="gameResetMenuItemSelected:" target="-1" id="w0I-yR-n5i"/>
                                 </connections>
                             </menuItem>
                         </items>
@@ -672,7 +677,7 @@
                             <menuItem title="Debugger" keyEquivalent="0" id="sJP-zf-ldj">
                                 <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
                                 <connections>
-                                    <action selector="showDebuggerWindow:" target="-1" id="KMe-PB-yMg"/>
+                                    <action selector="debuggerMenuItemSelected:" target="-1" id="2mL-Ye-Bx2"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="c5n-PU-MYG"/>

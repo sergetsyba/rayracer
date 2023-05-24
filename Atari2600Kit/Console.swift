@@ -6,17 +6,26 @@
 //
 
 public class Atari2600: ObservableObject {
-	@Published private(set) public var cpu: MOS6507
-	@Published private(set) public var memory: Memory
+	@Published public var cpu: MOS6507
+	@Published public var memory: Memory
 	
 	public init() {
 		self.cpu = MOS6507()
-		self.memory = Data(repeating: 0x00, count: 0x1fff)
+		self.memory = Data(repeating: 0x00, count: 0xffff)
+		
+		self.cpu.bus = self
 	}
 }
 
 public extension Atari2600 {
 	func insertCartridge(data: Data) {
 		self.memory.rom = data
+	}
+}
+
+// MARK: -
+extension Atari2600: MOS6502Bus {
+	func read(at address: MOS6507.Address) -> MOS6507.Word {
+		return self.memory[Int(address)]
 	}
 }

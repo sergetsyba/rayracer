@@ -34,5 +34,5 @@ private extension Range<Memory.Index> {
 	static let tiaRegistersRange = 0x0000..<0x007f
 	static let ramRange = 0x0080..<0x00ff
 	static let riotRegistersRange = 0x0200..<0x02ff
-	static let romRange = 0x1000..<0x1fff
+	static let romRange = 0xf000..<0xffff
 }
