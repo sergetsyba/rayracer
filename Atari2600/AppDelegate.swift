@@ -26,6 +26,7 @@ extension AppDelegate {
 		do {
 			let data = try Data(contentsOf: url)
 			self.console.memory.rom = data
+			self.console.cpu.decode(data: data)
 		} catch {
 			// TODO: handle error
 			print(error)

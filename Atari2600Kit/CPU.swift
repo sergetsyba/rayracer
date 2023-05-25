@@ -54,6 +54,81 @@ public extension MOS6507 {
 		let addressing = Addressing(code: code)
 		print(operation, addressing)
 	}
+	
+	func decode(data: Data) {
+		var index = data.startIndex
+		
+		while index < data.endIndex {
+			let opcode = data[index]
+			guard let operation = Operation(code: opcode),
+				  let addressing = Addressing(code: opcode) else {
+				
+				print(String(format: "%04x\t%02x\t\t?", index, opcode))
+				index += 1
+				continue
+			}
+			
+			switch addressing {
+			case .accumulator:
+				print(String(format: "%04x\t%02x\t\t\(operation) A",index,  opcode))
+				index += 1
+			case .implied:
+				print(String(format: "%04x\t%02x\t\t\(operation)", index, opcode))
+				index += 1
+			case .immediate:
+				let operand = data[index + 1]
+				print(String(format: "%04x\t%02x %02x\t\(operation) #$%02x", index, opcode, operand, operand))
+				index += 2
+				
+			case .relative:
+				let operand = data[index + 1]
+				var address = UInt16(index + 2)
+				if operand > 0x7f {
+					address -= UInt16(~operand + 1) & 0x7f
+				} else {
+					address += UInt16(operand)
+				}
+				
+				print(String(format: "%04x\t%02x %02x\t\(operation) $%04x", index, opcode, operand, address))
+				index += 2
+				
+			case .zeroPage:
+				let operand = data[index + 1]
+				print(String(format: "%04x\t%02x %02x\t\(operation) $%02x", index, opcode, operand, operand))
+				index += 2
+			case .zeroPageX:
+				let operand = data[index + 1]
+				print(String(format: "%04x\t%02x %02x\t\(operation) $%02x,X", index, opcode, operand, operand))
+				index += 2
+			case .zeroPageY:
+				let operand = data[index + 1]
+				print(String(format: "%04x\t%02x %02x\t\(operation) $%02x,Y", index, opcode, operand, operand))
+				index += 2
+				
+			case .absolute:
+				let operand = Address(data[index + 1], data[index + 2])
+				print(String(format: "%04x\t%02x %04x\t\(operation) $%04x", index, opcode, operand, operand))
+				index += 3
+			case .absoluteX:
+				let operand = Address(data[index + 1], data[index + 2])
+				print(String(format: "%04x\t%02x %04x\t\(operation) $%04x,X", index, opcode, operand, operand))
+				index += 3
+			case .absoluteY:
+				let operand = Address(data[index + 1], data[index + 2])
+				print(String(format: "%04x\t%02x %04x\t\(operation) $%04x,Y", index, opcode, operand, operand))
+				index += 3
+				
+			case .indirectX:
+				let operand = data[index + 1]
+				print(String(format: "%04x\t%02x %02x\t\(operation) ($%02x,X)", index, opcode, operand, operand))
+				index += 2
+			case .indirectY:
+				let operand = data[index + 1]
+				print(String(format: "%04x\t%02x %02x\t\(operation) ($%02x),Y", index, opcode, operand, operand))
+				index += 2
+			}
+		}
+	}
 }
 
 protocol MOS6502Bus {
@@ -182,138 +257,171 @@ private extension MOS6507.Address {
 	}
 }
 
+private extension UInt8 {
+	var twosComplement: Int8 {
+		let complement = ~self + 1
+		
+		let sign: Int8 = complement > 0x7f ? -1 : 1
+		return sign * Int8(complement & 0x7f)
+	}
+}
+
 
 // MARK: -
 // MARK: Operation decoding
 private extension MOS6507.Operation {
 	init?(code: MOS6507.Word) {
-		let group = code & 0x3
-		let subcode = code >> 5
-		
-		switch group {
-		case 1:
-			switch subcode {
-			case 0: self = .ora
-			case 1: self = .and
-			case 2: self = .eor
-			case 3: self = .adc
-			case 4: self = .sta
-			case 5: self = .lda
-			case 6: self = .cmp
-			case 7: self = .sbc
-			default:
-				return nil
-			}
-		case 2:
-			switch subcode {
-			case 0: self = .asl
-			case 1: self = .rol
-			case 2: self = .lsr
-			case 3: self = .ror
-			case 4: self = .stx
-			case 5: self = .ldx
-			case 6: self = .dec
-			case 7: self = .inc
-			default:
-				return nil
-			}
-		case 0:
-			switch code {
-			case 0x10: self = .bpl
-			case 0x30: self = .bmi
-			case 0x50: self = .bvc
-			case 0x70: self = .bvs
-			case 0x90: self = .bcc
-			case 0xb0: self = .bcs
-			case 0xd0: self = .bne
-			case 0xf0: self = .beq
-				
-			case 0x00: self = .brk
-			case 0x20: self = .jsr
-			case 0x40: self = .rti
-			case 0x60: self = .rts
-			case 0x08: self = .php
-			case 0x28: self = .plp
-			case 0x48: self = .pha
-			case 0x68: self = .pla
-				
-			case 0x18: self = .clc
-			case 0x38: self = .sec
-			case 0x58: self = .cli
-			case 0x78: self = .sei
-			case 0xb8: self = .clv
-			case 0xd8: self = .cld
-			case 0xf8: self = .sed
-				
-			case 0x88: self = .dey
-			case 0x98: self = .tya
-			case 0xa8: self = .tay
-			case 0xc8: self = .iny
-			case 0xe8: self = .inx
-			case 0x8a: self = .txa
-			case 0x9a: self = .txs
-			case 0xaa: self = .tax
-			case 0xba: self = .tsx
-			case 0xca: self = .dex
-			case 0xea: self = .nop
-				
-			default:
-				return nil
-			}
+		switch code {
+		case 0x10: self = .bpl
+		case 0x30: self = .bmi
+		case 0x50: self = .bvc
+		case 0x70: self = .bvs
+		case 0x90: self = .bcc
+		case 0xb0: self = .bcs
+		case 0xd0: self = .bne
+		case 0xf0: self = .beq
+			
+		case 0x00: self = .brk
+		case 0x20: self = .jsr
+		case 0x40: self = .rti
+		case 0x60: self = .rts
+			
+		case 0x08: self = .php
+		case 0x28: self = .plp
+		case 0x48: self = .pha
+		case 0x68: self = .pla
+			
+		case 0x18: self = .clc
+		case 0x38: self = .sec
+		case 0x58: self = .cli
+		case 0x78: self = .sei
+		case 0xb8: self = .clv
+		case 0xd8: self = .cld
+		case 0xf8: self = .sed
+			
+		case 0xaa: self = .tax
+		case 0x8a: self = .txa
+		case 0x9a: self = .txs
+		case 0xba: self = .tsx
+		case 0xa8: self = .tay
+		case 0x98: self = .tya
+		case 0xc8: self = .iny
+		case 0xe8: self = .inx
+		case 0x88: self = .dey
+		case 0xca: self = .dex
+			
+		case 0xea: self = .nop
+			
 		default:
-			return nil
+			let group = code & 0x3
+			let subcode = code >> 5
+			
+			switch group {
+			case 1:
+				switch subcode {
+				case 0: self = .ora
+				case 1: self = .and
+				case 2: self = .eor
+				case 3: self = .adc
+				case 4: self = .sta
+				case 5: self = .lda
+				case 6: self = .cmp
+				case 7: self = .sbc
+				default:
+					return nil
+				}
+			case 2:
+				switch subcode {
+				case 0: self = .asl
+				case 1: self = .rol
+				case 2: self = .lsr
+				case 3: self = .ror
+				case 4: self = .stx
+				case 5: self = .ldx
+				case 6: self = .dec
+				case 7: self = .inc
+				default:
+					return nil
+				}
+			case 0:
+				switch subcode {
+				case 1: self = .bit
+				case 2: self = .jmp
+				case 3: self = .jmp
+				case 4: self = .sty
+				case 5: self = .ldy
+				case 6: self = .cpy
+				case 7: self = .cpx
+				default:
+					return nil
+				}
+			default:
+				return nil
+			}
 		}
 	}
 }
 
 private extension MOS6507.Addressing {
 	init?(code: MOS6507.Word) {
-		let group = code & 0x3
-		let subcode = (code >> 2) & 0x7
-		
-		switch group {
-		case 1:
-			switch subcode {
-			case 0: self = .zeroPageX
-			case 1: self = .zeroPage
-			case 2: self = .immediate
-			case 3: self = .absolute
-			case 4: self = .zeroPageY
-			case 5: self = .zeroPageX
-			case 6: self = .absoluteY
-			case 7: self = .absoluteX
-			default:
-				return nil
-			}
-		case 2:
-			switch subcode {
-			case 0: self = .immediate
-			case 1: self = .zeroPage
-			case 2: self = .accumulator
-			case 3: self = .absolute
-			case 5: self = .zeroPageX
-			case 7: self = .absoluteX
-			default:
-				return nil
-			}
-		case 0:
-			switch code {
-			case 0x10, 0x30, 0x50, 0x70, 0x90, 0xb0, 0xd0, 0xf0:
-				// BPL, BMI, BVC, BVS, BCC, BCS, BNE, BEQ
-				self = .relative
-			case 0x00, 0x40, 0x60, 0x08, 0x28, 0x48, 0x68:
-				// BRK, RTI, RTS, PHP, PLP, PHA, PLA
-				self = .implied
-			case 0x20:
-				// JSR
-				self = .absolute
-			case 0x18, 0x38, 0x58, 0x78, 0xb8, 0xd8, 0xf8:
-				// CLC, SEC, CLI, SEI, CLV, CLD, SED
-				self = .implied
-			case 0x88, 0x98, 0xa8, 0xc8, 0xe8, 0x8a, 0x9a, 0xaa, 0xba, 0xca, 0xea:
-				// DEY, TYA, TAY, INY, INX, TXA, TXS, TAX, TSX, DEX, NOP
-				self = .implied
-			default:
+		switch code {
+			// BPL, BMI, BVC, BVS, BCC, BCS, BNE, BEQ
+		case 0x10, 0x30, 0x50, 0x70, 0x90, 0xb0, 0xd0, 0xf0:
+			self = .relative
+			// BRK, RTI, RTS
+		case 0x00, 0x40, 0x60,
+			// PHP, PLP, PHA, PLA
+			0x08, 0x28, 0x48, 0x68,
+			// CLC, SEC, CLI, SEI, CLV, CLD, SED
+			0x18, 0x38, 0x58, 0x78, 0xb8, 0xd8, 0xf8,
+			// TAX, TXA, TXS, TSX, TAY, TYA, INY, INX, DEY, DEX
+			0xaa, 0x8a, 0x9a, 0xba, 0xa8, 0x98, 0xc8, 0xe8, 0x88, 0xca,
+			// NOP
+			0xea:
+			self = .implied
+			// JSR
+		case 0x20:
+			self = .absolute
+			
+		default:
+			let group = code & 0x3
+			let subcode = (code >> 2) & 0x7
+			
+			switch group {
+			case 1:
+				switch subcode {
+				case 0: self = .indirectX
+				case 1: self = .zeroPage
+				case 2: self = .immediate
+				case 3: self = .absolute
+				case 4: self = .indirectY
+				case 5: self = .zeroPageX
+				case 6: self = .absoluteY
+				case 7: self = .absoluteX
+				default:
+					return nil
+				}
+			case 2:
+				switch code {
+					// STX
+				case 0x96: self = .zeroPageY
+					// LDX
+				case 0xb6: self = .zeroPageY
+					// LDX
+				case 0xbe: self = .absoluteY
+				default:
+					switch subcode {
+					case 0: self = .immediate
+					case 1: self = .zeroPage
+					case 2: self = .accumulator
+					case 3: self = .absolute
+					case 5: self = .zeroPageX
+					case 7: self = .absoluteX
+					default:
+						return nil
+					}
+				}
+			case 0:
 				switch subcode {
 				case 0: self = .immediate
 				case 1: self = .zeroPage
@@ -323,9 +431,9 @@ private extension MOS6507.Addressing {
 				default:
 					return nil
 				}
+			default:
+				return nil
 			}
-		default:
-			return nil
 		}
 	}
 }
