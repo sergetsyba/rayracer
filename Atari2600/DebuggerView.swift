@@ -57,7 +57,15 @@ struct DebuggerView: View {
 				}
 				.font(.system(size: 11.0, design: .monospaced))
 			}
+		}.toolbar {
+			Button(action: self.stepOperation) {
+				Label("Step", systemImage: "chevron.right.2")
+			}
 		}
+	}
+	
+	func stepOperation() {
+		
 	}
 }
 
