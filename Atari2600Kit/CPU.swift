@@ -11,7 +11,7 @@ public struct MOS6507 {
 	private(set) public var Y: Word
 	private(set) public var status: Status
 	
-	private(set) public var stackPointer: Word
+	private(set) public var stackPointer: Address
 	private(set) public var programCounter: Address
 	private var cycle: UInt64
 	
@@ -21,7 +21,7 @@ public struct MOS6507 {
 		self.accumulator = 0x00
 		self.X = 0x00
 		self.Y = 0x00
-		self.status = []
+		self.status = 0x00
 		
 		self.stackPointer = 0x00
 		self.programCounter = 0x0000
@@ -34,7 +34,7 @@ public extension MOS6507 {
 		self.accumulator = 0x00
 		self.X = 0x00
 		self.Y = 0x00
-		self.status = []
+		self.status = 0x00
 		
 		self.stackPointer = 0xfd
 		self.programCounter = Address(
@@ -46,13 +46,379 @@ public extension MOS6507 {
 	
 	mutating func step() {
 		let code = self.bus.read(at: self.programCounter)
+		guard let operation = Operation(code: code),
+			  let addressing = Addressing(code: code) else {
+			print("Illegal opcode at \(self.programCounter): \(code).")
+			return
+		}
+		
 		self.programCounter += 1
+		self.perform(operation, addressing)
+	}
+	
+	private func pushToStack(_ value: Word) {
 		
-		print(String(format: "%02x", code))
+	}
+	
+	private func pushToStack(_ address: Address) {
 		
-		let operation = Operation(code: code)
-		let addressing = Addressing(code: code)
-		print(operation, addressing)
+	}
+	
+	private func pullFromStack() -> Word {
+		return 0x00
+	}
+	
+	private func read(at adress: Address, using adressing: Addressing) -> Word {
+		return 0x00
+	}
+	
+	private func operand(adressed adressing: Addressing) -> (Word, Address) {
+		return (0x00, 0x0000)
+	}
+	
+	private mutating func perform(_ operation: Operation, _ addressing: Addressing) {
+		switch operation {
+		case .adc:
+			// TODO:
+			break
+
+		case .and:
+			let (operand, _) = self.operand(adressed: addressing)
+			let result = self.accumulator & operand
+
+			self.accumulator = result
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .asl:
+			let (operand, address) = self.operand(adressed: addressing)
+			let result = operand << 1
+
+			if addressing == .accumulator {
+				self.accumulator = result
+			} else {
+				self.bus.write(result, at: address)
+			}
+
+			self.status.carry = result[8]
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .bcc:
+			let (offset, _) = self.operand(adressed: addressing)
+			if self.status.carry == false {
+				self.programCounter += Address(offset, 0x00)
+			}
+
+		case .bcs:
+			let (offset, _) = self.operand(adressed: addressing)
+			if self.status.carry {
+				self.programCounter += Address(offset, 0x00)
+			}
+
+		case .beq:
+			let (offset, _) = self.operand(adressed: addressing)
+			if self.status.zero {
+				self.programCounter += Address(offset, 0x00)
+			}
+
+		case .bit:
+			let (operand, _) = self.operand(adressed: addressing)
+			let result = operand & self.accumulator
+
+			self.status.overflow = operand[6]
+			self.status.zero = result == 0x00
+			self.status.negative = operand[7]
+
+		case .bmi:
+			let (offset, _) = self.operand(adressed: addressing)
+			if self.status.negative {
+				self.programCounter += Address(offset, 0x00)
+			}
+
+		case .bne:
+			let (offset, _) = self.operand(adressed: addressing)
+			if self.status.zero == false {
+				self.programCounter += Address(offset, 0x00)
+			}
+
+		case .bpl:
+			let (offset, _) = self.operand(adressed: addressing)
+			if self.status.negative == false {
+				self.programCounter += Address(offset, 0x00)
+			}
+
+		case .brk:
+			self.pushToStack(self.programCounter)
+			self.pushToStack(self.status)
+			self.status.interrupt = true
+
+		case .bvc:
+			let (offset, _) = self.operand(adressed: addressing)
+			if self.status.overflow == false {
+				self.programCounter += Address(offset, 0x00)
+			}
+
+		case .bvs:
+			let (offset, _) = self.operand(adressed: addressing)
+			if self.status.overflow {
+				self.programCounter += Address(offset, 0x00)
+			}
+
+		case .clc:
+			self.status.carry = false
+		case .cld:
+			self.status.decimal = false
+		case .cli:
+			self.status.interrupt = false
+		case .clv:
+			self.status.overflow = false
+
+		case .cmp:
+			let (operand, _) = self.operand(adressed: addressing)
+			let result = self.accumulator + (~operand + 1)
+
+			self.status.carry = self.accumulator > operand
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .cpx:
+			let (operand, _) = self.operand(adressed: addressing)
+			let result = self.X + (~operand + 1)
+
+			self.status.carry = self.X >= operand
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .cpy:
+			let (operand, _) = self.operand(adressed: addressing)
+			let result = self.Y + (~operand + 1)
+
+			self.status.carry = self.Y >= operand
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .dec:
+			let (operand, address) = self.operand(adressed: addressing)
+			let result = operand + (~0x01 + 1)
+
+			self.bus.write(result, at: address)
+
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .dex:
+			let result = self.X + (~0x01 + 1)
+
+			self.X = result
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .dey:
+			let result = self.Y + (~0x01 + 1)
+
+			self.Y = result
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .eor:
+			let (operand, _) = self.operand(adressed: addressing)
+			let result = self.accumulator ^ operand
+
+			self.accumulator = result
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .inc:
+			let (operand, address) = self.operand(adressed: addressing)
+			let result = operand + 1
+
+			self.bus.write(result, at: address)
+
+			self.status.zero = result == 0
+			self.status.negative = result[7]
+
+		case .inx:
+			let result = self.X + 1
+
+			self.X = result
+			self.status.zero = result == 0
+			self.status.negative = result[7]
+
+		case .iny:
+			let result = self.Y + 1
+
+			self.Y = result
+			self.status.zero = result == 0
+			self.status.negative = result[7]
+
+		case .jmp:
+			// TODO: JMP
+			break
+
+		case .jsr:
+			// TODO: JSR
+			break
+
+		case .lda:
+			let (operand, _) = self.operand(adressed: addressing)
+
+			self.accumulator = operand
+			self.status.zero = operand == 0x00
+			self.status.negative = operand[7]
+
+		case .ldx:
+			let (operand, _) = self.operand(adressed: addressing)
+
+			self.X = operand
+			self.status.zero = operand == 0x00
+			self.status.negative = operand[7]
+
+		case .ldy:
+			let (operand, _) = self.operand(adressed: addressing)
+
+			self.Y = operand
+			self.status.zero = operand == 0x00
+			self.status.negative = operand[7]
+
+		case .lsr:
+			let (operand, address) = self.operand(adressed: addressing)
+			let result = operand >> 1
+
+			if addressing == .accumulator {
+				self.accumulator = result
+			} else {
+				self.bus.write(result, at: address)
+			}
+
+			self.status.carry = operand[0]
+			self.status.zero = result == 0x00
+			self.status.negative = false
+
+		case .nop:
+			// does nothing
+			break
+
+		case .ora:
+			let (operand, _) = self.operand(adressed: addressing)
+			let result = self.accumulator & operand
+
+			self.accumulator = result
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .pha:
+			self.pushToStack(self.accumulator)
+		case .php:
+			self.pushToStack(self.status)
+		case .pla:
+			self.accumulator = self.pullFromStack()
+		case .plp:
+			self.status = self.pullFromStack()
+
+		case .rol:
+			let (operand, address) = self.operand(adressed: addressing)
+			let carry: UInt8 = self.status.carry ? 0x01 : 0x00
+			let result = (operand << 1) & carry
+
+			if addressing == .accumulator {
+				self.accumulator = result
+			} else {
+				self.bus.write(result, at: address)
+			}
+
+			self.status.carry = operand[7]
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .ror:
+			let (operand, address) = self.operand(adressed: addressing)
+			let carry: UInt8 = self.status.carry ? 0x80 : 0x00
+			let result = (operand >> 1) & carry
+
+			if addressing == .accumulator {
+				self.accumulator = result
+			} else {
+				self.bus.write(result, at: address)
+			}
+
+			self.status.carry = operand[0]
+			self.status.zero = result == 0x00
+			self.status.negative = result[7]
+
+		case .rti:
+			// TODO: RTI
+			break
+
+		case .rts:
+			// TODO: RTS
+			break
+
+		case .sbc:
+			// TODO: SBC
+			break
+
+		case .sec:
+			self.status.carry = true
+		case .sed:
+			self.status.decimal = true
+		case .sei:
+			self.status.interrupt = true
+
+		case .sta:
+			let (_, address) = self.operand(adressed: addressing)
+			self.bus.write(self.accumulator, at: address)
+
+		case .stx:
+			let (_, address) = self.operand(adressed: addressing)
+			self.bus.write(self.X, at: address)
+
+		case .sty:
+			let (_, address) = self.operand(adressed: addressing)
+			self.bus.write(self.Y, at: address)
+
+		case .tax:
+			let value = self.accumulator
+			self.X = value
+
+			self.status.zero = value == 0x00
+			self.status.negative = value[7]
+
+		case .tay:
+			let value = self.accumulator
+			self.Y = value
+
+			self.status.zero = value == 0x00
+			self.status.negative = value[7]
+
+		case .tya:
+			let value = self.Y
+			self.accumulator = value
+
+			self.status.zero = value == 0x00
+			self.status.negative = value[7]
+
+		case .tsx:
+			let value = self.stackPointer.low
+			self.X = value
+
+			self.status.zero = value == 0x00
+			self.status.negative = value[7]
+
+		case .txa:
+			let value = self.X
+			self.accumulator = value
+
+			self.status.zero = value == 0x00
+			self.status.negative = value[7]
+
+		case .txs:
+			let value = self.X
+			self.stackPointer = Address(value, 0x00)
+
+			self.status.zero = value == 0x00
+			self.status.negative = value[7]
+		}
 	}
 	
 	func decode(data: Data) {
@@ -60,8 +426,8 @@ public extension MOS6507 {
 		
 		while index < data.endIndex {
 			let opcode = data[index]
-			guard let operation = Operation(code: opcode),
-				  let addressing = Addressing(code: opcode) else {
+			guard let operation = Operation(code: MOS6507.Word(opcode)),
+				  let addressing = Addressing(code: MOS6507.Word(opcode)) else {
 				
 				print(String(format: "%04x\t%02x\t\t?", index, opcode))
 				index += 1
@@ -133,26 +499,80 @@ public extension MOS6507 {
 
 protocol MOS6502Bus {
 	func read(at address: MOS6507.Address) -> MOS6507.Word
+	func write(_ value: MOS6507.Word, at address: MOS6507.Address)
 }
 
 public extension MOS6507 {
 	typealias Word = UInt8
 	typealias Address = UInt16
-	
-	struct Status: OptionSet {
-		public var rawValue: UInt8
-		
-		public init(rawValue: UInt8) {
-			self.rawValue = rawValue
+	typealias Status = UInt8
+}
+
+private extension MOS6507.Word {
+	subscript(bit: Int) -> Bool {
+		return (self >> bit) & 0x1 == 0x1
+	}
+}
+
+public extension MOS6507.Status {
+	var carry: Bool {
+		get {
+			return self[0]
 		}
-		
-		static let carry = Status(rawValue: 1 << 0)
-		static let zero = Status(rawValue: 1 << 1)
-		static let interrupt = Status(rawValue: 1 << 2)
-		static let decimal = Status(rawValue: 1 << 3)
-		static let `break` = Status(rawValue: 1 << 4)
-		static let overflow = Status(rawValue: 1 << 6)
-		static let negative = Status(rawValue: 1 << 7)
+		set {
+			self &= newValue ? 0x01 : ~0x01
+		}
+	}
+	
+	var zero: Bool {
+		get {
+			return self[1]
+		}
+		set {
+			self &= newValue ? 0x02 : ~0x02
+		}
+	}
+	
+	var interrupt: Bool {
+		get {
+			return self[2]
+		}
+		set {
+			self &= newValue ? 0x04 : ~0x04
+		}
+	}
+	
+	var decimal: Bool {
+		get {
+			return self[3]
+		}
+		set {
+			self &= newValue ? 0x08 : ~0x08
+		}
+	}
+	
+	var overflow: Bool {
+		get {
+			return self[6]
+		}
+		set {
+			self &= newValue ? 0x40 : ~0x40
+		}
+	}
+	
+	var negative: Bool {
+		get {
+			return self[7]
+		}
+		set {
+			self &= newValue ? 0x80 : ~0x80
+		}
+	}
+}
+
+extension MOS6507.Word {
+	var isNegative: Bool {
+		return self & 0x80 == 0x80
 	}
 }
 
@@ -207,8 +627,6 @@ private extension MOS6507 {
 		case bmi
 		case bne
 		case bpl
-		case bpc
-		case bps
 		case bvc
 		case bvs
 		
@@ -254,6 +672,14 @@ private extension MOS6507 {
 private extension MOS6507.Address {
 	init(_ low: MOS6507.Word, _ high: MOS6507.Word) {
 		self = Self(low) | Self(high) << 8
+	}
+	
+	var high: MOS6507.Word {
+		return MOS6507.Word(self >> 8)
+	}
+	
+	var low: MOS6507.Word {
+		return MOS6507.Word(self & 0xff)
 	}
 }
 
