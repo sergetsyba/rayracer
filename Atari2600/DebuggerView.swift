@@ -26,12 +26,12 @@ struct DebuggerView: View {
 				}
 				HStack {
 					Text("Index X:")
-					Text(self.console.cpu.X.hexFormatted)
+					Text(self.console.cpu.x.hexFormatted)
 						.font(.system(size: 11.0, design: .monospaced))
 				}
 				HStack {
 					Text("Accumulator:")
-					Text(self.console.cpu.Y.hexFormatted)
+					Text(self.console.cpu.y.hexFormatted)
 						.font(.system(size: 11.0, design: .monospaced))
 				}
 				HStack {

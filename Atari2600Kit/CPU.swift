@@ -7,8 +7,8 @@
 
 public struct MOS6507 {
 	private(set) public var accumulator: Word
-	private(set) public var X: Word
-	private(set) public var Y: Word
+	private(set) public var x: Word
+	private(set) public var y: Word
 	private(set) public var status: Status
 	
 	private(set) public var stackPointer: Address
@@ -19,8 +19,8 @@ public struct MOS6507 {
 	
 	public init() {
 		self.accumulator = 0x00
-		self.X = 0x00
-		self.Y = 0x00
+		self.x = 0x00
+		self.y = 0x00
 		self.status = 0x00
 		
 		self.stackPointer = 0x00
@@ -32,8 +32,8 @@ public struct MOS6507 {
 public extension MOS6507 {
 	mutating func reset() {
 		self.accumulator = 0x00
-		self.X = 0x00
-		self.Y = 0x00
+		self.x = 0x00
+		self.y = 0x00
 		self.status = 0x00
 		
 		self.stackPointer = 0xfd
@@ -184,17 +184,17 @@ public extension MOS6507 {
 
 		case .cpx:
 			let (operand, _) = self.operand(adressed: addressing)
-			let result = self.X + (~operand + 1)
+			let result = self.x + (~operand + 1)
 
-			self.status.carry = self.X >= operand
+			self.status.carry = self.x >= operand
 			self.status.zero = result == 0x00
 			self.status.negative = result[7]
 
 		case .cpy:
 			let (operand, _) = self.operand(adressed: addressing)
-			let result = self.Y + (~operand + 1)
+			let result = self.y + (~operand + 1)
 
-			self.status.carry = self.Y >= operand
+			self.status.carry = self.y >= operand
 			self.status.zero = result == 0x00
 			self.status.negative = result[7]
 
@@ -208,16 +208,16 @@ public extension MOS6507 {
 			self.status.negative = result[7]
 
 		case .dex:
-			let result = self.X + (~0x01 + 1)
+			let result = self.x + (~0x01 + 1)
 
-			self.X = result
+			self.x = result
 			self.status.zero = result == 0x00
 			self.status.negative = result[7]
 
 		case .dey:
-			let result = self.Y + (~0x01 + 1)
+			let result = self.y + (~0x01 + 1)
 
-			self.Y = result
+			self.y = result
 			self.status.zero = result == 0x00
 			self.status.negative = result[7]
 
@@ -239,16 +239,16 @@ public extension MOS6507 {
 			self.status.negative = result[7]
 
 		case .inx:
-			let result = self.X + 1
+			let result = self.x + 1
 
-			self.X = result
+			self.x = result
 			self.status.zero = result == 0
 			self.status.negative = result[7]
 
 		case .iny:
-			let result = self.Y + 1
+			let result = self.y + 1
 
-			self.Y = result
+			self.y = result
 			self.status.zero = result == 0
 			self.status.negative = result[7]
 
@@ -270,14 +270,14 @@ public extension MOS6507 {
 		case .ldx:
 			let (operand, _) = self.operand(adressed: addressing)
 
-			self.X = operand
+			self.x = operand
 			self.status.zero = operand == 0x00
 			self.status.negative = operand[7]
 
 		case .ldy:
 			let (operand, _) = self.operand(adressed: addressing)
 
-			self.Y = operand
+			self.y = operand
 			self.status.zero = operand == 0x00
 			self.status.negative = operand[7]
 
@@ -371,28 +371,28 @@ public extension MOS6507 {
 
 		case .stx:
 			let (_, address) = self.operand(adressed: addressing)
-			self.bus.write(self.X, at: address)
+			self.bus.write(self.x, at: address)
 
 		case .sty:
 			let (_, address) = self.operand(adressed: addressing)
-			self.bus.write(self.Y, at: address)
+			self.bus.write(self.y, at: address)
 
 		case .tax:
 			let value = self.accumulator
-			self.X = value
+			self.x = value
 
 			self.status.zero = value == 0x00
 			self.status.negative = value[7]
 
 		case .tay:
 			let value = self.accumulator
-			self.Y = value
+			self.y = value
 
 			self.status.zero = value == 0x00
 			self.status.negative = value[7]
 
 		case .tya:
-			let value = self.Y
+			let value = self.y
 			self.accumulator = value
 
 			self.status.zero = value == 0x00
@@ -400,20 +400,20 @@ public extension MOS6507 {
 
 		case .tsx:
 			let value = self.stackPointer.low
-			self.X = value
+			self.x = value
 
 			self.status.zero = value == 0x00
 			self.status.negative = value[7]
 
 		case .txa:
-			let value = self.X
+			let value = self.x
 			self.accumulator = value
 
 			self.status.zero = value == 0x00
 			self.status.negative = value[7]
 
 		case .txs:
-			let value = self.X
+			let value = self.x
 			self.stackPointer = Address(value, 0x00)
 
 			self.status.zero = value == 0x00
