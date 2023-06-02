@@ -18,34 +18,49 @@ struct DebuggerView: View {
 	
 	var body: some View {
 		VStack {
-			VStack {
-				HStack {
+			Grid {
+				GridRow {
 					Text("Accumulator:")
-					Text(self.console.cpu.accumulator.hexFormatted)
-						.font(.system(size: 11.0, design: .monospaced))
+						.gridColumnAlignment(.trailing)
+					Text(self.console.cpu.accumulator.formattedData)
+					
+					Text("Program counter:")
+						.gridColumnAlignment(.trailing)
+					Text(self.console.cpu.programCounter.formattedMemory)
 				}
-				HStack {
+				GridRow {
 					Text("Index X:")
-					Text(self.console.cpu.x.hexFormatted)
-						.font(.system(size: 11.0, design: .monospaced))
+					Text(self.console.cpu.x.formattedData)
+					
+					Text("Stack pointer:")
+					Text(self.console.cpu.stackPointer.formattedMemory)
 				}
-				HStack {
-					Text("Accumulator:")
-					Text(self.console.cpu.y.hexFormatted)
-						.font(.system(size: 11.0, design: .monospaced))
+				GridRow {
+					Text("Index Y:")
+					Text(self.console.cpu.y.formattedData)
 				}
-				HStack {
-					Text("Accumulator:")
-					Text(self.console.cpu.stackPointer.hexFormatted)
-						.font(.system(size: 11.0, design: .monospaced))
+				GridRow {
+					let status = self.console.cpu.status
+					Text("Status:")
+					HStack {
+						Text("N")
+							.opacity(status.negative ? 1.0 : 0.5)
+						Text("V")
+							.opacity(status.overflow ? 1.0 : 0.5)
+						Text(" ")
+						Text("D")
+							.opacity(status.decimal ? 1.0 : 0.5)
+						Text("I")
+							.opacity(status.interrupt ? 1.0 : 0.5)
+						Text("Z")
+							.opacity(status.zero ? 1.0 : 0.5)
+						Text("C")
+							.opacity(status.carry ? 1.0 : 0.5)
+					}
+					.gridColumnAlignment(.leading)
+//					.gridCellColumns(2)
 				}
-				HStack {
-					Text("Accumulator:")
-					Text(self.console.cpu.programCounter.hexFormatted)
-						.font(.system(size: 11.0, design: .monospaced))
-				}
-			}.font(.system(size: 11.0))
-			
+			}
 			
 			ScrollView {
 				VStack(spacing: 10.0) {
@@ -55,45 +70,36 @@ struct DebuggerView: View {
 					Text(memory.riotRegisters.hexFormatted)
 					Text(memory.rom.hexFormatted)
 				}
-				.font(.system(size: 11.0, design: .monospaced))
 			}
-		}.toolbar {
-			Button(action: self.stepOperation) {
-				Label("Step", systemImage: "chevron.right.2")
-			}
-		}
-	}
-	
-	func stepOperation() {
-		
+		}.font(.system(size: 11.0, design: .monospaced))
 	}
 }
 
-private extension MOS6507.Word {
-	var hexFormatted: String {
+
+// MARK: -
+// MARK: Data formatting
+private extension Int {
+	var formattedData: String {
 		return String(format: "%02x", self)
 	}
-}
-
-private extension MOS6507.Address {
-	var hexFormatted: String {
-		return String(format: "%04x", self)
+	
+	var formattedMemory: String {
+		return String(format: "$%04x", self)
 	}
 }
 
 
 private extension Memory {
 	var hexFormatted: String {
-		let columnCount = 16
-		let rowCount = self.count / columnCount
-		
-		return (0..<rowCount)
-			.map() { index1 in
-				return (0..<columnCount)
-					.map() { columnCount * index1 + $0 }
-					.map() { self.index(self.startIndex, offsetBy: $0) }
-					.map() { self[$0].hexFormatted }
-					.joined(separator: " ")
-			}.joined(separator: "\n")
+		return ""
+//		return stride(from: self.startIndex, to: self.endIndex - 1, by: 16)
+//			.map() { self.formatRow(at: $0) }
+//			.joined(separator: "\n")
+	}
+	
+	func formatRow(at startIndex: Self.Index) -> String {
+		return (startIndex..<startIndex + 16)
+			.map() { String(format: "%02x", self[$0]) }
+			.joined(separator: " ")
 	}
 }
