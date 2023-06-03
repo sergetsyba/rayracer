@@ -26,7 +26,10 @@ extension AppDelegate {
 		do {
 			let data = try Data(contentsOf: url)
 			self.console.memory.rom = data
-			self.console.cpu.decode(data: data)
+			self.console.cpu.reset()
+			while true {
+				self.console.cpu.step()
+			}
 		} catch {
 			// TODO: handle error
 			print(error)
@@ -42,15 +45,8 @@ extension AppDelegate {
 	}
 	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {
-		let debuggerView = DebuggerView(console: self.console)
-			.frame(width: 400, height: 600)
-		
-		let debuggerViewController = NSHostingController(rootView: debuggerView)
-		let debuggerWindow = NSWindow(contentViewController: debuggerViewController)
-		debuggerWindow.title = "Debugger"
-		debuggerWindow.delegate = self
-		
-		self.debuggerWindowController = NSWindowController(window: debuggerWindow)
+		self.debuggerWindowController = DebuggerWindowController(console: self.console)
+		self.debuggerWindowController?.window?.delegate = self
 		self.debuggerWindowController?.showWindow(nil)
 	}
 }

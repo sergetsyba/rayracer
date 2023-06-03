@@ -5,63 +5,1430 @@
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
-public struct MOS6507 {
+public class MOS6507 {
 	private(set) public var accumulator: Word
-	private(set) public var X: Word
-	private(set) public var Y: Word
+	private(set) public var x: Word
+	private(set) public var y: Word
 	private(set) public var status: Status
 	
 	private(set) public var stackPointer: Word
 	private(set) public var programCounter: Address
-	private var cycle: UInt64
 	
 	var bus: MOS6502Bus!
 	
 	public init() {
 		self.accumulator = 0x00
-		self.X = 0x00
-		self.Y = 0x00
-		self.status = []
+		self.x = 0x00
+		self.y = 0x00
+		self.status = 0x00
 		
 		self.stackPointer = 0x00
 		self.programCounter = 0x0000
-		self.cycle = 0
+	}
+	
+	private lazy var operations2: [Operation: (Addressing) -> Int] = {[
+		.adc: { [unowned self] mode in
+			self.perform(addressing: mode) { address in
+				self.adc(mode)
+			}
+		},
+		.and: { [unowned self] mode in
+			self.perform(addressing: mode) { address in
+				let operand = self.bus.read(at: address)
+				let result = self.accumulator & operand
+				
+				self.accumulator = result
+				self.status.zero = result == 0x00
+				self.status.negative = result[7]
+				
+				return 1
+			}
+		}
+	]}()
+	
+	private func perform(addressing: Addressing, operation: (Address) -> Int) -> Int {
+		return 0
+	}
+	
+	lazy var operations: [Int: () -> Int] = {
+		[
+			// ADC
+			0x69: { [unowned self] in self.and(.immediate) },
+			0x65: { [unowned self] in self.and(.zeroPage) },
+			0x75: { [unowned self] in self.and(.zeroPageX) },
+			0x6d: { [unowned self] in self.and(.absolute) },
+			0x7d: { [unowned self] in self.and(.absoluteX) },
+			0x79: { [unowned self] in self.and(.absoluteY) },
+			0x61: { [unowned self] in self.and(.indirectX) },
+			0x71: { [unowned self] in self.and(.indirectY) },
+			// AND
+			0x29: { [unowned self] in self.and(.immediate) },
+			0x25: { [unowned self] in self.and(.zeroPage) },
+			0x35: { [unowned self] in self.and(.zeroPageX) },
+			0x2d: { [unowned self] in self.and(.absolute) },
+			0x3d: { [unowned self] in self.and(.absoluteX) },
+			0x39: { [unowned self] in self.and(.absoluteY) },
+			0x21: { [unowned self] in self.and(.indirectX) },
+			0x31: { [unowned self] in self.and(.indirectY) },
+			// ASL
+			0x0a: { [unowned self] in self.asl() },
+			0x06: { [unowned self] in self.asl(.zeroPage) },
+			0x16: { [unowned self] in self.asl(.zeroPageX) },
+			0x0e: { [unowned self] in self.asl(.absolute) },
+			0x1e: { [unowned self] in self.asl(.absoluteX) },
+			// BEQ
+			0xf0: { [unowned self] in self.beq() },
+			// BIT
+			0x24: { [unowned self] in self.bit(.zeroPage) },
+			0x2C: { [unowned self] in self.bit(.absolute) },
+			// BMI
+			0x30: { [unowned self] in self.bmi() },
+			// BNE
+			0xd0: { [unowned self] in self.bne() },
+			// BPL
+			0x10: { [unowned self] in self.bpl() },
+			// BVC
+			0x50: { [unowned self] in self.bvc() },
+			// BVS
+			0x70: { [unowned self] in self.bvs() },
+			// CLC
+			0x18: { [unowned self] in self.clc() },
+			// CLD
+			0xd8: { [unowned self] in self.cld() },
+			// CLI
+			0x58: { [unowned self] in self.cli() },
+			// CLV
+			0xb8: { [unowned self] in self.clv() },
+			// CMP
+			0xc9: { [unowned self] in self.cmp(.immediate) },
+			0xc5: { [unowned self] in self.cmp(.zeroPage) },
+			0xd5: { [unowned self] in self.cmp(.zeroPageX) },
+			0xcd: { [unowned self] in self.cmp(.absolute) },
+			0xdd: { [unowned self] in self.cmp(.absoluteX) },
+			0xd9: { [unowned self] in self.cmp(.absoluteY) },
+			0xc1: { [unowned self] in self.cmp(.indirectX) },
+			0xd1: { [unowned self] in self.cmp(.indirectY) },
+			// CPX
+			0xe0: { [unowned self] in self.cpx(.immediate) },
+			0xe4: { [unowned self] in self.cpx(.zeroPage) },
+			0xec: { [unowned self] in self.cpx(.absolute) },
+			// CPY
+			0xc0: { [unowned self] in self.cpy(.immediate) },
+			0xc4: { [unowned self] in self.cpy(.zeroPage) },
+			0xcc: { [unowned self] in self.cpy(.absolute) },
+			// DEC
+			0xc6: { [unowned self] in self.dec(.zeroPage) },
+			0xd6: { [unowned self] in self.dec(.zeroPageX) },
+			0xce: { [unowned self] in self.dec(.absolute) },
+			0xde: { [unowned self] in self.dec(.absoluteX) },
+			// DEX
+			0xca: { [unowned self] in self.dex() },
+			// DEY
+			0x88: { [unowned self] in self.dey() },
+			// EOR
+			0x49: { [unowned self] in self.eor(.immediate) },
+			0x45: { [unowned self] in self.eor(.zeroPage) },
+			0x55: { [unowned self] in self.eor(.zeroPageX) },
+			0x4d: { [unowned self] in self.eor(.absolute) },
+			0x5d: { [unowned self] in self.eor(.absoluteX) },
+			0x59: { [unowned self] in self.eor(.absoluteY) },
+			0x41: { [unowned self] in self.eor(.indirectX) },
+			0x51: { [unowned self] in self.eor(.indirectY) },
+			// INC
+			0xe6: { [unowned self] in self.inc(.zeroPage) },
+			0xf6: { [unowned self] in self.inc(.zeroPageX) },
+			0xee: { [unowned self] in self.inc(.absolute) },
+			0xfe: { [unowned self] in self.inc(.absoluteX) },
+			// INX
+			0xe8: { [unowned self] in self.inx() },
+			// INY
+			0xc8: { [unowned self] in self.iny() },
+			// JSR
+			0x20: { [unowned self] in self.jsr(.absolute) },
+			// LDA
+			0xa9: { [unowned self] in self.lda(.immediate) },
+			0xa5: { [unowned self] in self.lda(.zeroPage) },
+			0xb5: { [unowned self] in self.lda(.zeroPageX) },
+			0xad: { [unowned self] in self.lda(.absolute) },
+			0xbd: { [unowned self] in self.lda(.absoluteX) },
+			0xb9: { [unowned self] in self.lda(.absoluteY) },
+			0xa1: { [unowned self] in self.lda(.indirectX) },
+			0xb1: { [unowned self] in self.lda(.indirectY) },
+			// LDX
+			0xa2: { [unowned self] in self.ldx(.immediate) },
+			0xa6: { [unowned self] in self.ldx(.zeroPage) },
+			0xb6: { [unowned self] in self.ldx(.zeroPageY) },
+			0xae: { [unowned self] in self.ldx(.absolute) },
+			0xbe: { [unowned self] in self.ldx(.absoluteY) },
+			// LDY
+			0xa0: { [unowned self] in self.ldy(.immediate) },
+			0xa4: { [unowned self] in self.ldy(.zeroPage) },
+			0xb4: { [unowned self] in self.ldy(.zeroPageX) },
+			0xac: { [unowned self] in self.ldy(.absolute) },
+			0xbc: { [unowned self] in self.ldy(.absoluteX) },
+			// LSR
+			0x4a: { [unowned self] in self.lsr() },
+			0x46: { [unowned self] in self.lsr(.zeroPage) },
+			0x56: { [unowned self] in self.lsr(.zeroPageX) },
+			0x4e: { [unowned self] in self.lsr(.absolute) },
+			0x5e: { [unowned self] in self.lsr(.absoluteX) },
+			// ORA
+			0x09: { [unowned self] in self.ora(.immediate) },
+			0x05: { [unowned self] in self.ora(.zeroPage) },
+			0x15: { [unowned self] in self.ora(.zeroPageX) },
+			0x0d: { [unowned self] in self.ora(.absolute) },
+			0x1d: { [unowned self] in self.ora(.absoluteX) },
+			0x19: { [unowned self] in self.ora(.absoluteY) },
+			0x01: { [unowned self] in self.ora(.indirectX) },
+			0x11: { [unowned self] in self.ora(.indirectY) },
+			// ROL
+			0x2a: { [unowned self] in self.rol() },
+			0x26: { [unowned self] in self.rol(.zeroPage) },
+			0x36: { [unowned self] in self.rol(.zeroPage) },
+			0x2e: { [unowned self] in self.rol(.absolute) },
+			0x3e: { [unowned self] in self.rol(.absoluteX) },
+			// ROR
+			0x6a: { [unowned self] in self.ror() },
+			0x66: { [unowned self] in self.ror(.zeroPage) },
+			0x76: { [unowned self] in self.ror(.zeroPageX) },
+			0x6e: { [unowned self] in self.ror(.absolute) },
+			0x7e: { [unowned self] in self.ror(.absoluteX) },
+			// RTS
+			0x60: { [unowned self] in self.rts() },
+			// SBC
+			0xe9: { [unowned self] in self.sbc(.immediate) },
+			0xe5: { [unowned self] in self.sbc(.zeroPage) },
+			0xf5: { [unowned self] in self.sbc(.zeroPageX) },
+			0xed: { [unowned self] in self.sbc(.absolute) },
+			0xfd: { [unowned self] in self.sbc(.absoluteX) },
+			0xf9: { [unowned self] in self.sbc(.absoluteY) },
+			0xe1: { [unowned self] in self.sbc(.indirectX) },
+			0xf1: { [unowned self] in self.sbc(.indirectY) },
+			// SEC
+			0x38: { [unowned self] in self.sec() },
+			// SED
+			0xf8: { [unowned self] in self.sed() },
+			// SEI
+			0x78: { [unowned self] in self.sei() },
+			// STA
+			0x85: { [unowned self] in self.sta(.zeroPage) },
+			0x95: { [unowned self] in self.sta(.zeroPageX) },
+			0x8d: { [unowned self] in self.sta(.absolute) },
+			0x9d: { [unowned self] in self.sta(.absoluteX) },
+			0x99: { [unowned self] in self.sta(.absoluteY) },
+			0x81: { [unowned self] in self.sta(.indirectX) },
+			0x91: { [unowned self] in self.sta(.indirectY) },
+			// STX
+			0x86: { [unowned self] in self.stx(.zeroPage) },
+			0x96: { [unowned self] in self.stx(.zeroPageY) },
+			0x8e: { [unowned self] in self.stx(.absolute) },
+			// STY
+			0x84: { [unowned self] in self.sty(.zeroPage) },
+			0x94: { [unowned self] in self.sty(.zeroPageX) },
+			0x8c: { [unowned self] in self.sty(.absolute) },
+			// TAX
+			0xaa: { [unowned self] in self.tax() },
+			// TAY
+			0xa8: { [unowned self] in self.tay() },
+			// TSX
+			0xba: { [unowned self] in self.tsx() },
+			// TXA
+			0x8a: { [unowned self] in self.txa() },
+			// TXS
+			0x9a: { [unowned self] in self.txs() },
+			// TYA
+			0x98: { [unowned self] in self.tya() }
+		]
+	}()
+}
+
+
+// MARK: -
+// MARK: Memory addressing
+protocol MOS6502Bus {
+	func read(at address: MOS6507.Address) -> MOS6507.Word
+	func write(_ value: MOS6507.Word, at address: MOS6507.Address)
+}
+
+private extension MOS6507 {
+	func resolveAddress(using addressing: Addressing) -> (Address, Int, Int) {
+		switch addressing {
+		case .immediate:
+			let address = self.programCounter + 1
+			return (address, 2, 1)
+			
+		case .absolute:
+			let address = Address(
+				self.bus.read(at: self.programCounter + 1),
+				self.bus.read(at: self.programCounter + 2))
+			
+			return (address, 3, 3)
+			
+		case .absoluteX:
+			var address = Address(
+				self.bus.read(at: self.programCounter + 1),
+				self.bus.read(at: self.programCounter + 2))
+			
+			let page = address.high
+			address += self.y
+			
+			let cycles = address.high == page ? 3 : 4
+			return (address, 3, cycles)
+			
+		case .absoluteY:
+			var address = Address(
+				self.bus.read(at: self.programCounter + 1),
+				self.bus.read(at: self.programCounter + 2))
+			
+			let page = address.high
+			address += self.y
+			
+			let cycles = address.high == page ? 3 : 4
+			return (address, 3, cycles)
+			
+		case .zeroPage:
+			let address = Address(
+				self.bus.read(at: self.programCounter + 1),
+				0x00)
+			
+			return (address, 2, 2)
+			
+		case .zeroPageX:
+			var address = Address(
+				self.bus.read(at: self.programCounter + 1),
+				0x00)
+			
+			address.low += self.x
+			return (address, 2, 3)
+			
+		case .zeroPageY:
+			var address = Address(
+				self.bus.read(at: self.programCounter + 1),
+				0x00)
+			
+			address.low += self.y
+			return (address, 2, 3)
+			
+		case .indirectX:
+			var address = Address(
+				self.bus.read(at: self.programCounter + 1),
+				0x00)
+			
+			address.low += self.x
+			address = Address(
+				self.bus.read(at: address),
+				self.bus.read(at: address + 1))
+			
+			return (address, 2, 5)
+			
+		case .indirectY:
+			var address = Address(
+				self.bus.read(at: self.programCounter + 1),
+				0x00)
+			
+			address = Address(
+				self.bus.read(at: address),
+				self.bus.read(at: address + 1))
+			
+			let page = address.high
+			address += self.y
+			
+			let cycles = address.high == page ? 5 : 6
+			return (address, 2, cycles)
+			
+		case .relative:
+			var offset = self.bus.read(at: self.programCounter + 1)
+			if offset[7] {
+				offset -= (0xff + 0x01)
+			}
+			
+			var address = self.programCounter + 2
+			
+			let page = address.high
+			address += offset
+			
+			let cycles = address.high == page ? 4 : 3
+			return (address, 2, cycles)
+			
+		default:
+			fatalError("Cannot resolve operand address using \(addressing) addressing mode.")
+		}
+	}
+}
+
+
+// MARK: -
+// MARK: Operations
+private extension MOS6507 {
+	/// Add a value in memory to accumulator with carry.
+	func adc(_ addressing: Addressing) -> Int {
+		let (_, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		// TODO: ADC
+		
+		return cycles
+	}
+	
+	/// Conjunct Accumulator with a value in memory.
+	func and(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		let result = self.accumulator & operand
+		
+		self.accumulator = result & 0xff
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 1
+	}
+	
+	/// Shift bits of Accumulator 1 position to the left.
+	func asl() -> Int {
+		self.programCounter += 1
+		
+		let result = self.accumulator << 1
+		
+		self.accumulator = result & 0xff
+		self.status.carry = result[8]
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return 2
+	}
+	
+	/// Shift bits of value in memory 1 position to the left.
+	func asl(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		let result = operand << 1
+		
+		self.bus.write(result & 0xff, at: address)
+		self.status.carry = result[8]
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 3
+	}
+	
+	/// Branch on zero status set.
+	func beq() -> Int {
+		if self.status.zero {
+			let (address, _, cycles) = self.resolveAddress(using: .relative)
+			
+			self.programCounter = address
+			return cycles
+		} else {
+			self.programCounter += 2
+			return 2
+		}
+	}
+	
+	/// Test Accumulator bits against bits of a value in memory.
+	func bit(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		let result = self.accumulator & operand
+		
+		self.status.overflow = operand[6]
+		self.status.zero = result == 0x00
+		self.status.negative = operand[7]
+		
+		return cycles + 1
+	}
+	
+	/// Branch on negative status set.
+	func bmi() -> Int {
+		if self.status.negative {
+			let (address, _, cycles) = self.resolveAddress(using: .relative)
+			
+			self.programCounter = address
+			return cycles
+		} else {
+			self.programCounter += 2
+			return 2
+		}
+	}
+	
+	/// Branch on zero status clear.
+	func bne() -> Int {
+		if self.status.zero == false {
+			let (address, _, cycles) = self.resolveAddress(using: .relative)
+			
+			self.programCounter = address
+			return cycles
+		} else {
+			self.programCounter += 2
+			return 2
+		}
+	}
+	
+	/// Branch on negative status clear.
+	func bpl() -> Int {
+		if self.status.negative == false {
+			let (address, _, cycles) = self.resolveAddress(using: .relative)
+			
+			self.programCounter = address
+			return cycles
+		} else {
+			self.programCounter += 2
+			return 2
+		}
+	}
+	
+	/// Branch on zero overflow clear.
+	func bvc() -> Int {
+		if self.status.zero == false {
+			let (address, _, cycles) = self.resolveAddress(using: .relative)
+			
+			self.programCounter = address
+			return cycles
+		} else {
+			self.programCounter += 2
+			return 2
+		}
+	}
+	
+	/// Branch on overflow status set.
+	func bvs() -> Int {
+		if self.status.overflow {
+			let (address, _, cycles) = self.resolveAddress(using: .relative)
+			
+			self.programCounter = address
+			return cycles
+		} else {
+			self.programCounter += 2
+			return 2
+		}
+	}
+	
+	/// Clear carry status.
+	func clc() -> Int {
+		self.programCounter += 1
+		
+		self.status.carry = false
+		return 2
+	}
+	
+	/// Clear decimal mode status.
+	func cld() -> Int {
+		self.programCounter += 1
+		
+		self.status.decimal = false
+		return 2
+	}
+	
+	/// Clear intterupt disabled status.
+	func cli() -> Int {
+		self.programCounter += 1
+		
+		self.status.interrupt = false
+		return 2
+	}
+	
+	/// Clear overflow status.
+	func clv() -> Int {
+		self.programCounter += 1
+		
+		self.status.overflow = false
+		return 2
+	}
+	
+	/// Compare Accumulator to a value in memory.
+	func cmp(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		let result = self.accumulator - operand
+		
+		self.status.carry = result >= 0x00
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 1
+	}
+	
+	/// Compare X register to a value in memory.
+	func cpx(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		let result = self.x - operand
+		
+		self.status.carry = result >= 0x00
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 1
+	}
+	
+	/// Compare Y register to a value in memory.
+	func cpy(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		let result = self.y - operand
+		
+		self.status.carry = result >= 0x00
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 1
+	}
+	
+	/// Decrement a value in memory by 1.
+	func dec(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		var result = operand - 0x01
+		if result < 0x00 {
+			result = 0xff
+		}
+		
+		self.bus.write(result, at: address)
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 3
+	}
+	
+	/// Decrement value of X register by 1,
+	func dex() -> Int {
+		self.programCounter += 1
+		
+		var result = self.x - 0x01
+		if result < 0x00 {
+			result = 0xff
+		}
+		
+		self.x = result
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return 2
+	}
+	
+	/// Decrement value of Y register by 1,
+	func dey() -> Int {
+		self.programCounter += 1
+		
+		var result = self.y - 0x01
+		if result < 0x00 {
+			result = 0xff
+		}
+		
+		self.y = result
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return 2
+	}
+	
+	/// Exclusive-disjunct Accumulator with a value in memory.
+	func eor(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		let result = self.accumulator ^ operand
+		
+		self.accumulator = result
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 1
+	}
+	
+	/// Increment a value in memory by 1.
+	func inc(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		
+		var result = operand + 0x01
+		if result > 0xff {
+			result = 0x00
+		}
+		
+		self.bus.write(result, at: address)
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 3
+	}
+	
+	/// Increment value of X register by 1,
+	func inx() -> Int {
+		self.programCounter += 1
+		
+		var result = self.x + 0x01
+		if result > 0xff {
+			result = 0x00
+		}
+		
+		self.x = result
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return 2
+	}
+	
+	/// Increment value of Y register by 1,
+	func iny() -> Int {
+		self.programCounter += 1
+		
+		var result = self.y + 0x01
+		if result > 0xff {
+			result = 0x00
+		}
+		
+		self.y = result
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return 2
+	}
+	
+	/// Jump to subroutine.
+	func jsr(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		self.pushStack(self.programCounter.high)
+		self.pushStack(self.programCounter.low)
+		self.programCounter = address
+		
+		return cycles + 3
+	}
+	
+	/// Load a value from memory into Accumulator.
+	func lda(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		
+		self.accumulator = operand
+		self.status.zero = operand == 0x00
+		self.status.negative = operand[7]
+		
+		return cycles + 1
+	}
+	
+	/// Load a value from memory into X register.
+	func ldx(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		
+		self.x = operand
+		self.status.zero = operand == 0x00
+		self.status.negative = operand[7]
+		
+		return cycles + 1
+	}
+	
+	/// Load a value from memory into Y register.
+	func ldy(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		
+		self.y = operand
+		self.status.zero = operand == 0x00
+		self.status.negative = operand[7]
+		
+		return cycles + 1
+	}
+	
+	/// Shift bits of Accumulator 1 position to the right.
+	func lsr() -> Int {
+		let (_, bytes, cycles) = self.resolveAddress(using: .implied)
+		self.programCounter += bytes
+		
+		let carry = self.accumulator[0]
+		let result = self.accumulator >> 1
+		
+		self.accumulator = result
+		self.status.carry = carry
+		self.status.zero = result == 0x00
+		self.status.negative = false
+		
+		return cycles
+	}
+	
+	/// Shift bits of value in memory 1 position to the right.
+	func lsr(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		let result = operand >> 1
+		
+		self.bus.write(result, at: address)
+		self.status.carry = operand[0]
+		self.status.zero = result == 0x00
+		self.status.negative = false
+		
+		return cycles + 3
+	}
+	
+	/// Disjunct Accumulator with a value in memory.
+	func ora(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		let result = self.accumulator & operand
+		
+		self.accumulator = result
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 1
+	}
+	
+	/// Rotate bits of Accumulator 1 position to the left.
+	func rol() -> Int {
+		let (_, bytes, cycles) = self.resolveAddress(using: .implied)
+		self.programCounter += bytes
+		
+		let operand = self.accumulator
+		var result = operand << 1
+		result[0] = self.status.carry
+		
+		self.accumulator = result & 0xff
+		self.status.carry = operand[7]
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles
+	}
+	
+	/// Rotate bits of a value in memory 1 position to the left.
+	func rol(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		var result = operand << 1
+		result[0] = self.status.carry
+		
+		self.bus.write(result & 0xff, at: address)
+		self.status.carry = operand[7]
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles + 3
+	}
+	
+	/// Rotate bits of Accumulator 1 position to the right.
+	func ror() -> Int {
+		let (_, bytes, cycles) = self.resolveAddress(using: .implied)
+		self.programCounter += bytes
+		
+		let operand = self.accumulator
+		var result = operand >> 1
+		result[7] = self.status.carry
+		
+		self.accumulator = result
+		self.status.carry = operand[0]
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles
+	}
+	
+	/// Rotate bits of a value in memory 1 position to the right.
+	func ror(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: .implied)
+		self.programCounter += bytes
+		
+		let operand = self.bus.read(at: address)
+		var result = operand >> 1
+		result[7] = self.status.carry
+		
+		self.bus.write(result, at: address)
+		self.status.carry = operand[0]
+		self.status.zero = result == 0x00
+		self.status.negative = result[7]
+		
+		return cycles
+	}
+	
+	/// Return from subroutine.
+	func rts() -> Int {
+		let address = Address(
+			self.pullStack(),
+			self.pullStack())
+		
+		self.programCounter = address + 1
+		return 6
+	}
+	
+	/// Substract a value in memory from accumulator with borrow.
+	func sbc(_ addressing: Addressing) -> Int {
+		let (_, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		// TODO: SBC
+		
+		return cycles
+	}
+	
+	/// Set carry status.
+	func sec() -> Int {
+		self.programCounter += 1
+		
+		self.status.carry = false
+		return 2
+	}
+	
+	/// Set decimal mode status.
+	func sed() -> Int {
+		self.programCounter += 1
+		
+		self.status.decimal = false
+		return 2
+	}
+	
+	/// Set interrupt disabled status.
+	func sei() -> Int {
+		self.programCounter += 1
+		
+		self.status.interrupt = true
+		return 2
+	}
+	
+	/// Store accumulator in memory.
+	func sta(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		self.bus.write(self.accumulator, at: address)
+		return cycles + 1
+	}
+	
+	/// Store X register in memory.
+	func stx(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		self.bus.write(self.x, at: address)
+		return cycles + 1
+	}
+	
+	/// Store Y register in memory.
+	func sty(_ addressing: Addressing) -> Int {
+		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
+		self.programCounter += bytes
+		
+		self.bus.write(self.y, at: address)
+		return cycles + 1
+	}
+	
+	/// Transfer Accumulator into X register.
+	func tax() -> Int {
+		self.programCounter += 1
+		
+		let operand = self.accumulator
+		
+		self.x = operand
+		self.status.zero = operand == 0x00
+		self.status.negative = operand[7]
+		
+		return 2
+	}
+	
+	/// Transfer Accumulator into Y register.
+	func tay() -> Int {
+		self.programCounter += 1
+		
+		let operand = self.accumulator
+		
+		self.y = operand
+		self.status.zero = operand == 0x00
+		self.status.negative = operand[7]
+		
+		return 2
+	}
+	
+	/// Transfer Stack pointer into X register.
+	func tsx() -> Int {
+		self.programCounter += 1
+		
+		let operand = self.stackPointer
+		
+		self.x = operand
+		self.status.zero = operand == 0x00
+		self.status.negative = operand[7]
+		
+		return 2
+	}
+	
+	/// Transfer X register into Accumulator.
+	func txa() -> Int {
+		self.programCounter += 1
+		
+		let operand = self.x
+		
+		self.accumulator = operand
+		self.status.zero = operand == 0x00
+		self.status.negative = operand[7]
+		
+		return 2
+	}
+	
+	/// Transfer X register into Stack pointer.
+	func txs() -> Int {
+		self.programCounter += 1
+		
+		let operand = self.x
+		
+		self.stackPointer = operand
+		self.status.zero = operand == 0x00
+		self.status.negative = operand[7]
+		
+		return 2
+	}
+	
+	/// Transfer Y register into Accumulator.
+	func tya() -> Int {
+		self.programCounter += 1
+		
+		let operand = self.y
+		
+		self.accumulator = operand
+		self.status.zero = operand == 0x00
+		self.status.negative = operand[7]
+		
+		return 2
 	}
 }
 
 public extension MOS6507 {
-	mutating func reset() {
-		self.accumulator = 0x00
-		self.X = 0x00
-		self.Y = 0x00
-		self.status = []
-		
-		self.stackPointer = 0xfd
+	func reset() {
 		self.programCounter = Address(
 			self.bus.read(at: 0xfffc),
 			self.bus.read(at: 0xfffd))
-		
-		self.cycle = 0
 	}
 	
-	mutating func step() {
+	func step() {
+		if self.programCounter == 0xfc44 {
+			print("")
+		}
+		
 		let code = self.bus.read(at: self.programCounter)
-		self.programCounter += 1
-		
-		print(String(format: "%02x", code))
-		
-		let operation = Operation(code: code)
-		let addressing = Addressing(code: code)
-		print(operation, addressing)
+		if let operation = self.operations[code] {
+			let message = String(format: "$%04x \(Operation(code: code)!)", self.programCounter)
+			print(message)
+			let _ = operation()
+		} else {
+			let message = String(format: "Illegal opcode %02x at $%04x.", code, self.programCounter)
+			fatalError(message)
+		}
 	}
 	
+	private func pushStack(_ data: Word) {
+		let address = 0x0100 + self.stackPointer
+		self.bus.write(data, at: address)
+		self.stackPointer -= 0x01
+	}
+	
+	private func pullStack() -> Word {
+		let address = 0x0100 + self.stackPointer
+		let data = self.bus.read(at: address)
+		self.stackPointer += 0x01
+		
+		return data
+	}
+	//
+	//	private func pushToStack(_ value: Word) {
+	//
+	//	}
+	//
+	//	private func pushToStack(_ address: Address) {
+	//
+	//	}
+	//
+	//	private func pullFromStack() -> Word {
+	//		return 0x00
+	//	}
+	//
+	//	private func read(at adress: Address, using adressing: Addressing) -> Word {
+	//		return 0x00
+	//	}
+	//
+	//	private func operand(adressed adressing: Addressing) -> (Word, Address) {
+	//		return (0x00, 0x0000)
+	//	}
+	//
+	//	private mutating func perform(_ operation: Operation, _ addressing: Addressing) {
+	//		switch operation {
+	//		case .adc:
+	//			// TODO:
+	//			break
+	//
+	//		case .and:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//			let result = self.accumulator & operand
+	//
+	//			self.accumulator = result
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .asl:
+	//			let (operand, address) = self.operand(adressed: addressing)
+	//			let result = operand << 1
+	//
+	//			if addressing == .accumulator {
+	//				self.accumulator = result
+	//			} else {
+	//				self.bus.write(result, at: address)
+	//			}
+	//
+	//			self.status.carry = result[8]
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .bcc:
+	//			let (offset, _) = self.operand(adressed: addressing)
+	//			if self.status.carry == false {
+	//				self.programCounter += Address(offset, 0x00)
+	//			}
+	//
+	//		case .bcs:
+	//			let (offset, _) = self.operand(adressed: addressing)
+	//			if self.status.carry {
+	//				self.programCounter += Address(offset, 0x00)
+	//			}
+	//
+	//		case .beq:
+	//			let (offset, _) = self.operand(adressed: addressing)
+	//			if self.status.zero {
+	//				self.programCounter += Address(offset, 0x00)
+	//			}
+	//
+	//		case .bit:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//			let result = operand & self.accumulator
+	//
+	//			self.status.overflow = operand[6]
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = operand[7]
+	//
+	//		case .bmi:
+	//			let (offset, _) = self.operand(adressed: addressing)
+	//			if self.status.negative {
+	//				self.programCounter += Address(offset, 0x00)
+	//			}
+	//
+	//		case .bne:
+	//			let (offset, _) = self.operand(adressed: addressing)
+	//			if self.status.zero == false {
+	//				self.programCounter += Address(offset, 0x00)
+	//			}
+	//
+	//		case .bpl:
+	//			let (offset, _) = self.operand(adressed: addressing)
+	//			if self.status.negative == false {
+	//				self.programCounter += Address(offset, 0x00)
+	//			}
+	//
+	//		case .brk:
+	//			self.pushToStack(self.programCounter)
+	//			self.pushToStack(self.status)
+	//			self.status.interrupt = true
+	//
+	//		case .bvc:
+	//			let (offset, _) = self.operand(adressed: addressing)
+	//			if self.status.overflow == false {
+	//				self.programCounter += Address(offset, 0x00)
+	//			}
+	//
+	//		case .bvs:
+	//			let (offset, _) = self.operand(adressed: addressing)
+	//			if self.status.overflow {
+	//				self.programCounter += Address(offset, 0x00)
+	//			}
+	//
+	//		case .clc:
+	//			self.status.carry = false
+	//		case .cld:
+	//			self.status.decimal = false
+	//		case .cli:
+	//			self.status.interrupt = false
+	//		case .clv:
+	//			self.status.overflow = false
+	//
+	//		case .cmp:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//			let result = self.accumulator + (~operand + 1)
+	//
+	//			self.status.carry = self.accumulator > operand
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .cpx:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//			let result = self.x + (~operand + 1)
+	//
+	//			self.status.carry = self.x >= operand
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .cpy:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//			let result = self.y + (~operand + 1)
+	//
+	//			self.status.carry = self.y >= operand
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .dec:
+	//			let (operand, address) = self.operand(adressed: addressing)
+	//			let result = operand + (~0x01 + 1)
+	//
+	//			self.bus.write(result, at: address)
+	//
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .dex:
+	//			let result = self.x + (~0x01 + 1)
+	//
+	//			self.x = result
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .dey:
+	//			let result = self.y + (~0x01 + 1)
+	//
+	//			self.y = result
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .eor:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//			let result = self.accumulator ^ operand
+	//
+	//			self.accumulator = result
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .inc:
+	//			let (operand, address) = self.operand(adressed: addressing)
+	//			let result = operand + 1
+	//
+	//			self.bus.write(result, at: address)
+	//
+	//			self.status.zero = result == 0
+	//			self.status.negative = result[7]
+	//
+	//		case .inx:
+	//			let result = self.x + 1
+	//
+	//			self.x = result
+	//			self.status.zero = result == 0
+	//			self.status.negative = result[7]
+	//
+	//		case .iny:
+	//			let result = self.y + 1
+	//
+	//			self.y = result
+	//			self.status.zero = result == 0
+	//			self.status.negative = result[7]
+	//
+	//		case .jmp:
+	//			// TODO: JMP
+	//			break
+	//
+	//		case .jsr:
+	//			// TODO: JSR
+	//			break
+	//
+	//		case .lda:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//
+	//			self.accumulator = operand
+	//			self.status.zero = operand == 0x00
+	//			self.status.negative = operand[7]
+	//
+	//		case .ldx:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//
+	//			self.x = operand
+	//			self.status.zero = operand == 0x00
+	//			self.status.negative = operand[7]
+	//
+	//		case .ldy:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//
+	//			self.y = operand
+	//			self.status.zero = operand == 0x00
+	//			self.status.negative = operand[7]
+	//
+	//		case .lsr:
+	//			let (operand, address) = self.operand(adressed: addressing)
+	//			let result = operand >> 1
+	//
+	//			if addressing == .accumulator {
+	//				self.accumulator = result
+	//			} else {
+	//				self.bus.write(result, at: address)
+	//			}
+	//
+	//			self.status.carry = operand[0]
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = false
+	//
+	//		case .nop:
+	//			// does nothing
+	//			break
+	//
+	//		case .ora:
+	//			let (operand, _) = self.operand(adressed: addressing)
+	//			let result = self.accumulator & operand
+	//
+	//			self.accumulator = result
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .pha:
+	//			self.pushToStack(self.accumulator)
+	//		case .php:
+	//			self.pushToStack(self.status)
+	//		case .pla:
+	//			self.accumulator = self.pullFromStack()
+	//		case .plp:
+	//			self.status = self.pullFromStack()
+	//
+	//		case .rol:
+	//			let (operand, address) = self.operand(adressed: addressing)
+	//			let carry: UInt8 = self.status.carry ? 0x01 : 0x00
+	//			let result = (operand << 1) & carry
+	//
+	//			if addressing == .accumulator {
+	//				self.accumulator = result
+	//			} else {
+	//				self.bus.write(result, at: address)
+	//			}
+	//
+	//			self.status.carry = operand[7]
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .ror:
+	//			let (operand, address) = self.operand(adressed: addressing)
+	//			let carry: UInt8 = self.status.carry ? 0x80 : 0x00
+	//			let result = (operand >> 1) & carry
+	//
+	//			if addressing == .accumulator {
+	//				self.accumulator = result
+	//			} else {
+	//				self.bus.write(result, at: address)
+	//			}
+	//
+	//			self.status.carry = operand[0]
+	//			self.status.zero = result == 0x00
+	//			self.status.negative = result[7]
+	//
+	//		case .rti:
+	//			// TODO: RTI
+	//			break
+	//
+	//		case .rts:
+	//			// TODO: RTS
+	//			break
+	//
+	//		case .sbc:
+	//			// TODO: SBC
+	//			break
+	//
+	//		case .sec:
+	//			self.status.carry = true
+	//		case .sed:
+	//			self.status.decimal = true
+	//		case .sei:
+	//			self.status.interrupt = true
+	//
+	//		case .sta:
+	//			let (_, address) = self.operand(adressed: addressing)
+	//			self.bus.write(self.accumulator, at: address)
+	//
+	//		case .stx:
+	//			let (_, address) = self.operand(adressed: addressing)
+	//			self.bus.write(self.x, at: address)
+	//
+	//		case .sty:
+	//			let (_, address) = self.operand(adressed: addressing)
+	//			self.bus.write(self.y, at: address)
+	//
+	//		case .tax:
+	//			let value = self.accumulator
+	//			self.x = value
+	//
+	//			self.status.zero = value == 0x00
+	//			self.status.negative = value[7]
+	//
+	//		case .tay:
+	//			let value = self.accumulator
+	//			self.y = value
+	//
+	//			self.status.zero = value == 0x00
+	//			self.status.negative = value[7]
+	//
+	//		case .tya:
+	//			let value = self.y
+	//			self.accumulator = value
+	//
+	//			self.status.zero = value == 0x00
+	//			self.status.negative = value[7]
+	//
+	//		case .tsx:
+	//			let value = self.stackPointer.low
+	//			self.x = value
+	//
+	//			self.status.zero = value == 0x00
+	//			self.status.negative = value[7]
+	//
+	//		case .txa:
+	//			let value = self.x
+	//			self.accumulator = value
+	//
+	//			self.status.zero = value == 0x00
+	//			self.status.negative = value[7]
+	//
+	//		case .txs:
+	//			let value = self.x
+	//			self.stackPointer = Address(value, 0x00)
+	//
+	//			self.status.zero = value == 0x00
+	//			self.status.negative = value[7]
+	//		}
+	//	}
+	//
 	func decode(data: Data) {
 		var index = data.startIndex
 		
 		while index < data.endIndex {
 			let opcode = data[index]
-			guard let operation = Operation(code: opcode),
-				  let addressing = Addressing(code: opcode) else {
+			guard let operation = Operation(code: MOS6507.Word(opcode)),
+				  let addressing = Addressing(code: MOS6507.Word(opcode)) else {
 				
 				print(String(format: "%04x\t%02x\t\t?", index, opcode))
 				index += 1
@@ -131,28 +1498,87 @@ public extension MOS6507 {
 	}
 }
 
-protocol MOS6502Bus {
-	func read(at address: MOS6507.Address) -> MOS6507.Word
-}
 
 public extension MOS6507 {
-	typealias Word = UInt8
-	typealias Address = UInt16
-	
-	struct Status: OptionSet {
-		public var rawValue: UInt8
-		
-		public init(rawValue: UInt8) {
-			self.rawValue = rawValue
+	typealias Word = Int
+	typealias Address = Int
+	typealias Status = UInt8
+}
+
+private extension Int {
+	subscript(bit: Int) -> Bool {
+		get {
+			let mask = 0x01 << bit
+			return self & mask == mask
 		}
-		
-		static let carry = Status(rawValue: 1 << 0)
-		static let zero = Status(rawValue: 1 << 1)
-		static let interrupt = Status(rawValue: 1 << 2)
-		static let decimal = Status(rawValue: 1 << 3)
-		static let `break` = Status(rawValue: 1 << 4)
-		static let overflow = Status(rawValue: 1 << 6)
-		static let negative = Status(rawValue: 1 << 7)
+		set {
+			let mask = 0x01 << bit
+			if newValue {
+				self |= mask
+			} else {
+				self &= ~mask
+			}
+		}
+	}
+}
+
+private extension MOS6507.Status {
+	subscript(bit: Int) -> Bool {
+		get {
+			let mask: Self = 0x01 << bit
+			return self & mask == mask
+		}
+		set {
+			let mask: Self = 0x01 << bit
+			if newValue {
+				self |= mask
+			} else {
+				self &= ~mask
+			}
+		}
+	}
+}
+
+public extension MOS6507.Status {
+	var carry: Bool {
+		get { return self[0] }
+		set { self[0] = newValue }
+	}
+	
+	var zero: Bool {
+		get { return self[1] }
+		set { self[1] = newValue }
+	}
+	
+	var interrupt: Bool {
+		get { return self[2] }
+		set { self[2] = newValue }
+	}
+	
+	var decimal: Bool {
+		get { return self[3] }
+		set { self[3] = newValue }
+	}
+	
+	var `break`: Bool {
+		get { return self[4] }
+		set { self[4] = newValue }
+	}
+	
+	var overflow: Bool {
+		get { return self[6] }
+		set { self[6] = newValue }
+	}
+	
+	var negative: Bool {
+		get { return self[7] }
+		set { self[7] = newValue }
+	}
+}
+
+extension MOS6507.Word {
+	var isNegative: Bool {
+		return self & 0x80 == 0x80
 	}
 }
 
@@ -207,8 +1633,6 @@ private extension MOS6507 {
 		case bmi
 		case bne
 		case bpl
-		case bpc
-		case bps
 		case bvc
 		case bvs
 		
@@ -255,14 +1679,27 @@ private extension MOS6507.Address {
 	init(_ low: MOS6507.Word, _ high: MOS6507.Word) {
 		self = Self(low) | Self(high) << 8
 	}
-}
-
-private extension UInt8 {
-	var twosComplement: Int8 {
-		let complement = ~self + 1
-		
-		let sign: Int8 = complement > 0x7f ? -1 : 1
-		return sign * Int8(complement & 0x7f)
+	
+	init(_ low: UInt8, _ high: UInt8) {
+		self = Self(low) | Self(high) << 8
+	}
+	
+	var low: MOS6507.Word {
+		get {
+			return MOS6507.Word(self & 0xff)
+		}
+		set {
+			self = (self.high << 8) & newValue
+		}
+	}
+	
+	var high: MOS6507.Word {
+		get {
+			return MOS6507.Word(self >> 8)
+		}
+		set {
+			self = (newValue << 8) & self.low
+		}
 	}
 }
 

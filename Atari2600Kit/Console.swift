@@ -21,6 +21,10 @@ public class Atari2600: ObservableObject {
 // MARK: -
 extension Atari2600: MOS6502Bus {
 	func read(at address: MOS6507.Address) -> MOS6507.Word {
-		return self.memory[Int(address)]
+		return MOS6507.Word(self.memory[Int(address)])
+	}
+	
+	func write(_ value: MOS6507.Word, at address: MOS6507.Address) {
+		// TODO: write
 	}
 }

@@ -15,6 +15,8 @@
 		954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 954A18682A1AEE5A00EBC582 /* Assets.xcassets */; };
 		954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 954A186A2A1AEE5A00EBC582 /* MainMenu.xib */; };
 		954A18722A1AEF4400EBC582 /* DebuggerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18712A1AEF4400EBC582 /* DebuggerView.swift */; };
+		95AAAC872A221D5500B8C9FD /* DebuggerWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindow.swift */; };
+		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +41,8 @@
 		954A186B2A1AEE5A00EBC582 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atari2600.entitlements; sourceTree = "<group>"; };
 		954A18712A1AEF4400EBC582 /* DebuggerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerView.swift; sourceTree = "<group>"; };
+		95AAAC862A221D5500B8C9FD /* DebuggerWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindow.swift; sourceTree = "<group>"; };
+		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +100,8 @@
 				954A186A2A1AEE5A00EBC582 /* MainMenu.xib */,
 				954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */,
 				954A18712A1AEF4400EBC582 /* DebuggerView.swift */,
+				95AAAC862A221D5500B8C9FD /* DebuggerWindow.swift */,
+				95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */,
 			);
 			path = Atari2600;
 			sourceTree = "<group>";
@@ -200,6 +206,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */,
 				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
 				954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */,
 			);
@@ -223,6 +230,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				954A18722A1AEF4400EBC582 /* DebuggerView.swift in Sources */,
+				95AAAC872A221D5500B8C9FD /* DebuggerWindow.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
