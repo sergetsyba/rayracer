@@ -16,9 +16,9 @@ class DebuggerWindowController: NSWindowController {
 		self.console = console
 		super.init(window: nil)
 		
-		self.contentViewController = NSHostingController(
-			rootView: DebuggerView(console: console)
-				.frame(width: 400, height: 600))
+		let viewController = DebuggerViewController()
+		viewController.console = self.console		
+		self.contentViewController = viewController
 	}
 	
 	required init?(coder: NSCoder) {

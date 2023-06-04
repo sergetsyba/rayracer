@@ -6,13 +6,13 @@
 //
 
 public class MOS6507 {
-	private(set) public var accumulator: Word
-	private(set) public var x: Word
-	private(set) public var y: Word
-	private(set) public var status: Status
+	@Published private(set) public var accumulator: Word
+	@Published private(set) public var x: Word
+	@Published private(set) public var y: Word
+	@Published private(set) public var status: Status
 	
-	private(set) public var stackPointer: Word
-	private(set) public var programCounter: Address
+	@Published private(set) public var stackPointer: Word
+	@Published private(set) public var programCounter: Address
 	
 	var bus: MOS6502Bus!
 	
@@ -528,7 +528,7 @@ private extension MOS6507 {
 	func cli() -> Int {
 		self.programCounter += 1
 		
-		self.status.interrupt = false
+		self.status.interruptDisabled = false
 		return 2
 	}
 	
@@ -910,7 +910,7 @@ private extension MOS6507 {
 	func sei() -> Int {
 		self.programCounter += 1
 		
-		self.status.interrupt = true
+		self.status.interruptDisabled = true
 		return 2
 	}
 	
@@ -1023,7 +1023,7 @@ private extension MOS6507 {
 public extension MOS6507 {
 	func reset() {
 		self.programCounter = Address(
-			self.bus.read(at: 0xfffc),
+			self.bus.read(at: 0xfffe),
 			self.bus.read(at: 0xfffd))
 	}
 	
@@ -1550,7 +1550,7 @@ public extension MOS6507.Status {
 		set { self[1] = newValue }
 	}
 	
-	var interrupt: Bool {
+	var interruptDisabled: Bool {
 		get { return self[2] }
 		set { self[2] = newValue }
 	}

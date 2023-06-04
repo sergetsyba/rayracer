@@ -6,7 +6,7 @@
 //
 
 public class Atari2600: ObservableObject {
-	@Published public var cpu: MOS6507
+	public var cpu: MOS6507
 	@Published public var memory: Memory
 	
 	public init() {

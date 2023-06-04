@@ -27,16 +27,16 @@ extension AppDelegate {
 			let data = try Data(contentsOf: url)
 			self.console.memory.rom = data
 			self.console.cpu.reset()
-			while true {
-				self.console.cpu.step()
-			}
+//			while true {
+//				self.console.cpu.step()
+//			}
 		} catch {
 			// TODO: handle error
 			print(error)
 		}
 	}
 	
-	@IBAction func gameResetMenuItemSelected(_ sender: NSMenuItem) {
+	@IBAction func resetGame(_ sender: AnyObject) {
 		self.console.cpu.reset()
 	}
 	
