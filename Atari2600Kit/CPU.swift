@@ -26,7 +26,7 @@ public class MOS6507 {
 		self.programCounter = 0x0000
 	}
 	
-	private lazy var operations2: [Operation: (Addressing) -> Int] = {[
+	private lazy var operations2: [Mnemonic: (AddressingMode) -> Int] = {[
 		.adc: { [unowned self] mode in
 			self.perform(addressing: mode) { address in
 				self.adc(mode)
@@ -46,7 +46,7 @@ public class MOS6507 {
 		}
 	]}()
 	
-	private func perform(addressing: Addressing, operation: (Address) -> Int) -> Int {
+	private func perform(addressing: AddressingMode, operation: (Address) -> Int) -> Int {
 		return 0
 	}
 	
@@ -251,7 +251,7 @@ protocol MOS6502Bus {
 }
 
 private extension MOS6507 {
-	func resolveAddress(using addressing: Addressing) -> (Address, Int, Int) {
+	func resolveAddress(using addressing: AddressingMode) -> (Address, Int, Int) {
 		switch addressing {
 		case .immediate:
 			let address = self.programCounter + 1
@@ -361,7 +361,7 @@ private extension MOS6507 {
 // MARK: Operations
 private extension MOS6507 {
 	/// Add a value in memory to accumulator with carry.
-	func adc(_ addressing: Addressing) -> Int {
+	func adc(_ addressing: AddressingMode) -> Int {
 		let (_, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -371,7 +371,7 @@ private extension MOS6507 {
 	}
 	
 	/// Conjunct Accumulator with a value in memory.
-	func and(_ addressing: Addressing) -> Int {
+	func and(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -400,7 +400,7 @@ private extension MOS6507 {
 	}
 	
 	/// Shift bits of value in memory 1 position to the left.
-	func asl(_ addressing: Addressing) -> Int {
+	func asl(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -429,7 +429,7 @@ private extension MOS6507 {
 	}
 	
 	/// Test Accumulator bits against bits of a value in memory.
-	func bit(_ addressing: Addressing) -> Int {
+	func bit(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -541,7 +541,7 @@ private extension MOS6507 {
 	}
 	
 	/// Compare Accumulator to a value in memory.
-	func cmp(_ addressing: Addressing) -> Int {
+	func cmp(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -556,7 +556,7 @@ private extension MOS6507 {
 	}
 	
 	/// Compare X register to a value in memory.
-	func cpx(_ addressing: Addressing) -> Int {
+	func cpx(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -571,7 +571,7 @@ private extension MOS6507 {
 	}
 	
 	/// Compare Y register to a value in memory.
-	func cpy(_ addressing: Addressing) -> Int {
+	func cpy(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -586,7 +586,7 @@ private extension MOS6507 {
 	}
 	
 	/// Decrement a value in memory by 1.
-	func dec(_ addressing: Addressing) -> Int {
+	func dec(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -636,7 +636,7 @@ private extension MOS6507 {
 	}
 	
 	/// Exclusive-disjunct Accumulator with a value in memory.
-	func eor(_ addressing: Addressing) -> Int {
+	func eor(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -651,7 +651,7 @@ private extension MOS6507 {
 	}
 	
 	/// Increment a value in memory by 1.
-	func inc(_ addressing: Addressing) -> Int {
+	func inc(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -702,7 +702,7 @@ private extension MOS6507 {
 	}
 	
 	/// Jump to subroutine.
-	func jsr(_ addressing: Addressing) -> Int {
+	func jsr(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -714,7 +714,7 @@ private extension MOS6507 {
 	}
 	
 	/// Load a value from memory into Accumulator.
-	func lda(_ addressing: Addressing) -> Int {
+	func lda(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -728,7 +728,7 @@ private extension MOS6507 {
 	}
 	
 	/// Load a value from memory into X register.
-	func ldx(_ addressing: Addressing) -> Int {
+	func ldx(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -742,7 +742,7 @@ private extension MOS6507 {
 	}
 	
 	/// Load a value from memory into Y register.
-	func ldy(_ addressing: Addressing) -> Int {
+	func ldy(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -772,7 +772,7 @@ private extension MOS6507 {
 	}
 	
 	/// Shift bits of value in memory 1 position to the right.
-	func lsr(_ addressing: Addressing) -> Int {
+	func lsr(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -788,7 +788,7 @@ private extension MOS6507 {
 	}
 	
 	/// Disjunct Accumulator with a value in memory.
-	func ora(_ addressing: Addressing) -> Int {
+	func ora(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -820,7 +820,7 @@ private extension MOS6507 {
 	}
 	
 	/// Rotate bits of a value in memory 1 position to the left.
-	func rol(_ addressing: Addressing) -> Int {
+	func rol(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -854,7 +854,7 @@ private extension MOS6507 {
 	}
 	
 	/// Rotate bits of a value in memory 1 position to the right.
-	func ror(_ addressing: Addressing) -> Int {
+	func ror(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: .implied)
 		self.programCounter += bytes
 		
@@ -881,7 +881,7 @@ private extension MOS6507 {
 	}
 	
 	/// Substract a value in memory from accumulator with borrow.
-	func sbc(_ addressing: Addressing) -> Int {
+	func sbc(_ addressing: AddressingMode) -> Int {
 		let (_, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -915,7 +915,7 @@ private extension MOS6507 {
 	}
 	
 	/// Store accumulator in memory.
-	func sta(_ addressing: Addressing) -> Int {
+	func sta(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -924,7 +924,7 @@ private extension MOS6507 {
 	}
 	
 	/// Store X register in memory.
-	func stx(_ addressing: Addressing) -> Int {
+	func stx(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -933,7 +933,7 @@ private extension MOS6507 {
 	}
 	
 	/// Store Y register in memory.
-	func sty(_ addressing: Addressing) -> Int {
+	func sty(_ addressing: AddressingMode) -> Int {
 		let (address, bytes, cycles) = self.resolveAddress(using: addressing)
 		self.programCounter += bytes
 		
@@ -1034,7 +1034,7 @@ public extension MOS6507 {
 		
 		let code = self.bus.read(at: self.programCounter)
 		if let operation = self.operations[code] {
-			let message = String(format: "$%04x \(Operation(code: code)!)", self.programCounter)
+			let message = String(format: "$%04x \(Mnemonic(opcode: code)!)", self.programCounter)
 			print(message)
 			let _ = operation()
 		} else {
@@ -1427,8 +1427,8 @@ public extension MOS6507 {
 		
 		while index < data.endIndex {
 			let opcode = data[index]
-			guard let operation = Operation(code: MOS6507.Word(opcode)),
-				  let addressing = Addressing(code: MOS6507.Word(opcode)) else {
+			guard let operation = Mnemonic(opcode: MOS6507.Word(opcode)),
+				  let addressing = AddressingMode(opcode: MOS6507.Word(opcode)) else {
 				
 				print(String(format: "%04x\t%02x\t\t?", index, opcode))
 				index += 1
@@ -1436,9 +1436,6 @@ public extension MOS6507 {
 			}
 			
 			switch addressing {
-			case .accumulator:
-				print(String(format: "%04x\t%02x\t\t\(operation) A",index,  opcode))
-				index += 1
 			case .implied:
 				print(String(format: "%04x\t%02x\t\t\(operation)", index, opcode))
 				index += 1
@@ -1582,8 +1579,8 @@ extension MOS6507.Word {
 	}
 }
 
-private extension MOS6507 {
-	enum Operation {
+public extension MOS6507 {
+	enum Mnemonic {
 		// group 1
 		case adc
 		case and
@@ -1656,8 +1653,7 @@ private extension MOS6507 {
 		case plp
 	}
 	
-	enum Addressing {
-		case accumulator
+	enum AddressingMode {
 		case implied
 		case immediate
 		case absolute
@@ -1706,9 +1702,9 @@ private extension MOS6507.Address {
 
 // MARK: -
 // MARK: Operation decoding
-private extension MOS6507.Operation {
-	init?(code: MOS6507.Word) {
-		switch code {
+public extension MOS6507.Mnemonic {
+	init?(opcode: MOS6507.Word) {
+		switch opcode {
 		case 0x10: self = .bpl
 		case 0x30: self = .bmi
 		case 0x50: self = .bvc
@@ -1750,8 +1746,8 @@ private extension MOS6507.Operation {
 		case 0xea: self = .nop
 			
 		default:
-			let group = code & 0x3
-			let subcode = code >> 5
+			let group = opcode & 0x3
+			let subcode = opcode >> 5
 			
 			switch group {
 			case 1:
@@ -1799,9 +1795,9 @@ private extension MOS6507.Operation {
 	}
 }
 
-private extension MOS6507.Addressing {
-	init?(code: MOS6507.Word) {
-		switch code {
+public extension MOS6507.AddressingMode {
+	init?(opcode: MOS6507.Word) {
+		switch opcode {
 			// BPL, BMI, BVC, BVS, BCC, BCS, BNE, BEQ
 		case 0x10, 0x30, 0x50, 0x70, 0x90, 0xb0, 0xd0, 0xf0:
 			self = .relative
@@ -1821,8 +1817,8 @@ private extension MOS6507.Addressing {
 			self = .absolute
 			
 		default:
-			let group = code & 0x3
-			let subcode = (code >> 2) & 0x7
+			let group = opcode & 0x3
+			let subcode = (opcode >> 2) & 0x7
 			
 			switch group {
 			case 1:
@@ -1839,7 +1835,7 @@ private extension MOS6507.Addressing {
 					return nil
 				}
 			case 2:
-				switch code {
+				switch opcode {
 					// STX
 				case 0x96: self = .zeroPageY
 					// LDX
@@ -1850,7 +1846,7 @@ private extension MOS6507.Addressing {
 					switch subcode {
 					case 0: self = .immediate
 					case 1: self = .zeroPage
-					case 2: self = .accumulator
+					case 2: self = .implied
 					case 3: self = .absolute
 					case 5: self = .zeroPageX
 					case 7: self = .absoluteX
