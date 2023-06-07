@@ -1422,6 +1422,83 @@ public extension MOS6507 {
 	//		}
 	//	}
 	//
+	struct Instruction {
+		public var mnemonic: Mnemonic
+		public var mode: AddressingMode
+		public var operand: Int
+		
+		var encodedLenght: Int {
+			switch self.mode {
+			case .implied:
+				return 1
+			case .immediate,
+					.relative,
+					.zeroPage, .zeroPageX, .zeroPageY,
+					.indirectX, .indirectY:
+				return 2
+			case .absolute, .absoluteX, .absoluteY:
+				return 3
+			}
+		}
+	}
+	
+	enum DecodeError: Error {
+		case unknownOpcode(Int)
+	}
+	
+	func decodeInstruction(at address: Address) throws -> Instruction {
+		let opcode = self.bus.read(at: address)
+		
+		if let mnemonic = Mnemonic(opcode: opcode),
+		   let mode = AddressingMode(opcode: opcode) {
+			let operand = self.readOperand(at: address, addressed: mode)
+			return Instruction(mnemonic: mnemonic, mode: mode, operand: operand)
+		} else {
+			throw DecodeError.unknownOpcode(opcode)
+		}
+	}
+	
+	func decodeROM() -> [(Address, Instruction)] {
+		var instructions: [(Address, Instruction)] = []
+		var address = 0xf000
+		
+		while address < 0xffff {
+			let opcode = self.bus.read(at: address)
+			
+			guard let mnemonic = Mnemonic(opcode: opcode),
+				  let mode = AddressingMode(opcode: opcode) else {
+				address += 1
+				continue
+			}
+			
+			let operand = self.readOperand(at: address, addressed: mode)
+			let instruction = Instruction(mnemonic: mnemonic, mode: mode, operand: operand)
+			instructions.append((address, instruction))
+			
+			address += instruction.encodedLenght
+		}
+		
+		return instructions
+	}
+	
+	func readOperand(at address: Address, addressed mode: AddressingMode) -> Int {
+		switch mode {
+		case .implied:
+			return 0x00
+			
+		case .immediate,
+				.relative,
+				.zeroPage, .zeroPageX, .zeroPageY,
+				.indirectX, .indirectY:
+			return self.bus.read(at: address + 1)
+			
+		case .absolute, .absoluteX, .absoluteY:
+			return Int(
+				self.bus.read(at: address + 1),
+				self.bus.read(at: address + 2))
+		}
+	}
+	
 	func decode(data: Data) {
 		var index = data.startIndex
 		

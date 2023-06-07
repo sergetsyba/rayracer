@@ -42,6 +42,7 @@ class DebuggerViewController: NSViewController {
 	
 	convenience init() {
 		self.init(nibName: "DebuggerView", bundle: .main)
+		self.title = "Debugger"
 	}
 	
 	override func viewDidLoad() {

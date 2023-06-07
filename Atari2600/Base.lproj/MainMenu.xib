@@ -652,7 +652,7 @@
                 </menuItem>
                 <menuItem title="Window" id="aUF-d1-5bR">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="Window" systemMenu="window" id="Td7-aD-5lo">
+                    <menu key="submenu" title="Window" systemMenu="window" autoenablesItems="NO" id="Td7-aD-5lo">
                         <items>
                             <menuItem title="Minimize" keyEquivalent="m" id="OY7-WF-poV">
                                 <connections>
@@ -670,6 +670,12 @@
                                 <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
                                 <connections>
                                     <action selector="debuggerMenuItemSelected:" target="-1" id="2mL-Ye-Bx2"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Assembly" keyEquivalent="9" id="5Ne-hl-m4o">
+                                <modifierMask key="keyEquivalentModifierMask" shift="YES" command="YES"/>
+                                <connections>
+                                    <action selector="showAssemblyWindow:" target="-1" id="emA-rd-DTW"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="c5n-PU-MYG"/>

@@ -16,8 +16,10 @@
 		954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 954A186A2A1AEE5A00EBC582 /* MainMenu.xib */; };
 		9593D60D2A2B5A3B007AF113 /* DebuggerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9593D60C2A2B5A3B007AF113 /* DebuggerViewController.swift */; };
 		9593D60F2A2B5A81007AF113 /* DebuggerView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9593D60E2A2B5A81007AF113 /* DebuggerView.xib */; };
+		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
+		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,8 +45,10 @@
 		954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atari2600.entitlements; sourceTree = "<group>"; };
 		9593D60C2A2B5A3B007AF113 /* DebuggerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerViewController.swift; sourceTree = "<group>"; };
 		9593D60E2A2B5A81007AF113 /* DebuggerView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerView.xib; sourceTree = "<group>"; };
+		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
 		95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindowController.swift; sourceTree = "<group>"; };
 		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
+		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,13 +102,15 @@
 			isa = PBXGroup;
 			children = (
 				954A18662A1AEE5800EBC582 /* AppDelegate.swift */,
+				95A501802A2CFCA400A59616 /* AssemblyView.xib */,
+				95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */,
 				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
-				954A186A2A1AEE5A00EBC582 /* MainMenu.xib */,
 				954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */,
-				95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */,
-				95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */,
-				9593D60C2A2B5A3B007AF113 /* DebuggerViewController.swift */,
 				9593D60E2A2B5A81007AF113 /* DebuggerView.xib */,
+				9593D60C2A2B5A3B007AF113 /* DebuggerViewController.swift */,
+				95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */,
+				95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */,
+				954A186A2A1AEE5A00EBC582 /* MainMenu.xib */,
 			);
 			path = Atari2600;
 			sourceTree = "<group>";
@@ -212,6 +218,7 @@
 				95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */,
 				9593D60F2A2B5A81007AF113 /* DebuggerView.xib in Resources */,
 				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
+				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
 				954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -236,6 +243,7 @@
 				95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,
 				9593D60D2A2B5A3B007AF113 /* DebuggerViewController.swift in Sources */,
+				95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
