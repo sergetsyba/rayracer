@@ -12,7 +12,7 @@ import Atari2600Kit
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
-	private var console = Atari2600()
+	private var console: Atari2600 = .current
 	
 	@IBOutlet var window: NSWindow!
 }
@@ -22,14 +22,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: Main menu actions
 extension AppDelegate {
 	@IBAction func insertCartridgeMenuItemSelected(_ sender: NSMenuItem) {
-		let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/ROMS/Pac-Man.bin")
 		do {
-			let data = try Data(contentsOf: url)
-			self.console.memory.rom = data
-			self.console.cpu.reset()
-			//			while true {
-			//				self.console.cpu.step()
-			//			}
+			let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/ROMS/Pac-Man.bin")
+			try self.console.insertCartridge(fromFileAt: url)
 		} catch {
 			// TODO: handle error
 			print(error)
@@ -44,18 +39,9 @@ extension AppDelegate {
 		self.console.cpu.step()
 	}
 	
-	@IBAction func showAssemblyWindow(_ sender: AnyObject) {
-		let viewController = AssemblyViewController()
-		viewController.console = self.console
-		
-		self.showWindow(with: viewController)
-	}
-	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {
-		let windowController = DebuggerWindowController(console: self.console)
-		windowController.window?.delegate = self
-		windowController.showWindow(self)
-		self.windowControllers.insert(windowController)
+		let windowController = DebuggerWindowController()
+		self.showWindow(of: windowController)
 	}
 	
 	func showWindow(with viewController: NSViewController) {
@@ -71,6 +57,12 @@ extension AppDelegate {
 
 // MARK: -
 extension AppDelegate: NSWindowDelegate {
+	func showWindow(of windowController: NSWindowController) {
+		windowController.window?.delegate = self
+		windowController.showWindow(self)
+		self.windowControllers.insert(windowController)
+	}
+	
 	func windowWillClose(_ notification: Notification) {
 		if let window = notification.object as? NSWindow {
 			self.windowControllers.remove(where: { $0.window == window })
@@ -84,4 +76,11 @@ private extension Set {
 			self.remove(at: index)
 		}
 	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+extension Atari2600 {
+	static let current = Atari2600()
 }

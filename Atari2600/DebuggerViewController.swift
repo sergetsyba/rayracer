@@ -88,11 +88,11 @@ private extension DebuggerViewController {
 			.assign(to: \.stringValue, on: self.programCounterLabel)
 			.store(in: &self.cancellables)
 		
-		self.console?.$memory.sink() { [unowned self] in
-			self.tiaRegistersLabel.stringValue = $0.tiaRegisters.formatted
-			self.ramLabel.stringValue = $0.ram.formatted
-			self.riotRegistersLabel.stringValue = $0.riotRegisters.formatted
-		}.store(in: &self.cancellables)
+//		self.console?.$memory.sink() { [unowned self] in
+//			self.tiaRegistersLabel.stringValue = $0.tiaRegisters.formatted
+//			self.ramLabel.stringValue = $0.ram.formatted
+//			self.riotRegistersLabel.stringValue = $0.riotRegisters.formatted
+//		}.store(in: &self.cancellables)
 	}
 	
 	private func clearSinks() {
@@ -105,7 +105,7 @@ private extension DebuggerViewController {
 
 // MARK: -
 // MARK: Data formatting
-private extension Memory {
+private extension Data {
 	var formatted: String {
 		stride(from: self.startIndex, to: self.endIndex, by: 16)
 			.map() { index1 in
@@ -128,20 +128,6 @@ class DebuggerValueLabel: NSTextField {
 				.controlTextColor :
 				.disabledControlTextColor
 		}
-	}
-}
-
-private extension Memory {
-	var tiaRegisters: Self {
-		self.subdata(in: 0x0000..<0x003e)
-	}
-	
-	var ram: Self {
-		self.subdata(in: 0x0080..<0x0100)
-	}
-	
-	var riotRegisters: Self {
-		self.subdata(in: 0x0280..<0x0298)
 	}
 }
 

@@ -10,15 +10,11 @@ import SwiftUI
 import Atari2600Kit
 
 class DebuggerWindowController: NSWindowController {
-	var console: Atari2600
+	private let console: Atari2600 = .current
 	
-	init(console: Atari2600) {
-		self.console = console
+	init() {
 		super.init(window: nil)
-		
-		let viewController = DebuggerViewController()
-		viewController.console = self.console		
-		self.contentViewController = viewController
+		self.contentViewController = AssemblyViewController()
 	}
 	
 	required init?(coder: NSCoder) {
@@ -29,3 +25,4 @@ class DebuggerWindowController: NSWindowController {
 		return "DebuggerWindow"
 	}
 }
+

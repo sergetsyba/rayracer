@@ -6,20 +6,29 @@
 //
 
 import Cocoa
+import Combine
 import Atari2600Kit
 
 class AssemblyViewController: NSViewController {
 	@IBOutlet private var tableView: NSTableView!
 	
-	private var instructions: [(MOS6507.Address, MOS6507.Instruction)]?
-	var console: Atari2600? {
+	private var cancellables: Set<AnyCancellable> = []
+	private let console: Atari2600 = .current
+	
+	private var instructions: [(MOS6507.Address, MOS6507.Instruction)]? {
 		didSet {
-			self.instructions = self.console?
-				.cpu
-				.decodeROM()
-			
 			if self.isViewLoaded {
 				self.tableView.reloadData()
+			}
+		}
+	}
+	
+	private var highlightedRow: Int? = nil {
+		didSet {
+			if let row = self.highlightedRow,
+			   self.isViewLoaded {
+				self.tableView.selectRowIndexes([row], byExtendingSelection: false)
+				self.tableView.ensureRowVisible(row)
 			}
 		}
 	}
@@ -32,12 +41,46 @@ class AssemblyViewController: NSViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
-		let attributes: [NSAttributedString.Key: Any] = [
-			.font: NSFont.monospacedSystemFont(ofSize: 11.0, weight: .regular)
-		]
+		self.updateTableColumnWidths()
+		self.setUpSinks()
+	}
+}
+
+// MARK: -
+// MARK: Event management
+private extension AssemblyViewController {
+	func setUpSinks() {
+		self.console.$isCartridgeInserted
+			.sink() { [unowned self] in
+				self.instructions = $0
+				? self.console.cpu.decodeROM()
+				: nil
+			}
+			.store(in: &self.cancellables)
 		
+		self.console.cpu
+			.$programCounter
+			.sink() { [unowned self] address in
+				self.highlightedRow = self.instructions?
+					.firstIndex(where: { $0.0 == address })
+			}
+			.store(in: &self.cancellables)
+	}
+}
+
+
+// MARK: -
+// MARK: Custom functionality
+private extension AssemblyViewController {
+	static let font: NSFont = .monospacedSystemFont(ofSize: 11.0, weight: .regular)
+	
+	func updateTableColumnWidths() {
 		let sizes = ["$0000", "adc", "($a4),Y"]
-			.map() { $0.size(withAttributes: attributes) }
+			.map() {
+				return $0.size(withAttributes: [
+					.font: Self.font
+				])
+			}
 		
 		self.tableView.tableColumns[0].width = sizes[0].width * 1.5
 		self.tableView.tableColumns[1].width = sizes[1].width
@@ -55,49 +98,34 @@ extension AssemblyViewController: NSTableViewDataSource {
 }
 
 extension AssemblyViewController: NSTableViewDelegate {
-	func tableView(_ tableView: NSTableView, cellIdentifierFor tableColumn: NSTableColumn?) -> NSUserInterfaceItemIdentifier? {
-		switch tableColumn {
-		case tableView.tableColumns[0]:
-			return .addressCell
-		case tableView.tableColumns[1]:
-			return .mnemonicCell
-		case tableView.tableColumns[2]:
-			return .operandCell
-		default:
-			return nil
-		}
+	func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
+		return row == self.highlightedRow
 	}
 	
 	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-		guard let identifier = self.tableView(tableView, cellIdentifierFor: tableColumn),
-			  let cellView = tableView.makeView(withIdentifier: identifier, owner: nil) as? AssemblyTableCellView else {
+		guard let cellView = tableView.makeView(withIdentifier: .cell, owner: nil) as? AssemblyTableCellView,
+			  let (address, instruction) = self.instructions?[row] else {
 			return nil
 		}
-		
-		cellView.label.font = .monospacedSystemFont(ofSize: 11.0, weight: .regular)
-		return cellView
-	}
-	
-	func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-		let (address, instruction) = self.instructions![row]
 		
 		switch tableColumn {
 		case tableView.tableColumns[0]:
-			return address
+			cellView.label.stringValue = String(format: "$%04x", address)
 		case tableView.tableColumns[1]:
-			return instruction.mnemonic
+			cellView.label.stringValue = "\(instruction.mnemonic)"
 		case tableView.tableColumns[2]:
-			return (instruction.mode, instruction.operand)
+			cellView.label.stringValue = String(format: instruction.mode.formatPattern, instruction.operand)
 		default:
 			return nil
 		}
+		
+		cellView.label.font = Self.font
+		return cellView
 	}
 }
 
 private extension NSUserInterfaceItemIdentifier {
-	static let addressCell = NSUserInterfaceItemIdentifier("AssemblyViewAddressCell")
-	static let mnemonicCell = NSUserInterfaceItemIdentifier("AssemblyViewMnemonicCell")
-	static let operandCell = NSUserInterfaceItemIdentifier("AssemblyViewOperandCell")
+	static let cell = NSUserInterfaceItemIdentifier("AssemblyTableCellView")
 }
 
 
@@ -105,36 +133,6 @@ private extension NSUserInterfaceItemIdentifier {
 // MARK: Table view cells
 class AssemblyTableCellView: NSTableCellView {
 	@IBOutlet var label: NSTextField!
-}
-
-class AssemblyAddressTableCellView: AssemblyTableCellView {
-	override var objectValue: Any? {
-		didSet {
-			if let address = self.objectValue as? Int {
-				self.label.stringValue = String(format: "$%04x", address)
-			}
-		}
-	}
-}
-
-class AssemblyMnemonicTableCellView: AssemblyTableCellView {
-	override var objectValue: Any? {
-		didSet {
-			if let mnemonic = self.objectValue as? MOS6507.Mnemonic {
-				self.label.stringValue = String(describing: mnemonic)
-			}
-		}
-	}
-}
-
-class AssemblyOperandTableCellView: AssemblyTableCellView {
-	override var objectValue: Any? {
-		didSet {
-			if let (mode, operand) = self.objectValue as? (MOS6507.AddressingMode, Int) {
-				self.label.stringValue = String(format: mode.formatPattern, operand)
-			}
-		}
-	}
 }
 
 
@@ -164,5 +162,48 @@ private extension MOS6507.AddressingMode {
 		case .indirectY:
 			return "($%02x),Y"
 		}
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+private extension NSScrollView {
+	func isVisible(rect: CGRect) -> Bool {
+		let viewRect = self.documentVisibleRect
+		let insets = self.contentInsets
+		
+		return rect.minY >= viewRect.minY + insets.top
+		&& rect.maxY <= viewRect.maxY - insets.bottom
+	}
+	
+	func scroll(to point: NSPoint, animationDuration duration: CGFloat) {
+		NSAnimationContext.beginGrouping()
+		NSAnimationContext.current.duration = duration
+		
+		self.contentView.animator()
+			.setBoundsOrigin(point)
+		
+		NSAnimationContext.endGrouping()
+	}
+}
+
+private extension NSTableView {
+	func ensureRowVisible(_ row: Int) {
+		let scrollView = self.enclosingScrollView!
+		let rowRect = self.rect(ofRow: row)
+		if scrollView.isVisible(rect: rowRect) {
+			return
+		}
+		
+		let viewRect = scrollView.documentVisibleRect
+		let insets = scrollView.contentInsets
+		let viewHieght = viewRect.height - (insets.top + insets.bottom)
+		
+		// scroll such that row ends up vertically at 1/3 of view's
+		// visible content height
+		let offset = (viewHieght - rowRect.height) / 3 + insets.top
+		let point = NSPoint(x: rowRect.minX, y: rowRect.minY - offset)
+		scrollView.scroll(to: point, animationDuration: 0.25)
 	}
 }

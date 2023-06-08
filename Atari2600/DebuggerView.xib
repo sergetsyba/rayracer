@@ -32,13 +32,13 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <box title="CPU" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="X8l-ff-gvW">
-                    <rect key="frame" x="17" y="123" width="324" height="124"/>
+                    <rect key="frame" x="17" y="123" width="532" height="124"/>
                     <view key="contentView" id="DEx-a3-Ff1">
-                        <rect key="frame" x="4" y="5" width="316" height="116"/>
+                        <rect key="frame" x="4" y="5" width="524" height="116"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <customView translatesAutoresizingMaskIntoConstraints="NO" id="HQD-6B-yza">
-                                <rect key="frame" x="62" y="8" width="193" height="100"/>
+                                <rect key="frame" x="166" y="8" width="193" height="100"/>
                                 <subviews>
                                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nCf-Pe-mN3">
                                         <rect key="frame" x="16" y="86" width="74" height="14"/>
@@ -237,9 +237,9 @@
                     </view>
                 </box>
                 <box title="Memory" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="h9Y-ZR-Oat">
-                    <rect key="frame" x="17" y="16" width="324" height="106"/>
+                    <rect key="frame" x="17" y="16" width="532" height="106"/>
                     <view key="contentView" id="tDp-Ic-tck">
-                        <rect key="frame" x="4" y="5" width="316" height="98"/>
+                        <rect key="frame" x="4" y="5" width="524" height="98"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="R2v-Zw-Nvc">
@@ -281,42 +281,19 @@
                         </constraints>
                     </view>
                 </box>
-                <tabView translatesAutoresizingMaskIntoConstraints="NO" id="boE-eI-xno">
-                    <rect key="frame" x="339" y="10" width="214" height="251"/>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="200" id="LZM-5d-W1z"/>
-                    </constraints>
-                    <font key="font" metaFont="system"/>
-                    <tabViewItems>
-                        <tabViewItem label="Assembly" identifier="" id="KBr-4n-Y02">
-                            <view key="view" id="dv3-vg-JFx">
-                                <rect key="frame" x="10" y="33" width="194" height="205"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                            </view>
-                        </tabViewItem>
-                        <tabViewItem label="ROM" identifier="" id="1XH-1p-7i2">
-                            <view key="view" id="LqS-7E-oPq">
-                                <rect key="frame" x="10" y="33" width="194" height="205"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                            </view>
-                        </tabViewItem>
-                    </tabViewItems>
-                </tabView>
             </subviews>
             <constraints>
                 <constraint firstItem="X8l-ff-gvW" firstAttribute="leading" secondItem="Fbz-3Z-tJJ" secondAttribute="leading" constant="20" symbolic="YES" id="2pd-Uh-KaT"/>
-                <constraint firstItem="boE-eI-xno" firstAttribute="top" secondItem="Fbz-3Z-tJJ" secondAttribute="top" constant="10" id="4Hp-fW-gZX"/>
-                <constraint firstAttribute="trailing" secondItem="boE-eI-xno" secondAttribute="trailing" constant="20" symbolic="YES" id="5sx-GP-I2h"/>
-                <constraint firstAttribute="bottom" secondItem="boE-eI-xno" secondAttribute="bottom" constant="20" symbolic="YES" id="KRR-Q5-MMW"/>
-                <constraint firstItem="boE-eI-xno" firstAttribute="leading" secondItem="X8l-ff-gvW" secondAttribute="trailing" constant="8" symbolic="YES" id="LLC-1P-023"/>
+                <constraint firstAttribute="trailing" secondItem="h9Y-ZR-Oat" secondAttribute="trailing" constant="20" symbolic="YES" id="ARX-BK-wj0"/>
                 <constraint firstAttribute="bottom" secondItem="h9Y-ZR-Oat" secondAttribute="bottom" constant="20" symbolic="YES" id="LwO-CB-ik9"/>
                 <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="X8l-ff-gvW" secondAttribute="bottom" constant="20" symbolic="YES" id="NBn-c9-TRA"/>
                 <constraint firstItem="h9Y-ZR-Oat" firstAttribute="leading" secondItem="Fbz-3Z-tJJ" secondAttribute="leading" constant="20" symbolic="YES" id="OEE-Tl-QeQ"/>
-                <constraint firstItem="boE-eI-xno" firstAttribute="leading" secondItem="h9Y-ZR-Oat" secondAttribute="trailing" constant="8" symbolic="YES" id="VpP-b4-wvh"/>
+                <constraint firstAttribute="trailing" secondItem="X8l-ff-gvW" secondAttribute="trailing" constant="20" symbolic="YES" id="mmu-jj-LfT"/>
                 <constraint firstItem="h9Y-ZR-Oat" firstAttribute="top" secondItem="DEx-a3-Ff1" secondAttribute="bottom" constant="8" id="x37-16-wpQ"/>
                 <constraint firstItem="X8l-ff-gvW" firstAttribute="top" secondItem="Fbz-3Z-tJJ" secondAttribute="top" constant="20" symbolic="YES" id="zTp-Ve-dUz"/>
             </constraints>
             <point key="canvasLocation" x="161.5" y="87"/>
         </customView>
+        <viewController id="1Ah-7l-mA8" customClass="AssemblyViewController" customModule="Atari2600" customModuleProvider="target"/>
     </objects>
 </document>
