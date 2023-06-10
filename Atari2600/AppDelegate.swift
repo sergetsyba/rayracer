@@ -11,8 +11,8 @@ import Atari2600Kit
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
-	private var debuggerWindowController: NSWindowController?
-	private var console = Atari2600()
+	private var windowControllers = Set<NSWindowController>()
+	private var console: Atari2600 = .current
 	
 	@IBOutlet var window: NSWindow!
 }
@@ -21,22 +21,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: -
 // MARK: Main menu actions
 extension AppDelegate {
-	@IBAction func insertCartridgeMenuItemSelected(_ sender: NSMenuItem) {
-		let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/ROMS/Pac-Man.bin")
+	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
 		do {
-			let data = try Data(contentsOf: url)
-			self.console.memory.rom = data
-			self.console.cpu.reset()
-			while true {
-				self.console.cpu.step()
-			}
+			let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/ROMS/Pac-Man.bin")
+			try self.console.insertCartridge(fromFileAt: url)
 		} catch {
 			// TODO: handle error
 			print(error)
 		}
 	}
 	
-	@IBAction func gameResetMenuItemSelected(_ sender: NSMenuItem) {
+	@IBAction func resetGame(_ sender: AnyObject) {
 		self.console.cpu.reset()
 	}
 	
@@ -45,19 +40,47 @@ extension AppDelegate {
 	}
 	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {
-		self.debuggerWindowController = DebuggerWindowController(console: self.console)
-		self.debuggerWindowController?.window?.delegate = self
-		self.debuggerWindowController?.showWindow(nil)
+		let windowController = DebuggerWindowController()
+		self.showWindow(of: windowController)
+	}
+	
+	func showWindow(with viewController: NSViewController) {
+		let window = NSWindow(contentViewController: viewController)
+		window.delegate = self
+		
+		let windowController = NSWindowController(window: window)
+		windowController.showWindow(self)
+		self.windowControllers.insert(windowController)
 	}
 }
 
 
 // MARK: -
 extension AppDelegate: NSWindowDelegate {
+	func showWindow(of windowController: NSWindowController) {
+		windowController.window?.delegate = self
+		windowController.showWindow(self)
+		self.windowControllers.insert(windowController)
+	}
+	
 	func windowWillClose(_ notification: Notification) {
-		if let window = notification.object as? NSWindow,
-		   window == self.debuggerWindowController?.window {
-			self.debuggerWindowController = nil
+		if let window = notification.object as? NSWindow {
+			self.windowControllers.remove(where: { $0.window == window })
 		}
 	}
+}
+
+private extension Set {
+	mutating func remove(where condition: (Self.Element) -> Bool) {
+		if let index = self.firstIndex(where: condition) {
+			self.remove(at: index)
+		}
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+extension Atari2600 {
+	static let current = Atari2600()
 }
