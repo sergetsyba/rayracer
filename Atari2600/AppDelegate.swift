@@ -21,7 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: -
 // MARK: Main menu actions
 extension AppDelegate {
-	@IBAction func insertCartridgeMenuItemSelected(_ sender: NSMenuItem) {
+	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
 		do {
 			let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/ROMS/Pac-Man.bin")
 			try self.console.insertCartridge(fromFileAt: url)

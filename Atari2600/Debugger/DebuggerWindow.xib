@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="21701" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="21701"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="DebuggerWindowController" customModule="Atari2600" customModuleProvider="target">
+            <connections>
+                <outlet property="cpuContainerView" destination="VWt-lO-tev" id="fAf-Dh-Som"/>
+                <outlet property="memoryContainerView" destination="kA6-bv-ffK" id="Lth-Rk-uk6"/>
+                <outlet property="programContainerView" destination="5uR-n5-g3c" id="S6u-85-jwN"/>
+                <outlet property="window" destination="O0w-qX-Wdo" id="sAT-d3-VcK"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="Debugger" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" releasedWhenClosed="NO" frameAutosaveName="" animationBehavior="default" toolbarStyle="expanded" id="O0w-qX-Wdo" customClass="NSPanel">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="544" y="376" width="429" height="378"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
+            <view key="contentView" id="vgU-mt-Beg">
+                <rect key="frame" x="0.0" y="0.0" width="448" height="378"/>
+                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                <subviews>
+                    <box title="Program" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Agp-2z-HPG">
+                        <rect key="frame" x="17" y="16" width="206" height="344"/>
+                        <view key="contentView" id="5uR-n5-g3c">
+                            <rect key="frame" x="4" y="5" width="198" height="336"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        </view>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="200" id="0tC-n2-ode"/>
+                        </constraints>
+                    </box>
+                    <box title="CPU" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="3Mq-Qg-SlX">
+                        <rect key="frame" x="225" y="204" width="206" height="156"/>
+                        <view key="contentView" id="VWt-lO-tev">
+                            <rect key="frame" x="12" y="13" width="182" height="132"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        </view>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="200" placeholder="YES" id="tcP-Ky-1cw"/>
+                            <constraint firstAttribute="height" constant="150" placeholder="YES" id="zet-6m-ZkR"/>
+                        </constraints>
+                        <size key="contentViewMargins" width="8" height="8"/>
+                    </box>
+                    <box title="Memory" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Apx-y3-fW7">
+                        <rect key="frame" x="225" y="16" width="206" height="186"/>
+                        <view key="contentView" id="kA6-bv-ffK">
+                            <rect key="frame" x="12" y="13" width="182" height="162"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        </view>
+                        <size key="contentViewMargins" width="8" height="8"/>
+                    </box>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" secondItem="3Mq-Qg-SlX" secondAttribute="trailing" constant="20" symbolic="YES" id="1X0-GT-ujF"/>
+                    <constraint firstItem="Apx-y3-fW7" firstAttribute="leading" secondItem="Agp-2z-HPG" secondAttribute="trailing" constant="8" symbolic="YES" id="4Cg-Qc-cuN"/>
+                    <constraint firstItem="Agp-2z-HPG" firstAttribute="top" secondItem="vgU-mt-Beg" secondAttribute="top" constant="20" symbolic="YES" id="5r4-Hv-J7j"/>
+                    <constraint firstItem="Apx-y3-fW7" firstAttribute="top" secondItem="3Mq-Qg-SlX" secondAttribute="bottom" constant="8" symbolic="YES" id="LFc-z9-naf"/>
+                    <constraint firstAttribute="trailing" secondItem="Apx-y3-fW7" secondAttribute="trailing" constant="20" symbolic="YES" id="MRF-Qu-5ia"/>
+                    <constraint firstItem="3Mq-Qg-SlX" firstAttribute="leading" secondItem="Agp-2z-HPG" secondAttribute="trailing" constant="8" symbolic="YES" id="SnI-oK-LdQ"/>
+                    <constraint firstItem="3Mq-Qg-SlX" firstAttribute="top" secondItem="vgU-mt-Beg" secondAttribute="top" constant="20" symbolic="YES" id="cxQ-c7-DfT"/>
+                    <constraint firstAttribute="bottom" secondItem="Apx-y3-fW7" secondAttribute="bottom" constant="20" symbolic="YES" id="d4E-rU-Bo1"/>
+                    <constraint firstItem="Agp-2z-HPG" firstAttribute="leading" secondItem="vgU-mt-Beg" secondAttribute="leading" constant="20" symbolic="YES" id="ghp-d3-8hA"/>
+                    <constraint firstAttribute="bottom" secondItem="Agp-2z-HPG" secondAttribute="bottom" constant="20" symbolic="YES" id="rd7-aF-kw6"/>
+                </constraints>
+            </view>
+            <toolbar key="toolbar" implicitIdentifier="AB48BF75-DB75-4CDE-993E-0E6AC99E1313" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="7a2-Fb-1tg">
+                <allowedToolbarItems>
+                    <toolbarItem implicitItemIdentifier="E098DCFA-12CB-4933-9F92-DDD643F9DD3B" label="Reset" paletteLabel="Reset" tag="-1" image="arrowtriangle.left.circle.fill" catalog="system" bordered="YES" sizingBehavior="auto" id="w1R-Rj-FLP">
+                        <connections>
+                            <action selector="resetGame:" target="-1" id="4iT-4e-Q54"/>
+                        </connections>
+                    </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="BE653877-6A1C-46A4-A431-CF8FD614D77C" label="Step" paletteLabel="Step" tag="-1" image="chevron.right.2" catalog="system" bordered="YES" sizingBehavior="auto" id="qb9-kl-2Rr">
+                        <connections>
+                            <action selector="stepMenuItemSelected:" target="-1" id="05s-gO-Heg"/>
+                        </connections>
+                    </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="DyC-Rk-0m5"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="2Ed-Q9-EHP"/>
+                </allowedToolbarItems>
+                <defaultToolbarItems>
+                    <toolbarItem reference="qb9-kl-2Rr"/>
+                    <toolbarItem reference="2Ed-Q9-EHP"/>
+                    <toolbarItem reference="w1R-Rj-FLP"/>
+                </defaultToolbarItems>
+            </toolbar>
+            <point key="canvasLocation" x="14" y="70"/>
+        </window>
+    </objects>
+    <resources>
+        <image name="arrowtriangle.left.circle.fill" catalog="system" width="15" height="15"/>
+        <image name="chevron.right.2" catalog="system" width="15" height="14"/>
+    </resources>
+</document>

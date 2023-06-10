@@ -17,13 +17,13 @@ public class MOS6507 {
 	var bus: MOS6502Bus!
 	
 	public init() {
-		self.accumulator = 0x00
-		self.x = 0x00
-		self.y = 0x00
-		self.status = 0x00
+		self.accumulator = .randomWord
+		self.x = .randomWord
+		self.y = .randomWord
+		self.status = .random(in: 0x00...0xff)
 		
-		self.stackPointer = 0x00
-		self.programCounter = 0x0000
+		self.stackPointer = .randomWord
+		self.programCounter = .randomAddress
 	}
 	
 	private lazy var operations2: [Mnemonic: (AddressingMode) -> Int] = {[
@@ -1945,5 +1945,18 @@ public extension MOS6507.AddressingMode {
 				return nil
 			}
 		}
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+extension Int {
+	static var randomWord: Self {
+		return Self.random(in: 0x00...0xff)
+	}
+	
+	static var randomAddress: Self {
+		return Self.random(in: 0x0000...0xffff)
 	}
 }

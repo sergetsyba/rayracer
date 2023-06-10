@@ -16,7 +16,7 @@
         <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="21" horizontalPageScroll="10" verticalLineScroll="21" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="vD7-NE-Bqg">
             <rect key="frame" x="0.0" y="0.0" width="364" height="233"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-            <clipView key="contentView" id="ffa-tf-xKv">
+            <clipView key="contentView" drawsBackground="NO" id="ffa-tf-xKv">
                 <rect key="frame" x="0.0" y="0.0" width="364" height="233"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
@@ -24,7 +24,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="364" height="233"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <size key="intercellSpacing" width="8" height="0.0"/>
-                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                         <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                         <tableColumns>
                             <tableColumn identifier="AutomaticTableColumnIdentifier.0" editable="NO" width="64" minWidth="10" maxWidth="1000" id="99b-qC-cui">

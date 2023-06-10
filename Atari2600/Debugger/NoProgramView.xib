@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="21701" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="21701"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="NoProgramViewController" customModule="Atari2600" customModuleProvider="target">
+            <connections>
+                <outlet property="view" destination="yPz-HN-5CY" id="F5s-fg-pVP"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="yPz-HN-5CY">
+            <rect key="frame" x="0.0" y="0.0" width="161" height="51"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5hs-xo-HOl">
+                    <rect key="frame" x="43" y="-5" width="75" height="32"/>
+                    <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="hqL-Sf-NFb">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="insertCartridgeMenuItemSelected:" target="-1" id="eQu-1w-YtP"/>
+                    </connections>
+                </button>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ngy-mS-7qw">
+                    <rect key="frame" x="33" y="30" width="95" height="21"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" title="No program" id="ZE3-HL-EZV">
+                        <font key="font" textStyle="title2" name=".SFNS-Regular"/>
+                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+            </subviews>
+            <constraints>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="5hs-xo-HOl" secondAttribute="trailing" id="1LU-m1-hi7"/>
+                <constraint firstItem="5hs-xo-HOl" firstAttribute="top" secondItem="ngy-mS-7qw" secondAttribute="bottom" constant="8" symbolic="YES" id="6Gm-wq-Gc8"/>
+                <constraint firstItem="5hs-xo-HOl" firstAttribute="centerX" secondItem="yPz-HN-5CY" secondAttribute="centerX" id="6Uk-SC-DP2"/>
+                <constraint firstAttribute="bottom" secondItem="5hs-xo-HOl" secondAttribute="bottom" constant="2" id="AyQ-Gd-aIL"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="ngy-mS-7qw" secondAttribute="trailing" id="ROZ-g4-iKX"/>
+                <constraint firstItem="ngy-mS-7qw" firstAttribute="centerX" secondItem="yPz-HN-5CY" secondAttribute="centerX" id="UYd-l3-x1D"/>
+                <constraint firstItem="5hs-xo-HOl" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="yPz-HN-5CY" secondAttribute="leading" id="VlV-GT-H1b"/>
+                <constraint firstItem="ngy-mS-7qw" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="yPz-HN-5CY" secondAttribute="leading" id="cm4-Gl-4FJ"/>
+                <constraint firstItem="ngy-mS-7qw" firstAttribute="top" secondItem="yPz-HN-5CY" secondAttribute="top" id="tnk-Gj-TEr"/>
+            </constraints>
+            <point key="canvasLocation" x="-17.5" y="94"/>
+        </customView>
+    </objects>
+</document>

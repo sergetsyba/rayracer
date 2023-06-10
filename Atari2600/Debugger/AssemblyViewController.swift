@@ -12,67 +12,65 @@ import Atari2600Kit
 class AssemblyViewController: NSViewController {
 	@IBOutlet private var tableView: NSTableView!
 	
-	private var cancellables: Set<AnyCancellable> = []
 	private let console: Atari2600 = .current
+	private var cancellables: Set<AnyCancellable> = []
 	
-	private var instructions: [(MOS6507.Address, MOS6507.Instruction)]? {
+	private var program: [(MOS6507.Address, MOS6507.Instruction)]? {
 		didSet {
-			if self.isViewLoaded {
-				self.tableView.reloadData()
-			}
+			self.tableView.reloadData()
 		}
 	}
 	
 	private var highlightedRow: Int? = nil {
 		didSet {
-			if let row = self.highlightedRow,
-			   self.isViewLoaded {
-				self.tableView.selectRowIndexes([row], byExtendingSelection: false)
-				self.tableView.ensureRowVisible(row)
-			}
+			self.updateRowSelection()
 		}
 	}
 	
 	convenience init() {
 		self.init(nibName: "AssemblyView", bundle: .main)
-		self.title = "Assembly"
+		self.title = "Program assembly"
 	}
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
 		self.updateTableColumnWidths()
-		self.setUpSinks()
+		self.updateSinks()
 	}
-}
-
-// MARK: -
-// MARK: Event management
-private extension AssemblyViewController {
-	func setUpSinks() {
-		self.console.$isCartridgeInserted
-			.sink() { [unowned self] in
-				self.instructions = $0
-				? self.console.cpu.decodeROM()
-				: nil
-			}
-			.store(in: &self.cancellables)
+	
+	override func viewDidAppear() {
+		super.viewDidAppear()
 		
-		self.console.cpu
-			.$programCounter
-			.sink() { [unowned self] address in
-				self.highlightedRow = self.instructions?
-					.firstIndex(where: { $0.0 == address })
-			}
-			.store(in: &self.cancellables)
+		// making tableview first responder changes selection color to active
+		self.view.window?
+			.makeFirstResponder(self.tableView)
 	}
 }
 
 
 // MARK: -
-// MARK: Custom functionality
+// MARK: UI updates
 private extension AssemblyViewController {
 	static let font: NSFont = .monospacedSystemFont(ofSize: 11.0, weight: .regular)
+	
+	func updateSinks() {
+		self.console.$cartridge
+			.sink() { [unowned self] in
+				if let _ = $0 {
+					self.program = console.cpu.decodeROM()
+					self.highlightedRow = nil
+				} else {
+					self.program = nil
+				}
+			}.store(in: &self.cancellables)
+		
+		self.console.cpu.$programCounter
+			.sink() { [unowned self] address in
+				self.highlightedRow = self.program?
+					.firstIndex(where: { $0.0 == address })
+			}.store(in: &self.cancellables)
+	}
 	
 	func updateTableColumnWidths() {
 		let sizes = ["$0000", "adc", "($a4),Y"]
@@ -86,6 +84,17 @@ private extension AssemblyViewController {
 		self.tableView.tableColumns[1].width = sizes[1].width
 		self.tableView.tableColumns[2].width = sizes[2].width
 	}
+	
+	func updateRowSelection() {
+		if let row = self.highlightedRow {
+			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
+			self.tableView.ensureRowVisible(row)
+		} else {
+			for row in self.tableView.selectedRowIndexes {
+				self.tableView.deselectRow(row)
+			}
+		}
+	}
 }
 
 
@@ -93,7 +102,7 @@ private extension AssemblyViewController {
 // MARK: Table view management
 extension AssemblyViewController: NSTableViewDataSource {
 	func numberOfRows(in tableView: NSTableView) -> Int {
-		return self.instructions?.count ?? 0
+		return self.program?.count ?? 0
 	}
 }
 
@@ -104,7 +113,7 @@ extension AssemblyViewController: NSTableViewDelegate {
 	
 	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
 		guard let cellView = tableView.makeView(withIdentifier: .cell, owner: nil) as? AssemblyTableCellView,
-			  let (address, instruction) = self.instructions?[row] else {
+			  let (address, instruction) = self.program?[row] else {
 			return nil
 		}
 		
