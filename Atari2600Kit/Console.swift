@@ -12,6 +12,12 @@ public class Atari2600: ObservableObject {
 	@Published private(set) public var memory: Memory
 	@Published public var cartridge: Data?
 	
+	private let eventSubject = PassthroughSubject<Event, Never>()
+	
+	public var events: some Publisher<Event, Never> {
+		return eventSubject
+	}
+	
 	public init() {
 		self.cpu = MOS6507()
 		self.memory = Data(repeating: 0x00, count: 0xffff)		
@@ -21,6 +27,11 @@ public class Atari2600: ObservableObject {
 	public func insertCartridge(fromFileAt url: URL) throws {
 		self.cartridge = try Data(contentsOf: url)
 		self.cpu.reset()
+		self.eventSubject.send(.reset)
+	}
+	
+	public enum Event {
+		case reset
 	}
 }
 
