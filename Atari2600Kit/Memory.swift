@@ -5,34 +5,84 @@
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
-public typealias Memory = Data
+import Combine
 
-public extension Memory {
-	var tiaRegisters: Self.SubSequence {
-		return self[.tiaRegistersRange]
+public class Memory {
+	private let eventSubject = PassthroughSubject<Event, Never>()
+	private var data: Data
+	
+	private init(data: Data) {
+		self.data = data
 	}
 	
-	var ram: Self.SubSequence {
-		return self[.ramRange]
-	}
-	
-	var riotRegisters: Self.SubSequence {
-		return self[.riotRegistersRange]
-	}
-	
-	var rom: Self.SubSequence {
-		get {
-			return self[.romRange]
-		}
-		set {
-			self[.romRange] = newValue
+	init() {
+		self.data = Data(count: 0xffff)
+		for index in 0..<data.count {
+			self.data[index] = .random(in: 0x00..<0xff)
 		}
 	}
 }
 
-private extension Range<Memory.Index> {
-	static let tiaRegistersRange = 0x0000..<0x007f
-	static let ramRange = 0x0080..<0x00ff
-	static let riotRegistersRange = 0x0200..<0x02ff
-	static let romRange = 0xf000..<0xffff
+
+// MARK: -
+// MARK: Memory segments
+public extension Memory {
+	subscript (address: Int) -> Int {
+		get {
+			defer {
+				let event: Event = .read(address)
+				self.eventSubject.send(event)
+			}
+			
+			let data = self.data[address]
+			return Int(data)
+		}
+		set {
+			defer {
+				let event: Event = .write(address)
+				self.eventSubject.send(event)
+			}
+			
+			self.data[address] = UInt8(newValue)
+		}
+	}
+	
+	subscript (range: Range<Int>) -> Memory {
+		let data = self.data[range]
+		return Memory(data: data)
+	}
+	
+	var tiaRegisters: Memory {
+		return self[0x0000..<0x007f]
+	}
+	
+	var ram: Memory {
+		return self[0x0080..<0x00ff]
+	}
+	
+	var riotRegisters: Memory {
+		return self[0xf000..<0xffff]
+	}
+	
+	func stride(by count: Int) -> any Sequence<Data> {
+		return Swift.stride(from: self.data.startIndex, through: self.data.endIndex, by: count)
+			.map() {
+				let endIndex = min($0 + count, self.data.endIndex)
+				return self.data[$0..<endIndex]
+			}
+	}
+}
+
+
+// MARK: -
+// MARK: Events
+public extension Memory {
+	enum Event {
+		case read(Int)
+		case write(Int)
+	}
+	
+	var events: some Publisher<Event, Never> {
+		return self.eventSubject
+	}
 }

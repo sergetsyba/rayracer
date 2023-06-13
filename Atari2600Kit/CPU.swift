@@ -1797,24 +1797,24 @@ private extension MOS6507.Address {
 	}
 	
 	init(_ low: UInt8, _ high: UInt8) {
-		self = Self(low) | Self(high) << 8
+		self = (Self(low) | Self(high) << 8)
 	}
 	
 	var low: MOS6507.Word {
 		get {
-			return MOS6507.Word(self & 0xff)
+			return self % 0xff
 		}
 		set {
-			self = (self.high << 8) & newValue
+			self = self.high + (newValue % 0xff)
 		}
 	}
 	
 	var high: MOS6507.Word {
 		get {
-			return MOS6507.Word(self >> 8)
+			return self / 0xff
 		}
 		set {
-			self = (newValue << 8) & self.low
+			self = self.low + (newValue % 0xff) * 0xff
 		}
 	}
 }
