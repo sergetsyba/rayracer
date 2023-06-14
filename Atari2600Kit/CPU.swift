@@ -5,6 +5,44 @@
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
+import Combine
+
+public  extension MOS6507 {
+	enum Event {
+		case reset
+		case sync
+	}
+	
+	var events: some Publisher<Event, Never> {
+		return self.eventSubject
+	}
+	
+	class Status {
+		@Published fileprivate(set) public var carry: Bool
+		@Published fileprivate(set) public var zero: Bool
+		@Published fileprivate(set) public var interruptDisabled: Bool
+		@Published fileprivate(set) public var decimalMode: Bool
+		@Published fileprivate(set) public var `break`: Bool
+		@Published fileprivate(set) public var overflow: Bool
+		@Published fileprivate(set) public var negative: Bool
+		
+		required init() {
+			self.carry = false
+			self.zero = false
+			self.interruptDisabled = false
+			self.decimalMode = false
+			self.break = false
+			self.overflow = false
+			self.negative = false
+		}
+		
+		static var random: Self {
+			// TODO: Status.random
+			return .init()
+		}
+	}
+}
+
 public class MOS6507 {
 	@Published private(set) public var accumulator: Word
 	@Published private(set) public var x: Word
@@ -14,13 +52,17 @@ public class MOS6507 {
 	@Published private(set) public var stackPointer: Word
 	@Published private(set) public var programCounter: Address
 	
+	private let eventSubject = PassthroughSubject<Event, Never>()
+	
+	
+	
 	var bus: MOS6502Bus!
 	
 	public init() {
 		self.accumulator = .randomWord
 		self.x = .randomWord
 		self.y = .randomWord
-		self.status = .random(in: 0x00...0xff)
+		self.status = .random
 		
 		self.stackPointer = .randomWord
 		self.programCounter = .randomAddress
@@ -520,7 +562,7 @@ private extension MOS6507 {
 	func cld() -> Int {
 		self.programCounter += 1
 		
-		self.status.decimal = false
+		self.status.decimalMode = false
 		return 2
 	}
 	
@@ -902,7 +944,7 @@ private extension MOS6507 {
 	func sed() -> Int {
 		self.programCounter += 1
 		
-		self.status.decimal = false
+		self.status.decimalMode = false
 		return 2
 	}
 	
@@ -1022,15 +1064,16 @@ private extension MOS6507 {
 
 public extension MOS6507 {
 	func reset() {
+		self.eventSubject.send(.reset)
+		self.status.interruptDisabled = true
+		
 		self.programCounter = Address(
 			self.bus.read(at: 0xfffe),
 			self.bus.read(at: 0xfffd))
 	}
 	
 	func step() {
-		if self.programCounter == 0xfc44 {
-			print("")
-		}
+		self.eventSubject.send(.sync)
 		
 		let code = self.bus.read(at: self.programCounter)
 		if let operation = self.operations[code] {
@@ -1576,7 +1619,7 @@ public extension MOS6507 {
 public extension MOS6507 {
 	typealias Word = Int
 	typealias Address = Int
-	typealias Status = UInt8
+//	typealias Status = UInt8
 }
 
 private extension Int {
@@ -1596,59 +1639,59 @@ private extension Int {
 	}
 }
 
-private extension MOS6507.Status {
-	subscript(bit: Int) -> Bool {
-		get {
-			let mask: Self = 0x01 << bit
-			return self & mask == mask
-		}
-		set {
-			let mask: Self = 0x01 << bit
-			if newValue {
-				self |= mask
-			} else {
-				self &= ~mask
-			}
-		}
-	}
-}
-
-public extension MOS6507.Status {
-	var carry: Bool {
-		get { return self[0] }
-		set { self[0] = newValue }
-	}
-	
-	var zero: Bool {
-		get { return self[1] }
-		set { self[1] = newValue }
-	}
-	
-	var interruptDisabled: Bool {
-		get { return self[2] }
-		set { self[2] = newValue }
-	}
-	
-	var decimal: Bool {
-		get { return self[3] }
-		set { self[3] = newValue }
-	}
-	
-	var `break`: Bool {
-		get { return self[4] }
-		set { self[4] = newValue }
-	}
-	
-	var overflow: Bool {
-		get { return self[6] }
-		set { self[6] = newValue }
-	}
-	
-	var negative: Bool {
-		get { return self[7] }
-		set { self[7] = newValue }
-	}
-}
+//public extension MOS6507.Status {
+//	subscript(bit: Int) -> Bool {
+//		get {
+//			let mask: Self = 0x01 << bit
+//			return self & mask == mask
+//		}
+//		set {
+//			let mask: Self = 0x01 << bit
+//			if newValue {
+//				self |= mask
+//			} else {
+//				self &= ~mask
+//			}
+//		}
+//	}
+//}
+//
+//public extension MOS6507.Status {
+//	var carry: Bool {
+//		get { return self[0] }
+//		set { self[0] = newValue }
+//	}
+//
+//	var zero: Bool {
+//		get { return self[1] }
+//		set { self[1] = newValue }
+//	}
+//
+//	var interruptDisabled: Bool {
+//		get { return self[2] }
+//		set { self[2] = newValue }
+//	}
+//
+//	var decimal: Bool {
+//		get { return self[3] }
+//		set { self[3] = newValue }
+//	}
+//
+//	var `break`: Bool {
+//		get { return self[4] }
+//		set { self[4] = newValue }
+//	}
+//
+//	var overflow: Bool {
+//		get { return self[6] }
+//		set { self[6] = newValue }
+//	}
+//
+//	var negative: Bool {
+//		get { return self[7] }
+//		set { self[7] = newValue }
+//	}
+//}
 
 extension MOS6507.Word {
 	var isNegative: Bool {
@@ -1754,24 +1797,24 @@ private extension MOS6507.Address {
 	}
 	
 	init(_ low: UInt8, _ high: UInt8) {
-		self = Self(low) | Self(high) << 8
+		self = (Self(low) | Self(high) << 8)
 	}
 	
 	var low: MOS6507.Word {
 		get {
-			return MOS6507.Word(self & 0xff)
+			return self % 0xff
 		}
 		set {
-			self = (self.high << 8) & newValue
+			self = self.high + (newValue % 0xff)
 		}
 	}
 	
 	var high: MOS6507.Word {
 		get {
-			return MOS6507.Word(self >> 8)
+			return self / 0xff
 		}
 		set {
-			self = (newValue << 8) & self.low
+			self = self.low + (newValue % 0xff) * 0xff
 		}
 	}
 }

@@ -8,7 +8,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="DebuggerWindowController" customModule="Atari2600" customModuleProvider="target">
             <connections>
                 <outlet property="cpuContainerView" destination="VWt-lO-tev" id="fAf-Dh-Som"/>
-                <outlet property="memoryContainerView" destination="kA6-bv-ffK" id="Lth-Rk-uk6"/>
+                <outlet property="memoryContainerView" destination="9Yp-Zi-gbT" id="QPJ-UM-0k7"/>
                 <outlet property="programContainerView" destination="5uR-n5-g3c" id="S6u-85-jwN"/>
                 <outlet property="window" destination="O0w-qX-Wdo" id="sAT-d3-VcK"/>
             </connections>
@@ -18,16 +18,16 @@
         <window title="Debugger" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" releasedWhenClosed="NO" frameAutosaveName="" animationBehavior="default" toolbarStyle="expanded" id="O0w-qX-Wdo" customClass="NSPanel">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="544" y="376" width="429" height="378"/>
+            <rect key="contentRect" x="544" y="376" width="448" height="520"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
             <view key="contentView" id="vgU-mt-Beg">
-                <rect key="frame" x="0.0" y="0.0" width="448" height="378"/>
+                <rect key="frame" x="0.0" y="0.0" width="448" height="520"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <box title="Program" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Agp-2z-HPG">
-                        <rect key="frame" x="17" y="16" width="206" height="344"/>
+                        <rect key="frame" x="17" y="16" width="206" height="486"/>
                         <view key="contentView" id="5uR-n5-g3c">
-                            <rect key="frame" x="4" y="5" width="198" height="336"/>
+                            <rect key="frame" x="4" y="5" width="198" height="478"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         </view>
                         <constraints>
@@ -35,7 +35,7 @@
                         </constraints>
                     </box>
                     <box title="CPU" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="3Mq-Qg-SlX">
-                        <rect key="frame" x="225" y="204" width="206" height="156"/>
+                        <rect key="frame" x="225" y="346" width="206" height="156"/>
                         <view key="contentView" id="VWt-lO-tev">
                             <rect key="frame" x="12" y="13" width="182" height="132"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -47,10 +47,44 @@
                         <size key="contentViewMargins" width="8" height="8"/>
                     </box>
                     <box title="Memory" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Apx-y3-fW7">
-                        <rect key="frame" x="225" y="16" width="206" height="186"/>
+                        <rect key="frame" x="225" y="16" width="206" height="328"/>
                         <view key="contentView" id="kA6-bv-ffK">
-                            <rect key="frame" x="12" y="13" width="182" height="162"/>
+                            <rect key="frame" x="12" y="13" width="182" height="304"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <subviews>
+                                <scrollView borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="txO-7m-uHI">
+                                    <rect key="frame" x="0.0" y="0.0" width="182" height="304"/>
+                                    <clipView key="contentView" drawsBackground="NO" id="aka-ih-YhY">
+                                        <rect key="frame" x="0.0" y="0.0" width="182" height="304"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <subviews>
+                                            <view translatesAutoresizingMaskIntoConstraints="NO" id="9Yp-Zi-gbT">
+                                                <rect key="frame" x="0.0" y="0.0" width="182" height="304"/>
+                                            </view>
+                                        </subviews>
+                                        <constraints>
+                                            <constraint firstAttribute="bottom" secondItem="9Yp-Zi-gbT" secondAttribute="bottom" placeholder="YES" id="Eja-fh-p0c"/>
+                                            <constraint firstItem="9Yp-Zi-gbT" firstAttribute="leading" secondItem="aka-ih-YhY" secondAttribute="leading" id="MzO-tz-GMj"/>
+                                            <constraint firstAttribute="trailing" secondItem="9Yp-Zi-gbT" secondAttribute="trailing" id="Okf-9a-bw5"/>
+                                            <constraint firstItem="9Yp-Zi-gbT" firstAttribute="top" secondItem="aka-ih-YhY" secondAttribute="top" id="roz-JS-ybc"/>
+                                        </constraints>
+                                    </clipView>
+                                    <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="y1W-wK-E1I">
+                                        <rect key="frame" x="0.0" y="288" width="182" height="16"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                    </scroller>
+                                    <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="ZJb-TQ-VSn">
+                                        <rect key="frame" x="166" y="0.0" width="16" height="304"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                    </scroller>
+                                </scrollView>
+                            </subviews>
+                            <constraints>
+                                <constraint firstAttribute="trailing" secondItem="txO-7m-uHI" secondAttribute="trailing" id="GWP-2v-wCv"/>
+                                <constraint firstItem="txO-7m-uHI" firstAttribute="leading" secondItem="kA6-bv-ffK" secondAttribute="leading" id="XQ9-hT-MnV"/>
+                                <constraint firstItem="txO-7m-uHI" firstAttribute="top" secondItem="kA6-bv-ffK" secondAttribute="top" id="cv2-R3-ELx"/>
+                                <constraint firstAttribute="bottom" secondItem="txO-7m-uHI" secondAttribute="bottom" id="uuS-vC-h9V"/>
+                            </constraints>
                         </view>
                         <size key="contentViewMargins" width="8" height="8"/>
                     </box>
@@ -89,7 +123,7 @@
                     <toolbarItem reference="w1R-Rj-FLP"/>
                 </defaultToolbarItems>
             </toolbar>
-            <point key="canvasLocation" x="14" y="70"/>
+            <point key="canvasLocation" x="14" y="141"/>
         </window>
     </objects>
     <resources>

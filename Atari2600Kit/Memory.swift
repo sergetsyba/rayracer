@@ -5,34 +5,70 @@
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
-public typealias Memory = Data
+import Combine
 
-public extension Memory {
-	var tiaRegisters: Self.SubSequence {
-		return self[.tiaRegistersRange]
+public class Memory {
+	private let eventSubject = PassthroughSubject<Event, Never>()
+	private var data: Data
+	
+	private init(data: Data) {
+		self.data = data
 	}
 	
-	var ram: Self.SubSequence {
-		return self[.ramRange]
-	}
-	
-	var riotRegisters: Self.SubSequence {
-		return self[.riotRegistersRange]
-	}
-	
-	var rom: Self.SubSequence {
-		get {
-			return self[.romRange]
-		}
-		set {
-			self[.romRange] = newValue
+	init(size: Int) {
+		self.data = Data(count: size)
+		for index in 0..<data.count {
+			self.data[index] = .random(in: 0x00..<0xff)
 		}
 	}
 }
 
-private extension Range<Memory.Index> {
-	static let tiaRegistersRange = 0x0000..<0x007f
-	static let ramRange = 0x0080..<0x00ff
-	static let riotRegistersRange = 0x0200..<0x02ff
-	static let romRange = 0xf000..<0xffff
+
+// MARK: -
+// MARK: Access
+public extension Memory {
+	subscript (address: Int) -> Int {
+		get {
+			let event: Event = .read(address)
+			self.eventSubject.send(event)
+			
+			let data = self.data[address]
+			return Int(data)
+		}
+		set {
+			self.data[address] = UInt8(newValue)
+			
+			let event: Event = .write(address)
+			self.eventSubject.send(event)
+		}
+	}
+	
+	subscript (range: Range<Int>) -> Memory {
+		let data = self.data[range]
+		
+		// TODO: send read event
+		return Memory(data: data)
+	}
+	
+	func stride(by count: Int) -> any Sequence<Data> {
+		return Swift.stride(from: self.data.startIndex, through: self.data.endIndex, by: count)
+			.map() {
+				let endIndex = min($0 + count, self.data.endIndex)
+				return self.data[$0..<endIndex]
+			}
+	}
+}
+
+
+// MARK: -
+// MARK: Events
+public extension Memory {
+	enum Event {
+		case read(Int)
+		case write(Int)
+	}
+	
+	var events: some Publisher<Event, Never> {
+		return self.eventSubject
+	}
 }

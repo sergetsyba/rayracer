@@ -5,8 +5,6 @@
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
-import Combine
-
 public class Atari2600: ObservableObject {
 	@Published private(set) public var cpu: MOS6507
 	@Published private(set) public var memory: Memory
@@ -14,7 +12,7 @@ public class Atari2600: ObservableObject {
 	
 	public init() {
 		self.cpu = MOS6507()
-		self.memory = Data(repeating: 0x00, count: 0xffff)		
+		self.memory = Memory(size: 0xffff)
 		self.cpu.bus = self
 	}
 	
@@ -23,6 +21,24 @@ public class Atari2600: ObservableObject {
 		self.cpu.reset()
 	}
 }
+
+
+// MARK: -
+// MARK: Memory segments
+public extension Memory {
+	var tiaRegisters: Memory {
+		return self[0x0000..<0x007f]
+	}
+	
+	var ram: Memory {
+		return self[0x0080..<0x00ff]
+	}
+	
+	var riotRegisters: Memory {
+		return self[0xf000..<0xffff]
+	}
+}
+
 
 // MARK: -
 extension Atari2600: MOS6502Bus {
@@ -33,6 +49,7 @@ extension Atari2600: MOS6502Bus {
 	}
 	
 	func write(_ value: MOS6507.Word, at address: MOS6507.Address) {
-		// TODO: write
+		// TODO: restrict address
+		self.memory[address] = value
 	}
 }
