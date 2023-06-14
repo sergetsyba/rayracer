@@ -12,7 +12,7 @@ public class Atari2600: ObservableObject {
 	
 	public init() {
 		self.cpu = MOS6507()
-		self.memory = Memory()
+		self.memory = Memory(size: 0xffff)
 		self.cpu.bus = self
 	}
 	
@@ -21,6 +21,24 @@ public class Atari2600: ObservableObject {
 		self.cpu.reset()
 	}
 }
+
+
+// MARK: -
+// MARK: Memory segments
+public extension Memory {
+	var tiaRegisters: Memory {
+		return self[0x0000..<0x007f]
+	}
+	
+	var ram: Memory {
+		return self[0x0080..<0x00ff]
+	}
+	
+	var riotRegisters: Memory {
+		return self[0xf000..<0xffff]
+	}
+}
+
 
 // MARK: -
 extension Atari2600: MOS6502Bus {

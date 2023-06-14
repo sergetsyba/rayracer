@@ -117,7 +117,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="LFP-sM-lN3">
-                    <rect key="frame" x="96" y="40" width="15" height="13"/>
+                    <rect key="frame" x="98" y="40" width="11" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="N" id="sQ4-Lp-VnY">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
@@ -125,7 +125,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nXC-ky-4Rs">
-                    <rect key="frame" x="111" y="40" width="15" height="13"/>
+                    <rect key="frame" x="113" y="40" width="11" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="V" id="lFv-Ei-OZ2">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
@@ -133,7 +133,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="rqO-Mw-Vyp">
-                    <rect key="frame" x="142" y="40" width="15" height="13"/>
+                    <rect key="frame" x="144" y="40" width="11" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="B" id="i9H-5R-YmT">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
@@ -141,7 +141,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="JmK-df-2jj">
-                    <rect key="frame" x="157" y="40" width="15" height="13"/>
+                    <rect key="frame" x="159" y="40" width="11" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="D" id="QJz-4v-MsV">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
@@ -149,7 +149,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="hYz-Ui-iF7">
-                    <rect key="frame" x="172" y="40" width="15" height="13"/>
+                    <rect key="frame" x="174" y="40" width="11" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="I" id="ESH-B1-4NO">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
@@ -157,7 +157,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="jgb-sy-hbm">
-                    <rect key="frame" x="187" y="40" width="15" height="13"/>
+                    <rect key="frame" x="189" y="40" width="11" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Z" id="M21-Od-2LD">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
@@ -165,7 +165,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Pc5-iC-1U5">
-                    <rect key="frame" x="202" y="40" width="15" height="13"/>
+                    <rect key="frame" x="204" y="40" width="11" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="C" id="x3m-VJ-08D">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>

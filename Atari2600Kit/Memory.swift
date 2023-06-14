@@ -15,8 +15,8 @@ public class Memory {
 		self.data = data
 	}
 	
-	init() {
-		self.data = Data(count: 0xffff)
+	init(size: Int) {
+		self.data = Data(count: size)
 		for index in 0..<data.count {
 			self.data[index] = .random(in: 0x00..<0xff)
 		}
@@ -25,43 +25,29 @@ public class Memory {
 
 
 // MARK: -
-// MARK: Memory segments
+// MARK: Access
 public extension Memory {
 	subscript (address: Int) -> Int {
 		get {
-			defer {
-				let event: Event = .read(address)
-				self.eventSubject.send(event)
-			}
+			let event: Event = .read(address)
+			self.eventSubject.send(event)
 			
 			let data = self.data[address]
 			return Int(data)
 		}
 		set {
-			defer {
-				let event: Event = .write(address)
-				self.eventSubject.send(event)
-			}
-			
 			self.data[address] = UInt8(newValue)
+			
+			let event: Event = .write(address)
+			self.eventSubject.send(event)
 		}
 	}
 	
 	subscript (range: Range<Int>) -> Memory {
 		let data = self.data[range]
+		
+		// TODO: send read event
 		return Memory(data: data)
-	}
-	
-	var tiaRegisters: Memory {
-		return self[0x0000..<0x007f]
-	}
-	
-	var ram: Memory {
-		return self[0x0080..<0x00ff]
-	}
-	
-	var riotRegisters: Memory {
-		return self[0xf000..<0xffff]
 	}
 	
 	func stride(by count: Int) -> any Sequence<Data> {

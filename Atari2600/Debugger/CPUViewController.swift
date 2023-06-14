@@ -25,7 +25,6 @@ class CPUViewController: NSViewController {
 	@IBOutlet private var stackPointerLabel: NSTextField!
 	@IBOutlet private var programCounterLabel: NSTextField!
 	
-	private let console: Atari2600 = .current
 	private let cpu: MOS6507 = Atari2600.current.cpu
 	private var cancellables: Set<AnyCancellable> = []
 	
@@ -121,7 +120,7 @@ private extension CPUViewController {
 	}
 }
 
-private extension NSFont {
+extension NSFont {
 	static let regular: NSFont = .monospacedSystemFont(ofSize: 11.0, weight: .regular)
 	static let emphasized: NSFont = .monospacedSystemFont(ofSize: 11.0, weight: .bold)
 }

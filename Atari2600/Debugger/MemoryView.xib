@@ -7,56 +7,56 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="MemoryViewController" customModule="Atari2600" customModuleProvider="target">
             <connections>
-                <outlet property="ramLabel" destination="OF3-jl-hss" id="I1y-t8-hps"/>
-                <outlet property="riotRegistersLabel" destination="f3x-WF-kzM" id="hu7-b2-HQe"/>
-                <outlet property="tiaRegistersLabel" destination="GXJ-hl-JLr" id="WHT-tr-431"/>
-                <outlet property="view" destination="8ME-M7-6Wm" id="dQe-ba-pHs"/>
+                <outlet property="ramLabel" destination="caV-sy-i9X" id="ref-Ar-AWf"/>
+                <outlet property="riotRegistersLabel" destination="TOD-eU-fnE" id="zgS-wJ-9Ex"/>
+                <outlet property="tiaRegistersLabel" destination="Vg5-tU-tFp" id="pj0-V3-boc"/>
+                <outlet property="view" destination="UPo-xQ-khR" id="8rD-le-RH1"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <customView id="8ME-M7-6Wm">
-            <rect key="frame" x="0.0" y="0.0" width="195" height="55"/>
+        <customView id="UPo-xQ-khR">
+            <rect key="frame" x="0.0" y="0.0" width="163" height="64"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="GXJ-hl-JLr">
-                    <rect key="frame" x="-2" y="42" width="93" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="TIA registers" id="wVI-M8-GXD">
-                        <font key="font" size="11" name="SFMono-Regular"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Vg5-tU-tFp">
+                    <rect key="frame" x="-2" y="48" width="37" height="16"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="ePt-aZ-dAW">
+                        <font key="font" usesAppearanceFont="YES"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OF3-jl-hss">
-                    <rect key="frame" x="-2" y="21" width="25" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="RAM" id="hWU-uI-KkV">
-                        <font key="font" size="11" name="SFMono-Regular"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="caV-sy-i9X">
+                    <rect key="frame" x="-2" y="24" width="37" height="16"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="llq-4e-Avm">
+                        <font key="font" usesAppearanceFont="YES"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="f3x-WF-kzM">
-                    <rect key="frame" x="-2" y="0.0" width="100" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="RIOT registers" id="KfB-47-OVT">
-                        <font key="font" size="11" name="SFMono-Regular"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="TOD-eU-fnE">
+                    <rect key="frame" x="-2" y="0.0" width="37" height="16"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="4PW-oW-x7s">
+                        <font key="font" usesAppearanceFont="YES"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
             </subviews>
             <constraints>
-                <constraint firstItem="OF3-jl-hss" firstAttribute="top" secondItem="GXJ-hl-JLr" secondAttribute="bottom" constant="8" symbolic="YES" id="IuH-KE-uxl"/>
-                <constraint firstItem="f3x-WF-kzM" firstAttribute="leading" secondItem="8ME-M7-6Wm" secondAttribute="leading" id="JF2-mz-FHq"/>
-                <constraint firstAttribute="bottom" secondItem="f3x-WF-kzM" secondAttribute="bottom" id="Mc4-lJ-5HY"/>
-                <constraint firstItem="OF3-jl-hss" firstAttribute="leading" secondItem="8ME-M7-6Wm" secondAttribute="leading" id="jXo-C7-KoP"/>
-                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="OF3-jl-hss" secondAttribute="trailing" id="mJW-b1-BYq"/>
-                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="GXJ-hl-JLr" secondAttribute="trailing" id="nwp-Xb-1hg"/>
-                <constraint firstItem="GXJ-hl-JLr" firstAttribute="top" secondItem="8ME-M7-6Wm" secondAttribute="top" id="pql-v3-0AR"/>
-                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="f3x-WF-kzM" secondAttribute="trailing" id="uzE-zQ-iT1"/>
-                <constraint firstItem="f3x-WF-kzM" firstAttribute="top" secondItem="OF3-jl-hss" secondAttribute="bottom" constant="8" symbolic="YES" id="vgR-hS-qrg"/>
-                <constraint firstItem="GXJ-hl-JLr" firstAttribute="leading" secondItem="8ME-M7-6Wm" secondAttribute="leading" id="yuU-MZ-Y3y"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="caV-sy-i9X" secondAttribute="trailing" id="6x3-X8-bXW"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="Vg5-tU-tFp" secondAttribute="trailing" id="7ym-j8-9cF"/>
+                <constraint firstItem="caV-sy-i9X" firstAttribute="top" secondItem="Vg5-tU-tFp" secondAttribute="bottom" constant="8" symbolic="YES" id="QCe-7H-Y2w"/>
+                <constraint firstItem="TOD-eU-fnE" firstAttribute="leading" secondItem="UPo-xQ-khR" secondAttribute="leading" id="Tm2-11-43C"/>
+                <constraint firstItem="Vg5-tU-tFp" firstAttribute="leading" secondItem="UPo-xQ-khR" secondAttribute="leading" id="U3D-Pi-RIo"/>
+                <constraint firstAttribute="bottom" secondItem="TOD-eU-fnE" secondAttribute="bottom" id="dF3-OT-DrI"/>
+                <constraint firstItem="caV-sy-i9X" firstAttribute="leading" secondItem="UPo-xQ-khR" secondAttribute="leading" id="eb1-6u-DDw"/>
+                <constraint firstItem="TOD-eU-fnE" firstAttribute="top" secondItem="caV-sy-i9X" secondAttribute="bottom" constant="8" symbolic="YES" id="elB-Nu-Yzt"/>
+                <constraint firstItem="Vg5-tU-tFp" firstAttribute="top" secondItem="UPo-xQ-khR" secondAttribute="top" id="f28-Am-Jy1"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="TOD-eU-fnE" secondAttribute="trailing" id="gEf-Oh-AbW"/>
             </constraints>
-            <point key="canvasLocation" x="67" y="18"/>
+            <point key="canvasLocation" x="188.5" y="-331"/>
         </customView>
     </objects>
 </document>
