@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		950641DD2A39C4B700938403 /* AssemblyAddressCellView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 950641DC2A39C4B700938403 /* AssemblyAddressCellView.xib */; };
+		950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641DE2A39C4E700938403 /* AssemblyAddressCellView.swift */; };
+		950641E12A39CBDB00938403 /* AssemblyTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641E02A39CBDB00938403 /* AssemblyTableView.swift */; };
+		950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641E22A39CDAB00938403 /* BreakpointToggle.swift */; };
 		953D92AA2A1AEB7400EC52AC /* Atari2600Kit.h in Headers */ = {isa = PBXBuildFile; fileRef = 953D92A92A1AEB7400EC52AC /* Atari2600Kit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92AE2A1AEB8300EC52AC /* Console.swift */; };
 		953D92B12A1AEB9E00EC52AC /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92B02A1AEB9E00EC52AC /* CPU.swift */; };
@@ -36,6 +40,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		950641DC2A39C4B700938403 /* AssemblyAddressCellView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyAddressCellView.xib; sourceTree = "<group>"; };
+		950641DE2A39C4E700938403 /* AssemblyAddressCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyAddressCellView.swift; sourceTree = "<group>"; };
+		950641E02A39CBDB00938403 /* AssemblyTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyTableView.swift; sourceTree = "<group>"; };
+		950641E22A39CDAB00938403 /* BreakpointToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakpointToggle.swift; sourceTree = "<group>"; };
 		953D92A72A1AEB7400EC52AC /* Atari2600Kit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Atari2600Kit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		953D92A92A1AEB7400EC52AC /* Atari2600Kit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Atari2600Kit.h; sourceTree = "<group>"; };
 		953D92AE2A1AEB8300EC52AC /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
@@ -119,15 +127,19 @@
 		95CE639C2A333365007BD72B /* Debugger */ = {
 			isa = PBXGroup;
 			children = (
+				950641DE2A39C4E700938403 /* AssemblyAddressCellView.swift */,
+				950641DC2A39C4B700938403 /* AssemblyAddressCellView.xib */,
+				950641E02A39CBDB00938403 /* AssemblyTableView.swift */,
 				95A501802A2CFCA400A59616 /* AssemblyView.xib */,
 				95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */,
 				95CE639F2A3333BC007BD72B /* CPUView.xib */,
 				95CE639D2A333383007BD72B /* CPUViewController.swift */,
 				95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */,
 				95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */,
-				95CE63A52A33565A007BD72B /* NoProgramView.xib */,
-				9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */,
 				9579CF7C2A37197800D3EC01 /* MemoryView.xib */,
+				9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */,
+				95CE63A52A33565A007BD72B /* NoProgramView.xib */,
+				950641E22A39CDAB00938403 /* BreakpointToggle.swift */,
 			);
 			path = Debugger;
 			sourceTree = "<group>";
@@ -237,6 +249,7 @@
 				95CE63A02A3333BC007BD72B /* CPUView.xib in Resources */,
 				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
 				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
+				950641DD2A39C4B700938403 /* AssemblyAddressCellView.xib in Resources */,
 				954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */,
 				9579CF7D2A37197800D3EC01 /* MemoryView.xib in Resources */,
 			);
@@ -259,7 +272,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				950641E12A39CBDB00938403 /* AssemblyTableView.swift in Sources */,
 				95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */,
+				950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */,
+				950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,
 				95CE639E2A333383007BD72B /* CPUViewController.swift in Sources */,
 				9579CF7B2A3718D200D3EC01 /* MemoryViewController.swift in Sources */,
