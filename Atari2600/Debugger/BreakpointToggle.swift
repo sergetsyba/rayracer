@@ -21,7 +21,6 @@ import CoreText
 	public var isOn: Bool {
 		didSet {
 			self.needsDisplay = true
-			self.sendAction(self.action, to: self.target)
 		}
 	}
 	
@@ -159,6 +158,7 @@ extension BreakpointToggle {
 	override func mouseDown(with event: NSEvent) {
 		self.isOn = !self.isOn
 		self.needsDisplay = true
+		self.sendAction(self.action, to: self.target)
 	}
 }
 
