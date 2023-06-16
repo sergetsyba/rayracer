@@ -12,9 +12,11 @@ import Atari2600Kit
 class AssemblyViewController: NSViewController {
 	@IBOutlet private var tableView: NSTableView!
 	
-	private let eventSubject = PassthroughSubject<Event, Never>()
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
+	
+	@Published private(set)
+	public var breakpoints: [MOS6507.Address] = []
 	
 	private var program: [(MOS6507.Address, MOS6507.Instruction)]? {
 		didSet {
@@ -58,21 +60,14 @@ class AssemblyViewController: NSViewController {
 // MARK: -
 // MARK: Event management
 extension AssemblyViewController {
-	public enum Event {
-		case breakpointSet(MOS6507.Address)
-		case breakpointUnset(MOS6507.Address)
-	}
-	
-	public var events: some Publisher<Event, Never> {
-		return self.eventSubject
-	}
-	
 	@objc func breakpointToggled(_ sender: BreakpointToggle) {
-		let event: Event = sender.isOn
-		? .breakpointSet(sender.tag)
-		: .breakpointUnset(sender.tag)
-		
-		self.eventSubject.send(event)
+		if sender.isOn {
+			self.breakpoints.append(sender.tag)
+		} else {
+			if let index = self.breakpoints.firstIndex(of: sender.tag) {
+				self.breakpoints.remove(at: index)
+			}
+		}
 	}
 }
 
@@ -146,6 +141,7 @@ extension AssemblyViewController: NSTableViewDelegate {
 		case tableView.tableColumns[0]:
 			let view = tableView.makeView(withIdentifier: .addressCell, owner: nil) as! AssemblyAddressCellView
 			view.toggle.title = String(address: address)
+			view.toggle.isOn = self.breakpoints.contains(address)
 			
 			view.toggle.tag = address
 			view.toggle.target = self

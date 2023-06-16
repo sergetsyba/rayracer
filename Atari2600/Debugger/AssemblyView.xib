@@ -104,11 +104,11 @@
                                 <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                 <prototypeCellViews>
                                     <tableCellView id="wZ6-rQ-6eC">
-                                        <rect key="frame" x="176" y="0.0" width="43" height="24"/>
+                                        <rect key="frame" x="176" y="0.0" width="44" height="24"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
                                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CJR-Mq-Ce9">
-                                                <rect key="frame" x="0.0" y="4" width="43" height="16"/>
+                                                <rect key="frame" x="0.0" y="4" width="44" height="16"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="jT2-Va-thn">
                                                     <font key="font" usesAppearanceFont="YES"/>
