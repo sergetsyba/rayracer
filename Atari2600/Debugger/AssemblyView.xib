@@ -7,10 +7,10 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="AssemblyViewController" customModule="Atari2600" customModuleProvider="target">
             <connections>
-                <outlet property="noProgramView" destination="WkS-ZB-ZkW" id="2Ti-Lu-ZsM"/>
-                <outlet property="programView" destination="4zP-2f-IoL" id="tOb-E6-xxm"/>
-                <outlet property="tableView" destination="i68-Mt-M9R" id="hFa-O4-l3r"/>
-                <outlet property="view" destination="vMG-Eq-FSz" id="KLh-KE-X1V"/>
+                <outlet property="noProgramView" destination="WkS-ZB-ZkW" id="iEg-IM-X5f"/>
+                <outlet property="programView" destination="4zP-2f-IoL" id="N6C-JR-QU0"/>
+                <outlet property="tableView" destination="i68-Mt-M9R" id="hE2-Ki-eg9"/>
+                <outlet property="view" destination="vMG-Eq-FSz" id="gc9-1e-diF"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>

@@ -12,15 +12,14 @@ import Atari2600Kit
 class DebuggerWindowController: NSWindowController {
 	@IBOutlet private var toolbar: NSToolbar!
 	
-	@IBOutlet private var programContainerView: NSView!
+	@IBOutlet private var assemblyContainerView: NSView!
 	@IBOutlet private var cpuContainerView: NSView!
 	@IBOutlet private var memoryContainerView: NSView!
 	
-	private var programViewController = ProgramViewController()
+	private var assemblyViewController = AssemblyViewController()
 	private let cpuViewController = CPUViewController()
 	private let memoryViewController = MemoryViewController()
 	
-	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
 	
 	init() {
@@ -38,35 +37,60 @@ class DebuggerWindowController: NSWindowController {
 	override func windowDidLoad() {
 		super.windowDidLoad()
 		
-		self.programContainerView.setContentView(self.programViewController.view)
+		self.assemblyContainerView.setContentView(self.assemblyViewController.view)
 		self.cpuContainerView.setContentView(self.cpuViewController.view, layout: .centerHorizontally)
 		self.memoryContainerView.setContentView(self.memoryViewController.view)
 		
 		self.setUpSinks()
 	}
-	
+}
+
+
+// MARK: -
+// MARK: Target actions
+private extension DebuggerWindowController {
+	@objc func breakpointMenuItemSelected(_ sender: NSMenuItem) {
+		self.assemblyViewController.scrollTo(address: sender.tag)
+	}
+}
+
+
+// MARK: -
+// MARK: UI updates
+private extension DebuggerWindowController {
 	func setUpSinks() {
-		// TODO: remove delay before showing program in cartridge event publisher
-		self.console.$cartridge
-			.delay(for: 0.01, scheduler: RunLoop.current)
+		self.assemblyViewController.$breakpoints
 			.sink() { [unowned self] in
-				if let data = $0 {
-					self.programViewController.program = self.console.cpu.decode(data)
-					self.console.cpu.reset()
-				} else {
-					self.programViewController.program = nil
-				}
+				self.updateBreakpointsToolbarItem(breakpoints: $0)
 			}.store(in: &self.cancellables)
+	}
+	
+	func updateBreakpointsToolbarItem(breakpoints: [MOS6507.Address]) {
+		guard let toolbarItem = self.toolbar.items
+			.first(where: { $0.itemIdentifier == .breakpointsItem }) as? NSMenuToolbarItem else {
+			return
+		}
 		
-		self.console.cpu.$programCounter
-			.sink() { [unowned self] in
-				self.programViewController.programAddress = $0
-			}.store(in: &self.cancellables)
+		let menu = NSMenu()
+		menu.items = breakpoints
+			.map() { self.createBreakpointMenuItem(breakpoint: $0) }
+			.sorted(by: { $0.tag < $1.tag })
 		
-		self.programViewController.$breakpoints
-			.sink() { [unowned self] in
-				self.toolbar.items[0].isEnabled = $0.count > 0
-			}.store(in: &self.cancellables)
+		toolbarItem.menu = menu
+		toolbarItem.isEnabled = breakpoints.count > 0
+	}
+	
+	func createBreakpointMenuItem(breakpoint: MOS6507.Address) -> NSMenuItem {
+		let item = NSMenuItem()
+		item.tag = breakpoint
+		item.attributedTitle = NSAttributedString(
+			string: String(address: breakpoint),
+			attributes: [
+				.font: NSFont.monospacedRegular
+			])
+		
+		item.action = #selector(self.breakpointMenuItemSelected(_:))
+		return item
 	}
 }
 
@@ -115,4 +139,14 @@ extension DebuggerWindowController: NSToolbarDelegate {
 private extension NSToolbarItem.Identifier {
 	static let breakpointsItem = NSToolbarItem.Identifier("BreakpointsItem")
 	static let resetItem = NSToolbarItem.Identifier("ResetItem")
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+extension NSMenu {
+	convenience init(items: [NSMenuItem]) {
+		self.init()
+		self.items = items
+	}
 }

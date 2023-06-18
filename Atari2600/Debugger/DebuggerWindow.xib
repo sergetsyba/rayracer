@@ -7,9 +7,9 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="DebuggerWindowController" customModule="Atari2600" customModuleProvider="target">
             <connections>
+                <outlet property="assemblyContainerView" destination="5uR-n5-g3c" id="hAc-XB-kIK"/>
                 <outlet property="cpuContainerView" destination="VWt-lO-tev" id="fAf-Dh-Som"/>
                 <outlet property="memoryContainerView" destination="9Yp-Zi-gbT" id="QPJ-UM-0k7"/>
-                <outlet property="programContainerView" destination="5uR-n5-g3c" id="S6u-85-jwN"/>
                 <outlet property="toolbar" destination="LSb-J4-Z97" id="zSf-sB-E5d"/>
                 <outlet property="window" destination="O0w-qX-Wdo" id="sAT-d3-VcK"/>
             </connections>
