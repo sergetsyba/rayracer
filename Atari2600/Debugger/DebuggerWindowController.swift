@@ -16,7 +16,7 @@ class DebuggerWindowController: NSWindowController {
 	@IBOutlet private var cpuContainerView: NSView!
 	@IBOutlet private var memoryContainerView: NSView!
 	
-	private var programViewController: NSViewController?
+	private var programViewController = ProgramViewController()
 	private let cpuViewController = CPUViewController()
 	private let memoryViewController = MemoryViewController()
 	
@@ -38,28 +38,35 @@ class DebuggerWindowController: NSWindowController {
 	override func windowDidLoad() {
 		super.windowDidLoad()
 		
+		self.programContainerView.setContentView(self.programViewController.view)
+		self.cpuContainerView.setContentView(self.cpuViewController.view, layout: .centerHorizontally)
+		self.memoryContainerView.setContentView(self.memoryViewController.view)
+		
+		self.setUpSinks()
+	}
+	
+	func setUpSinks() {
+		// TODO: remove delay before showing program in cartridge event publisher
 		self.console.$cartridge
+			.delay(for: 0.01, scheduler: RunLoop.current)
 			.sink() { [unowned self] in
-				if let _ = $0 {
-					let viewController = AssemblyViewController()
-					self.programContainerView.setContentView(viewController.view, layout: .fill)
-					self.programViewController = viewController
-					
-					viewController.$breakpoints.sink() { [unowned self] in
-						self.window?.toolbar?.items[0].isEnabled = $0.count > 0
-					}.store(in: &self.cancellables)
+				if let data = $0 {
+					self.programViewController.program = self.console.cpu.decode(data)
+					self.console.cpu.reset()
 				} else {
-					let viewController = NoProgramViewController()
-					self.programContainerView.setContentView(viewController.view, layout: .center)
-					self.programViewController = viewController
+					self.programViewController.program = nil
 				}
 			}.store(in: &self.cancellables)
 		
-		self.cpuContainerView.setContentView(
-			self.cpuViewController.view, layout: .centerHorizontally)
+		self.console.cpu.$programCounter
+			.sink() { [unowned self] in
+				self.programViewController.programAddress = $0
+			}.store(in: &self.cancellables)
 		
-		self.memoryContainerView.setContentView(
-			self.memoryViewController.view)
+		self.programViewController.$breakpoints
+			.sink() { [unowned self] in
+				self.toolbar.items[0].isEnabled = $0.count > 0
+			}.store(in: &self.cancellables)
 	}
 }
 
@@ -105,85 +112,7 @@ extension DebuggerWindowController: NSToolbarDelegate {
 	}
 }
 
-extension DebuggerWindowController: NSToolbarItemValidation {
-	func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
-		print(item.itemIdentifier)
-		switch item.itemIdentifier {
-		case .breakpointsItem:
-			return false
-		default:
-			return true
-		}
-	}
-}
-
 private extension NSToolbarItem.Identifier {
 	static let breakpointsItem = NSToolbarItem.Identifier("BreakpointsItem")
 	static let resetItem = NSToolbarItem.Identifier("ResetItem")
-}
-
-
-// MARK: -
-class NoProgramViewController: NSViewController {
-	convenience init() {
-		self.init(nibName: "NoProgramView", bundle: .main)
-	}
-}
-
-
-// MARK: -
-// MARK: Convenience functionality
-private extension NSView {
-	enum ContentViewLayout {
-		case center
-		case centerHorizontally
-		case fill
-	}
-	
-	func setContentView(_ view: NSView?, layout: ContentViewLayout = .fill) {
-		for subview in self.subviews {
-			subview.removeFromSuperview()
-		}
-		guard let view = view else {
-			return
-		}
-		
-		self.addSubview(view)
-		view.translatesAutoresizingMaskIntoConstraints = false
-		
-		switch layout {
-		case .center:
-			self.addConstraints([
-				NSLayoutConstraint(item: self, toItem: view, attribute: .leading, relatedBy: .lessThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .top, relatedBy: .lessThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .trailing, relatedBy: .greaterThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .bottom, relatedBy: .greaterThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .centerX),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .centerY)
-			])
-			
-		case .centerHorizontally:
-			self.addConstraints([
-				NSLayoutConstraint(item: self, toItem: view, attribute: .leading, relatedBy: .lessThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .top),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .trailing, relatedBy: .greaterThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .bottom),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .centerX)
-			])
-			
-		case .fill:
-			self.addConstraints([
-				NSLayoutConstraint(item: self, toItem: view, attribute: .leading),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .top),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .trailing),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .bottom)
-			])
-		}
-	}
-}
-
-private extension NSLayoutConstraint {
-	convenience init(item item1: Any, toItem item2: Any, attribute: NSLayoutConstraint.Attribute, relatedBy relation: NSLayoutConstraint.Relation = .equal) {
-		self.init(item: item1, attribute: attribute, relatedBy: relation, toItem: item2, attribute: attribute, multiplier: 1.0, constant: 0.0)
-	}
 }

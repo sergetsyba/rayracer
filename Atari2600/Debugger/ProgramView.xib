@@ -7,12 +7,55 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="AssemblyViewController" customModule="Atari2600" customModuleProvider="target">
             <connections>
-                <outlet property="tableView" destination="i68-Mt-M9R" id="kZj-CM-slk"/>
-                <outlet property="view" destination="4zP-2f-IoL" id="QrD-E8-Sp1"/>
+                <outlet property="noProgramView" destination="WkS-ZB-ZkW" id="2Ti-Lu-ZsM"/>
+                <outlet property="programView" destination="4zP-2f-IoL" id="tOb-E6-xxm"/>
+                <outlet property="tableView" destination="i68-Mt-M9R" id="hFa-O4-l3r"/>
+                <outlet property="view" destination="vMG-Eq-FSz" id="KLh-KE-X1V"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="vMG-Eq-FSz">
+            <rect key="frame" x="0.0" y="0.0" width="163" height="96"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <point key="canvasLocation" x="-46" y="-530"/>
+        </customView>
+        <customView id="WkS-ZB-ZkW">
+            <rect key="frame" x="0.0" y="0.0" width="163" height="51"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aqp-G2-fdl">
+                    <rect key="frame" x="34" y="30" width="96" height="21"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" title="No Program" id="Dyj-Pb-Ann">
+                        <font key="font" textStyle="title2" name=".SFNS-Regular"/>
+                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="0fh-7A-3sE">
+                    <rect key="frame" x="17" y="-5" width="130" height="32"/>
+                    <buttonCell key="cell" type="push" title="Insert Cartridge" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="oIl-mK-zXa">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="insertCartridgeMenuItemSelected:" target="-1" id="qgA-Z7-Qt5"/>
+                    </connections>
+                </button>
+            </subviews>
+            <constraints>
+                <constraint firstItem="0fh-7A-3sE" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="WkS-ZB-ZkW" secondAttribute="leading" id="2by-wx-kdm"/>
+                <constraint firstItem="aqp-G2-fdl" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="WkS-ZB-ZkW" secondAttribute="leading" id="7hQ-Rm-h1F"/>
+                <constraint firstItem="aqp-G2-fdl" firstAttribute="top" secondItem="WkS-ZB-ZkW" secondAttribute="top" id="DZQ-Em-afH"/>
+                <constraint firstAttribute="bottom" secondItem="0fh-7A-3sE" secondAttribute="bottom" constant="2" id="Ef4-UK-NEj"/>
+                <constraint firstItem="aqp-G2-fdl" firstAttribute="centerX" secondItem="WkS-ZB-ZkW" secondAttribute="centerX" id="GiP-6m-yFS"/>
+                <constraint firstItem="0fh-7A-3sE" firstAttribute="top" secondItem="aqp-G2-fdl" secondAttribute="bottom" constant="8" symbolic="YES" id="HgT-9Q-pHQ"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="0fh-7A-3sE" secondAttribute="trailing" id="Pmk-Oe-ZsG"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="aqp-G2-fdl" secondAttribute="trailing" id="WSD-Y5-H4N"/>
+                <constraint firstItem="0fh-7A-3sE" firstAttribute="centerX" secondItem="aqp-G2-fdl" secondAttribute="centerX" id="goD-xq-QRK"/>
+            </constraints>
+            <point key="canvasLocation" x="212.5" y="-466.5"/>
+        </customView>
         <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" usesPredominantAxisScrolling="NO" horizontalScrollElasticity="none" id="4zP-2f-IoL">
             <rect key="frame" x="0.0" y="0.0" width="240" height="135"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>

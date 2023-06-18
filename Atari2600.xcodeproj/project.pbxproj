@@ -22,13 +22,13 @@
 		95561A012A3C9048002CF4F5 /* AssemblyDataCellView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95561A002A3C9048002CF4F5 /* AssemblyDataCellView.xib */; };
 		9579CF7B2A3718D200D3EC01 /* MemoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */; };
 		9579CF7D2A37197800D3EC01 /* MemoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9579CF7C2A37197800D3EC01 /* MemoryView.xib */; };
-		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
+		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
+		95A501812A2CFCA400A59616 /* ProgramView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* ProgramView.xib */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
-		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
+		95BC25572A2DBECD000E9568 /* ProgramViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* ProgramViewController.swift */; };
 		95CE639E2A333383007BD72B /* CPUViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CE639D2A333383007BD72B /* CPUViewController.swift */; };
 		95CE63A02A3333BC007BD72B /* CPUView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95CE639F2A3333BC007BD72B /* CPUView.xib */; };
-		95CE63A62A33565A007BD72B /* NoProgramView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95CE63A52A33565A007BD72B /* NoProgramView.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,13 +60,13 @@
 		95561A002A3C9048002CF4F5 /* AssemblyDataCellView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyDataCellView.xib; sourceTree = "<group>"; };
 		9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryViewController.swift; sourceTree = "<group>"; };
 		9579CF7C2A37197800D3EC01 /* MemoryView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MemoryView.xib; sourceTree = "<group>"; };
-		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
+		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
+		95A501802A2CFCA400A59616 /* ProgramView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ProgramView.xib; sourceTree = "<group>"; };
 		95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindowController.swift; sourceTree = "<group>"; };
 		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
-		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
+		95BC25562A2DBECD000E9568 /* ProgramViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramViewController.swift; sourceTree = "<group>"; };
 		95CE639D2A333383007BD72B /* CPUViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUViewController.swift; sourceTree = "<group>"; };
 		95CE639F2A3333BC007BD72B /* CPUView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CPUView.xib; sourceTree = "<group>"; };
-		95CE63A52A33565A007BD72B /* NoProgramView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NoProgramView.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,8 +135,8 @@
 				950641DC2A39C4B700938403 /* AssemblyAddressCellView.xib */,
 				955619FE2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift */,
 				95561A002A3C9048002CF4F5 /* AssemblyDataCellView.xib */,
-				95A501802A2CFCA400A59616 /* AssemblyView.xib */,
-				95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */,
+				95A501802A2CFCA400A59616 /* ProgramView.xib */,
+				95BC25562A2DBECD000E9568 /* ProgramViewController.swift */,
 				950641E22A39CDAB00938403 /* BreakpointToggle.swift */,
 				95CE639F2A3333BC007BD72B /* CPUView.xib */,
 				95CE639D2A333383007BD72B /* CPUViewController.swift */,
@@ -144,8 +144,8 @@
 				95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */,
 				9579CF7C2A37197800D3EC01 /* MemoryView.xib */,
 				9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */,
-				95CE63A52A33565A007BD72B /* NoProgramView.xib */,
 				955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */,
+				957A12882A3F4517002163C1 /* NSView+ContentView.swift */,
 			);
 			path = Debugger;
 			sourceTree = "<group>";
@@ -251,11 +251,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */,
-				95CE63A62A33565A007BD72B /* NoProgramView.xib in Resources */,
 				95CE63A02A3333BC007BD72B /* CPUView.xib in Resources */,
 				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
 				95561A012A3C9048002CF4F5 /* AssemblyDataCellView.xib in Resources */,
-				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
+				95A501812A2CFCA400A59616 /* ProgramView.xib in Resources */,
 				950641DD2A39C4B700938403 /* AssemblyAddressCellView.xib in Resources */,
 				954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */,
 				9579CF7D2A37197800D3EC01 /* MemoryView.xib in Resources */,
@@ -281,13 +280,14 @@
 			files = (
 				95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */,
 				955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */,
+				957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */,
 				950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */,
 				955619FF2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift in Sources */,
 				950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,
 				95CE639E2A333383007BD72B /* CPUViewController.swift in Sources */,
 				9579CF7B2A3718D200D3EC01 /* MemoryViewController.swift in Sources */,
-				95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */,
+				95BC25572A2DBECD000E9568 /* ProgramViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1501,7 +1501,7 @@ public extension MOS6507 {
 		}
 	}
 	
-	func decodeROM() -> [(Address, Instruction)] {
+	func decode(_ data: Data) -> [(Address, Instruction)] {
 		var instructions: [(Address, Instruction)] = []
 		var address = 0xf000
 		

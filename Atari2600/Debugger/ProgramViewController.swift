@@ -1,38 +1,39 @@
 //
-//  AssemblyViewController.swift
+//  ProgramViewController.swift
 //  Atari2600
 //
 //  Created by Serge Tsyba on 5.6.2023.
 //
 
 import Cocoa
-import Combine
 import Atari2600Kit
 
-class AssemblyViewController: NSViewController {
+typealias Program = [(MOS6507.Address, MOS6507.Instruction)]
+
+class ProgramViewController: NSViewController {
+	@IBOutlet private var noProgramView: NSView!
+	@IBOutlet private var programView: NSView!
 	@IBOutlet private var tableView: NSTableView!
 	
-	private let console: Atari2600 = .current
-	private var cancellables: Set<AnyCancellable> = []
+	var program: Program? {
+		didSet {
+			self.updateContentView()
+		}
+	}
+	
+	var programAddress: MOS6507.Address? {
+		didSet {
+			self.tableView.selectedRowIndex = self.program?
+				.firstIndex(where: { $0.0 == self.programAddress })
+		}
+	}
 	
 	@Published private(set)
-	public var breakpoints: [MOS6507.Address] = []
-	
-	private var program: [(MOS6507.Address, MOS6507.Instruction)]? {
-		didSet {
-			self.tableView.reloadData()
-		}
-	}
-	
-	private var highlightedRow: Int? = nil {
-		didSet {
-			self.updateRowSelection()
-		}
-	}
+	var breakpoints: [MOS6507.Address] = []
 	
 	convenience init() {
-		self.init(nibName: "AssemblyView", bundle: .main)
-		self.title = "Program assembly"
+		self.init(nibName: "ProgramView", bundle: .main)
+		self.title = "Program Assembly"
 	}
 	
 	override func viewDidLoad() {
@@ -43,23 +44,19 @@ class AssemblyViewController: NSViewController {
 			"AssemblyDataCellView": .dataCell
 		])
 		
-		self.updateTableColumnWidths()
-		self.updateSinks()
-	}
-	
-	override func viewDidAppear() {
-		super.viewDidAppear()
-		
-		// making tableview first responder changes selection color to active
-		self.view.window?
-			.makeFirstResponder(self.tableView)
+		let columnData = ["$0000    ", "adc", "($a4),Y"]
+		self.tableView.columnWidths = columnData.map() {
+			return $0.size(withAttributes: [
+				.font: NSFont.monospacedRegular
+			]).width
+		}
 	}
 }
 
 
 // MARK: -
 // MARK: Event management
-extension AssemblyViewController {
+extension ProgramViewController {
 	@objc func breakpointToggled(_ sender: BreakpointToggle) {
 		if sender.isOn {
 			self.breakpoints.append(sender.tag)
@@ -74,46 +71,17 @@ extension AssemblyViewController {
 
 // MARK: -
 // MARK: UI updates
-private extension AssemblyViewController {
-	func updateSinks() {
-		self.console.$cartridge
-			.sink() { [unowned self] in
-				if let _ = $0 {
-					self.program = console.cpu.decodeROM()
-					self.highlightedRow = nil
-				} else {
-					self.program = nil
-				}
-			}.store(in: &self.cancellables)
-		
-		self.console.cpu.$programCounter
-			.sink() { [unowned self] address in
-				self.highlightedRow = self.program?
-					.firstIndex(where: { $0.0 == address })
-			}.store(in: &self.cancellables)
-	}
-	
-	func updateTableColumnWidths() {
-		let sizes = ["$0000", "adc", "($a4),Y"]
-			.map() {
-				return $0.size(withAttributes: [
-					.font: NSFont.monospacedRegular
-				])
-			}
-		
-		self.tableView.tableColumns[0].width = sizes[0].width * 1.75
-		self.tableView.tableColumns[1].width = sizes[1].width
-		self.tableView.tableColumns[2].width = sizes[2].width
-	}
-	
-	func updateRowSelection() {
-		if let row = self.highlightedRow {
-			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
-			self.tableView.ensureRowVisible(row)
+private extension ProgramViewController {
+	func updateContentView() {
+		if let _ = self.program {
+			self.tableView.reloadData()
+			
+			self.view.setContentView(self.programView, layout: .fill)
+			self.view.window?
+				.makeFirstResponder(self.tableView)
 		} else {
-			for row in self.tableView.selectedRowIndexes {
-				self.tableView.deselectRow(row)
-			}
+			self.tableView.resignFirstResponder()
+			self.view.setContentView(self.noProgramView, layout: .center)
 		}
 	}
 }
@@ -121,15 +89,15 @@ private extension AssemblyViewController {
 
 // MARK: -
 // MARK: Table view management
-extension AssemblyViewController: NSTableViewDataSource {
+extension ProgramViewController: NSTableViewDataSource {
 	func numberOfRows(in tableView: NSTableView) -> Int {
 		return self.program?.count ?? 0
 	}
 }
 
-extension AssemblyViewController: NSTableViewDelegate {
+extension ProgramViewController: NSTableViewDelegate {
 	func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
-		return row == self.highlightedRow
+		return row == tableView.selectedRow
 	}
 	
 	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
@@ -238,6 +206,33 @@ private extension NSScrollView {
 }
 
 private extension NSTableView {
+	var columnWidths: [CGFloat] {
+		get {
+			return self.tableColumns
+				.map() { $0.width }
+		}
+		set {
+			self.tableColumns
+				.enumerated()
+				.forEach() { $0.1.width = newValue[$0.0] }
+		}
+	}
+	
+	var selectedRowIndex: Int? {
+		get {
+			let row = self.selectedRow
+			return row < 0 ? nil : row
+		}
+		set {
+			if let index = newValue {
+				self.selectRowIndexes([index], byExtendingSelection: false)
+			} else {
+				let row = self.selectedRow
+				self.deselectRow(row)
+			}
+		}
+	}
+	
 	func registerNibs(_ nibs: [NSNib.Name: NSUserInterfaceItemIdentifier], bundle: Bundle = .main) {
 		for (name, id) in nibs {
 			let nib = NSNib(nibNamed: name, bundle: bundle)
