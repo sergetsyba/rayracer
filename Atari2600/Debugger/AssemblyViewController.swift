@@ -32,8 +32,15 @@ class AssemblyViewController: NSViewController {
 		}
 	}
 	
-	@Published private(set)
-	var breakpoints: [Breakpoint] = []
+	@Published
+	var breakpoints: [Breakpoint] = [] {
+		didSet {
+			let rows = oldValue.compactMap({ breakpoint in
+				self.program?.firstIndex(where: {$0.0 == breakpoint})
+			})
+			self.tableView.reloadData(in: rows)
+		}
+	}
 	
 	convenience init() {
 		self.init(nibName: "AssemblyView", bundle: .main)
@@ -134,7 +141,7 @@ private extension AssemblyViewController {
 		["$0000    ", "adc", "($a4),Y"]
 			.map() { $0.size(withAttributes: attributes) }
 			.enumerated()
-			.forEach({ self.tableView.tableColumns[$0.0].width = $0.1.width })
+			.forEach() { self.tableView.tableColumns[$0.0].width = $0.1.width }
 	}
 	
 	func updateSelectedTableRow() {
@@ -288,5 +295,11 @@ private extension NSTableView {
 		let offset = (viewHieght - rowRect.height) * ratio + insets.top
 		let point = NSPoint(x: rowRect.minX, y: rowRect.minY - offset)
 		scrollView.scroll(to: point, animationDuration: 0.25)
+	}
+	
+	func reloadData(in rows: [Int]) {
+		self.reloadData(
+			forRowIndexes: IndexSet(rows),
+			columnIndexes: IndexSet(0..<self.tableColumns.count))
 	}
 }

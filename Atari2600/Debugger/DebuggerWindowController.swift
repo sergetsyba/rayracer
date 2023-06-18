@@ -49,6 +49,10 @@ class DebuggerWindowController: NSWindowController {
 // MARK: -
 // MARK: Target actions
 private extension DebuggerWindowController {
+	@objc func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
+		self.assemblyViewController.breakpoints = []
+	}
+	
 	@objc func breakpointMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.scrollTo(address: sender.tag)
 	}
@@ -71,10 +75,20 @@ private extension DebuggerWindowController {
 			return
 		}
 		
+		let removeAllMenuItem = NSMenuItem(
+			title: "Remove All",
+			action: #selector(self.removeAllBreakpointsMenuItemSelected(_:)),
+			keyEquivalent: "")
+		
 		let menu = NSMenu()
-		menu.items = breakpoints
-			.map() { self.createBreakpointMenuItem(breakpoint: $0) }
+		menu.items = [
+			removeAllMenuItem,
+			.separator()
+		]
+		
+		breakpoints.map() { self.createBreakpointMenuItem(breakpoint: $0) }
 			.sorted(by: { $0.tag < $1.tag })
+			.forEach(menu.addItem(_:))
 		
 		toolbarItem.menu = menu
 		toolbarItem.isEnabled = breakpoints.count > 0
@@ -139,14 +153,4 @@ extension DebuggerWindowController: NSToolbarDelegate {
 private extension NSToolbarItem.Identifier {
 	static let breakpointsItem = NSToolbarItem.Identifier("BreakpointsItem")
 	static let resetItem = NSToolbarItem.Identifier("ResetItem")
-}
-
-
-// MARK: -
-// MARK: Convenience functionality
-extension NSMenu {
-	convenience init(items: [NSMenuItem]) {
-		self.init()
-		self.items = items
-	}
 }
