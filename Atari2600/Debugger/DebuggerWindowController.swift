@@ -10,6 +10,8 @@ import Combine
 import Atari2600Kit
 
 class DebuggerWindowController: NSWindowController {
+	@IBOutlet private var toolbar: NSToolbar!
+	
 	@IBOutlet private var programContainerView: NSView!
 	@IBOutlet private var cpuContainerView: NSView!
 	@IBOutlet private var memoryContainerView: NSView!
@@ -42,6 +44,10 @@ class DebuggerWindowController: NSWindowController {
 					let viewController = AssemblyViewController()
 					self.programContainerView.setContentView(viewController.view, layout: .fill)
 					self.programViewController = viewController
+					
+					viewController.$breakpoints.sink() { [unowned self] in
+						self.window?.toolbar?.items[0].isEnabled = $0.count > 0
+					}.store(in: &self.cancellables)
 				} else {
 					let viewController = NoProgramViewController()
 					self.programContainerView.setContentView(viewController.view, layout: .center)
@@ -55,6 +61,65 @@ class DebuggerWindowController: NSWindowController {
 		self.memoryContainerView.setContentView(
 			self.memoryViewController.view)
 	}
+}
+
+
+// MARK: -
+// MARK: Toolbar management
+extension DebuggerWindowController: NSToolbarDelegate {
+	func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
+		switch itemIdentifier {
+		case .breakpointsItem:
+			let item = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
+			item.image = NSImage(systemSymbolName: "stop.fill", accessibilityDescription: nil)
+			item.label = "Breakpoints"
+			item.isEnabled = false
+			
+			return item
+			
+		case .resetItem:
+			let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+			item.image = NSImage(systemSymbolName: "arrowtriangle.backward.circle", accessibilityDescription: nil)
+			item.label = "Reset"
+			
+			return item
+			
+		default:
+			return nil
+		}
+	}
+	
+	func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+		return [
+			.breakpointsItem,
+			.resetItem
+		]
+	}
+	
+	func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+		return [
+			.breakpointsItem,
+			.flexibleSpace,
+			.resetItem
+		]
+	}
+}
+
+extension DebuggerWindowController: NSToolbarItemValidation {
+	func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+		print(item.itemIdentifier)
+		switch item.itemIdentifier {
+		case .breakpointsItem:
+			return false
+		default:
+			return true
+		}
+	}
+}
+
+private extension NSToolbarItem.Identifier {
+	static let breakpointsItem = NSToolbarItem.Identifier("BreakpointsItem")
+	static let resetItem = NSToolbarItem.Identifier("ResetItem")
 }
 
 

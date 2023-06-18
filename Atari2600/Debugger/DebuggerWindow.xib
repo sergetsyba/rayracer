@@ -10,6 +10,7 @@
                 <outlet property="cpuContainerView" destination="VWt-lO-tev" id="fAf-Dh-Som"/>
                 <outlet property="memoryContainerView" destination="9Yp-Zi-gbT" id="QPJ-UM-0k7"/>
                 <outlet property="programContainerView" destination="5uR-n5-g3c" id="S6u-85-jwN"/>
+                <outlet property="toolbar" destination="LSb-J4-Z97" id="zSf-sB-E5d"/>
                 <outlet property="window" destination="O0w-qX-Wdo" id="sAT-d3-VcK"/>
             </connections>
         </customObject>
@@ -102,32 +103,17 @@
                     <constraint firstAttribute="bottom" secondItem="Agp-2z-HPG" secondAttribute="bottom" constant="20" symbolic="YES" id="rd7-aF-kw6"/>
                 </constraints>
             </view>
-            <toolbar key="toolbar" implicitIdentifier="AB48BF75-DB75-4CDE-993E-0E6AC99E1313" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="7a2-Fb-1tg">
+            <toolbar key="toolbar" implicitIdentifier="1042316F-9260-480B-AC8B-55DC96BF8C6E" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="LSb-J4-Z97">
                 <allowedToolbarItems>
-                    <toolbarItem implicitItemIdentifier="E098DCFA-12CB-4933-9F92-DDD643F9DD3B" label="Reset" paletteLabel="Reset" tag="-1" image="arrowtriangle.left.circle.fill" catalog="system" bordered="YES" sizingBehavior="auto" id="w1R-Rj-FLP">
-                        <connections>
-                            <action selector="resetGame:" target="-1" id="4iT-4e-Q54"/>
-                        </connections>
-                    </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="BE653877-6A1C-46A4-A431-CF8FD614D77C" label="Step" paletteLabel="Step" tag="-1" image="chevron.right.2" catalog="system" bordered="YES" sizingBehavior="auto" id="qb9-kl-2Rr">
-                        <connections>
-                            <action selector="stepMenuItemSelected:" target="-1" id="05s-gO-Heg"/>
-                        </connections>
-                    </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="DyC-Rk-0m5"/>
-                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="2Ed-Q9-EHP"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="t5g-MI-3EV"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="3dM-6U-NvA"/>
                 </allowedToolbarItems>
-                <defaultToolbarItems>
-                    <toolbarItem reference="qb9-kl-2Rr"/>
-                    <toolbarItem reference="2Ed-Q9-EHP"/>
-                    <toolbarItem reference="w1R-Rj-FLP"/>
-                </defaultToolbarItems>
+                <defaultToolbarItems/>
+                <connections>
+                    <outlet property="delegate" destination="-2" id="ntx-RV-MXm"/>
+                </connections>
             </toolbar>
             <point key="canvasLocation" x="14" y="141"/>
         </window>
     </objects>
-    <resources>
-        <image name="arrowtriangle.left.circle.fill" catalog="system" width="15" height="15"/>
-        <image name="chevron.right.2" catalog="system" width="15" height="14"/>
-    </resources>
 </document>
