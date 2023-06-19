@@ -45,7 +45,29 @@ class MemoryViewController: NSViewController {
 
 // MARK: -
 // MARK: UI updates
-extension MemoryViewController {
+private extension MemoryViewController {
+	func setUpSinks() {
+		self.console.cpu.events
+			.sink() { [unowned self] in
+				switch $0 {
+				case .reset:
+					self.resetView()
+				case .sync:
+					self.resetMemoryHighlight()
+				}
+			}.store(in: &self.cancellables)
+		
+		self.console.memory.events
+			.sink() { [unowned self] in
+				switch $0 {
+				case .read(_):
+					break
+				case .write(let address):
+					self.highlightMemory(at: address)
+				}
+			}.store(in: &self.cancellables)
+	}
+	
 	func resetView() {
 		self.tiaRegistersLabel.attributedStringValue = NSAttributedString(
 			string: String(memory: self.console.memory.tiaRegisters))
@@ -55,48 +77,36 @@ extension MemoryViewController {
 			string: String(memory: self.console.memory.riotRegisters))
 	}
 	
-	func setUpSinks() {
-		self.console.cpu.events
-			.sink() {
-				switch $0 {
-				case .reset:
-					self.resetView()
-					
-				case .sync:
-					for label in self.labels {
-						label.removeHighlights()
-					}
-				}
-			}.store(in: &self.cancellables)
+	func highlightMemory(at address: MOS6507.Address) {
+		let address = self.console.unmirror(address)
+		let data = self.console.memory[address]
 		
-		self.console.memory.events
-			.sink() {
-				switch $0 {
-				case .write(let address):
-					if let label = self.label(for: address) {
-						let range = NSRange(location: address * 3, length: 2)
-						let data = self.console.memory[address]
-						
-						label[range] = String(word: data)
-						label.addHighlight(in: range)
-					}
-					
-				default:
-					break
-				}
-			}.store(in: &self.cancellables)
+		if let (label, offset) = self.label(for: address) {
+			let range = NSRange(location: offset * 3, length: 2)
+			label[range] = String(word: data)
+			label.addHighlight(in: range)
+		} else {
+			fatalError(String(format: "cannot highlight data at $%04x", address))
+		}
 	}
 	
-	private func label(for address: Int) -> NSTextField? {
-		if (0x0000..<0x007f).contains(address) {
-			return self.tiaRegistersLabel
-		} else if (0x0080..<0x00ff).contains(address) {
-			return self.ramLabel
-		} else if (0xf000..<0xffff).contains(address) {
-			return self.riotRegistersLabel
-		} else {
-			return nil
+	func resetMemoryHighlight() {
+		for label in self.labels {
+			label.removeHighlights()
 		}
+	}
+	
+	func label(for address: MOS6507.Address) -> (NSTextField, Int)? {
+		if (0x0000...0x003f).contains(address) {
+			return (self.tiaRegistersLabel, address)
+		}
+		if (0x0080...0x00ff).contains(address) {
+			return (self.ramLabel, address - 0x0080)
+		}
+		if (0x0280...0x29f).contains(address) {
+			return (self.riotRegistersLabel, address - 0x0280)
+		}
+		return nil
 	}
 }
 
