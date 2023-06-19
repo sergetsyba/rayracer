@@ -105,10 +105,31 @@
             </view>
             <toolbar key="toolbar" implicitIdentifier="1042316F-9260-480B-AC8B-55DC96BF8C6E" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="LSb-J4-Z97">
                 <allowedToolbarItems>
+                    <toolbarItem implicitItemIdentifier="AC7480E9-C555-43FF-932E-01D195016076" explicitItemIdentifier="ResumeItem" label="Resume" paletteLabel="Resume" tag="-1" image="play" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="hES-oj-yEd">
+                        <connections>
+                            <action selector="resumeCPUMenuItemSelected:" target="-1" id="m90-i1-2Hz"/>
+                        </connections>
+                    </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="47624D7F-560E-48A5-8388-78924C654B1A" explicitItemIdentifier="StepItem" label="Step" paletteLabel="Step" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="a8G-Mj-SRq">
+                        <connections>
+                            <action selector="stepCPUMenuItemSelected:" target="-1" id="s9c-G7-B7v"/>
+                        </connections>
+                    </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="77641F15-AA2A-494F-B390-F1951124CACE" explicitItemIdentifier="ResetItem" label="Reset" paletteLabel="Reset" tag="-1" image="restart.circle" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="w7k-DC-Qam">
+                        <connections>
+                            <action selector="resetGameMenuItemSelected:" target="-1" id="zwZ-fv-TQp"/>
+                        </connections>
+                    </toolbarItem>
                     <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="t5g-MI-3EV"/>
                     <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="3dM-6U-NvA"/>
                 </allowedToolbarItems>
-                <defaultToolbarItems/>
+                <defaultToolbarItems>
+                    <toolbarItem reference="t5g-MI-3EV"/>
+                    <toolbarItem reference="hES-oj-yEd"/>
+                    <toolbarItem reference="a8G-Mj-SRq"/>
+                    <toolbarItem reference="3dM-6U-NvA"/>
+                    <toolbarItem reference="w7k-DC-Qam"/>
+                </defaultToolbarItems>
                 <connections>
                     <outlet property="delegate" destination="-2" id="ntx-RV-MXm"/>
                 </connections>
@@ -116,4 +137,9 @@
             <point key="canvasLocation" x="14" y="141"/>
         </window>
     </objects>
+    <resources>
+        <image name="forward.frame" catalog="system" width="16" height="13"/>
+        <image name="play" catalog="system" width="12" height="13"/>
+        <image name="restart.circle" catalog="system" width="15" height="15"/>
+    </resources>
 </document>

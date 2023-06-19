@@ -20,6 +20,7 @@ class DebuggerWindowController: NSWindowController {
 	private let cpuViewController = CPUViewController()
 	private let memoryViewController = MemoryViewController()
 	
+	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
 	
 	init() {
@@ -63,18 +64,21 @@ private extension DebuggerWindowController {
 // MARK: UI updates
 private extension DebuggerWindowController {
 	func setUpSinks() {
+		self.console.$cartridge
+			.sink() { [unowned self] data in
+				self.toolbar[.resetItem]?
+					.isEnabled = data != nil
+			}.store(in: &self.cancellables)
+		
+		// NOTE: delay lets toolbar item to get deselected
 		self.assemblyViewController.$breakpoints
+			.delay(for: 0.01, scheduler: RunLoop.current)
 			.sink() { [unowned self] in
-				self.updateBreakpointsToolbarItem(breakpoints: $0)
+				self.updateBreakpointsToolbarItemMenu(breakpoints: $0)
 			}.store(in: &self.cancellables)
 	}
 	
-	func updateBreakpointsToolbarItem(breakpoints: [MOS6507.Address]) {
-		guard let toolbarItem = self.toolbar.items
-			.first(where: { $0.itemIdentifier == .breakpointsItem }) as? NSMenuToolbarItem else {
-			return
-		}
-		
+	func updateBreakpointsToolbarItemMenu(breakpoints: [MOS6507.Address]) {
 		let removeAllMenuItem = NSMenuItem(
 			title: "Remove All",
 			action: #selector(self.removeAllBreakpointsMenuItemSelected(_:)),
@@ -90,21 +94,22 @@ private extension DebuggerWindowController {
 			.sorted(by: { $0.tag < $1.tag })
 			.forEach(menu.addItem(_:))
 		
-		toolbarItem.menu = menu
-		toolbarItem.isEnabled = breakpoints.count > 0
+		let toolbarItem = self.toolbar[.breakpointsItem] as? NSMenuToolbarItem
+		toolbarItem?.menu = menu
+		toolbarItem?.isEnabled = breakpoints.count > 0
 	}
 	
 	func createBreakpointMenuItem(breakpoint: MOS6507.Address) -> NSMenuItem {
-		let item = NSMenuItem()
-		item.tag = breakpoint
-		item.attributedTitle = NSAttributedString(
+		let menuItem = NSMenuItem()
+		menuItem.tag = breakpoint
+		menuItem.attributedTitle = NSAttributedString(
 			string: String(address: breakpoint),
 			attributes: [
 				.font: NSFont.monospacedRegular
 			])
 		
-		item.action = #selector(self.breakpointMenuItemSelected(_:))
-		return item
+		menuItem.action = #selector(self.breakpointMenuItemSelected(_:))
+		return menuItem
 	}
 }
 
@@ -115,21 +120,16 @@ extension DebuggerWindowController: NSToolbarDelegate {
 	func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
 		switch itemIdentifier {
 		case .breakpointsItem:
-			let item = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
-			item.image = NSImage(systemSymbolName: "stop.fill", accessibilityDescription: nil)
-			item.label = "Breakpoints"
-			item.isEnabled = false
+			// NOTE: NSMenuToolbarItem is not supported in Interface Builder
+			let toolbarItem = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
+			toolbarItem.image = NSImage(systemSymbolName: "stop.fill", accessibilityDescription: nil)
+			toolbarItem.label = "Breakpoints"
+			toolbarItem.isEnabled = false
 			
-			return item
-			
-		case .resetItem:
-			let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-			item.image = NSImage(systemSymbolName: "arrowtriangle.backward.circle", accessibilityDescription: nil)
-			item.label = "Reset"
-			
-			return item
+			return toolbarItem
 			
 		default:
+			// NOTE: all other toolbar items are loaded from Xib
 			return nil
 		}
 	}
@@ -137,13 +137,20 @@ extension DebuggerWindowController: NSToolbarDelegate {
 	func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
 		return [
 			.breakpointsItem,
-			.resetItem
+			.resumeItem,
+			.stepItem,
+			.resetItem,
+			.space,
+			.flexibleSpace
 		]
 	}
 	
 	func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
 		return [
 			.breakpointsItem,
+			.space,
+			.resumeItem,
+			.stepItem,
 			.flexibleSpace,
 			.resetItem
 		]
@@ -152,5 +159,16 @@ extension DebuggerWindowController: NSToolbarDelegate {
 
 private extension NSToolbarItem.Identifier {
 	static let breakpointsItem = NSToolbarItem.Identifier("BreakpointsItem")
+	static let resumeItem = NSToolbarItem.Identifier("ResumeItem")
+	static let stepItem = NSToolbarItem.Identifier("StepItem")
 	static let resetItem = NSToolbarItem.Identifier("ResetItem")
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+private extension NSToolbar {
+	subscript (identifier: NSToolbarItem.Identifier) -> NSToolbarItem? {
+		return self.items.first(where: { $0.itemIdentifier == identifier })
+	}
 }
