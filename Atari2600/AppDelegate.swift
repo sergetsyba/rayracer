@@ -31,26 +31,21 @@ extension AppDelegate {
 		}
 	}
 	
-	@IBAction func resetGame(_ sender: AnyObject) {
+	@IBAction func resetGameMenuItemSelected(_ sender: AnyObject) {
 		self.console.cpu.reset()
 	}
 	
-	@IBAction func stepMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func resumeCPUMenuItemSelected(_ sender: AnyObject) {
+		print("TODO")
+	}
+	
+	@IBAction func stepCPUMenuItemSelected(_ sender: AnyObject) {
 		self.console.cpu.step()
 	}
 	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {
 		let windowController = DebuggerWindowController()
 		self.showWindow(of: windowController)
-	}
-	
-	func showWindow(with viewController: NSViewController) {
-		let window = NSWindow(contentViewController: viewController)
-		window.delegate = self
-		
-		let windowController = NSWindowController(window: window)
-		windowController.showWindow(self)
-		self.windowControllers.insert(windowController)
 	}
 }
 
@@ -70,6 +65,9 @@ extension AppDelegate: NSWindowDelegate {
 	}
 }
 
+
+// MARK: -
+// MARK: Convenience functionality
 private extension Set {
 	mutating func remove(where condition: (Self.Element) -> Bool) {
 		if let index = self.firstIndex(where: condition) {
@@ -78,9 +76,6 @@ private extension Set {
 	}
 }
 
-
-// MARK: -
-// MARK: Convenience functionality
 extension Atari2600 {
 	static let current = Atari2600()
 }

@@ -7,9 +7,10 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="DebuggerWindowController" customModule="Atari2600" customModuleProvider="target">
             <connections>
+                <outlet property="assemblyContainerView" destination="5uR-n5-g3c" id="hAc-XB-kIK"/>
                 <outlet property="cpuContainerView" destination="VWt-lO-tev" id="fAf-Dh-Som"/>
                 <outlet property="memoryContainerView" destination="9Yp-Zi-gbT" id="QPJ-UM-0k7"/>
-                <outlet property="programContainerView" destination="5uR-n5-g3c" id="S6u-85-jwN"/>
+                <outlet property="toolbar" destination="LSb-J4-Z97" id="zSf-sB-E5d"/>
                 <outlet property="window" destination="O0w-qX-Wdo" id="sAT-d3-VcK"/>
             </connections>
         </customObject>
@@ -21,21 +22,21 @@
             <rect key="contentRect" x="544" y="376" width="448" height="520"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
             <view key="contentView" id="vgU-mt-Beg">
-                <rect key="frame" x="0.0" y="0.0" width="448" height="520"/>
+                <rect key="frame" x="0.0" y="0.0" width="468" height="520"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <box title="Program" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Agp-2z-HPG">
-                        <rect key="frame" x="17" y="16" width="206" height="486"/>
+                        <rect key="frame" x="17" y="16" width="226" height="486"/>
                         <view key="contentView" id="5uR-n5-g3c">
-                            <rect key="frame" x="4" y="5" width="198" height="478"/>
+                            <rect key="frame" x="4" y="5" width="218" height="478"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         </view>
                         <constraints>
-                            <constraint firstAttribute="width" constant="200" id="0tC-n2-ode"/>
+                            <constraint firstAttribute="width" constant="220" id="0tC-n2-ode"/>
                         </constraints>
                     </box>
                     <box title="CPU" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="3Mq-Qg-SlX">
-                        <rect key="frame" x="225" y="346" width="206" height="156"/>
+                        <rect key="frame" x="245" y="346" width="206" height="156"/>
                         <view key="contentView" id="VWt-lO-tev">
                             <rect key="frame" x="12" y="13" width="182" height="132"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -47,7 +48,7 @@
                         <size key="contentViewMargins" width="8" height="8"/>
                     </box>
                     <box title="Memory" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="Apx-y3-fW7">
-                        <rect key="frame" x="225" y="16" width="206" height="328"/>
+                        <rect key="frame" x="245" y="16" width="206" height="328"/>
                         <view key="contentView" id="kA6-bv-ffK">
                             <rect key="frame" x="12" y="13" width="182" height="304"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -102,32 +103,43 @@
                     <constraint firstAttribute="bottom" secondItem="Agp-2z-HPG" secondAttribute="bottom" constant="20" symbolic="YES" id="rd7-aF-kw6"/>
                 </constraints>
             </view>
-            <toolbar key="toolbar" implicitIdentifier="AB48BF75-DB75-4CDE-993E-0E6AC99E1313" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="7a2-Fb-1tg">
+            <toolbar key="toolbar" implicitIdentifier="1042316F-9260-480B-AC8B-55DC96BF8C6E" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="LSb-J4-Z97">
                 <allowedToolbarItems>
-                    <toolbarItem implicitItemIdentifier="E098DCFA-12CB-4933-9F92-DDD643F9DD3B" label="Reset" paletteLabel="Reset" tag="-1" image="arrowtriangle.left.circle.fill" catalog="system" bordered="YES" sizingBehavior="auto" id="w1R-Rj-FLP">
+                    <toolbarItem implicitItemIdentifier="AC7480E9-C555-43FF-932E-01D195016076" explicitItemIdentifier="ResumeItem" label="Resume" paletteLabel="Resume" tag="-1" image="play" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="hES-oj-yEd">
                         <connections>
-                            <action selector="resetGame:" target="-1" id="4iT-4e-Q54"/>
+                            <action selector="resumeCPUMenuItemSelected:" target="-1" id="m90-i1-2Hz"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="BE653877-6A1C-46A4-A431-CF8FD614D77C" label="Step" paletteLabel="Step" tag="-1" image="chevron.right.2" catalog="system" bordered="YES" sizingBehavior="auto" id="qb9-kl-2Rr">
+                    <toolbarItem implicitItemIdentifier="47624D7F-560E-48A5-8388-78924C654B1A" explicitItemIdentifier="StepItem" label="Step" paletteLabel="Step" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="a8G-Mj-SRq">
                         <connections>
-                            <action selector="stepMenuItemSelected:" target="-1" id="05s-gO-Heg"/>
+                            <action selector="stepCPUMenuItemSelected:" target="-1" id="s9c-G7-B7v"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="DyC-Rk-0m5"/>
-                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="2Ed-Q9-EHP"/>
+                    <toolbarItem implicitItemIdentifier="77641F15-AA2A-494F-B390-F1951124CACE" explicitItemIdentifier="ResetItem" label="Reset" paletteLabel="Reset" tag="-1" image="restart.circle" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="w7k-DC-Qam">
+                        <connections>
+                            <action selector="resetGameMenuItemSelected:" target="-1" id="zwZ-fv-TQp"/>
+                        </connections>
+                    </toolbarItem>
+                    <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="t5g-MI-3EV"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="3dM-6U-NvA"/>
                 </allowedToolbarItems>
                 <defaultToolbarItems>
-                    <toolbarItem reference="qb9-kl-2Rr"/>
-                    <toolbarItem reference="2Ed-Q9-EHP"/>
-                    <toolbarItem reference="w1R-Rj-FLP"/>
+                    <toolbarItem reference="t5g-MI-3EV"/>
+                    <toolbarItem reference="hES-oj-yEd"/>
+                    <toolbarItem reference="a8G-Mj-SRq"/>
+                    <toolbarItem reference="3dM-6U-NvA"/>
+                    <toolbarItem reference="w7k-DC-Qam"/>
                 </defaultToolbarItems>
+                <connections>
+                    <outlet property="delegate" destination="-2" id="ntx-RV-MXm"/>
+                </connections>
             </toolbar>
             <point key="canvasLocation" x="14" y="141"/>
         </window>
     </objects>
     <resources>
-        <image name="arrowtriangle.left.circle.fill" catalog="system" width="15" height="15"/>
-        <image name="chevron.right.2" catalog="system" width="15" height="14"/>
+        <image name="forward.frame" catalog="system" width="16" height="13"/>
+        <image name="play" catalog="system" width="12" height="13"/>
+        <image name="restart.circle" catalog="system" width="15" height="15"/>
     </resources>
 </document>

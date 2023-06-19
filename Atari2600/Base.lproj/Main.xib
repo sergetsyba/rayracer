@@ -69,13 +69,13 @@
                         <items>
                             <menuItem title="Insert Cartridge" keyEquivalent="o" id="G6B-pP-Kya">
                                 <connections>
-                                    <action selector="insertCartridgeMenuItemSelected:" target="-1" id="Ik2-Km-sfa"/>
+                                    <action selector="insertCartridgeMenuItemSelected:" target="-1" id="jDR-sj-g3Q"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="kK0-KW-5of"/>
                             <menuItem title="Game Reset" keyEquivalent="r" id="Pg0-pC-YRK">
                                 <connections>
-                                    <action selector="resetGame:" target="-1" id="BS9-yd-KCD"/>
+                                    <action selector="resetGameMenuItemSelected:" target="-1" id="ipa-h7-36o"/>
                                 </connections>
                             </menuItem>
                         </items>

@@ -10,11 +10,13 @@ import Combine
 import Atari2600Kit
 
 class DebuggerWindowController: NSWindowController {
-	@IBOutlet private var programContainerView: NSView!
+	@IBOutlet private var toolbar: NSToolbar!
+	
+	@IBOutlet private var assemblyContainerView: NSView!
 	@IBOutlet private var cpuContainerView: NSView!
 	@IBOutlet private var memoryContainerView: NSView!
 	
-	private var programViewController: NSViewController?
+	private var assemblyViewController = AssemblyViewController()
 	private let cpuViewController = CPUViewController()
 	private let memoryViewController = MemoryViewController()
 	
@@ -36,89 +38,144 @@ class DebuggerWindowController: NSWindowController {
 	override func windowDidLoad() {
 		super.windowDidLoad()
 		
-		self.console.$cartridge
-			.sink() { [unowned self] in
-				if let _ = $0 {
-					let viewController = AssemblyViewController()
-					self.programContainerView.setContentView(viewController.view, layout: .fill)
-					self.programViewController = viewController
-				} else {
-					let viewController = NoProgramViewController()
-					self.programContainerView.setContentView(viewController.view, layout: .center)
-					self.programViewController = viewController
-				}
-			}.store(in: &self.cancellables)
+		self.assemblyContainerView.setContentView(self.assemblyViewController.view)
+		self.cpuContainerView.setContentView(self.cpuViewController.view, layout: .centerHorizontally)
+		self.memoryContainerView.setContentView(self.memoryViewController.view)
 		
-		self.cpuContainerView.setContentView(
-			self.cpuViewController.view, layout: .centerHorizontally)
-		
-		self.memoryContainerView.setContentView(
-			self.memoryViewController.view)
+		self.setUpSinks()
 	}
 }
 
 
 // MARK: -
-class NoProgramViewController: NSViewController {
-	convenience init() {
-		self.init(nibName: "NoProgramView", bundle: .main)
+// MARK: Target actions
+private extension DebuggerWindowController {
+	@objc func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
+		self.assemblyViewController.breakpoints = []
 	}
+	
+	@objc func breakpointMenuItemSelected(_ sender: NSMenuItem) {
+		self.assemblyViewController.scrollTo(address: sender.tag)
+	}
+	
+	@objc func resumeCPUMenuItemSelected(_ sender: AnyObject) {
+		let breakpoints = self.assemblyViewController.breakpoints
+		self.console.cpu.run(until: breakpoints)
+	}
+}
+
+
+// MARK: -
+// MARK: UI updates
+private extension DebuggerWindowController {
+	func setUpSinks() {
+		self.console.$cartridge
+			.sink() { [unowned self] data in
+				let inserted = data != nil
+				self.toolbar[.stepItem]?.isEnabled = inserted
+				self.toolbar[.resumeItem]?.isEnabled = inserted
+				self.toolbar[.resetItem]?.isEnabled = inserted
+			}.store(in: &self.cancellables)
+		
+		// NOTE: delay lets toolbar item to get deselected
+		self.assemblyViewController.$breakpoints
+			.delay(for: 0.01, scheduler: RunLoop.current)
+			.sink() { [unowned self] in
+				self.updateBreakpointsToolbarItemMenu(breakpoints: $0)
+			}.store(in: &self.cancellables)
+	}
+	
+	func updateBreakpointsToolbarItemMenu(breakpoints: [MOS6507.Address]) {
+		let removeAllMenuItem = NSMenuItem(
+			title: "Remove All",
+			action: #selector(self.removeAllBreakpointsMenuItemSelected(_:)),
+			keyEquivalent: "")
+		
+		let menu = NSMenu()
+		menu.items = [
+			removeAllMenuItem,
+			.separator()
+		]
+		
+		breakpoints.map() { self.createBreakpointMenuItem(breakpoint: $0) }
+			.sorted(by: { $0.tag < $1.tag })
+			.forEach(menu.addItem(_:))
+		
+		let toolbarItem = self.toolbar[.breakpointsItem] as? NSMenuToolbarItem
+		toolbarItem?.menu = menu
+		toolbarItem?.isEnabled = breakpoints.count > 0
+	}
+	
+	func createBreakpointMenuItem(breakpoint: MOS6507.Address) -> NSMenuItem {
+		let menuItem = NSMenuItem()
+		menuItem.tag = breakpoint
+		menuItem.attributedTitle = NSAttributedString(
+			string: String(address: breakpoint),
+			attributes: [
+				.font: NSFont.monospacedRegular
+			])
+		
+		menuItem.action = #selector(self.breakpointMenuItemSelected(_:))
+		return menuItem
+	}
+}
+
+
+// MARK: -
+// MARK: Toolbar management
+extension DebuggerWindowController: NSToolbarDelegate {
+	func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
+		switch itemIdentifier {
+		case .breakpointsItem:
+			// NOTE: NSMenuToolbarItem is not supported in Interface Builder
+			let toolbarItem = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
+			toolbarItem.image = NSImage(systemSymbolName: "stop.fill", accessibilityDescription: nil)
+			toolbarItem.label = "Breakpoints"
+			toolbarItem.isEnabled = false
+			
+			return toolbarItem
+			
+		default:
+			// NOTE: all other toolbar items are loaded from Xib
+			return nil
+		}
+	}
+	
+	func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+		return [
+			.breakpointsItem,
+			.resumeItem,
+			.stepItem,
+			.resetItem,
+			.space,
+			.flexibleSpace
+		]
+	}
+	
+	func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+		return [
+			.breakpointsItem,
+			.space,
+			.resumeItem,
+			.stepItem,
+			.flexibleSpace,
+			.resetItem
+		]
+	}
+}
+
+private extension NSToolbarItem.Identifier {
+	static let breakpointsItem = NSToolbarItem.Identifier("BreakpointsItem")
+	static let resumeItem = NSToolbarItem.Identifier("ResumeItem")
+	static let stepItem = NSToolbarItem.Identifier("StepItem")
+	static let resetItem = NSToolbarItem.Identifier("ResetItem")
 }
 
 
 // MARK: -
 // MARK: Convenience functionality
-private extension NSView {
-	enum ContentViewLayout {
-		case center
-		case centerHorizontally
-		case fill
-	}
-	
-	func setContentView(_ view: NSView?, layout: ContentViewLayout = .fill) {
-		for subview in self.subviews {
-			subview.removeFromSuperview()
-		}
-		guard let view = view else {
-			return
-		}
-		
-		self.addSubview(view)
-		view.translatesAutoresizingMaskIntoConstraints = false
-		
-		switch layout {
-		case .center:
-			self.addConstraints([
-				NSLayoutConstraint(item: self, toItem: view, attribute: .leading, relatedBy: .lessThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .top, relatedBy: .lessThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .trailing, relatedBy: .greaterThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .bottom, relatedBy: .greaterThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .centerX),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .centerY)
-			])
-			
-		case .centerHorizontally:
-			self.addConstraints([
-				NSLayoutConstraint(item: self, toItem: view, attribute: .leading, relatedBy: .lessThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .top),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .trailing, relatedBy: .greaterThanOrEqual),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .bottom),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .centerX)
-			])
-			
-		case .fill:
-			self.addConstraints([
-				NSLayoutConstraint(item: self, toItem: view, attribute: .leading),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .top),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .trailing),
-				NSLayoutConstraint(item: self, toItem: view, attribute: .bottom)
-			])
-		}
-	}
-}
-
-private extension NSLayoutConstraint {
-	convenience init(item item1: Any, toItem item2: Any, attribute: NSLayoutConstraint.Attribute, relatedBy relation: NSLayoutConstraint.Relation = .equal) {
-		self.init(item: item1, attribute: attribute, relatedBy: relation, toItem: item2, attribute: attribute, multiplier: 1.0, constant: 0.0)
+private extension NSToolbar {
+	subscript (identifier: NSToolbarItem.Identifier) -> NSToolbarItem? {
+		return self.items.first(where: { $0.itemIdentifier == identifier })
 	}
 }

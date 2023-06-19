@@ -9,42 +9,88 @@ import Cocoa
 import Combine
 import Atari2600Kit
 
+typealias Program = [(MOS6507.Address, MOS6507.Instruction)]
+typealias Breakpoint = MOS6507.Address
+
 class AssemblyViewController: NSViewController {
+	@IBOutlet private var noProgramView: NSView!
+	@IBOutlet private var programView: NSView!
 	@IBOutlet private var tableView: NSTableView!
 	
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
 	
-	private var program: [(MOS6507.Address, MOS6507.Instruction)]? {
+	var program: Program? {
 		didSet {
-			self.tableView.reloadData()
+			self.updateContentView()
 		}
 	}
 	
-	private var highlightedRow: Int? = nil {
+	var programAddress: MOS6507.Address? {
 		didSet {
-			self.updateRowSelection()
+			self.updateSelectedTableRow()
+		}
+	}
+	
+	@Published
+	var breakpoints: [Breakpoint] = [] {
+		didSet {
+			let rows = oldValue.compactMap({ breakpoint in
+				self.program?.firstIndex(where: {$0.0 == breakpoint})
+			})
+			self.tableView.reloadData(in: rows)
 		}
 	}
 	
 	convenience init() {
 		self.init(nibName: "AssemblyView", bundle: .main)
-		self.title = "Program assembly"
+		self.title = "Program Assembly"
 	}
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
+		self.tableView.registerNibs([
+			"AssemblyAddressCellView": .addressCell,
+			"AssemblyDataCellView": .dataCell
+		])
+		
 		self.updateTableColumnWidths()
-		self.updateSinks()
+		self.setUpSinks()
+	}
+}
+
+
+// MARK: -
+extension AssemblyViewController {
+	@objc func ensureVisible(address: MOS6507.Address) {
+		if let row = self.program?.firstIndex(where: { $0.0 == address }),
+		   self.tableView.isRowVisible(row) == false {
+			self.tableView.scrollToRow(row, offsetRatio: 0.25)
+		}
 	}
 	
-	override func viewDidAppear() {
-		super.viewDidAppear()
-		
-		// making tableview first responder changes selection color to active
-		self.view.window?
-			.makeFirstResponder(self.tableView)
+	@objc func scrollTo(address: MOS6507.Address) {
+		if let row = self.program?.firstIndex(where: { $0.0 == address }) {
+			// scroll such that row ends up vertically at 1/4 of view's
+			// visible content height
+			self.tableView.scrollToRow(row, offsetRatio: 0.25)
+		}
+	}
+}
+
+
+// MARK: -
+// MARK: Event management
+extension AssemblyViewController {
+	@objc func breakpointToggled(_ sender: BreakpointToggle) {
+		if sender.isOn {
+			self.breakpoints.append(sender.tag)
+		} else {
+			if let index = self.breakpoints.firstIndex(of: sender.tag) {
+				self.breakpoints.remove(at: index)
+			}
+		}
 	}
 }
 
@@ -52,47 +98,58 @@ class AssemblyViewController: NSViewController {
 // MARK: -
 // MARK: UI updates
 private extension AssemblyViewController {
-	static let font: NSFont = .monospacedSystemFont(ofSize: 11.0, weight: .regular)
-	
-	func updateSinks() {
+	func setUpSinks() {
+		// TODO: remove delay in showing program after cartridge insert
 		self.console.$cartridge
+			.delay(for: 0.01, scheduler: RunLoop.current)
 			.sink() { [unowned self] in
-				if let _ = $0 {
-					self.program = console.cpu.decodeROM()
-					self.highlightedRow = nil
+				if let data = $0 {
+					self.program = self.console.cpu.decode(data)
 				} else {
 					self.program = nil
 				}
 			}.store(in: &self.cancellables)
 		
 		self.console.cpu.$programCounter
-			.sink() { [unowned self] address in
-				self.highlightedRow = self.program?
-					.firstIndex(where: { $0.0 == address })
+			.sink() { [unowned self] in
+				self.programAddress = $0
+				self.ensureVisible(address: $0)
 			}.store(in: &self.cancellables)
 	}
 	
-	func updateTableColumnWidths() {
-		let sizes = ["$0000", "adc", "($a4),Y"]
-			.map() {
-				return $0.size(withAttributes: [
-					.font: Self.font
-				])
-			}
+	func updateContentView() {
+		if let _ = self.program {
+			// switch to program view
+			self.view.setContentView(self.programView, layout: .fill)
+			self.view.window?
+				.makeFirstResponder(self.tableView)
+		} else {
+			// switch to no program view
+			self.view.setContentView(self.noProgramView, layout: .center)
+			self.tableView.resignFirstResponder()
+		}
 		
-		self.tableView.tableColumns[0].width = sizes[0].width * 1.5
-		self.tableView.tableColumns[1].width = sizes[1].width
-		self.tableView.tableColumns[2].width = sizes[2].width
+		self.tableView.reloadData()
+		self.updateSelectedTableRow()
 	}
 	
-	func updateRowSelection() {
-		if let row = self.highlightedRow {
+	func updateTableColumnWidths() {
+		let attributes: [NSAttributedString.Key: Any] = [
+			.font: NSFont.monospacedRegular
+		]
+		
+		["$0000    ", "adc", "($a4),Y"]
+			.map() { $0.size(withAttributes: attributes) }
+			.enumerated()
+			.forEach() { self.tableView.tableColumns[$0.0].width = $0.1.width }
+	}
+	
+	func updateSelectedTableRow() {
+		if let row = self.program?
+			.firstIndex(where: { $0.0 == self.programAddress }) {
 			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
-			self.tableView.ensureRowVisible(row)
 		} else {
-			for row in self.tableView.selectedRowIndexes {
-				self.tableView.deselectRow(row)
-			}
+			self.tableView.deselectAll(self)
 		}
 	}
 }
@@ -108,45 +165,64 @@ extension AssemblyViewController: NSTableViewDataSource {
 
 extension AssemblyViewController: NSTableViewDelegate {
 	func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
-		return row == self.highlightedRow
+		return row == tableView.selectedRow
 	}
 	
 	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-		guard let cellView = tableView.makeView(withIdentifier: .cell, owner: nil) as? AssemblyTableCellView,
-			  let (address, instruction) = self.program?[row] else {
+		guard let (address, instruction) = self.program?[row] else {
 			return nil
 		}
 		
 		switch tableColumn {
 		case tableView.tableColumns[0]:
-			cellView.label.stringValue = String(format: "$%04x", address)
+			let view = tableView.makeView(withIdentifier: .addressCell, owner: nil) as! AssemblyAddressCellView
+			view.toggle.title = String(address: address)
+			view.toggle.isOn = self.breakpoints.contains(address)
+			
+			view.toggle.tag = address
+			view.toggle.target = self
+			view.toggle.action = #selector(self.breakpointToggled(_:))
+			
+			return view
+			
 		case tableView.tableColumns[1]:
-			cellView.label.stringValue = "\(instruction.mnemonic)"
+			let view = tableView.makeView(withIdentifier: .dataCell, owner: nil) as! AssemblyDataCellView
+			view.label.stringValue = String(mnemonic: instruction.mnemonic)
+			return view
+			
 		case tableView.tableColumns[2]:
-			cellView.label.stringValue = String(format: instruction.mode.formatPattern, instruction.operand)
+			let view = tableView.makeView(withIdentifier: .dataCell, owner: nil) as! AssemblyDataCellView
+			view.label.stringValue = String(addressingMode: instruction.mode, operand: instruction.operand)
+			return view
+			
 		default:
 			return nil
 		}
-		
-		cellView.label.font = Self.font
-		return cellView
 	}
 }
 
 private extension NSUserInterfaceItemIdentifier {
-	static let cell = NSUserInterfaceItemIdentifier("AssemblyTableCellView")
-}
-
-
-// MARK: -
-// MARK: Table view cells
-class AssemblyTableCellView: NSTableCellView {
-	@IBOutlet var label: NSTextField!
+	static let addressCell = NSUserInterfaceItemIdentifier("AssemblyAddressCell")
+	static let dataCell = NSUserInterfaceItemIdentifier("AssemblyDataCell")
 }
 
 
 // MARK: -
 // MARK: Data formatting
+extension String {
+	init(address: Int) {
+		self = .init(format: "$%04x", address)
+	}
+	
+	init(mnemonic: MOS6507.Mnemonic) {
+		self = "\(mnemonic)"
+	}
+	
+	init(addressingMode mode: MOS6507.AddressingMode, operand: Int) {
+		self = .init(format: mode.formatPattern, operand)
+	}
+}
+
 private extension MOS6507.AddressingMode {
 	var formatPattern: String {
 		switch self {
@@ -178,14 +254,6 @@ private extension MOS6507.AddressingMode {
 // MARK: -
 // MARK: Convenience functionality
 private extension NSScrollView {
-	func isVisible(rect: CGRect) -> Bool {
-		let viewRect = self.documentVisibleRect
-		let insets = self.contentInsets
-		
-		return rect.minY >= viewRect.minY + insets.top
-		&& rect.maxY <= viewRect.maxY - insets.bottom
-	}
-	
 	func scroll(to point: NSPoint, animationDuration duration: CGFloat) {
 		NSAnimationContext.beginGrouping()
 		NSAnimationContext.current.duration = duration
@@ -198,21 +266,40 @@ private extension NSScrollView {
 }
 
 private extension NSTableView {
-	func ensureRowVisible(_ row: Int) {
+	func registerNibs(_ nibs: [NSNib.Name: NSUserInterfaceItemIdentifier], bundle: Bundle = .main) {
+		for (name, id) in nibs {
+			let nib = NSNib(nibNamed: name, bundle: bundle)
+			self.register(nib, forIdentifier: id)
+		}
+	}
+	
+	func isRowVisible(_ row: Int) -> Bool {
 		let scrollView = self.enclosingScrollView!
 		let rowRect = self.rect(ofRow: row)
-		if scrollView.isVisible(rect: rowRect) {
-			return
-		}
+		
+		let viewRect = scrollView.visibleRect
+		let insets = scrollView.contentInsets
+		
+		return rowRect.minY >= viewRect.minY + insets.top
+		&& rowRect.maxY <= viewRect.maxY - insets.bottom
+	}
+	
+	func scrollToRow(_ row: Int, offsetRatio ratio: CGFloat) {
+		let scrollView = self.enclosingScrollView!
+		let rowRect = self.rect(ofRow: row)
 		
 		let viewRect = scrollView.documentVisibleRect
 		let insets = scrollView.contentInsets
 		let viewHieght = viewRect.height - (insets.top + insets.bottom)
 		
-		// scroll such that row ends up vertically at 1/3 of view's
-		// visible content height
-		let offset = (viewHieght - rowRect.height) / 3 + insets.top
+		let offset = (viewHieght - rowRect.height) * ratio + insets.top
 		let point = NSPoint(x: rowRect.minX, y: rowRect.minY - offset)
 		scrollView.scroll(to: point, animationDuration: 0.25)
+	}
+	
+	func reloadData(in rows: [Int]) {
+		self.reloadData(
+			forRowIndexes: IndexSet(rows),
+			columnIndexes: IndexSet(0..<self.tableColumns.count))
 	}
 }
