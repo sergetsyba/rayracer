@@ -16,7 +16,7 @@
 		9545887E2A1BC907003A45C6 /* Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9545887D2A1BC907003A45C6 /* Memory.swift */; };
 		954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18662A1AEE5800EBC582 /* AppDelegate.swift */; };
 		954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 954A18682A1AEE5A00EBC582 /* Assets.xcassets */; };
-		954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 954A186A2A1AEE5A00EBC582 /* MainMenu.xib */; };
+		954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = 954A186A2A1AEE5A00EBC582 /* Main.xib */; };
 		955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */; };
 		955619FF2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955619FE2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift */; };
 		95561A012A3C9048002CF4F5 /* AssemblyDataCellView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95561A002A3C9048002CF4F5 /* AssemblyDataCellView.xib */; };
@@ -53,7 +53,7 @@
 		954A18642A1AEE5800EBC582 /* Atari2600.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atari2600.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		954A18662A1AEE5800EBC582 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		954A18682A1AEE5A00EBC582 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		954A186B2A1AEE5A00EBC582 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		954A186B2A1AEE5A00EBC582 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/Main.xib; sourceTree = "<group>"; };
 		954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atari2600.entitlements; sourceTree = "<group>"; };
 		955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSFont+Constants.swift"; sourceTree = "<group>"; };
 		955619FE2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyDataCellView.swift; sourceTree = "<group>"; };
@@ -123,7 +123,7 @@
 				954A18662A1AEE5800EBC582 /* AppDelegate.swift */,
 				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
 				954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */,
-				954A186A2A1AEE5A00EBC582 /* MainMenu.xib */,
+				954A186A2A1AEE5A00EBC582 /* Main.xib */,
 			);
 			path = Atari2600;
 			sourceTree = "<group>";
@@ -256,7 +256,7 @@
 				95561A012A3C9048002CF4F5 /* AssemblyDataCellView.xib in Resources */,
 				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
 				950641DD2A39C4B700938403 /* AssemblyAddressCellView.xib in Resources */,
-				954A186C2A1AEE5A00EBC582 /* MainMenu.xib in Resources */,
+				954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */,
 				9579CF7D2A37197800D3EC01 /* MemoryView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -302,12 +302,12 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		954A186A2A1AEE5A00EBC582 /* MainMenu.xib */ = {
+		954A186A2A1AEE5A00EBC582 /* Main.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				954A186B2A1AEE5A00EBC582 /* Base */,
 			);
-			name = MainMenu.xib;
+			name = Main.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -505,8 +505,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMainNibFile = MainMenu;
+				INFOPLIST_KEY_NSMainNibFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -531,8 +532,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMainNibFile = MainMenu;
+				INFOPLIST_KEY_NSMainNibFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
