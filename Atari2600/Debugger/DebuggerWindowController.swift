@@ -57,6 +57,11 @@ private extension DebuggerWindowController {
 	@objc func breakpointMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.scrollTo(address: sender.tag)
 	}
+	
+	@objc func resumeCPUMenuItemSelected(_ sender: AnyObject) {
+		let breakpoints = self.assemblyViewController.breakpoints
+		self.console.cpu.run(until: breakpoints)
+	}
 }
 
 
@@ -66,8 +71,10 @@ private extension DebuggerWindowController {
 	func setUpSinks() {
 		self.console.$cartridge
 			.sink() { [unowned self] data in
-				self.toolbar[.resetItem]?
-					.isEnabled = data != nil
+				let inserted = data != nil
+				self.toolbar[.stepItem]?.isEnabled = inserted
+				self.toolbar[.resumeItem]?.isEnabled = inserted
+				self.toolbar[.resetItem]?.isEnabled = inserted
 			}.store(in: &self.cancellables)
 		
 		// NOTE: delay lets toolbar item to get deselected

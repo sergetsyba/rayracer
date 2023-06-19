@@ -36,7 +36,7 @@ extension AppDelegate {
 	}
 	
 	@IBAction func resumeCPUMenuItemSelected(_ sender: AnyObject) {
-		
+		print("TODO")
 	}
 	
 	@IBAction func stepCPUMenuItemSelected(_ sender: AnyObject) {

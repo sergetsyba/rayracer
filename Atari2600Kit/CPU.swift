@@ -1086,6 +1086,12 @@ public extension MOS6507 {
 		}
 	}
 	
+	func run(until breakpoints: [MOS6507.Address]) {
+		while !breakpoints.contains(self.programCounter) {
+			self.step()
+		}
+	}
+	
 	private func pushStack(_ data: Word) {
 		let address = 0x0100 + self.stackPointer
 		self.bus.write(data, at: address)
