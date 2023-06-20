@@ -104,7 +104,7 @@ private extension AssemblyViewController {
 			.delay(for: 0.01, scheduler: RunLoop.current)
 			.sink() { [unowned self] in
 				if let data = $0 {
-					self.program = self.console.cpu.decode(data)
+					self.program = MOS6507Assembly.disassemble(data)
 				} else {
 					self.program = nil
 				}
