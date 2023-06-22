@@ -130,7 +130,7 @@ extension MOS6507Assembly {
 		while index < data.endIndex {
 			// TODO: return unknown opcodes as data
 			if let instruction = try? Self.decodeInstruction(in: data, at: index) {
-				program.append((index, instruction))
+				program.append((0xf000 + index, instruction))
 				index += instruction.encodedLenght
 			} else {
 				index += 1
@@ -157,13 +157,16 @@ extension MOS6507Assembly {
 			return 0x00
 			
 		case .immediate,
-				.relative,
 				.zeroPage, .zeroPageX, .zeroPageY,
 				.indirectX, .indirectY:
-			return Int(data[index + 1])
+			return Int(data[index])
 			
 		case .absolute, .absoluteX, .absoluteY:
 			return Int(data[index]) * 0xff + Int(data[index + 1])
+			
+		case .relative:
+			let offset = Int(data[index])
+			return 0xf001 + index + Int(signedWord: offset)
 		}
 	}
 }

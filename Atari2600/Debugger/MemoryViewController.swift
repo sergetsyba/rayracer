@@ -53,7 +53,7 @@ private extension MemoryViewController {
 				case .reset:
 					self.resetView()
 				case .sync:
-					self.resetMemoryHighlight()
+					self.clearMemoryHighlights()
 				}
 			}.store(in: &self.cancellables)
 		
@@ -90,7 +90,7 @@ private extension MemoryViewController {
 		}
 	}
 	
-	func resetMemoryHighlight() {
+	func clearMemoryHighlights() {
 		for label in self.labels {
 			label.removeHighlights()
 		}

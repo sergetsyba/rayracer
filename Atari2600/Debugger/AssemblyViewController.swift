@@ -9,7 +9,7 @@ import Cocoa
 import Combine
 import Atari2600Kit
 
-typealias Program = [(MOS6507.Address, MOS6507.Instruction)]
+typealias Program = [(MOS6507.Address, MOS6507Assembly.Instruction)]
 typealias Breakpoint = MOS6507.Address
 
 class AssemblyViewController: NSViewController {
@@ -214,16 +214,16 @@ extension String {
 		self = .init(format: "$%04x", address)
 	}
 	
-	init(mnemonic: MOS6507.Mnemonic) {
+	init(mnemonic: MOS6507Assembly.Mnemonic) {
 		self = "\(mnemonic)"
 	}
 	
-	init(addressingMode mode: MOS6507.AddressingMode, operand: Int) {
+	init(addressingMode mode: MOS6507Assembly.AddressingMode, operand: Int) {
 		self = .init(format: mode.formatPattern, operand)
 	}
 }
 
-private extension MOS6507.AddressingMode {
+private extension MOS6507Assembly.AddressingMode {
 	var formatPattern: String {
 		switch self {
 		case .implied:
