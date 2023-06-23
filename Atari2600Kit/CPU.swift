@@ -877,6 +877,7 @@ private extension MOS6507 {
 	
 	/// Returns number of bytes an instruction with the specified opcode takes in assembled program.
 	func encodedInstructionLength(withOpcode opcode: Int) -> Int? {
+		// TODO: replace encoded instruction length resolution with a static dictionary
 		if let mode = MOS6507Assembly.AddressingMode(opcode: opcode) {
 			let instruction = MOS6507Assembly.Instruction(mnemonic: .adc, mode: mode, operand: 0)
 			return instruction.encodedLenght

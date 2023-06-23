@@ -277,7 +277,7 @@ private extension NSTableView {
 		let scrollView = self.enclosingScrollView!
 		let rowRect = self.rect(ofRow: row)
 		
-		let viewRect = scrollView.visibleRect
+		let viewRect = scrollView.documentVisibleRect
 		let insets = scrollView.contentInsets
 		
 		return rowRect.minY >= viewRect.minY + insets.top
