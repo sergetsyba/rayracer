@@ -62,6 +62,18 @@ public class MOS6507 {
 			let _ = operation()
 		}
 	}
+	
+	private func pushStack(_ data: Word) {
+		self.bus.write(data, at: self.stackPointer)
+		self.stackPointer -= 1
+	}
+	
+	private func pullStack() -> Word {
+		let data = self.bus.read(at: self.stackPointer)
+		self.stackPointer += 1
+		
+		return data
+	}
 }
 
 
@@ -559,9 +571,12 @@ private extension MOS6507 {
 			
 		case 0x20:
 			// MARK: JSR
-			return { _ in
-				// TODO: JSR
-				return 0
+			return { [unowned self] in
+				self.pushStack(self.programCounter.high)
+				self.pushStack(self.programCounter.low)
+				self.programCounter = $0
+				
+				return 3
 			}
 			
 		case 0xa9, 0xa5, 0xb5, 0xad, 0xbd, 0xb9, 0xa1, 0xb1:
@@ -744,9 +759,12 @@ private extension MOS6507 {
 			
 		case 0x60:
 			// MARK: RTS
-			return { _ in
-				// TODO: RTS
-				return 0
+			return { [unowned self] _ in
+				self.programCounter = Address(
+					self.pullStack(),
+					self.pullStack())
+				
+				return 5
 			}
 			
 		case 0xe9, 0xe5, 0xf5, 0xed, 0xfd, 0xe1, 0xf1:
