@@ -162,7 +162,7 @@ extension MOS6507Assembly {
 			return Int(data[index])
 			
 		case .absolute, .absoluteX, .absoluteY:
-			return Int(data[index]) * 0xff + Int(data[index + 1])
+			return Int(data[index]) * 0x100 + Int(data[index + 1])
 			
 		case .relative:
 			let offset = Int(data[index])
