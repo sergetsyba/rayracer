@@ -664,30 +664,32 @@ private extension MOS6507 {
 			
 		case 0x48:
 			// MARK: PHA
-			return { _ in
-				// TODO: PHA
-				return 0
+			return { [unowned self] _ in
+				self.pushStack(self.accumulator)
+				return 2
 			}
 			
 		case 0x08:
 			// MARK: PHP
-			return { _ in
-				// TODO: PHP
-				return 0
+			return { [unowned self] _ in
+				self.pushStack(self.status.rawValue)
+				return 2
 			}
 			
 		case 0x68:
 			// MARK: PLA
-			return { _ in
-				// TODO: PLA
-				return 0
+			return { [unowned self] _ in
+				self.accumulator = self.pullStack()
+				return 3
 			}
 			
 		case 0x28:
 			// MARK: PLP
-			return { _ in
-				// TODO: PLP
-				return 0
+			return { [unowned self] _ in
+				self.status = Status(
+					rawValue: self.pullStack())!
+				
+				return 3
 			}
 			
 		case 0x2a:
@@ -912,7 +914,7 @@ public extension MOS6507 {
 	typealias Word = Int
 	typealias Address = Int
 	
-	class Status {
+	class Status: RawRepresentable {
 		@Published fileprivate(set) public var carry: Bool
 		@Published fileprivate(set) public var zero: Bool
 		@Published fileprivate(set) public var interruptDisabled: Bool
@@ -929,6 +931,29 @@ public extension MOS6507 {
 			self.break = false
 			self.overflow = false
 			self.negative = false
+		}
+		
+		public required init?(rawValue: Int) {
+			self.carry = rawValue[0]
+			self.zero = rawValue[1]
+			self.interruptDisabled = rawValue[2]
+			self.decimalMode = rawValue[3]
+			self.break = rawValue[4]
+			self.overflow = rawValue[6]
+			self.negative = rawValue[7]
+		}
+		
+		public var rawValue: Int {
+			var value = 0x00
+			value[0] = self.carry
+			value[1] = self.zero
+			value[2] = self.interruptDisabled
+			value[3] = self.decimalMode
+			value[4] = self.break
+			value[6] = self.overflow
+			value[7] = self.negative
+			
+			return value
 		}
 		
 		static var random: Self {
