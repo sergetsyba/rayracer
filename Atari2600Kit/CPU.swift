@@ -11,13 +11,44 @@ public class MOS6507 {
 	private let eventSubject = PassthroughSubject<Event, Never>()
 	private var operations: [Int: Operation] = [:]
 	
-	@Published private(set) public var accumulator: Word
-	@Published private(set) public var x: Word
-	@Published private(set) public var y: Word
-	@Published private(set) public var status: Status
+	@Published private(set)
+	public var accumulator: Int {
+		didSet {
+			assert((0x00...0xff).contains(self.accumulator), String(
+				format: "accumulator overflow: %02x", self.accumulator))
+		}
+	}
+	@Published private(set)
+	public var x: Int {
+		didSet {
+			assert((0x00...0xff).contains(self.x), String(
+				format: "x index overflow: %02x", self.x))
+		}
+	}
+	@Published private(set)
+	public var y: Int {
+		didSet {
+			assert((0x00...0xff).contains(self.y), String(
+				format: "y index overflow: %02x", self.y))
+		}
+	}
+	@Published private(set)
+	public var status: Status
 	
-	@Published private(set) public var stackPointer: Word
-	@Published private(set) public var programCounter: Address
+	@Published private(set)
+	public var stackPointer: Int {
+		didSet {
+			assert((0x00...0xff).contains(self.stackPointer), String(
+				format: "stack pointer overflow: %02x", self.stackPointer))
+		}
+	}
+	@Published private(set)
+	public var programCounter: Address {
+		didSet {
+			assert((0x0000...0xffff).contains(self.programCounter), String(
+				format: "program counter overflow: %02x", self.programCounter))
+		}
+	}
 	
 	var bus: MOS6502Bus!
 	
@@ -260,8 +291,40 @@ private extension MOS6507 {
 		switch opcode {
 		case 0x69, 0x65, 0x75, 0x6d, 0x7d, 0x79, 0x61, 0x71:
 			// MARK: ADC
-			return { _ in
-				// TODO: ADC
+			return { [unowned self] in
+				let operand = self.bus.read(at: $0)
+				let carry = self.status.carry ? 0x01 : 0x00
+				var result = 0x00
+				
+				if self.status.decimalMode {
+					var high = (self.accumulator / 0x10) + (operand / 0x10)
+					var low = (self.accumulator % 0x10) + (operand % 0x10) + carry
+					
+					if low > 0x09 {
+						high += 0x01
+						low -= 0x0a
+					}
+					
+					var result = high * 0x10 + low
+					if result > 0x99 {
+						self.status.carry = true
+						result -= 0xa0
+					}
+				} else {
+					result = self.accumulator + operand + carry
+					if result > 0xff {
+						self.status.carry = true
+						result -= 0x100
+					}
+				}
+				
+				let overflow = (self.accumulator ^ result) & (operand ^ result)
+				
+				self.accumulator = result
+				self.status.overflow = overflow[7]
+				self.status.zero = result == 0x00
+				self.status.negative = result[7]
+				
 				return 0
 			}
 			
@@ -271,7 +334,7 @@ private extension MOS6507 {
 				let operand = self.bus.read(at: $0)
 				let result = self.accumulator & operand
 				
-				self.accumulator = result & 0xff
+				self.accumulator = result
 				self.status.zero = result == 0x00
 				self.status.negative = result[7]
 				
@@ -374,9 +437,16 @@ private extension MOS6507 {
 			
 		case 0x00:
 			// MARK: BRK
-			return { _ in
-				// TODO: BRK
-				return 0
+			return { [unowned self] _ in
+				self.pushStack(self.programCounter.high)
+				self.pushStack(self.programCounter.low)
+				self.pushStack(self.status.rawValue)
+				
+				self.programCounter = Address(
+					self.bus.read(at: 0xfffe),
+					self.bus.read(at: 0xffff))
+				
+				return 6
 			}
 			
 		case 0x50:
@@ -640,7 +710,7 @@ private extension MOS6507 {
 				self.status.zero = result == 0x00
 				self.status.negative = false
 				
-				return 1
+				return 3
 			}
 			
 		case 0xea:
@@ -754,9 +824,15 @@ private extension MOS6507 {
 			
 		case 0x40:
 			// MARK: RTI
-			return { _ in
-				// TODO: RTI
-				return 0
+			return { [unowned self] _ in
+				self.status = Status(
+					rawValue: self.pullStack())!
+				
+				self.programCounter = Address(
+					self.pullStack(),
+					self.pullStack())
+				
+				return 5
 			}
 			
 		case 0x60:
@@ -771,8 +847,41 @@ private extension MOS6507 {
 			
 		case 0xe9, 0xe5, 0xf5, 0xed, 0xfd, 0xe1, 0xf1:
 			// MARK: SBC
-			return { _ in
-				// TODO: SBC
+			return { [unowned self] in
+				let operand = self.bus.read(at: $0)
+				let carry = self.status.carry ? 0x01: 0x00
+				var result = 0x00
+				
+				if self.status.decimalMode {
+					var high = (self.accumulator / 0x10) - (operand / 0x10)
+					var low = (self.accumulator % 0x10) - (operand % 0x10) - carry
+					
+					if low < 0x00 {
+						high -= 0x01
+						low += 0x0a
+					}
+					
+					result = high * 0x10 + low
+					if result < 0x00 {
+						self.status.carry = true
+						result += 0xa0
+					}
+				} else {
+					result = self.accumulator - operand - carry
+					if result < 0x00 {
+						self.status.carry = true
+						result += 0x100
+					}
+				}
+				
+				let overflow = (self.accumulator ^ result) & (operand ^ result)
+				
+				self.accumulator = result
+				self.status.overflow = overflow[7]
+				self.status.carry = result >= 0x00
+				self.status.zero = result == 0x00
+				self.status.negative = result[7]
+				
 				return 0
 			}
 			
@@ -999,19 +1108,19 @@ private extension MOS6507.Address {
 	
 	var low: MOS6507.Word {
 		get {
-			return self % 0xff
+			return self >> 8
 		}
 		set {
-			self = self.high + (newValue % 0xff)
+			self = self.high + (newValue & 0xff)
 		}
 	}
 	
 	var high: MOS6507.Word {
 		get {
-			return self / 0xff
+			return self << 8
 		}
 		set {
-			self = self.low + (newValue % 0xff) * 0xff
+			self = self.low + (newValue % 0xff) << 8
 		}
 	}
 }
