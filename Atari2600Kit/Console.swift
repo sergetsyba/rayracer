@@ -27,11 +27,11 @@ public class Atari2600: ObservableObject {
 // MARK: Memory segments
 public extension Memory {
 	var tiaRegisters: Memory {
-		return self[0x0000..<0x007f]
+		return self[0x0000..<0x0040]
 	}
 	
 	var ram: Memory {
-		return self[0x0080..<0x00ff]
+		return self[0x0080..<0x0100]
 	}
 	
 	var riotRegisters: Memory {
@@ -42,14 +42,34 @@ public extension Memory {
 
 // MARK: -
 extension Atari2600: MOS6502Bus {
+	static let mirrors: [ClosedRange<Int>: ClosedRange<Int>] = [
+		0x0000...0x003f: 0x0000...0x003f,
+		0x0040...0x007f: 0x0000...0x003f,
+		// RAM
+		0x0080...0x00ff: 0x0080...0x00ff,
+		0x0180...0x01ff: 0x0080...0x00ff
+	]
+	
+	public func unmirror(_ address: MOS6507.Address) -> MOS6507.Address {
+		for (mirror, _) in Self.mirrors {
+			if mirror.contains(address) {
+				return address - mirror.lowerBound
+			}
+		}
+		return address
+	}
+	
 	func read(at address: MOS6507.Address) -> MOS6507.Word {
-		return address < 0xf000
-		? MOS6507.Word(self.memory[Int(address)])
-		: MOS6507.Word(self.cartridge![Int(address - 0xf000)])
+		if address < 0xf000 {
+			let address = self.unmirror(address)
+			return self.memory[address]
+		} else {
+			return MOS6507.Word(self.cartridge![address - 0xf000])
+		}
 	}
 	
 	func write(_ value: MOS6507.Word, at address: MOS6507.Address) {
-		// TODO: restrict address
+		let address = self.unmirror(address)
 		self.memory[address] = value
 	}
 }

@@ -9,7 +9,7 @@ import Cocoa
 import Combine
 import Atari2600Kit
 
-typealias Program = [(MOS6507.Address, MOS6507.Instruction)]
+typealias Program = [(MOS6507.Address, MOS6507Assembly.Instruction)]
 typealias Breakpoint = MOS6507.Address
 
 class AssemblyViewController: NSViewController {
@@ -104,7 +104,7 @@ private extension AssemblyViewController {
 			.delay(for: 0.01, scheduler: RunLoop.current)
 			.sink() { [unowned self] in
 				if let data = $0 {
-					self.program = self.console.cpu.decode(data)
+					self.program = MOS6507Assembly.disassemble(data)
 				} else {
 					self.program = nil
 				}
@@ -214,16 +214,16 @@ extension String {
 		self = .init(format: "$%04x", address)
 	}
 	
-	init(mnemonic: MOS6507.Mnemonic) {
+	init(mnemonic: MOS6507Assembly.Mnemonic) {
 		self = "\(mnemonic)"
 	}
 	
-	init(addressingMode mode: MOS6507.AddressingMode, operand: Int) {
+	init(addressingMode mode: MOS6507Assembly.AddressingMode, operand: Int) {
 		self = .init(format: mode.formatPattern, operand)
 	}
 }
 
-private extension MOS6507.AddressingMode {
+private extension MOS6507Assembly.AddressingMode {
 	var formatPattern: String {
 		switch self {
 		case .implied:
@@ -277,7 +277,7 @@ private extension NSTableView {
 		let scrollView = self.enclosingScrollView!
 		let rowRect = self.rect(ofRow: row)
 		
-		let viewRect = scrollView.visibleRect
+		let viewRect = scrollView.documentVisibleRect
 		let insets = scrollView.contentInsets
 		
 		return rowRect.minY >= viewRect.minY + insets.top
