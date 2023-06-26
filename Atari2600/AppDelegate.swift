@@ -6,7 +6,7 @@
 //
 
 import Cocoa
-import SwiftUI
+import CryptoKit
 import Atari2600Kit
 
 @main
@@ -22,12 +22,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: Main menu actions
 extension AppDelegate {
 	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
-		do {
-			let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/ROMS/Pac-Man.bin")
-			try self.console.insertCartridge(fromFileAt: url)
-		} catch {
-			// TODO: handle error
-			print(error)
+		if self.console.cartridge == nil {
+			do {
+				let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/ROMS/Pac-Man.bin")
+				try self.console.insertCartridge(fromFileAt: url)
+			} catch {
+				// TODO: handle error
+				print(error)
+			}
+		} else {
+			self.console.cartridge = nil
 		}
 	}
 	
@@ -78,4 +82,11 @@ private extension Set {
 
 extension Atari2600 {
 	static let current = Atari2600()
+	
+	var gameIdentifier: String {
+		return Insecure.MD5
+			.hash(data: self.cartridge!)
+			.map() { String(format: "%02x", $0) }
+			.joined()
+	}
 }
