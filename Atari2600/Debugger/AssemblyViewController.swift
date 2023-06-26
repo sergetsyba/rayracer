@@ -304,14 +304,14 @@ private extension NSTableView {
 	}
 	
 	func scrollToRow(_ row: Int) {
-		// scroll such that the target row ends up offset by 5 more rows
-		// from table view's top to provide some context
+		// scroll such that the target row ends up offset by 5 rows from
+		// the table view's top to provide some context to the row data
 		let row = min(row - 5, row)
 		
 		if let scrollView = self.enclosingScrollView {
 			let rowRect = self.rect(ofRow: row)
 			let point = NSPoint(x: rowRect.minX, y: rowRect.minY + scrollView.contentInsets.top)
-			scrollView.scroll(to: rowRect.origin, animationDuration: 0.25)
+			scrollView.scroll(to: point, animationDuration: 0.25)
 		}
 	}
 	

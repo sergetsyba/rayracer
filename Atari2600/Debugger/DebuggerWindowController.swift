@@ -129,7 +129,7 @@ extension DebuggerWindowController: NSToolbarDelegate {
 		case .breakpointsItem:
 			// NOTE: NSMenuToolbarItem is not supported in Interface Builder
 			let toolbarItem = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
-			toolbarItem.image = NSImage(systemSymbolName: "stop.fill", accessibilityDescription: nil)
+			toolbarItem.image = NSImage(symbolName: "Breakpoint", variableValue: 1.0)
 			toolbarItem.label = "Breakpoints"
 			toolbarItem.isEnabled = false
 			
