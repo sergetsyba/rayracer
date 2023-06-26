@@ -51,11 +51,11 @@ class DebuggerWindowController: NSWindowController {
 // MARK: Target actions
 private extension DebuggerWindowController {
 	@objc func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
-		self.assemblyViewController.breakpoints = []
+		self.assemblyViewController.clearBreakpoints()
 	}
 	
 	@objc func breakpointMenuItemSelected(_ sender: NSMenuItem) {
-		self.assemblyViewController.scrollTo(address: sender.tag)
+		self.assemblyViewController.showBreakpoint(sender.tag)
 	}
 	
 	@objc func resumeCPUMenuItemSelected(_ sender: AnyObject) {
@@ -129,7 +129,7 @@ extension DebuggerWindowController: NSToolbarDelegate {
 		case .breakpointsItem:
 			// NOTE: NSMenuToolbarItem is not supported in Interface Builder
 			let toolbarItem = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
-			toolbarItem.image = NSImage(systemSymbolName: "stop.fill", accessibilityDescription: nil)
+			toolbarItem.image = NSImage(symbolName: "Breakpoint", variableValue: 1.0)
 			toolbarItem.label = "Breakpoints"
 			toolbarItem.isEnabled = false
 			

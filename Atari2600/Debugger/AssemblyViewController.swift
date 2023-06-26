@@ -20,27 +20,32 @@ class AssemblyViewController: NSViewController {
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
 	
-	var program: Program? {
+	private(set) var program: Program? {
 		didSet {
-			self.updateContentView()
+			if let _ = self.program {
+				self.breakpoints = UserDefaults.standard
+					.breakpoints()
+			} else {
+				self.programAddress = nil
+				self.breakpoints = []
+			}
+			if self.isViewLoaded {
+				self.updateProgramView()
+				self.updateProgramAddressRow()
+			}
 		}
 	}
 	
-	var programAddress: MOS6507.Address? {
+	private(set) var programAddress: MOS6507.Address? {
 		didSet {
-			self.updateSelectedTableRow()
+			if self.isViewLoaded {
+				self.updateProgramAddressRow()
+			}
 		}
 	}
 	
 	@Published
-	var breakpoints: [Breakpoint] = [] {
-		didSet {
-			let rows = oldValue.compactMap({ breakpoint in
-				self.program?.firstIndex(where: {$0.0 == breakpoint})
-			})
-			self.tableView.reloadData(in: rows)
-		}
-	}
+	private(set) var breakpoints: [Breakpoint] = []
 	
 	convenience init() {
 		self.init(nibName: "AssemblyView", bundle: .main)
@@ -62,41 +67,6 @@ class AssemblyViewController: NSViewController {
 
 
 // MARK: -
-extension AssemblyViewController {
-	@objc func ensureVisible(address: MOS6507.Address) {
-		if let row = self.program?.firstIndex(where: { $0.0 == address }),
-		   self.tableView.isRowVisible(row) == false {
-			self.tableView.scrollToRow(row, offsetRatio: 0.25)
-		}
-	}
-	
-	@objc func scrollTo(address: MOS6507.Address) {
-		if let row = self.program?.firstIndex(where: { $0.0 == address }) {
-			// scroll such that row ends up vertically at 1/4 of view's
-			// visible content height
-			self.tableView.scrollToRow(row, offsetRatio: 0.25)
-		}
-	}
-}
-
-
-// MARK: -
-// MARK: Event management
-extension AssemblyViewController {
-	@objc func breakpointToggled(_ sender: BreakpointToggle) {
-		if sender.isOn {
-			self.breakpoints.append(sender.tag)
-		} else {
-			if let index = self.breakpoints.firstIndex(of: sender.tag) {
-				self.breakpoints.remove(at: index)
-			}
-		}
-	}
-}
-
-
-// MARK: -
-// MARK: UI updates
 private extension AssemblyViewController {
 	func setUpSinks() {
 		// TODO: remove delay in showing program after cartridge insert
@@ -113,11 +83,27 @@ private extension AssemblyViewController {
 		self.console.cpu.$programCounter
 			.sink() { [unowned self] in
 				self.programAddress = $0
-				self.ensureVisible(address: $0)
 			}.store(in: &self.cancellables)
 	}
+}
+
+
+// MARK: -
+// MARK: UI updates
+private extension AssemblyViewController {
+	static let tableColumnDataTemplates = ["$0000    ", "adc", "($a4),Y"]
+	static let tableTextAttributes: [NSAttributedString.Key: Any] = [
+		.font: NSFont.monospacedRegular
+	]
 	
-	func updateContentView() {
+	func updateTableColumnWidths() {
+		Self.tableColumnDataTemplates
+			.map() { $0.size(withAttributes: Self.tableTextAttributes) }
+			.enumerated()
+			.forEach() { self.tableView.tableColumns[$0.0].width = $0.1.width }
+	}
+	
+	func updateProgramView() {
 		if let _ = self.program {
 			// switch to program view
 			self.view.setContentView(self.programView, layout: .fill)
@@ -130,26 +116,53 @@ private extension AssemblyViewController {
 		}
 		
 		self.tableView.reloadData()
-		self.updateSelectedTableRow()
 	}
 	
-	func updateTableColumnWidths() {
-		let attributes: [NSAttributedString.Key: Any] = [
-			.font: NSFont.monospacedRegular
-		]
-		
-		["$0000    ", "adc", "($a4),Y"]
-			.map() { $0.size(withAttributes: attributes) }
-			.enumerated()
-			.forEach() { self.tableView.tableColumns[$0.0].width = $0.1.width }
-	}
-	
-	func updateSelectedTableRow() {
-		if let row = self.program?
-			.firstIndex(where: { $0.0 == self.programAddress }) {
+	func updateProgramAddressRow() {
+		if let program = self.program,
+		   let row = program.firstIndex(where: { $0.0 == self.programAddress }) {
 			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
+			self.tableView.ensureRowVisible(row)
 		} else {
 			self.tableView.deselectAll(self)
+		}
+	}
+}
+
+
+// MARK: -
+// MARK: Breakpoint management
+extension AssemblyViewController {
+	@objc func breakpointToggled(_ sender: BreakpointToggle) {
+		if sender.isOn {
+			self.breakpoints.append(sender.tag)
+		} else {
+			if let index = self.breakpoints.firstIndex(of: sender.tag) {
+				self.breakpoints.remove(at: index)
+			}
+		}
+		
+		// update user defaults
+		UserDefaults.standard
+			.setBreakpoints(self.breakpoints)
+	}
+	
+	func clearBreakpoints() {
+		let rows = self.breakpoints
+			.compactMap() { breakpoint in self.program?
+				.firstIndex(where: { $0.0 == breakpoint} )}
+		
+		self.breakpoints = []
+		self.tableView.reloadData(in: rows)
+		
+		// update user defaults
+		UserDefaults.standard
+			.setBreakpoints(self.breakpoints)
+	}
+	
+	func showBreakpoint(_ breakpoint: MOS6507.Address) {
+		if let row = self.program?.firstIndex(where: { $0.0 == breakpoint }) {
+			self.tableView.scrollToRow(row)
 		}
 	}
 }
@@ -273,6 +286,12 @@ private extension NSTableView {
 		}
 	}
 	
+	func ensureRowVisible(_ row: Int) {
+		if self.isRowVisible(row) == false {
+			self.scrollToRow(row)
+		}
+	}
+	
 	func isRowVisible(_ row: Int) -> Bool {
 		let scrollView = self.enclosingScrollView!
 		let rowRect = self.rect(ofRow: row)
@@ -284,17 +303,16 @@ private extension NSTableView {
 		&& rowRect.maxY <= viewRect.maxY - insets.bottom
 	}
 	
-	func scrollToRow(_ row: Int, offsetRatio ratio: CGFloat) {
-		let scrollView = self.enclosingScrollView!
-		let rowRect = self.rect(ofRow: row)
+	func scrollToRow(_ row: Int) {
+		// scroll such that the target row ends up offset by 5 rows from
+		// the table view's top to provide some context to the row data
+		let row = min(row - 5, row)
 		
-		let viewRect = scrollView.documentVisibleRect
-		let insets = scrollView.contentInsets
-		let viewHieght = viewRect.height - (insets.top + insets.bottom)
-		
-		let offset = (viewHieght - rowRect.height) * ratio + insets.top
-		let point = NSPoint(x: rowRect.minX, y: rowRect.minY - offset)
-		scrollView.scroll(to: point, animationDuration: 0.25)
+		if let scrollView = self.enclosingScrollView {
+			let rowRect = self.rect(ofRow: row)
+			let point = NSPoint(x: rowRect.minX, y: rowRect.minY + scrollView.contentInsets.top)
+			scrollView.scroll(to: point, animationDuration: 0.25)
+		}
 	}
 	
 	func reloadData(in rows: [Int]) {

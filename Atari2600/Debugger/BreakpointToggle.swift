@@ -67,7 +67,7 @@ import CoreText
 		self.textColor = .controlTextColor
 		
 		self.insets = .init(top: 4.0, left: 12.0, bottom: 4.0, right: 4.0)
-		self.cornerRadius = 5.0
+		self.cornerRadius = 3.0
 		
 		super.init(coder: coder)
 		self.font = .systemRegular
@@ -98,21 +98,28 @@ extension BreakpointToggle {
 // MARK: Drawing
 extension BreakpointToggle {
 	func drawToggle(in rect: CGRect, with context: CGContext) {
-		let width = rect.width - rect.height / 3.0
+		context.saveGState()
+		
+		let origin = CGPoint(x: rect.minX, y: rect.midY)
+		let pointerWidth = rect.height / 3.0
+		
 		let corners = [
+			CGPoint(x: rect.minX, y: rect.minY),
+			CGPoint(x: rect.maxX - pointerWidth, y: rect.minY),
+			CGPoint(x: rect.maxX, y: rect.midY),
+			CGPoint(x: rect.maxX - pointerWidth, y: rect.maxY),
 			CGPoint(x: rect.minX, y: rect.maxY),
-			CGPoint(x: rect.minX + width, y: rect.maxY),
-			CGPoint(x: rect.maxX, y: rect.minY + rect.height / 2.0),
-			CGPoint(x: rect.minX + width, y: rect.minY),
 			CGPoint(x: rect.minX, y: rect.minY)
 		]
 		
-		context.saveGState()
-		context.move(to: rect.origin)
-		
-		for corner in corners {
-			context.addLine(to: corner)
+		context.move(to: origin)
+		for index in corners.indices.dropLast() {
+			context.addArc(
+				tangent1End: corners[index],
+				tangent2End: corners[index + 1],
+				radius: self.cornerRadius)
 		}
+		context.addLine(to: origin)
 		
 		context.setFillColor(self.tintColor.cgColor)
 		context.fillPath()
