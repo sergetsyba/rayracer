@@ -45,6 +45,11 @@ public class MOS6507 {
 	@Published private(set)
 	public var programCounter: Address {
 		didSet {
+			if self.programCounter == 0x1b00 {
+				print(String(format: "$%04x", self.programCounter))
+			}
+			
+			
 			assert((0x0000...0xffff).contains(self.programCounter), String(
 				format: "program counter overflow: %02x", self.programCounter))
 		}
@@ -73,8 +78,8 @@ public class MOS6507 {
 		self.status.interruptDisabled = true
 		
 		self.programCounter = Address(
-			self.bus.read(at: 0xfffe),
-			self.bus.read(at: 0xfffd))
+			low: self.bus.read(at: 0xfffe),
+			high: self.bus.read(at: 0xfffd))
 	}
 	
 	/// Performs program instructions until it reaches one at any of the sepcified addresses.
@@ -162,8 +167,8 @@ private extension MOS6507 {
 			// MARK: Absolute
 			return { [unowned self] in
 				let address = Address(
-					self.bus.read(at: $0),
-					self.bus.read(at: $0 + 1))
+					low: self.bus.read(at: $0),
+					high: self.bus.read(at: $0 + 1))
 				
 				return (address, 2)
 			}
@@ -174,8 +179,8 @@ private extension MOS6507 {
 			// MARK: Absolute, X-indexed
 			return { [unowned self] in
 				var address = Address(
-					self.bus.read(at: $0),
-					self.bus.read(at: $0 + 1))
+					low: self.bus.read(at: $0),
+					high: self.bus.read(at: $0 + 1))
 				
 				let page = address.high
 				address += self.x
@@ -189,8 +194,8 @@ private extension MOS6507 {
 			// MARK: Absolute, Y-indexed
 			return { [unowned self] in
 				var address = Address(
-					self.bus.read(at: $0),
-					self.bus.read(at: $0 + 1))
+					low: self.bus.read(at: $0),
+					high: self.bus.read(at: $0 + 1))
 				
 				let page = address.high
 				address += self.y
@@ -205,8 +210,8 @@ private extension MOS6507 {
 			// MARK: Zero-page
 			return { [unowned self] in
 				let address = Address(
-					self.bus.read(at: $0),
-					0x00)
+					low: self.bus.read(at: $0),
+					high: 0x00)
 				
 				return (address, 1)
 			}
@@ -217,8 +222,8 @@ private extension MOS6507 {
 			// MARK: Zero-page, X-indexed
 			return { [unowned self] in
 				var address = Address(
-					self.bus.read(at: $0),
-					0x00)
+					low: self.bus.read(at: $0),
+					high: 0x00)
 				
 				address.low += self.x
 				return (address, 2)
@@ -228,8 +233,8 @@ private extension MOS6507 {
 			// MARK: Zero-page, Y-indexed
 			return { [unowned self] in
 				var address = Address(
-					self.bus.read(at: $0),
-					0x00)
+					low: self.bus.read(at: $0),
+					high: 0x00)
 				
 				address.low += self.y
 				return (address, 2)
@@ -239,13 +244,13 @@ private extension MOS6507 {
 			// MARK: X-indexed, Indirect
 			return { [unowned self] in
 				var address = Address(
-					self.bus.read(at: $0),
-					0x00)
+					low: self.bus.read(at: $0),
+					high: 0x00)
 				
 				address.low += self.x
 				address = Address(
-					self.bus.read(at: address),
-					self.bus.read(at: address + 1))
+					low: self.bus.read(at: address),
+					high: self.bus.read(at: address + 1))
 				
 				return (address, 4)
 			}
@@ -254,12 +259,12 @@ private extension MOS6507 {
 			// MARK: Indirect, Y-indexed
 			return { [unowned self] in
 				var address = Address(
-					self.bus.read(at: $0 + 1),
-					0x00)
+					low: self.bus.read(at: $0 + 1),
+					high: 0x00)
 				
 				address = Address(
-					self.bus.read(at: address),
-					self.bus.read(at: address + 1))
+					low: self.bus.read(at: address),
+					high: self.bus.read(at: address + 1))
 				
 				let page = address.high
 				address += self.y
@@ -443,8 +448,8 @@ private extension MOS6507 {
 				self.pushStack(self.status.rawValue)
 				
 				self.programCounter = Address(
-					self.bus.read(at: 0xfffe),
-					self.bus.read(at: 0xffff))
+					low: self.bus.read(at: 0xfffe),
+					high: self.bus.read(at: 0xffff))
 				
 				return 6
 			}
@@ -829,8 +834,8 @@ private extension MOS6507 {
 					rawValue: self.pullStack())!
 				
 				self.programCounter = Address(
-					self.pullStack(),
-					self.pullStack())
+					low: self.pullStack(),
+					high: self.pullStack())
 				
 				return 5
 			}
@@ -839,8 +844,8 @@ private extension MOS6507 {
 			// MARK: RTS
 			return { [unowned self] _ in
 				self.programCounter = Address(
-					self.pullStack(),
-					self.pullStack())
+					low: self.pullStack(),
+					high: self.pullStack())
 				
 				return 5
 			}
@@ -1098,29 +1103,29 @@ protocol MOS6502Bus {
 // MARK: -
 // MARK: Convenience functionality
 private extension MOS6507.Address {
-	init(_ low: MOS6507.Word, _ high: MOS6507.Word) {
-		self = Self(low) | Self(high) << 8
+	init(low: MOS6507.Word, high: MOS6507.Word) {
+		self = Self(high) * 0x100 + Self(low)
 	}
 	
-	init(_ low: UInt8, _ high: UInt8) {
-		self = (Self(low) | Self(high) << 8)
+	init(low: UInt8, high: UInt8) {
+		self = Self(high) * 0x100 + Self(low)
 	}
 	
 	var low: MOS6507.Word {
 		get {
-			return self >> 8
+			return self % 0x100
 		}
 		set {
-			self = self.high + (newValue & 0xff)
+			self = self.high * 0x100 + newValue
 		}
 	}
 	
 	var high: MOS6507.Word {
 		get {
-			return self << 8
+			return self / 0x100
 		}
 		set {
-			self = self.low + (newValue % 0xff) << 8
+			self = newValue * 0x100 + self.low
 		}
 	}
 }
