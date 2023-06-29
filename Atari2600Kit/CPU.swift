@@ -99,14 +99,20 @@ public class MOS6507 {
 		}
 	}
 	
+	/// Pushes the specified value onto stack and updates the stack pointer.
 	private func pushStack(_ data: Word) {
-		self.bus.write(data, at: self.stackPointer)
+		let address = self.stackPointer + 0x01ff
+		self.bus.write(data, at: address)
+		
 		self.stackPointer -= 1
 	}
 	
+	/// Pulls the last pushed value from the stack and updates the stack pointer.
 	private func pullStack() -> Word {
-		let data = self.bus.read(at: self.stackPointer)
 		self.stackPointer += 1
+		
+		let address = self.stackPointer + 0x01ff
+		let data = self.bus.read(at: address)
 		
 		return data
 	}
