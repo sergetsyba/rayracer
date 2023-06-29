@@ -650,6 +650,13 @@ private extension MOS6507 {
 				return 0
 			}
 			
+		case 0x4c, 0x6c:
+			// MARK: JMP
+			return { [unowned self] in
+				self.programCounter = $0
+				return 0
+			}
+			
 		case 0x20:
 			// MARK: JSR
 			return { [unowned self] in
