@@ -55,7 +55,7 @@ public class MOS6507 {
 		}
 	}
 	
-	var bus: MOS6502Bus!
+	var bus: Bus!
 	
 	public init() {
 		self.accumulator = .randomWord
@@ -85,23 +85,26 @@ public class MOS6507 {
 	/// Performs program instructions until it reaches one at any of the sepcified addresses.
 	public func run(until breakpoints: [MOS6507.Address]) {
 		while !breakpoints.contains(self.programCounter) {
-			self.step()
+			let _ = self.step()
 		}
 	}
 	
 	/// Performs the next instruction in the program.
-	public func step() {
+	public func step() -> Int {
 		let opcode = self.bus.read(at: self.programCounter)
 		self.eventSubject.send(.sync)
 		
 		if let operation = self.operations[opcode] {
-			let _ = operation()
+			return operation()
+		} else {
+			let address = String(format: "$%04x", self.programCounter)
+			fatalError("Unknown opcode: \(opcode) at \(address).")
 		}
 	}
 	
 	/// Pushes the specified value onto stack and updates the stack pointer.
 	private func pushStack(_ data: Word) {
-		let address = self.stackPointer + 0x01ff
+		let address = self.stackPointer + 0x0100
 		self.bus.write(data, at: address)
 		
 		self.stackPointer -= 1
@@ -111,7 +114,7 @@ public class MOS6507 {
 	private func pullStack() -> Word {
 		self.stackPointer += 1
 		
-		let address = self.stackPointer + 0x01ff
+		let address = self.stackPointer + 0x0100
 		let data = self.bus.read(at: address)
 		
 		return data
@@ -1102,14 +1105,6 @@ public extension MOS6507 {
 	var events: some Publisher<Event, Never> {
 		return self.eventSubject
 	}
-}
-
-
-// MARK: -
-// MARK: Memory addressing
-protocol MOS6502Bus {
-	func read(at address: MOS6507.Address) -> MOS6507.Word
-	func write(_ value: MOS6507.Word, at address: MOS6507.Address)
 }
 
 

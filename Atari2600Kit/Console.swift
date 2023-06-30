@@ -8,11 +8,15 @@
 public class Atari2600: ObservableObject {
 	@Published private(set) public var cpu: MOS6507
 	@Published private(set) public var memory: Memory
+	private(set) public var tia: TIA!
 	@Published public var cartridge: Data?
 	
 	public init() {
 		self.cpu = MOS6507()
 		self.memory = Memory(size: 0xffff)
+		self.tia = TIA(bus: self)
+		
+		// TODO: move to CPU init
 		self.cpu.bus = self
 	}
 	
@@ -20,6 +24,25 @@ public class Atari2600: ObservableObject {
 		self.cartridge = try Data(contentsOf: url)
 		self.cpu.reset()
 	}
+	
+	public func step() {
+		let clockCycles = self.cpu.step()
+		let colorCycles = 3 * clockCycles
+		self.tia.step(cycles: colorCycles)
+	}
+	
+	public func resume(until breakpoints: [MOS6507.Address]) {
+		repeat {
+			self.step()
+		} while breakpoints.contains(self.cpu.programCounter) == false
+	}
+}
+
+
+// MARK: -
+protocol Bus {
+	func read(at address: MOS6507.Address) -> MOS6507.Word
+	func write(_ value: MOS6507.Word, at address: MOS6507.Address)
 }
 
 
@@ -41,7 +64,7 @@ public extension Memory {
 
 
 // MARK: -
-extension Atari2600: MOS6502Bus {
+extension Atari2600: Bus {
 	static let mirrors: [ClosedRange<Int>: ClosedRange<Int>] = [
 		0x0000...0x003f: 0x0000...0x003f,
 		0x0040...0x007f: 0x0000...0x003f,

@@ -39,30 +39,24 @@ private extension ScreenWindowController {
 			.receive(on: DispatchQueue.main)
 			.sink() {
 				switch $0 {
-				case .drawFrame(let _):
-					var bitmap = Data(repeating: .random(in: 0..<255), count: 20)
-					
-					bitmap.withUnsafeMutableBytes() {
+				case .drawFrame(var frame):
+					frame.withUnsafeMutableBytes() {
 						let colorSpace = CGColorSpaceCreateDeviceGray()
 						let context = CGContext(
 							data: $0.baseAddress,
-							width: 5,
-							height: 5,
+							width: 192,
+							height: 160,
 							bitsPerComponent: 8,
-							bytesPerRow: 5,
+							bytesPerRow: 192,
 							space: colorSpace,
 							bitmapInfo: CGImageAlphaInfo.none.rawValue)
 						
 						if let image = context?.makeImage() {
 							self.imageView.image = NSImage(
 								cgImage: image,
-								size: NSSize(width: 5, height: 5))
-							print(self.imageView.image)
+								size: NSSize(width: 192, height: 160))
 						}
 					}
-					
-				default:
-					break
 				}
 			}.store(in: &self.cancellables)
 	}
