@@ -25,12 +25,15 @@
 		9579CF7B2A3718D200D3EC01 /* MemoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */; };
 		9579CF7D2A37197800D3EC01 /* MemoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9579CF7C2A37197800D3EC01 /* MemoryView.xib */; };
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
+		9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9595FE912A4E02FE00F6F857 /* TIA.swift */; };
 		9597B00D2A46CBB80088822B /* Atari2600KitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9597B00C2A46CBB80088822B /* Atari2600KitTests.swift */; };
 		9597B00E2A46CBB80088822B /* Atari2600Kit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* Atari2600Kit.framework */; };
 		9597B0152A46CBC50088822B /* CPUTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9597B0142A46CBC50088822B /* CPUTests.swift */; };
 		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
+		95B429D92A4EFDB100EB6A5D /* ScreenWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */; };
+		95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */; };
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95CE639E2A333383007BD72B /* CPUViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CE639D2A333383007BD72B /* CPUViewController.swift */; };
 		95CE63A02A3333BC007BD72B /* CPUView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95CE639F2A3333BC007BD72B /* CPUView.xib */; };
@@ -75,12 +78,15 @@
 		9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryViewController.swift; sourceTree = "<group>"; };
 		9579CF7C2A37197800D3EC01 /* MemoryView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MemoryView.xib; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
+		9595FE912A4E02FE00F6F857 /* TIA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TIA.swift; sourceTree = "<group>"; };
 		9597B00A2A46CBB80088822B /* Atari2600KitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Atari2600KitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9597B00C2A46CBB80088822B /* Atari2600KitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atari2600KitTests.swift; sourceTree = "<group>"; };
 		9597B0142A46CBC50088822B /* CPUTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUTests.swift; sourceTree = "<group>"; };
 		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
 		95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindowController.swift; sourceTree = "<group>"; };
 		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
+		95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenWindowController.swift; sourceTree = "<group>"; };
+		95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ScreenWindow.xib; sourceTree = "<group>"; };
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 		95CE639D2A333383007BD72B /* CPUViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUViewController.swift; sourceTree = "<group>"; };
 		95CE639F2A3333BC007BD72B /* CPUView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CPUView.xib; sourceTree = "<group>"; };
@@ -141,6 +147,7 @@
 				953D92B02A1AEB9E00EC52AC /* CPU.swift */,
 				9502E5962A423296007A32DA /* Assembly.swift */,
 				9545887D2A1BC907003A45C6 /* Memory.swift */,
+				9595FE912A4E02FE00F6F857 /* TIA.swift */,
 			);
 			path = Atari2600Kit;
 			sourceTree = "<group>";
@@ -153,6 +160,8 @@
 				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
 				954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */,
 				954A186A2A1AEE5A00EBC582 /* Main.xib */,
+				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
+				95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */,
 			);
 			path = Atari2600;
 			sourceTree = "<group>";
@@ -323,6 +332,7 @@
 				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
 				95561A012A3C9048002CF4F5 /* AssemblyDataCellView.xib in Resources */,
 				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
+				95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */,
 				950641DD2A39C4B700938403 /* AssemblyAddressCellView.xib in Resources */,
 				954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */,
 				9579CF7D2A37197800D3EC01 /* MemoryView.xib in Resources */,
@@ -346,6 +356,7 @@
 				9502E5972A423296007A32DA /* Assembly.swift in Sources */,
 				9545887E2A1BC907003A45C6 /* Memory.swift in Sources */,
 				953D92B12A1AEB9E00EC52AC /* CPU.swift in Sources */,
+				9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */,
 				953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -362,6 +373,7 @@
 				950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,
 				9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */,
+				95B429D92A4EFDB100EB6A5D /* ScreenWindowController.swift in Sources */,
 				95CE639E2A333383007BD72B /* CPUViewController.swift in Sources */,
 				9579CF7B2A3718D200D3EC01 /* MemoryViewController.swift in Sources */,
 				95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */,

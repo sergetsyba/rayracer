@@ -64,6 +64,7 @@ class CPUViewController: NSViewController {
 private extension CPUViewController {
 	func updateSinks() {
 		self.cpu.events
+			.receive(on: DispatchQueue.main)
 			.sink() {
 				switch $0 {
 				case .reset:
@@ -80,41 +81,53 @@ private extension CPUViewController {
 			}.store(in: &self.cancellables)
 		
 		self.cpu.$accumulator
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.accumulatorLabel.wordValue = $0 }
 			.store(in: &self.cancellables)
 		self.cpu.$x
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.indexXLabel.wordValue = $0 }
 			.store(in: &self.cancellables)
 		self.cpu.$y
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.indexYLabel.wordValue = $0 }
 			.store(in: &self.cancellables)
 		
 		self.cpu.status.$negative
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.statusNegativeLabel.boolValue = $0 }
 			.store(in: &self.cancellables)
 		self.cpu.status.$overflow
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.statusOverflowLabel.boolValue = $0 }
 			.store(in: &self.cancellables)
 		self.cpu.status.$break
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.statusBreakLabel.boolValue = $0 }
 			.store(in: &self.cancellables)
 		self.cpu.status.$decimalMode
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.statusDecimalModeLabel.boolValue = $0 }
 			.store(in: &self.cancellables)
 		self.cpu.status.$interruptDisabled
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.statusInterruptDisabledLabel.boolValue = $0 }
 			.store(in: &self.cancellables)
 		self.cpu.status.$zero
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.statusZeroLabel.boolValue = $0 }
 			.store(in: &self.cancellables)
 		self.cpu.status.$carry
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.statusCarryLabel.boolValue = $0 }
 			.store(in: &self.cancellables)
 		
 		self.cpu.$stackPointer
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.stackPointerLabel.wordValue = $0 }
 			.store(in: &self.cancellables)
 		self.cpu.$programCounter
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.programCounterLabel.addressValue = $0 }
 			.store(in: &self.cancellables)
 	}

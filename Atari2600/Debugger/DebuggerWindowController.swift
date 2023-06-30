@@ -50,17 +50,20 @@ class DebuggerWindowController: NSWindowController {
 // MARK: -
 // MARK: Target actions
 private extension DebuggerWindowController {
-	@objc func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
+	@IBAction func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.clearBreakpoints()
 	}
 	
-	@objc func breakpointMenuItemSelected(_ sender: NSMenuItem) {
+	@IBAction func breakpointMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.showBreakpoint(sender.tag)
 	}
 	
-	@objc func resumeCPUMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func resumeMenuItemSelected(_ sender: AnyObject) {
 		let breakpoints = self.assemblyViewController.breakpoints
-		self.console.cpu.run(until: breakpoints)
+		let queue = DispatchQueue.global(qos: .background)
+		queue.async() {
+			self.console.resume(until: breakpoints)
+		}
 	}
 }
 
@@ -70,6 +73,7 @@ private extension DebuggerWindowController {
 private extension DebuggerWindowController {
 	func setUpSinks() {
 		self.console.$cartridge
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] data in
 				let inserted = data != nil
 				self.toolbar[.stepItem]?.isEnabled = inserted

@@ -48,6 +48,7 @@ class MemoryViewController: NSViewController {
 private extension MemoryViewController {
 	func setUpSinks() {
 		self.console.cpu.events
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in
 				switch $0 {
 				case .reset:
@@ -58,6 +59,7 @@ private extension MemoryViewController {
 			}.store(in: &self.cancellables)
 		
 		self.console.memory.events
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in
 				switch $0 {
 				case .read(_):

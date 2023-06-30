@@ -14,7 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
 	private var console: Atari2600 = .current
 	
-	@IBOutlet var window: NSWindow!
+	private var timer: DispatchSourceTimer?
 }
 
 
@@ -23,15 +23,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 extension AppDelegate {
 	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
 		if self.console.cartridge == nil {
-			do {
-				let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/Games/Pac-Man.bin")
-				try self.console.insertCartridge(fromFileAt: url)
-			} catch {
-				// TODO: handle error
-				print(error)
-			}
+			let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/Games/Pac-Man.bin")
+			try? self.console.insertCartridge(fromFileAt: url)
+			
+			let controller = ScreenWindowController()
+			controller.window?.title = url.lastPathComponent
+			self.showWindow(of: controller)
 		} else {
 			self.console.cartridge = nil
+			for controller in self.windowControllers {
+				if controller is ScreenWindowController {
+					controller.window?.close()
+				}
+			}
 		}
 	}
 	
@@ -39,12 +43,19 @@ extension AppDelegate {
 		self.console.cpu.reset()
 	}
 	
-	@IBAction func resumeCPUMenuItemSelected(_ sender: AnyObject) {
-		print("TODO")
+	@IBAction func resumeMenuItemSelected(_ sender: AnyObject) {
+		let queue = DispatchQueue.global(qos: .background)
+		
+		let timer = DispatchSource.makeTimerSource(queue: queue)
+		timer.schedule(deadline: .now(), repeating: .microseconds(2))
+		timer.setEventHandler() { [unowned self] in self.console.step() }
+		
+		self.timer = timer
+		self.timer?.resume()
 	}
 	
 	@IBAction func stepCPUMenuItemSelected(_ sender: AnyObject) {
-		self.console.cpu.step()
+		self.console.step()
 	}
 	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {

@@ -72,6 +72,7 @@ private extension AssemblyViewController {
 		// TODO: remove delay in showing program after cartridge insert
 		self.console.$cartridge
 			.delay(for: 0.01, scheduler: RunLoop.current)
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in
 				if let data = $0 {
 					self.program = MOS6507Assembly.disassemble(data)
@@ -81,6 +82,7 @@ private extension AssemblyViewController {
 			}.store(in: &self.cancellables)
 		
 		self.console.cpu.$programCounter
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in
 				self.programAddress = $0
 			}.store(in: &self.cancellables)

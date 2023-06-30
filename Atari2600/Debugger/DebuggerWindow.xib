@@ -19,7 +19,7 @@
         <window title="Debugger" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" releasedWhenClosed="NO" frameAutosaveName="" animationBehavior="default" toolbarStyle="expanded" id="O0w-qX-Wdo" customClass="NSPanel">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="544" y="376" width="448" height="520"/>
+            <rect key="contentRect" x="803" y="281" width="448" height="520"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
             <view key="contentView" id="vgU-mt-Beg">
                 <rect key="frame" x="0.0" y="0.0" width="468" height="520"/>
@@ -107,7 +107,7 @@
                 <allowedToolbarItems>
                     <toolbarItem implicitItemIdentifier="AC7480E9-C555-43FF-932E-01D195016076" explicitItemIdentifier="ResumeItem" label="Resume" paletteLabel="Resume" tag="-1" image="play" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="hES-oj-yEd">
                         <connections>
-                            <action selector="resumeCPUMenuItemSelected:" target="-1" id="m90-i1-2Hz"/>
+                            <action selector="resumeMenuItemSelected:" target="-2" id="kzL-Qw-k7w"/>
                         </connections>
                     </toolbarItem>
                     <toolbarItem implicitItemIdentifier="47624D7F-560E-48A5-8388-78924C654B1A" explicitItemIdentifier="StepItem" label="Step" paletteLabel="Step" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="a8G-Mj-SRq">
