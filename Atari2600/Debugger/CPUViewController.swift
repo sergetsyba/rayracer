@@ -10,6 +10,8 @@ import Combine
 import Atari2600Kit
 
 class CPUViewController: NSViewController {
+	@IBOutlet private var cyclesLabel: NSTextField!
+	
 	@IBOutlet private var accumulatorLabel: NSTextField!
 	@IBOutlet private var indexXLabel: NSTextField!
 	@IBOutlet private var indexYLabel: NSTextField!
@@ -40,6 +42,8 @@ class CPUViewController: NSViewController {
 	
 	private var valueLabels: [NSTextField] {
 		return [
+			self.cyclesLabel,
+			
 			self.accumulatorLabel,
 			self.indexXLabel,
 			self.indexYLabel,
@@ -79,6 +83,11 @@ private extension CPUViewController {
 					}
 				}
 			}.store(in: &self.cancellables)
+		
+		self.cpu.$cycles
+			.receive(on: DispatchQueue.main)
+			.sink() { [unowned self] in self.cyclesLabel.cycleValue = $0 }
+			.store(in: &self.cancellables)
 		
 		self.cpu.$accumulator
 			.receive(on: DispatchQueue.main)
@@ -149,6 +158,15 @@ private extension NSTextField {
 			self.textColor = newValue
 			? .labelColor
 			: .disabledControlTextColor
+		}
+	}
+	
+	var cycleValue: UInt64 {
+		get { fatalError("NSTextField.wordValue") }
+		set {
+			self.stringValue = "\(newValue)"
+			self.font = .emphasized
+			self.textColor = .labelColor
 		}
 	}
 	

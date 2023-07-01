@@ -12,6 +12,9 @@ public class MOS6507 {
 	private var operations: [Int: Operation] = [:]
 	
 	@Published private(set)
+	public var cycles: UInt64 = 0
+	
+	@Published private(set)
 	public var accumulator: Int {
 		didSet {
 			assert((0x00...0xff).contains(self.accumulator), String(
@@ -80,6 +83,9 @@ public class MOS6507 {
 		self.programCounter = Address(
 			low: self.bus.read(at: 0xfffe),
 			high: self.bus.read(at: 0xfffd))
+		
+		// TODO: reset takes 7 cycles
+		self.cycles = 0
 	}
 	
 	/// Performs program instructions until it reaches one at any of the sepcified addresses.
@@ -94,9 +100,17 @@ public class MOS6507 {
 		let opcode = self.bus.read(at: self.programCounter)
 		self.eventSubject.send(.sync)
 		
+		let counter = String(format: "$%04x", self.programCounter)
+		let mnemonic = MOS6507Assembly.Mnemonic(opcode: opcode)!
+		print("\(counter) \(mnemonic)")
+		
 		if let operation = self.operations[opcode] {
-			return operation()
+			let cycles = operation()
+			self.cycles += UInt64(cycles)
+			
+			return cycles
 		} else {
+			let opcode = String(format: "%02x", opcode)
 			let address = String(format: "$%04x", self.programCounter)
 			fatalError("Unknown opcode: \(opcode) at \(address).")
 		}
@@ -140,13 +154,13 @@ private extension MOS6507 {
 				self.programCounter += offset
 				
 				let cycles2 = operation(operandAddress)
-				return cycles1 + cycles2
+				return 1 + cycles1 + cycles2
 			}
 		} else {
 			// instruction with implied operand addressing
 			return { [unowned self] in
 				self.programCounter += offset
-				return operation(self.programCounter)
+				return 2 + operation(self.programCounter)
 			}
 		}
 	}
