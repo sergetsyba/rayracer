@@ -27,6 +27,7 @@ class CPUViewController: NSViewController {
 	@IBOutlet private var stackPointerLabel: NSTextField!
 	@IBOutlet private var programCounterLabel: NSTextField!
 	
+	private let console: Atari2600 = .current
 	private let cpu: MOS6507 = Atari2600.current.cpu
 	private var cancellables: Set<AnyCancellable> = []
 	
@@ -84,9 +85,9 @@ private extension CPUViewController {
 				}
 			}.store(in: &self.cancellables)
 		
-		self.cpu.$cycles
+		self.console.$cycles
 			.receive(on: DispatchQueue.main)
-			.sink() { [unowned self] in self.cyclesLabel.cycleValue = $0 }
+			.sink() { [unowned self] in self.cyclesLabel.integerValue = $0 }
 			.store(in: &self.cancellables)
 		
 		self.cpu.$accumulator

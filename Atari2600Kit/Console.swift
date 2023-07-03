@@ -51,7 +51,7 @@ public extension Atari2600 {
 		self.cycles += cycles
 	}
 	
-	func resumeProgram(until breakpoints: [MOS6507.Address]) {
+	func resumeProgram(until breakpoints: [Address]) {
 		repeat {
 			self.stepProgram()
 		} while breakpoints.contains(self.cpu.programCounter) == false
@@ -60,9 +60,11 @@ public extension Atari2600 {
 
 
 // MARK: -
+public typealias Address = Int
+
 protocol Bus {
-	func read(at address: MOS6507.Address) -> MOS6507.Word
-	func write(_ value: MOS6507.Word, at address: MOS6507.Address)
+	func read(at address: Address) -> Int
+	func write(_ value: Int, at address: Address)
 }
 
 
@@ -96,7 +98,7 @@ extension Atari2600: Bus {
 		0x0180...0x01ff: 0x0080...0x00ff
 	]
 	
-	public func unmirror(_ address: MOS6507.Address) -> MOS6507.Address {
+	public func unmirror(_ address: Address) -> Address {
 		for (mirror, target) in Self.mirrors {
 			if mirror.contains(address) {
 				return address - (mirror.lowerBound - target.lowerBound)
@@ -105,7 +107,7 @@ extension Atari2600: Bus {
 		return address
 	}
 	
-	func read(at address: MOS6507.Address) -> MOS6507.Word {
+	func read(at address: Address) -> Int {
 		let address = self.unmirror(address)
 		
 		switch address {
@@ -114,11 +116,11 @@ extension Atari2600: Bus {
 		case _ where address < 0xf000:
 			return self.memory[address]
 		default:
-			return MOS6507.Word(self.cartridge![address - 0xf000])
+			return Int(self.cartridge![address - 0xf000])
 		}
 	}
 	
-	func write(_ data: MOS6507.Word, at address: MOS6507.Address) {
+	func write(_ data: Int, at address: Address) {
 		let address = self.unmirror(address)
 		
 		if (0x0000...0x003f).contains(address) {

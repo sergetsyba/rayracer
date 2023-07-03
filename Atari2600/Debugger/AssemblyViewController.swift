@@ -9,8 +9,8 @@ import Cocoa
 import Combine
 import Atari2600Kit
 
-typealias Program = [(MOS6507.Address, MOS6507Assembly.Instruction)]
-typealias Breakpoint = MOS6507.Address
+typealias Program = [(Address, MOS6507Assembly.Instruction)]
+typealias Breakpoint = Address
 
 class AssemblyViewController: NSViewController {
 	@IBOutlet private var noProgramView: NSView!
@@ -36,7 +36,7 @@ class AssemblyViewController: NSViewController {
 		}
 	}
 	
-	private(set) var programAddress: MOS6507.Address? {
+	private(set) var programAddress: Address? {
 		didSet {
 			if self.isViewLoaded {
 				self.updateProgramAddressRow()
@@ -162,7 +162,7 @@ extension AssemblyViewController {
 			.setBreakpoints(self.breakpoints)
 	}
 	
-	func showBreakpoint(_ breakpoint: MOS6507.Address) {
+	func showBreakpoint(_ breakpoint: Address) {
 		if let row = self.program?.firstIndex(where: { $0.0 == breakpoint }) {
 			self.tableView.scrollToRow(row)
 		}

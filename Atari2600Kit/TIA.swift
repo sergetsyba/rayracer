@@ -7,33 +7,73 @@
 
 import Combine
 
+protocol CPU {
+	var ready: Bool { get set }
+}
+
 public class TIA {
 	private let eventSubject = PassthroughSubject<Event, Never>()
 	
-	let bus: Bus
-	var colorCycle = 0
+	private var cpu: CPU
+	private var cycles = 0
 	
-	init(bus: Bus) {
-		self.bus = bus
+	init(cpu: CPU) {
+		self.cpu = cpu
+	}
+	
+	var wsync: Bool = false
+	
+	/// Reset sync strobe register.
+	/// Writing any value resets color clock to its value at the beginning of the current scanline.
+	var rsync: Bool {
+		get { return false }
+		set { self.cycles -= self.cycles % 228 }
 	}
 	
 	public var events: some Publisher<Event, Never> {
 		return self.eventSubject
 	}
 	
-	func step(cycles: Int) {
-		for _ in 0..<cycles {
-			self.colorCycle += 1
+	func advanceClock(cycles: Int) {
+		self.cycles += cycles
+	}
+}
+
+// MARK: -
+// MARK: Bus integration
+extension TIA {
+	func write(_ data: Int, at address: Int) {
+		switch address {
+		case 0x02:
+			// wsync
+			self.cpu.ready = false
 			
-			if self.colorCycle % (.frameSize) == 0 {
-				var frame = Data(count: .frameSize)
-				for index in 0..<frame.count {
-					frame[index] = .random(in: 0...255)
-				}
-				
-				self.eventSubject.send(.drawFrame(frame))
-			}
+			
+		default:
+			break
 		}
+	}
+}
+
+// MARK: -
+// MARK: Debugging
+extension TIA {
+	func step(colorCycles cycles: Int) {
+		self.cycles += cycles
+		print("color clock: \(self.cycles % 228)")
+	}
+	
+	func stepLine() -> Int {
+		print("color clock: \(self.cycles % 228)")
+		
+		let cycles = 228 - self.cycles % 228
+		self.cycles += cycles
+		
+		
+		print("remains: \(cycles)")
+		
+		self.wsync = false
+		return cycles
 	}
 }
 
@@ -44,15 +84,5 @@ extension Int {
 extension TIA {
 	public enum Event {
 		case drawFrame(Data)
-	}
-}
-
-
-// MARK: -
-// MARK: Registers
-private extension TIA {
-	var vsync: Bool {
-		let data = self.bus.read(at: 0x00)
-		return data[1]
 	}
 }

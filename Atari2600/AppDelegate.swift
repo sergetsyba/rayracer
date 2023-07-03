@@ -23,12 +23,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 extension AppDelegate {
 	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
 		if self.console.cartridge == nil {
-			let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/Games/Pac-Man.bin")
-			try? self.console.insertCartridge(fromFileAt: url)
+			do {
+				let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/Games/RushHour.bin")
+				try self.console.insertCartridge(fromFileAt: url)
+				
+//				let controller = ScreenWindowController()
+//				controller.window?.title = url.lastPathComponent
+//				self.showWindow(of: controller)
+			} catch {
+				print(error)
+			}
 			
-			let controller = ScreenWindowController()
-			controller.window?.title = url.lastPathComponent
-			self.showWindow(of: controller)
 		} else {
 			self.console.cartridge = nil
 			for controller in self.windowControllers {
@@ -44,18 +49,25 @@ extension AppDelegate {
 	}
 	
 	@IBAction func resumeMenuItemSelected(_ sender: AnyObject) {
-		let queue = DispatchQueue.global(qos: .background)
+		DispatchQueue.global(qos: .default)
+			.async { [unowned self] in
+				repeat {
+					self.console.stepProgram()
+				} while true
+			}
 		
-		let timer = DispatchSource.makeTimerSource(queue: queue)
-		timer.schedule(deadline: .now(), repeating: .microseconds(2))
-		timer.setEventHandler() { [unowned self] in self.console.step() }
-		
-		self.timer = timer
-		self.timer?.resume()
+//		let queue = DispatchQueue.global(qos: .background)
+//
+//		let timer = DispatchSource.makeTimerSource(queue: queue)
+//		timer.schedule(deadline: .now(), repeating: .microseconds(2))
+//		timer.setEventHandler() { [unowned self] in self.console.step() }
+//
+//		self.timer = timer
+//		self.timer?.resume()
 	}
 	
 	@IBAction func stepCPUMenuItemSelected(_ sender: AnyObject) {
-		self.console.step()
+		self.console.stepProgram()
 	}
 	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {

@@ -79,7 +79,7 @@ private extension MemoryViewController {
 			string: String(memory: self.console.memory.riotRegisters))
 	}
 	
-	func highlightMemory(at address: MOS6507.Address) {
+	func highlightMemory(at address: Address) {
 		let address = self.console.unmirror(address)
 		let data = self.console.memory[address]
 		
@@ -98,7 +98,7 @@ private extension MemoryViewController {
 		}
 	}
 	
-	func label(for address: MOS6507.Address) -> (NSTextField, Int)? {
+	func label(for address: Address) -> (NSTextField, Int)? {
 		if (0x0000...0x003f).contains(address) {
 			return (self.tiaRegistersLabel, address)
 		}

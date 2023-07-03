@@ -905,7 +905,7 @@ private extension MOS6507 {
 	}
 	
 	/// Pushes the specified value onto stack and updates the stack pointer.
-	private func pushStack(_ data: Word) {
+	private func pushStack(_ data: Int) {
 		let address = self.stackPointer + 0x0100
 		self.bus.write(data, at: address)
 		
@@ -913,7 +913,7 @@ private extension MOS6507 {
 	}
 	
 	/// Pulls the last pushed value from the stack and updates the stack pointer.
-	private func pullStack() -> Word {
+	private func pullStack() -> Int {
 		self.stackPointer += 1
 		
 		let address = self.stackPointer + 0x0100
@@ -927,9 +927,6 @@ private extension MOS6507 {
 // MARK: -
 // MARK: Type definitions
 public extension MOS6507 {
-	typealias Word = Int
-	typealias Address = Int
-	
 	class Status: RawRepresentable {
 		@Published fileprivate(set) public var carry: Bool
 		@Published fileprivate(set) public var zero: Bool
@@ -996,16 +993,12 @@ public extension MOS6507 {
 
 // MARK: -
 // MARK: Convenience functionality
-private extension MOS6507.Address {
-	init(low: MOS6507.Word, high: MOS6507.Word) {
+private extension Address {
+	init(low: Int, high: Int) {
 		self = Self(high) * 0x100 + Self(low)
 	}
 	
-	init(low: UInt8, high: UInt8) {
-		self = Self(high) * 0x100 + Self(low)
-	}
-	
-	var low: MOS6507.Word {
+	var low: Int {
 		get {
 			return self % 0x100
 		}
@@ -1014,7 +1007,7 @@ private extension MOS6507.Address {
 		}
 	}
 	
-	var high: MOS6507.Word {
+	var high: Int {
 		get {
 			return self / 0x100
 		}

@@ -62,7 +62,7 @@ private extension DebuggerWindowController {
 		let breakpoints = self.assemblyViewController.breakpoints
 		let queue = DispatchQueue.global(qos: .background)
 		queue.async() {
-			self.console.resume(until: breakpoints)
+			self.console.resumeProgram(until: breakpoints)
 		}
 	}
 }
@@ -89,7 +89,7 @@ private extension DebuggerWindowController {
 			}.store(in: &self.cancellables)
 	}
 	
-	func updateBreakpointsToolbarItemMenu(breakpoints: [MOS6507.Address]) {
+	func updateBreakpointsToolbarItemMenu(breakpoints: [Address]) {
 		let removeAllMenuItem = NSMenuItem(
 			title: "Remove All",
 			action: #selector(self.removeAllBreakpointsMenuItemSelected(_:)),
@@ -110,7 +110,7 @@ private extension DebuggerWindowController {
 		toolbarItem?.isEnabled = breakpoints.count > 0
 	}
 	
-	func createBreakpointMenuItem(breakpoint: MOS6507.Address) -> NSMenuItem {
+	func createBreakpointMenuItem(breakpoint: Address) -> NSMenuItem {
 		let menuItem = NSMenuItem()
 		menuItem.tag = breakpoint
 		menuItem.attributedTitle = NSAttributedString(
