@@ -6,15 +6,29 @@
 //
 
 public class Atari2600: ObservableObject {
-	@Published private(set) public var cpu: MOS6507
-	@Published private(set) public var memory: Memory
+	@Published private(set)
+	public var cpu: MOS6507
+	private var riot = MOS6532()
+	
+	@Published private(set)
+	public var memory: Memory
+	
 	private(set) public var tia: TIA!
-	@Published public var cartridge: Data?
+	
+	@Published
+	public var cartridge: Data?
+	
+	@Published private(set)
+	public var cycles: Int = 0
+	
+	private var waitSync = false
 	
 	public init() {
-		self.cpu = MOS6507()
+		let cpu = MOS6507()
+		
+		self.cpu = cpu
 		self.memory = Memory(size: 0xffff)
-		self.tia = TIA(bus: self)
+		self.tia = TIA(cpu: cpu)
 		
 		// TODO: move to CPU init
 		self.cpu.bus = self
@@ -24,16 +38,22 @@ public class Atari2600: ObservableObject {
 		self.cartridge = try Data(contentsOf: url)
 		self.cpu.reset()
 	}
-	
-	public func step() {
-		let clockCycles = self.cpu.step()
-		let colorCycles = 3 * clockCycles
-		self.tia.step(cycles: colorCycles)
+}
+
+
+// MARK: -
+// MARK: Debugging
+public extension Atari2600 {
+	func stepProgram() {
+		let cycles = self.cpu.nextOperationDuration
+		self.tia.advanceClock(cycles: cycles * 3)
+		self.cpu.stepProgram()
+		self.cycles += cycles
 	}
 	
-	public func resume(until breakpoints: [MOS6507.Address]) {
+	func resumeProgram(until breakpoints: [MOS6507.Address]) {
 		repeat {
-			self.step()
+			self.stepProgram()
 		} while breakpoints.contains(self.cpu.programCounter) == false
 	}
 }
@@ -48,6 +68,9 @@ protocol Bus {
 
 // MARK: -
 // MARK: Memory segments
+extension MOS6507: CPU {
+}
+
 public extension Memory {
 	var tiaRegisters: Memory {
 		return self[0x0000..<0x0040]
@@ -74,25 +97,32 @@ extension Atari2600: Bus {
 	]
 	
 	public func unmirror(_ address: MOS6507.Address) -> MOS6507.Address {
-		for (mirror, _) in Self.mirrors {
+		for (mirror, target) in Self.mirrors {
 			if mirror.contains(address) {
-				return address - mirror.lowerBound
+				return address - (mirror.lowerBound - target.lowerBound)
 			}
 		}
 		return address
 	}
 	
 	func read(at address: MOS6507.Address) -> MOS6507.Word {
-		if address < 0xf000 {
-			let address = self.unmirror(address)
+		let address = self.unmirror(address)
+		
+		switch address {
+		case 0x284:
+			return self.riot.timer
+		case _ where address < 0xf000:
 			return self.memory[address]
-		} else {
+		default:
 			return MOS6507.Word(self.cartridge![address - 0xf000])
 		}
 	}
 	
-	func write(_ value: MOS6507.Word, at address: MOS6507.Address) {
+	func write(_ data: MOS6507.Word, at address: MOS6507.Address) {
 		let address = self.unmirror(address)
-		self.memory[address] = value
+		
+		if (0x0000...0x003f).contains(address) {
+			self.tia.write(data, at: address)
+		}
 	}
 }
