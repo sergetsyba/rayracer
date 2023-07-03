@@ -970,8 +970,7 @@ public extension MOS6507 {
 		}
 		
 		static var random: Self {
-			// TODO: Status.random
-			return .init()
+			return .init(rawValue: .randomWord)!
 		}
 	}
 }
