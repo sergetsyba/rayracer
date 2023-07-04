@@ -58,38 +58,30 @@ private extension MemoryViewController {
 				}
 			}.store(in: &self.cancellables)
 		
-		self.console.memory.events
+		self.console.riot.events
 			.receive(on: DispatchQueue.main)
-			.sink() { [unowned self] in
+			.sink() {
 				switch $0 {
-				case .read(_):
-					break
-				case .write(let address):
+				case .readMemory(let address):
+					self.highlightMemory(at: address)
+				case .writeMemoty(let address):
 					self.highlightMemory(at: address)
 				}
 			}.store(in: &self.cancellables)
 	}
 	
 	func resetView() {
-		self.tiaRegistersLabel.attributedStringValue = NSAttributedString(
-			string: String(memory: self.console.memory.tiaRegisters))
 		self.ramLabel.attributedStringValue = NSAttributedString(
-			string: String(memory: self.console.memory.ram))
-		self.riotRegistersLabel.attributedStringValue = NSAttributedString(
-			string: String(memory: self.console.memory.riotRegisters))
+			string: String(memory: self.console.riot.memory))
 	}
 	
 	func highlightMemory(at address: Address) {
 		let address = self.console.unmirror(address)
-		let data = self.console.memory[address]
+		let data = self.console.riot.memory[address]
 		
-		if let (label, offset) = self.label(for: address) {
-			let range = NSRange(location: offset * 3, length: 2)
-			label[range] = String(word: data)
-			label.addHighlight(in: range)
-		} else {
-			fatalError(String(format: "cannot highlight data at $%04x", address))
-		}
+		let range = NSRange(location: (address - 0x0080) * 3, length: 2)
+		self.ramLabel[range] = String(word: data)
+		self.ramLabel.addHighlight(in: range)
 	}
 	
 	func clearMemoryHighlights() {
@@ -124,10 +116,11 @@ private extension String {
 		self.init(format: "%02x", word)
 	}
 	
-	init(memory: Memory) {
-		self = memory.stride(by: 16)
-			.map() { segment in
-				return segment
+	init(memory: Data) {
+		self = memory.indices
+			.stride(by: 16)
+			.map() {
+				return memory[$0]
 					.map() { String(word: $0) }
 					.joined(separator: " ")
 			}.joined(separator: "\n")
@@ -170,5 +163,12 @@ private extension NSTextField {
 		string.removeAttribute(.font, range: range)
 		
 		self.attributedStringValue = string
+	}
+}
+
+private extension Range where Index == Int {
+	func stride(by count: Int) -> any Sequence<Self> {
+		return Swift.stride(from: self.startIndex, to: self.endIndex, by: count)
+			.map() { $0..<$0+count }
 	}
 }

@@ -5,8 +5,12 @@
 //  Created by Serge Tsyba on 1.7.2023.
 //
 
-class MOS6532 {
-	private(set) public var ram: Data
+import Combine
+
+public class MOS6532 {
+	private var eventSubject = PassthroughSubject<Event, Never>()
+	
+	private(set) public var memory: Data
 	
 	var timer: Int = 0
 	private var divider: Int = 0
@@ -14,7 +18,7 @@ class MOS6532 {
 	private var cycle = 0
 	
 	init() {
-		self.ram = Data(randomOfCount: 0x100)
+		self.memory = Data(randomOfCount: 0x80)
 	}
 	
 	/// Advances clock 1 cycle.
@@ -36,16 +40,31 @@ extension MOS6532 {
 	}
 }
 
+// MARK: -
+// MARK: Event management
+public extension MOS6532 {
+	enum Event {
+		case readMemory(Address)
+		case writeMemoty(Address)
+	}
+	
+	var events: some Publisher<Event, Never> {
+		return self.eventSubject
+	}
+}
+
 
 // MARK: -
 // MARK: Bus integration
 extension MOS6532 {
-	func readMemory(at address: Int) -> Int {
-		return address
+	func readMemory(at address: Address) -> Int {
+		self.eventSubject.send(.readMemory(address))
+		return Int(self.memory[address])
 	}
 	
-	func writeMemory(_ data: Int, at address: Int) {
-		
+	func writeMemory(_ data: Int, at address: Address) {
+		self.memory[address] = UInt8(data)
+		self.eventSubject.send(.writeMemoty(address))
 	}
 }
 

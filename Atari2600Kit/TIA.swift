@@ -37,6 +37,18 @@ public class TIA {
 	func advanceClock(cycles: Int) {
 		self.cycles += cycles
 	}
+	
+	func resumeLine() -> Int {
+		let remaining = 228 - (self.cycles % 228)
+		self.cycles += remaining
+		self.wsync = false
+		
+		return remaining
+	}
+	
+	func resume(cycles: Int) {
+		self.cycles += cycles
+	}
 }
 
 // MARK: -
@@ -46,8 +58,10 @@ extension TIA {
 		switch address {
 		case 0x02:
 			// wsync
-			self.cpu.ready = false
-			
+			self.wsync = true
+		case 0x03:
+			// rsync
+			self.rsync = true
 			
 		default:
 			break

@@ -6,28 +6,17 @@
 //
 
 public class Atari2600: ObservableObject {
-	@Published private(set)
-	public var cpu: MOS6507
-	private var riot = MOS6532()
-	
-	@Published private(set)
-	public var memory: Memory
-	
-	private(set) public var tia: TIA!
+	private(set) public var cpu: MOS6507
+	private(set) public var riot = MOS6532()
+	private(set) public var tia: TIA
 	
 	@Published
-	public var cartridge: Data?
-	
-	@Published private(set)
-	public var cycles: Int = 0
-	
-	private var waitSync = false
+	public var cartridge: Data? = nil
 	
 	public init() {
 		let cpu = MOS6507()
 		
 		self.cpu = cpu
-		self.memory = Memory(size: 0xffff)
 		self.tia = TIA(cpu: cpu)
 		
 		// TODO: move to CPU init
@@ -45,10 +34,15 @@ public class Atari2600: ObservableObject {
 // MARK: Debugging
 public extension Atari2600 {
 	func stepProgram() {
-		let cycles = self.cpu.nextOperationDuration
-		self.tia.advanceClock(cycles: cycles * 3)
-		self.cpu.stepProgram()
-		self.cycles += cycles
+		if self.tia.wsync {
+			let cycles = self.tia.resumeLine()
+			self.cpu.cycles += cycles / 3
+		}
+		
+		let cycles = self.cpu.nextExecutionDuration
+		self.tia.resume(cycles: cycles * 3)
+		self.cpu.executeNextInstruction()
+		self.cpu.cycles += cycles
 	}
 	
 	func resumeProgram(until breakpoints: [Address]) {
@@ -73,21 +67,6 @@ protocol Bus {
 extension MOS6507: CPU {
 }
 
-public extension Memory {
-	var tiaRegisters: Memory {
-		return self[0x0000..<0x0040]
-	}
-	
-	var ram: Memory {
-		return self[0x0080..<0x0100]
-	}
-	
-	var riotRegisters: Memory {
-		return self[0xf000..<0xffff]
-	}
-}
-
-
 // MARK: -
 extension Atari2600: Bus {
 	static let mirrors: [ClosedRange<Int>: ClosedRange<Int>] = [
@@ -110,12 +89,11 @@ extension Atari2600: Bus {
 	func read(at address: Address) -> Int {
 		let address = self.unmirror(address)
 		
-		switch address {
-		case 0x284:
-			return self.riot.timer
-		case _ where address < 0xf000:
-			return self.memory[address]
-		default:
+		if (0x0000...0x003f).contains(address) {
+			return 0x00
+		} else if (0x0080...0x00ff).contains(address) {
+			return self.riot.readMemory(at: address)
+		} else {
 			return Int(self.cartridge![address - 0xf000])
 		}
 	}
@@ -125,6 +103,8 @@ extension Atari2600: Bus {
 		
 		if (0x0000...0x003f).contains(address) {
 			self.tia.write(data, at: address)
+		} else if (0x0080...0x00ff).contains(address) {
+			self.riot.writeMemory(data, at: address)
 		}
 	}
 }

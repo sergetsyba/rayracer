@@ -85,7 +85,7 @@ private extension CPUViewController {
 				}
 			}.store(in: &self.cancellables)
 		
-		self.console.$cycles
+		self.console.cpu.$cycles
 			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in self.cyclesLabel.integerValue = $0 }
 			.store(in: &self.cancellables)

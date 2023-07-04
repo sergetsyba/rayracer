@@ -22,6 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: Main menu actions
 extension AppDelegate {
 	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
+		print(self.console.cartridge)
 		if self.console.cartridge == nil {
 			do {
 				let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/Games/RushHour.bin")

@@ -11,8 +11,8 @@ public class MOS6507 {
 	private let eventSubject = PassthroughSubject<Event, Never>()
 	private var operations: [Int: Operation] = [:]
 	
-	@Published private(set)
-	public var cycles: UInt64 = 0
+	@Published internal(set)
+	public var cycles: Int = 0
 	
 	@Published private(set)
 	public var accumulator: Int {
@@ -86,8 +86,19 @@ public class MOS6507 {
 		self.cycles = 0
 	}
 	
+	/// Executes program instructions until it reaches one at any of the sepcified addresses.
+	public func resume(until breakpoints: [Address]) {
+		while !breakpoints.contains(self.programCounter) {
+			self.executeNextInstruction()
+		}
+	}
+}
+
+
+// MARK: -
+public extension MOS6507 {
 	/// Returns the number of CPU cycles it will take to execute the next instruction in the program.
-	public var nextOperationDuration: Int {
+	var nextExecutionDuration: Int {
 		let opcode = self.bus.read(at: self.programCounter)
 		guard let (addressing, programOffset) = self.addressing(for: opcode),
 			  let (operation, cycles2) = self.operation(for: opcode) else {
@@ -105,17 +116,10 @@ public class MOS6507 {
 	}
 	
 	/// Executes the next instruction in the program.
-	public func stepProgram() {
+	func executeNextInstruction() {
 		if let operation = self.cachedOperation {
 			self.eventSubject.send(.sync)
 			operation()
-		}
-	}
-	
-	/// Executes program instructions until it reaches one at any of the sepcified addresses.
-	public func resumeProgram(until breakpoints: [Address]) {
-		while !breakpoints.contains(self.programCounter) {
-			self.stepProgram()
 		}
 	}
 }
