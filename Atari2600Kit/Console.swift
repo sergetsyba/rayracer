@@ -7,7 +7,7 @@
 
 public class Atari2600: ObservableObject {
 	private(set) public var cpu: MOS6507
-	private(set) public var riot = MOS6532()
+	private(set) public var riot: MOS6532
 	private(set) public var tia: TIA
 	
 	@Published
@@ -17,6 +17,7 @@ public class Atari2600: ObservableObject {
 		let cpu = MOS6507()
 		
 		self.cpu = cpu
+		self.riot = MOS6532()
 		self.tia = TIA(cpu: cpu)
 		
 		// TODO: move to CPU init
@@ -68,22 +69,18 @@ extension MOS6507: CPU {
 }
 
 
-typealias AddressRange = Range<Int>
-extension AddressRange {
-	static let memory: Self = 0x0080..<0x0100
-}
-
 // MARK: -
 extension Atari2600: Bus {
-	static let mirrors: [ClosedRange<Int>: ClosedRange<Int>] = [
-		0x0000...0x003f: 0x0000...0x003f,
-		0x0040...0x007f: 0x0000...0x003f,
+	private static let mirrors: [Range<Address>: Range<Address>] = [
+		// TIA
+		0x0000..<0x0040: 0x0000..<0x0040,
+		0x0040..<0x0080: 0x0000..<0x0040,
 		// RAM
-		0x0080...0x00ff: 0x0080...0x00ff,
-		0x0180...0x01ff: 0x0080...0x00ff
+		0x0080..<0x0100: 0x0080..<0x0100,
+		0x0180..<0x0200: 0x0080..<0x0100
 	]
 	
-	public func unmirror(_ address: Address) -> Address {
+	private func unmirror(_ address: Address) -> Address {
 		for (mirror, target) in Self.mirrors {
 			if mirror.contains(address) {
 				return address - (mirror.lowerBound - target.lowerBound)
@@ -95,10 +92,10 @@ extension Atari2600: Bus {
 	func read(at address: Address) -> Int {
 		let address = self.unmirror(address)
 		
-		if (0x0000...0x003f).contains(address) {
-			return 0x00
-		} else if AddressRange.memory.contains(address) {
-			return self.riot.readMemory(at: address - 0x0080)
+		if address < 0x0040 {
+			return self.tia.read(at: address)
+		} else if address < 0x0100 {
+			return self.riot.read(at: address - 0x0080)
 		} else {
 			return Int(self.cartridge![address - 0xf000])
 		}
@@ -107,10 +104,10 @@ extension Atari2600: Bus {
 	func write(_ data: Int, at address: Address) {
 		let address = self.unmirror(address)
 		
-		if (0x0000...0x003f).contains(address) {
+		if address < 0x0040 {
 			self.tia.write(data, at: address)
-		} else if AddressRange.memory.contains(address) {
-			self.riot.writeMemory(data, at: address - AddressRange.memory.lowerBound)
+		} else if address < 0x0100 {
+			self.riot.write(data, at: address - 0x0080)
 		}
 	}
 }

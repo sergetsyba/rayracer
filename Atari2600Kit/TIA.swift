@@ -21,6 +21,11 @@ public class TIA {
 		self.cpu = cpu
 	}
 	
+	// Vertical sync register.
+	var vsync: Bool = false
+	// Vertical blank register.
+	var vblank: Bool = false
+	// Wait for horizontal sync register.
 	var wsync: Bool = false
 	
 	/// Reset sync strobe register.
@@ -54,7 +59,11 @@ public class TIA {
 // MARK: -
 // MARK: Bus integration
 extension TIA {
-	func write(_ data: Int, at address: Int) {
+	func read(at address: Address) -> Int {
+		return 0x00
+	}
+	
+	func write(_ data: Int, at address: Address) {
 		switch address {
 		case 0x02:
 			// wsync

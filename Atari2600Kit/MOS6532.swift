@@ -57,12 +57,12 @@ public extension MOS6532 {
 // MARK: -
 // MARK: Bus integration
 extension MOS6532 {
-	func readMemory(at address: Address) -> Int {
+	func read(at address: Address, ramSelect: Bool = false) -> Int {
 		self.eventSubject.send(.readMemory(address))
 		return Int(self.memory[address])
 	}
 	
-	func writeMemory(_ data: Int, at address: Address) {
+	func write(_ data: Int, at address: Address, ramSelect: Bool = false) {
 		self.memory[address] = UInt8(data)
 		self.eventSubject.send(.writeMemoty(address))
 	}

@@ -62,10 +62,9 @@ private extension MemoryViewController {
 	}
 	
 	func highlightMemory(at address: Address) {
-		let address = self.console.unmirror(address)
 		let data = self.console.riot.memory[address]
-		
 		let range = NSRange(location: address * 3, length: 2)
+		
 		self.ramLabel[range] = String(word: data)
 		self.ramLabel.addHighlight(in: range)
 	}
