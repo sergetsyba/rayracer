@@ -67,6 +67,12 @@ protocol Bus {
 extension MOS6507: CPU {
 }
 
+
+typealias AddressRange = Range<Int>
+extension AddressRange {
+	static let memory: Self = 0x0080..<0x0100
+}
+
 // MARK: -
 extension Atari2600: Bus {
 	static let mirrors: [ClosedRange<Int>: ClosedRange<Int>] = [
@@ -91,8 +97,8 @@ extension Atari2600: Bus {
 		
 		if (0x0000...0x003f).contains(address) {
 			return 0x00
-		} else if (0x0080...0x00ff).contains(address) {
-			return self.riot.readMemory(at: address)
+		} else if AddressRange.memory.contains(address) {
+			return self.riot.readMemory(at: address - 0x0080)
 		} else {
 			return Int(self.cartridge![address - 0xf000])
 		}
@@ -103,8 +109,8 @@ extension Atari2600: Bus {
 		
 		if (0x0000...0x003f).contains(address) {
 			self.tia.write(data, at: address)
-		} else if (0x0080...0x00ff).contains(address) {
-			self.riot.writeMemory(data, at: address)
+		} else if AddressRange.memory.contains(address) {
+			self.riot.writeMemory(data, at: address - AddressRange.memory.lowerBound)
 		}
 	}
 }

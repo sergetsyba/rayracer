@@ -10,9 +10,7 @@ import Combine
 import Atari2600Kit
 
 class MemoryViewController: NSViewController {
-	@IBOutlet private var tiaRegistersLabel: NSTextField!
 	@IBOutlet private var ramLabel: NSTextField!
-	@IBOutlet private var riotRegistersLabel: NSTextField!
 	
 	private var cancellables: Set<AnyCancellable> = []
 	private let console: Atari2600 = .current
@@ -21,21 +19,8 @@ class MemoryViewController: NSViewController {
 		self.init(nibName: "MemoryView", bundle: .main)
 	}
 	
-	var labels: [NSTextField] {
-		return [
-			self.tiaRegistersLabel,
-			self.ramLabel,
-			self.riotRegistersLabel
-		]
-	}
-	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		
-		for label in self.labels {
-			label.font = .regular
-			label.textColor = .disabledControlTextColor
-		}
 		
 		self.resetView()
 		self.setUpSinks()
@@ -71,6 +56,7 @@ private extension MemoryViewController {
 	}
 	
 	func resetView() {
+		self.ramLabel.font = .regular
 		self.ramLabel.attributedStringValue = NSAttributedString(
 			string: String(memory: self.console.riot.memory))
 	}
@@ -79,28 +65,13 @@ private extension MemoryViewController {
 		let address = self.console.unmirror(address)
 		let data = self.console.riot.memory[address]
 		
-		let range = NSRange(location: (address - 0x0080) * 3, length: 2)
+		let range = NSRange(location: address * 3, length: 2)
 		self.ramLabel[range] = String(word: data)
 		self.ramLabel.addHighlight(in: range)
 	}
 	
 	func clearMemoryHighlights() {
-		for label in self.labels {
-			label.removeHighlights()
-		}
-	}
-	
-	func label(for address: Address) -> (NSTextField, Int)? {
-		if (0x0000...0x003f).contains(address) {
-			return (self.tiaRegistersLabel, address)
-		}
-		if (0x0080...0x00ff).contains(address) {
-			return (self.ramLabel, address - 0x0080)
-		}
-		if (0x0280...0x29f).contains(address) {
-			return (self.riotRegistersLabel, address - 0x0280)
-		}
-		return nil
+		self.ramLabel.removeHighlights()
 	}
 }
 
