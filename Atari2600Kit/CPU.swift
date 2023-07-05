@@ -1035,6 +1035,12 @@ extension Int {
 		: value
 	}
 	
+	init(signedWord value: UInt8) {
+		self = value > 0x7f
+		? Int(value) - 0x100
+		: Int(value)
+	}
+	
 	subscript(bit: Int) -> Bool {
 		get {
 			let mask = 0x01 << bit
