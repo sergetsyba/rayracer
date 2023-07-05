@@ -73,12 +73,12 @@
                 <allowedToolbarItems>
                     <toolbarItem implicitItemIdentifier="AC7480E9-C555-43FF-932E-01D195016076" explicitItemIdentifier="ResumeItem" label="Resume" paletteLabel="Resume" tag="-1" image="play" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="hES-oj-yEd">
                         <connections>
-                            <action selector="resumeMenuItemSelected:" target="-2" id="kzL-Qw-k7w"/>
+                            <action selector="resumeProgramMenuItemSelected:" target="-1" id="IO5-xt-7VH"/>
                         </connections>
                     </toolbarItem>
                     <toolbarItem implicitItemIdentifier="47624D7F-560E-48A5-8388-78924C654B1A" explicitItemIdentifier="StepItem" label="Step" paletteLabel="Step" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="a8G-Mj-SRq">
                         <connections>
-                            <action selector="stepCPUMenuItemSelected:" target="-1" id="s9c-G7-B7v"/>
+                            <action selector="stepProgramMenuItemSelected:" target="-1" id="lw4-OP-t4f"/>
                         </connections>
                     </toolbarItem>
                     <toolbarItem implicitItemIdentifier="77641F15-AA2A-494F-B390-F1951124CACE" explicitItemIdentifier="ResetItem" label="Reset" paletteLabel="Reset" tag="-1" image="restart.circle" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="w7k-DC-Qam">

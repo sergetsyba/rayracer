@@ -66,7 +66,7 @@ extension AppDelegate {
 		//		self.timer?.resume()
 	}
 	
-	@IBAction func stepCPUMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func stepProgramMenuItemSelected(_ sender: AnyObject) {
 		self.console.stepProgram()
 	}
 	

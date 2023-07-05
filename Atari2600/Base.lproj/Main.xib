@@ -83,13 +83,13 @@
                             <menuItem title="Resume" keyEquivalent="" id="Pxe-bV-Adm">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="resumeMenuItemSelected:" target="Voe-Tx-rLC" id="qIQ-v1-3PO"/>
+                                    <action selector="resumeProgramMenuItemSelected:" target="-1" id="480-S3-D8G"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Step" keyEquivalent="" id="eNY-Yg-lVd">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="stepMenuItemSelected:" target="-1" id="8oP-4O-Ju8"/>
+                                    <action selector="stepProgramMenuItemSelected:" target="-1" id="Vjj-SB-56M"/>
                                 </connections>
                             </menuItem>
                         </items>
