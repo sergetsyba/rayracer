@@ -58,7 +58,7 @@ public class TIA {
 
 // MARK: -
 // MARK: Bus integration
-extension TIA {
+extension TIA: Bus {
 	func read(at address: Address) -> Int {
 		return 0x00
 	}

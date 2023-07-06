@@ -26,12 +26,12 @@
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
 		958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958691B12A4FF61D00C727C0 /* MOS6532.swift */; };
 		9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9595FE912A4E02FE00F6F857 /* TIA.swift */; };
-		9597B00D2A46CBB80088822B /* Atari2600KitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9597B00C2A46CBB80088822B /* Atari2600KitTests.swift */; };
 		9597B00E2A46CBB80088822B /* Atari2600Kit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* Atari2600Kit.framework */; };
 		9597B0152A46CBC50088822B /* CPUTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9597B0142A46CBC50088822B /* CPUTests.swift */; };
 		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
+		95B352102A549D0C0078A26D /* MOS6532Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B3520F2A549D0C0078A26D /* MOS6532Tests.swift */; };
 		95B429D92A4EFDB100EB6A5D /* ScreenWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */; };
 		95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */; };
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
@@ -80,11 +80,11 @@
 		958691B12A4FF61D00C727C0 /* MOS6532.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6532.swift; sourceTree = "<group>"; };
 		9595FE912A4E02FE00F6F857 /* TIA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TIA.swift; sourceTree = "<group>"; };
 		9597B00A2A46CBB80088822B /* Atari2600KitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Atari2600KitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9597B00C2A46CBB80088822B /* Atari2600KitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atari2600KitTests.swift; sourceTree = "<group>"; };
 		9597B0142A46CBC50088822B /* CPUTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUTests.swift; sourceTree = "<group>"; };
 		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
 		95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindowController.swift; sourceTree = "<group>"; };
 		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
+		95B3520F2A549D0C0078A26D /* MOS6532Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6532Tests.swift; sourceTree = "<group>"; };
 		95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenWindowController.swift; sourceTree = "<group>"; };
 		95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ScreenWindow.xib; sourceTree = "<group>"; };
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
@@ -169,8 +169,8 @@
 		9597B00B2A46CBB80088822B /* Atari2600KitTests */ = {
 			isa = PBXGroup;
 			children = (
-				9597B00C2A46CBB80088822B /* Atari2600KitTests.swift */,
 				9597B0142A46CBC50088822B /* CPUTests.swift */,
+				95B3520F2A549D0C0078A26D /* MOS6532Tests.swift */,
 			);
 			path = Atari2600KitTests;
 			sourceTree = "<group>";
@@ -385,7 +385,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9597B0152A46CBC50088822B /* CPUTests.swift in Sources */,
-				9597B00D2A46CBB80088822B /* Atari2600KitTests.swift in Sources */,
+				95B352102A549D0C0078A26D /* MOS6532Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

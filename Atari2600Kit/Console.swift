@@ -42,6 +42,8 @@ public extension Atari2600 {
 		
 		let cycles = self.cpu.nextExecutionDuration
 		self.tia.resume(cycles: cycles * 3)
+		self.riot.advanceClock(cycles: cycles)
+		
 		self.cpu.executeNextInstruction()
 		self.cpu.cycles += cycles
 	}
@@ -59,7 +61,7 @@ public typealias Address = Int
 
 protocol Bus {
 	func read(at address: Address) -> Int
-	func write(_ value: Int, at address: Address)
+	mutating func write(_ value: Int, at address: Address)
 }
 
 
@@ -71,43 +73,39 @@ extension MOS6507: CPU {
 
 // MARK: -
 extension Atari2600: Bus {
-	private static let mirrors: [Range<Address>: Range<Address>] = [
-		// TIA
-		0x0000..<0x0040: 0x0000..<0x0040,
-		0x0040..<0x0080: 0x0000..<0x0040,
-		// RAM
-		0x0080..<0x0100: 0x0080..<0x0100,
-		0x0180..<0x0200: 0x0080..<0x0100
-	]
-	
-	private func unmirror(_ address: Address) -> Address {
-		for (mirror, target) in Self.mirrors {
-			if mirror.contains(address) {
-				return address - (mirror.lowerBound - target.lowerBound)
-			}
-		}
-		return address
-	}
-	
 	func read(at address: Address) -> Int {
-		let address = self.unmirror(address)
-		
-		if address < 0x0040 {
+		if (0x0000..<0x0040).contains(address) {
 			return self.tia.read(at: address)
-		} else if address < 0x0100 {
-			return self.riot.read(at: address - 0x0080)
-		} else {
-			return Int(self.cartridge![address - 0xf000])
 		}
+		if (0x0080..<0x0100).contains(address) {
+			let address = address - 0x0080
+			let data = self.riot.memory[address]
+			return Int(data)
+		}
+		if (0x0280..<0x0300).contains(address) {
+			let address = address - 0x0280
+			return self.riot.read(at: address)
+		}
+		
+		let address = address - 0xf000
+		let data = self.cartridge![address]
+		return Int(data)
 	}
 	
 	func write(_ data: Int, at address: Address) {
-		let address = self.unmirror(address)
-		
-		if address < 0x0040 {
-			self.tia.write(data, at: address)
-		} else if address < 0x0100 {
-			self.riot.write(data, at: address - 0x0080)
+		if (0x0000..<0x0040).contains(address) {
+			return self.tia.write(data, at: address)
 		}
+		if (0x0080..<0x0100).contains(address) {
+			let address = address - 0x0080
+			self.riot.memory[address] = UInt8(data)
+		}
+		if (0x0280..<0x0300).contains(address) {
+			let address = address - 0x0280
+			return self.riot.write(data, at: address)
+		}
+		
+		let message = String(format: "Ignoring write at address $%04x", address)
+		print(message)
 	}
 }

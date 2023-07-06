@@ -63,12 +63,12 @@ class MOS6507Tests: XCTestCase {
 // MARK: Convenience functionality
 private extension MOS6507 {
 	func run(program: [Int]) {
-		self.bus = program
-		self.reset()
-		
-		for _ in program {
-			self.step()
-		}
+//		self.bus = program
+//		self.reset()
+//
+//		for _ in program {
+//			self.step()
+//		}
 	}
 	
 	func adc(accumulator: Int, value: Int) -> MOS6507 {
@@ -81,14 +81,14 @@ private extension MOS6507 {
 	}
 }
 
-extension Array: MOS6502Bus where Element == Int {
-	public func read(at address: Atari2600Kit.MOS6507.Address) -> Atari2600Kit.MOS6507.Word {
-		return self.indices.contains(address)
-		? self[address]
-		: 0x00
-	}
-	
-	public func write(_ value: Atari2600Kit.MOS6507.Word, at address: Atari2600Kit.MOS6507.Address) {
-		// does nothing
-	}
-}
+//extension Array: MOS6502Bus where Element == Int {
+//	public func read(at address: Address) -> Atari2600Kit.MOS6507.Word {
+//		return self.indices.contains(address)
+//		? self[address]
+//		: 0x00
+//	}
+//	
+//	public func write(_ value: Atari2600Kit.MOS6507.Word, at address: Address) {
+//		// does nothing
+//	}
+//}
