@@ -15,10 +15,12 @@ class DebuggerWindowController: NSWindowController {
 	@IBOutlet private var assemblyContainerView: NSView!
 	@IBOutlet private var cpuContainerView: NSView!
 	@IBOutlet private var memoryContainerView: NSView!
+	@IBOutlet private var timerContainerView: NSView!
 	
 	private var assemblyViewController = AssemblyViewController()
 	private let cpuViewController = CPUViewController()
 	private let memoryViewController = MemoryViewController()
+	private let timerViewController = TimerViewController()
 	
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
@@ -41,6 +43,7 @@ class DebuggerWindowController: NSWindowController {
 		self.assemblyContainerView.setContentView(self.assemblyViewController.view)
 		self.cpuContainerView.setContentView(self.cpuViewController.view, layout: .centerHorizontally)
 		self.memoryContainerView.setContentView(self.memoryViewController.view)
+		self.timerContainerView.setContentView(self.timerViewController.view, layout: .centerHorizontally)
 		
 		self.setUpSinks()
 	}

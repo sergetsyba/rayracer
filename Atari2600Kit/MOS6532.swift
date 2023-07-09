@@ -11,25 +11,28 @@ public class MOS6532 {
 	private var eventSubject = PassthroughSubject<Event, Never>()
 	internal(set) public var memory: Data
 	
-	@Published private(set)
-	public var remainingCycles: Int = .randomWord
-	
-	private(set)
-	public var intervalIncrement: Int = .random(of: [1, 8, 64, 1024])
+	private(set) public var remainingTimerCycles: Int
+	private(set) public var intervalIncrement: Int
+	private(set) public var isTimerOn: Bool
 	
 	public init() {
 		self.memory = Data(randomOfCount: 128)
+		
+		self.remainingTimerCycles = .randomWord
+		self.intervalIncrement = .random(of: [1, 8, 64, 1024])
+		self.isTimerOn = false
 	}
 	
 	/// Advances clock 1 cycle.
 	func advanceClock(cycles: Int = 1) {
-		// count timer cycles only when interval is on
-		if self.remainingCycles > -255 {
-			self.remainingCycles -= cycles
+		// count timer cycles only when interval timer is on
+		if self.isTimerOn {
+			self.remainingTimerCycles -= cycles
 			
 			// stop timer when it reaches limit
-			if self.remainingCycles < -255 {
-				self.remainingCycles = -255
+			if self.remainingTimerCycles < -255 {
+				self.remainingTimerCycles = .randomWord
+				self.isTimerOn = false
 			}
 		}
 	}
@@ -53,35 +56,39 @@ public extension MOS6532 {
 // MARK: -
 // MARK: Bus integration
 extension MOS6532: Bus {
-	func read(at address: Address) -> Int {
+	public func read(at address: Address) -> Int {
 		switch address {
 		case 0x0c:
-			return  self.remainingCycles < 0
-			? self.remainingCycles
-			: self.remainingCycles / self.intervalIncrement
+			return  self.remainingTimerCycles < 0
+			? self.remainingTimerCycles
+			: self.remainingTimerCycles / self.intervalIncrement
 			
 		default:
 			return 0x00
 		}
 	}
 	
-	func write(_ data: Int, at address: Address) {
+	public func write(_ data: Int, at address: Address) {
 		switch address {
 		case 0x14:
-			self.remainingCycles = data
+			self.remainingTimerCycles = data
 			self.intervalIncrement = 1
+			self.isTimerOn = true
 			
 		case 0x15:
-			self.remainingCycles = data * 8
+			self.remainingTimerCycles = data * 8
 			self.intervalIncrement = 8
+			self.isTimerOn = true
 			
 		case 0x16:
-			self.remainingCycles = data * 64
+			self.remainingTimerCycles = data * 64
 			self.intervalIncrement = 64
+			self.isTimerOn = true
 			
 		case 0x17:
-			self.remainingCycles = data * 1024
+			self.remainingTimerCycles = data * 1024
 			self.intervalIncrement = 1024
+			self.isTimerOn = true
 			
 		default:
 			break
