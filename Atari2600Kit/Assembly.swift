@@ -123,11 +123,11 @@ public enum MOS6507AssemblyError: Error {
 // MARK: -
 // MARK: Disassembling
 extension MOS6507Assembly {
-	public static func disassemble(_ data: Data) -> [(MOS6507.Address, Instruction)] {
-		var program: [(MOS6507.Address, Instruction)] = []
+	public static func disassemble(_ data: Data) -> [(Address, Instruction)] {
+		var program: [(Address, Instruction)] = []
 		var index = data.startIndex
 		
-		while index < data.endIndex {
+		while index < data.endIndex - 1 {
 			// TODO: return unknown opcodes as data
 			if let instruction = try? Self.decodeInstruction(in: data, at: index) {
 				program.append((0xf000 + index, instruction))
@@ -162,11 +162,13 @@ extension MOS6507Assembly {
 			return Int(data[index])
 			
 		case .absolute, .absoluteX, .absoluteY:
-			return Int(data[index]) * 0x100 + Int(data[index + 1])
+			let low = Int(data[index])
+			let high = Int(data[index + 1])
+			return high * 0x0100 + low
 			
 		case .relative:
-			let offset = Int(data[index])
-			return 0xf001 + index + Int(signedWord: offset)
+			let offset = Int(signedWord: data[index])
+			return 0xf001 + index + offset
 		}
 	}
 }

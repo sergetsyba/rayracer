@@ -15,10 +15,12 @@ class DebuggerWindowController: NSWindowController {
 	@IBOutlet private var assemblyContainerView: NSView!
 	@IBOutlet private var cpuContainerView: NSView!
 	@IBOutlet private var memoryContainerView: NSView!
+	@IBOutlet private var timerContainerView: NSView!
 	
 	private var assemblyViewController = AssemblyViewController()
 	private let cpuViewController = CPUViewController()
 	private let memoryViewController = MemoryViewController()
+	private let timerViewController = TimerViewController()
 	
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
@@ -41,6 +43,7 @@ class DebuggerWindowController: NSWindowController {
 		self.assemblyContainerView.setContentView(self.assemblyViewController.view)
 		self.cpuContainerView.setContentView(self.cpuViewController.view, layout: .centerHorizontally)
 		self.memoryContainerView.setContentView(self.memoryViewController.view)
+		self.timerContainerView.setContentView(self.timerViewController.view, layout: .centerHorizontally)
 		
 		self.setUpSinks()
 	}
@@ -50,17 +53,20 @@ class DebuggerWindowController: NSWindowController {
 // MARK: -
 // MARK: Target actions
 private extension DebuggerWindowController {
-	@objc func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
+	@IBAction func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.clearBreakpoints()
 	}
 	
-	@objc func breakpointMenuItemSelected(_ sender: NSMenuItem) {
+	@IBAction func breakpointMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.showBreakpoint(sender.tag)
 	}
 	
-	@objc func resumeCPUMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func resumeProgramMenuItemSelected(_ sender: AnyObject) {
 		let breakpoints = self.assemblyViewController.breakpoints
-		self.console.cpu.run(until: breakpoints)
+		let queue = DispatchQueue.global(qos: .background)
+		queue.async() {
+			self.console.resumeProgram(until: breakpoints)
+		}
 	}
 }
 
@@ -70,6 +76,7 @@ private extension DebuggerWindowController {
 private extension DebuggerWindowController {
 	func setUpSinks() {
 		self.console.$cartridge
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] data in
 				let inserted = data != nil
 				self.toolbar[.stepItem]?.isEnabled = inserted
@@ -85,7 +92,7 @@ private extension DebuggerWindowController {
 			}.store(in: &self.cancellables)
 	}
 	
-	func updateBreakpointsToolbarItemMenu(breakpoints: [MOS6507.Address]) {
+	func updateBreakpointsToolbarItemMenu(breakpoints: [Address]) {
 		let removeAllMenuItem = NSMenuItem(
 			title: "Remove All",
 			action: #selector(self.removeAllBreakpointsMenuItemSelected(_:)),
@@ -106,7 +113,7 @@ private extension DebuggerWindowController {
 		toolbarItem?.isEnabled = breakpoints.count > 0
 	}
 	
-	func createBreakpointMenuItem(breakpoint: MOS6507.Address) -> NSMenuItem {
+	func createBreakpointMenuItem(breakpoint: Address) -> NSMenuItem {
 		let menuItem = NSMenuItem()
 		menuItem.tag = breakpoint
 		menuItem.attributedTitle = NSAttributedString(

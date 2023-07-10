@@ -10,9 +10,7 @@ import Combine
 import Atari2600Kit
 
 class MemoryViewController: NSViewController {
-	@IBOutlet private var tiaRegistersLabel: NSTextField!
 	@IBOutlet private var ramLabel: NSTextField!
-	@IBOutlet private var riotRegistersLabel: NSTextField!
 	
 	private var cancellables: Set<AnyCancellable> = []
 	private let console: Atari2600 = .current
@@ -21,21 +19,8 @@ class MemoryViewController: NSViewController {
 		self.init(nibName: "MemoryView", bundle: .main)
 	}
 	
-	var labels: [NSTextField] {
-		return [
-			self.tiaRegistersLabel,
-			self.ramLabel,
-			self.riotRegistersLabel
-		]
-	}
-	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		
-		for label in self.labels {
-			label.font = .regular
-			label.textColor = .disabledControlTextColor
-		}
 		
 		self.resetView()
 		self.setUpSinks()
@@ -48,6 +33,7 @@ class MemoryViewController: NSViewController {
 private extension MemoryViewController {
 	func setUpSinks() {
 		self.console.cpu.events
+			.receive(on: DispatchQueue.main)
 			.sink() { [unowned self] in
 				switch $0 {
 				case .reset:
@@ -57,56 +43,34 @@ private extension MemoryViewController {
 				}
 			}.store(in: &self.cancellables)
 		
-		self.console.memory.events
-			.sink() { [unowned self] in
+		self.console.riot.events
+			.receive(on: DispatchQueue.main)
+			.sink() {
 				switch $0 {
-				case .read(_):
-					break
-				case .write(let address):
+				case .readMemory(let address):
+					self.highlightMemory(at: address)
+				case .writeMemoty(let address):
 					self.highlightMemory(at: address)
 				}
 			}.store(in: &self.cancellables)
 	}
 	
 	func resetView() {
-		self.tiaRegistersLabel.attributedStringValue = NSAttributedString(
-			string: String(memory: self.console.memory.tiaRegisters))
+		self.ramLabel.font = .regular
 		self.ramLabel.attributedStringValue = NSAttributedString(
-			string: String(memory: self.console.memory.ram))
-		self.riotRegistersLabel.attributedStringValue = NSAttributedString(
-			string: String(memory: self.console.memory.riotRegisters))
+			string: String(memory: self.console.riot.memory))
 	}
 	
-	func highlightMemory(at address: MOS6507.Address) {
-		let address = self.console.unmirror(address)
-		let data = self.console.memory[address]
+	func highlightMemory(at address: Address) {
+		let data = self.console.riot.memory[address]
+		let range = NSRange(location: address * 3, length: 2)
 		
-		if let (label, offset) = self.label(for: address) {
-			let range = NSRange(location: offset * 3, length: 2)
-			label[range] = String(word: data)
-			label.addHighlight(in: range)
-		} else {
-			fatalError(String(format: "cannot highlight data at $%04x", address))
-		}
+		self.ramLabel[range] = String(word: data)
+		self.ramLabel.addHighlight(in: range)
 	}
 	
 	func clearMemoryHighlights() {
-		for label in self.labels {
-			label.removeHighlights()
-		}
-	}
-	
-	func label(for address: MOS6507.Address) -> (NSTextField, Int)? {
-		if (0x0000...0x003f).contains(address) {
-			return (self.tiaRegistersLabel, address)
-		}
-		if (0x0080...0x00ff).contains(address) {
-			return (self.ramLabel, address - 0x0080)
-		}
-		if (0x0280...0x29f).contains(address) {
-			return (self.riotRegistersLabel, address - 0x0280)
-		}
-		return nil
+		self.ramLabel.removeHighlights()
 	}
 }
 
@@ -122,10 +86,11 @@ private extension String {
 		self.init(format: "%02x", word)
 	}
 	
-	init(memory: Memory) {
-		self = memory.stride(by: 16)
-			.map() { segment in
-				return segment
+	init(memory: Data) {
+		self = memory.indices
+			.stride(by: 16)
+			.map() {
+				return memory[$0]
 					.map() { String(word: $0) }
 					.joined(separator: " ")
 			}.joined(separator: "\n")
@@ -168,5 +133,12 @@ private extension NSTextField {
 		string.removeAttribute(.font, range: range)
 		
 		self.attributedStringValue = string
+	}
+}
+
+private extension Range where Index == Int {
+	func stride(by count: Int) -> any Sequence<Self> {
+		return Swift.stride(from: self.startIndex, to: self.endIndex, by: count)
+			.map() { $0..<$0+count }
 	}
 }

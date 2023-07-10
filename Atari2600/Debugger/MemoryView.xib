@@ -7,56 +7,32 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="MemoryViewController" customModule="Atari2600" customModuleProvider="target">
             <connections>
-                <outlet property="ramLabel" destination="caV-sy-i9X" id="ref-Ar-AWf"/>
-                <outlet property="riotRegistersLabel" destination="TOD-eU-fnE" id="zgS-wJ-9Ex"/>
-                <outlet property="tiaRegistersLabel" destination="Vg5-tU-tFp" id="pj0-V3-boc"/>
-                <outlet property="view" destination="UPo-xQ-khR" id="8rD-le-RH1"/>
+                <outlet property="ramLabel" destination="NxY-Ie-nqU" id="l53-bi-8rT"/>
+                <outlet property="view" destination="RCL-aI-EB1" id="BhB-4u-nTU"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <customView id="UPo-xQ-khR">
-            <rect key="frame" x="0.0" y="0.0" width="163" height="64"/>
+        <customView id="RCL-aI-EB1">
+            <rect key="frame" x="0.0" y="0.0" width="217" height="13"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Vg5-tU-tFp">
-                    <rect key="frame" x="-2" y="48" width="37" height="16"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="ePt-aZ-dAW">
-                        <font key="font" usesAppearanceFont="YES"/>
-                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="caV-sy-i9X">
-                    <rect key="frame" x="-2" y="24" width="37" height="16"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="llq-4e-Avm">
-                        <font key="font" usesAppearanceFont="YES"/>
-                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="TOD-eU-fnE">
-                    <rect key="frame" x="-2" y="0.0" width="37" height="16"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="Label" id="4PW-oW-x7s">
-                        <font key="font" usesAppearanceFont="YES"/>
-                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="NxY-Ie-nqU">
+                    <rect key="frame" x="-2" y="0.0" width="45" height="13"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" title="Memory" id="Etl-yv-cNr">
+                        <font key="font" size="11" name="SFMono-Regular"/>
+                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
             </subviews>
             <constraints>
-                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="caV-sy-i9X" secondAttribute="trailing" id="6x3-X8-bXW"/>
-                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="Vg5-tU-tFp" secondAttribute="trailing" id="7ym-j8-9cF"/>
-                <constraint firstItem="caV-sy-i9X" firstAttribute="top" secondItem="Vg5-tU-tFp" secondAttribute="bottom" constant="8" symbolic="YES" id="QCe-7H-Y2w"/>
-                <constraint firstItem="TOD-eU-fnE" firstAttribute="leading" secondItem="UPo-xQ-khR" secondAttribute="leading" id="Tm2-11-43C"/>
-                <constraint firstItem="Vg5-tU-tFp" firstAttribute="leading" secondItem="UPo-xQ-khR" secondAttribute="leading" id="U3D-Pi-RIo"/>
-                <constraint firstAttribute="bottom" secondItem="TOD-eU-fnE" secondAttribute="bottom" id="dF3-OT-DrI"/>
-                <constraint firstItem="caV-sy-i9X" firstAttribute="leading" secondItem="UPo-xQ-khR" secondAttribute="leading" id="eb1-6u-DDw"/>
-                <constraint firstItem="TOD-eU-fnE" firstAttribute="top" secondItem="caV-sy-i9X" secondAttribute="bottom" constant="8" symbolic="YES" id="elB-Nu-Yzt"/>
-                <constraint firstItem="Vg5-tU-tFp" firstAttribute="top" secondItem="UPo-xQ-khR" secondAttribute="top" id="f28-Am-Jy1"/>
-                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="TOD-eU-fnE" secondAttribute="trailing" id="gEf-Oh-AbW"/>
+                <constraint firstItem="NxY-Ie-nqU" firstAttribute="leading" secondItem="RCL-aI-EB1" secondAttribute="leading" id="Dly-cW-1h2"/>
+                <constraint firstAttribute="bottom" secondItem="NxY-Ie-nqU" secondAttribute="bottom" id="TYD-Vj-gAe"/>
+                <constraint firstItem="NxY-Ie-nqU" firstAttribute="top" secondItem="RCL-aI-EB1" secondAttribute="top" id="arq-jA-Afg"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="NxY-Ie-nqU" secondAttribute="trailing" id="reE-2i-N5I"/>
             </constraints>
-            <point key="canvasLocation" x="188.5" y="-331"/>
+            <point key="canvasLocation" x="41.5" y="-452"/>
         </customView>
     </objects>
 </document>

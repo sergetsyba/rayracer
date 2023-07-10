@@ -6,13 +6,21 @@
 //
 
 public class Atari2600: ObservableObject {
-	@Published private(set) public var cpu: MOS6507
-	@Published private(set) public var memory: Memory
-	@Published public var cartridge: Data?
+	private(set) public var cpu: MOS6507
+	private(set) public var riot: MOS6532
+	private(set) public var tia: TIA
+	
+	@Published
+	public var cartridge: Data? = nil
 	
 	public init() {
-		self.cpu = MOS6507()
-		self.memory = Memory(size: 0xffff)
+		let cpu = MOS6507()
+		
+		self.cpu = cpu
+		self.riot = MOS6532()
+		self.tia = TIA(cpu: cpu)
+		
+		// TODO: move to CPU init
 		self.cpu.bus = self
 	}
 	
@@ -24,52 +32,80 @@ public class Atari2600: ObservableObject {
 
 
 // MARK: -
-// MARK: Memory segments
-public extension Memory {
-	var tiaRegisters: Memory {
-		return self[0x0000..<0x0040]
+// MARK: Debugging
+public extension Atari2600 {
+	func stepProgram() {
+		if self.tia.wsync {
+			let cycles = self.tia.resumeLine()
+			self.cpu.cycles += cycles / 3
+		}
+		
+		let cycles = self.cpu.nextExecutionDuration
+		self.tia.resume(cycles: cycles * 3)
+		self.riot.advanceClock(cycles: cycles)
+		
+		self.cpu.executeNextInstruction()
+		self.cpu.cycles += cycles
 	}
 	
-	var ram: Memory {
-		return self[0x0080..<0x0100]
-	}
-	
-	var riotRegisters: Memory {
-		return self[0xf000..<0xffff]
+	func resumeProgram(until breakpoints: [Address]) {
+		repeat {
+			self.stepProgram()
+		} while breakpoints.contains(self.cpu.programCounter) == false
 	}
 }
 
 
 // MARK: -
-extension Atari2600: MOS6502Bus {
-	static let mirrors: [ClosedRange<Int>: ClosedRange<Int>] = [
-		0x0000...0x003f: 0x0000...0x003f,
-		0x0040...0x007f: 0x0000...0x003f,
-		// RAM
-		0x0080...0x00ff: 0x0080...0x00ff,
-		0x0180...0x01ff: 0x0080...0x00ff
-	]
-	
-	public func unmirror(_ address: MOS6507.Address) -> MOS6507.Address {
-		for (mirror, _) in Self.mirrors {
-			if mirror.contains(address) {
-				return address - mirror.lowerBound
-			}
+public typealias Address = Int
+
+protocol Bus {
+	func read(at address: Address) -> Int
+	mutating func write(_ value: Int, at address: Address)
+}
+
+
+// MARK: -
+// MARK: Memory segments
+extension MOS6507: CPU {
+}
+
+
+// MARK: -
+extension Atari2600: Bus {
+	func read(at address: Address) -> Int {
+		if (0x0000..<0x0040).contains(address) {
+			return self.tia.read(at: address)
 		}
-		return address
+		if (0x0080..<0x0100).contains(address) {
+			let address = address - 0x0080
+			let data = self.riot.memory[address]
+			return Int(data)
+		}
+		if (0x0280..<0x0300).contains(address) {
+			let address = address - 0x0280
+			return self.riot.read(at: address)
+		}
+		
+		let address = address - 0xf000
+		let data = self.cartridge![address]
+		return Int(data)
 	}
 	
-	func read(at address: MOS6507.Address) -> MOS6507.Word {
-		if address < 0xf000 {
-			let address = self.unmirror(address)
-			return self.memory[address]
-		} else {
-			return MOS6507.Word(self.cartridge![address - 0xf000])
+	func write(_ data: Int, at address: Address) {
+		if (0x0000..<0x0040).contains(address) {
+			return self.tia.write(data, at: address)
 		}
-	}
-	
-	func write(_ value: MOS6507.Word, at address: MOS6507.Address) {
-		let address = self.unmirror(address)
-		self.memory[address] = value
+		if (0x0080..<0x0100).contains(address) {
+			let address = address - 0x0080
+			self.riot.memory[address] = UInt8(data)
+		}
+		if (0x0280..<0x0300).contains(address) {
+			let address = address - 0x0280
+			return self.riot.write(data, at: address)
+		}
+		
+		let message = String(format: "Ignoring write at address $%04x", address)
+		print(message)
 	}
 }
