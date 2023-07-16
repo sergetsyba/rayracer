@@ -73,7 +73,18 @@ extension MOS6507: CPU {
 
 // MARK: -
 extension Atari2600: Bus {
+	private func unmirror(_ address: Address) -> Address {
+		if (0x0040..<0x0080).contains(address) {
+			return address - 0x40
+		}
+		if (0x5000..<0x6000).contains(address) {
+			return address + 0xa000
+		}
+		return address
+	}
+	
 	func read(at address: Address) -> Int {
+		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
 			return self.tia.read(at: address)
 		}
@@ -87,18 +98,18 @@ extension Atari2600: Bus {
 			return self.riot.read(at: address)
 		}
 		
-		let address = address - 0xf000
-		let data = self.cartridge![address]
+		let data = self.cartridge![address - 0xf000]
 		return Int(data)
 	}
 	
 	func write(_ data: Int, at address: Address) {
+		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
 			return self.tia.write(data, at: address)
 		}
 		if (0x0080..<0x0100).contains(address) {
 			let address = address - 0x0080
-			self.riot.memory[address] = UInt8(data)
+			return self.riot.memory[address] = UInt8(data)
 		}
 		if (0x0280..<0x0300).contains(address) {
 			let address = address - 0x0280

@@ -24,7 +24,7 @@ extension AppDelegate {
 	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
 		if self.console.cartridge == nil {
 			do {
-				let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/Games/RushHour.bin")
+				let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/Games/Fantastic Voyage.bin")
 				try self.console.insertCartridge(fromFileAt: url)
 				
 				//				let controller = ScreenWindowController()
