@@ -103,7 +103,7 @@ extension MOS6532: Bus {
 // MARK: Convenience functionality
 private extension UInt8 {
 	static var random: Self {
-		return Self.random(in: 0...255)
+		return Self.random(in: 1...255)
 	}
 }
 

@@ -27,9 +27,10 @@ extension AppDelegate {
 				let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/Games/Fantastic Voyage.bin")
 				try self.console.insertCartridge(fromFileAt: url)
 				
-				//				let controller = ScreenWindowController()
-				//				controller.window?.title = url.lastPathComponent
-				//				self.showWindow(of: controller)
+				let controller = ScreenWindowController()
+				controller.window?.title = url.lastPathComponent
+				self.showWindow(of: controller)
+//				self.resumeMenuItemSelected(self)
 			} catch {
 				print(error)
 			}

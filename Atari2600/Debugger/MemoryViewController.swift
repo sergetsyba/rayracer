@@ -10,19 +10,24 @@ import Combine
 import Atari2600Kit
 
 class MemoryViewController: NSViewController {
-	@IBOutlet private var ramLabel: NSTextField!
-	
 	private var cancellables: Set<AnyCancellable> = []
 	private let console: Atari2600 = .current
 	
 	convenience init() {
-		self.init(nibName: "MemoryView", bundle: .main)
+		self.init(nibName: nil, bundle: .main)
+	}
+	
+	override func loadView() {
+		let label = NSTextField(labelWithString: "")
+		label.font = .monospacedRegular
+		
+		self.view = label
 	}
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
-		self.resetView()
+		self.resetView(to: self.console.riot.memory)
 		self.setUpSinks()
 	}
 }
@@ -32,58 +37,79 @@ class MemoryViewController: NSViewController {
 // MARK: UI updates
 private extension MemoryViewController {
 	func setUpSinks() {
-		self.console.cpu.events
-			.receive(on: DispatchQueue.main)
-			.sink() { [unowned self] in
-				switch $0 {
-				case .reset:
-					self.resetView()
-				case .sync:
-					self.clearMemoryHighlights()
-				}
-			}.store(in: &self.cancellables)
+		self.cancellables.insert(
+			self.console.events
+				.receive(on: DispatchQueue.main)
+				.sink() { [unowned self] in
+					switch $0 {
+					case .reset:
+						self.resetView(to: self.console.riot.memory)
+					}
+				})
 		
-		self.console.riot.events
-			.receive(on: DispatchQueue.main)
-			.sink() {
-				switch $0 {
-				case .readMemory(let address):
-					self.highlightMemory(at: address)
-				case .writeMemoty(let address):
-					self.highlightMemory(at: address)
-				}
-			}.store(in: &self.cancellables)
+		self.cancellables.insert(
+			self.console.debugEvents
+				.receive(on: DispatchQueue.main)
+				.sink() { [unowned self] in
+					switch $0 {
+					case .break, .step:
+						self.updateView(to: self.console.riot.memory)
+					default:
+						break
+					}
+				})
 	}
 	
-	func resetView() {
-		self.ramLabel.font = .regular
-		self.ramLabel.attributedStringValue = NSAttributedString(
-			string: String(memory: self.console.riot.memory))
-	}
-	
-	func highlightMemory(at address: Address) {
-		let data = self.console.riot.memory[address]
-		let range = NSRange(location: address * 3, length: 2)
+	func resetView(to memory: Data) {
+		let formatted = String(memory: memory)
+		let string = NSMutableAttributedString(string: formatted)
+		for index in memory.indices {
+			string.resetMemoryValue(at: index)
+		}
 		
-		self.ramLabel[range] = String(word: data)
-		self.ramLabel.addHighlight(in: range)
+		let label = self.view as! NSTextField
+		label.attributedStringValue = string
 	}
 	
-	func clearMemoryHighlights() {
-		self.ramLabel.removeHighlights()
+	func updateView(to memory: Data) {
+		let label = self.view as! NSTextField
+		let string = NSMutableAttributedString(attributedString: label.attributedStringValue)
+		for (index, value) in memory.enumerated() {
+			string.setMemoryValue(value, at: index)
+		}
+		
+		label.attributedStringValue = string
 	}
 }
 
 
 // MARK: -
-// MARK: Data formatting
-private extension String {
-	init(word: Int) {
-		self.init(format: "%02x", word)
+private extension NSMutableAttributedString {
+	func resetMemoryValue(at index: Int) {
+		let range = NSRange(location: index * 3, length: 2)
+		let color: NSColor = .disabledControlTextColor
+		
+		self.addAttribute(.foregroundColor, value: color, range: range)
 	}
 	
-	init(word: UInt8) {
-		self.init(format: "%02x", word)
+	func setMemoryValue(_ value: UInt8, at index: Int) {
+		let range = NSRange(location: index * 3, length: 2)
+		let oldValue = self.mutableString.substring(with: range)
+		let newValue = String(memoryValue: value)
+		
+		if newValue != oldValue {
+			self.mutableString.replaceCharacters(in: range, with: newValue)
+			self.removeAttribute(.foregroundColor, range: range)
+		}
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+private extension String {
+	init(memoryValue value: UInt8) {
+		self = String(format: "%02x", value)
 	}
 	
 	init(memory: Data) {
@@ -91,48 +117,9 @@ private extension String {
 			.stride(by: 16)
 			.map() {
 				return memory[$0]
-					.map() { String(word: $0) }
+					.map() { String(memoryValue: $0) }
 					.joined(separator: " ")
 			}.joined(separator: "\n")
-	}
-}
-
-
-// MARK: -
-// MARK: Convenience functionality
-private extension NSTextField {
-	subscript (range: NSRange) -> any StringProtocol {
-		get {
-			let string = self.attributedStringValue.string
-			let start = string.index(string.startIndex, offsetBy: range.location)
-			let end = string.index(start, offsetBy: range.length)
-			
-			return self.attributedStringValue.string[start..<end]
-		}
-		set {
-			let string = NSMutableAttributedString(attributedString: self.attributedStringValue)
-			string.replaceCharacters(in: range, with: String(newValue))
-			
-			self.attributedStringValue = string
-		}
-	}
-	
-	func addHighlight(in range: NSRange) {
-		let string = NSMutableAttributedString(attributedString: self.attributedStringValue)
-		string.setAttributes([
-			.font: NSFont.emphasized,
-			.foregroundColor: NSColor.labelColor
-		], range: range)
-		
-		self.attributedStringValue = string
-	}
-	
-	func removeHighlights() {
-		let string = NSMutableAttributedString(attributedString: self.attributedStringValue)
-		let range = NSRange(location: 0, length: string.length)
-		string.removeAttribute(.font, range: range)
-		
-		self.attributedStringValue = string
 	}
 }
 

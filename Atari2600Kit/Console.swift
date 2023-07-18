@@ -5,10 +5,15 @@
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
+import Combine
+
 public class Atari2600: ObservableObject {
 	private(set) public var cpu: MOS6507
 	private(set) public var riot: MOS6532
 	private(set) public var tia: TIA
+	
+	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
+	private var eventSubject = PassthroughSubject<Event, Never>()
 	
 	@Published
 	public var cartridge: Data? = nil
@@ -27,6 +32,20 @@ public class Atari2600: ObservableObject {
 	public func insertCartridge(fromFileAt url: URL) throws {
 		self.cartridge = try Data(contentsOf: url)
 		self.cpu.reset()
+		self.eventSubject.send(.reset)
+	}
+}
+
+
+// MARK: -
+// MARK: Events
+public extension Atari2600 {
+	enum Event {
+		case reset
+	}
+	
+	var events: some Publisher<Event, Never> {
+		return self.eventSubject
 	}
 }
 
@@ -34,24 +53,39 @@ public class Atari2600: ObservableObject {
 // MARK: -
 // MARK: Debugging
 public extension Atari2600 {
-	func stepProgram() {
+	enum DebugEvent {
+		case `break`
+		case step
+		case resume
+	}
+	
+	var debugEvents: some Publisher<DebugEvent, Never> {
+		return self.debugEventSubject
+	}
+	
+	func advanceProgram() {
 		if self.tia.wsync {
-			let cycles = self.tia.resumeLine()
-			self.cpu.cycles += cycles / 3
+			self.tia.advanceLine()
 		}
 		
 		let cycles = self.cpu.nextExecutionDuration
-		self.tia.resume(cycles: cycles * 3)
+		self.tia.advanceClock(cycles: cycles * 3)
 		self.riot.advanceClock(cycles: cycles)
 		
 		self.cpu.executeNextInstruction()
 		self.cpu.cycles += cycles
 	}
 	
+	func stepProgram() {
+		self.advanceProgram()
+		self.debugEventSubject.send(.break)
+	}
+	
 	func resumeProgram(until breakpoints: [Address]) {
 		repeat {
 			self.stepProgram()
 		} while breakpoints.contains(self.cpu.programCounter) == false
+		self.debugEventSubject.send(.break)
 	}
 }
 
@@ -105,6 +139,11 @@ extension Atari2600: Bus {
 	func write(_ data: Int, at address: Address) {
 		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
+			if address == 0x09 {
+				let message = String(format: "$%04x colubk: #%02x", self.cpu.programCounter, data)
+				print(message)
+			}
+			
 			return self.tia.write(data, at: address)
 		}
 		if (0x0080..<0x0100).contains(address) {
