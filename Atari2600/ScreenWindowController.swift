@@ -35,29 +35,14 @@ class ScreenWindowController: NSWindowController {
 // MARK: UI updates
 private extension ScreenWindowController {
 	func setUpSinks() {
-		self.console.tia.events
-			.receive(on: DispatchQueue.main)
-			.sink() {
-				switch $0 {
-				case .drawFrame(var frame):
-					frame.withUnsafeMutableBytes() {
-						let colorSpace = CGColorSpaceCreateDeviceGray()
-						let context = CGContext(
-							data: $0.baseAddress,
-							width: 192,
-							height: 160,
-							bitsPerComponent: 8,
-							bytesPerRow: 192,
-							space: colorSpace,
-							bitmapInfo: CGImageAlphaInfo.none.rawValue)
-						
-						if let image = context?.makeImage() {
-							self.imageView.image = NSImage(
-								cgImage: image,
-								size: NSSize(width: 192, height: 160))
-						}
-					}
-				}
-			}.store(in: &self.cancellables)
+//		self.console.tia.events
+//			.receive(on: DispatchQueue.main)
+//			.sink() {
+//				switch $0 {
+//				case .frame:
+//					let view = self.window?.contentView as? ScreenView
+//					view?.lines = self.console.tia.frame
+//				}
+//			}.store(in: &self.cancellables)
 	}
 }
