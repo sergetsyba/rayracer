@@ -8,8 +8,8 @@
 import Combine
 
 public class Atari2600: ObservableObject {
-	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
 	private var eventSubject = PassthroughSubject<Event, Never>()
+	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
 	
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
@@ -22,10 +22,16 @@ public class Atari2600: ObservableObject {
 		self.tia = TIA(cpu: self.cpu)
 	}
 	
+	// Resets internal state.
+	public func reset() {
+		self.cpu.reset()
+		self.riot.reset()
+		self.eventSubject.send(.reset)
+	}
+	
+	// Loads cartridge data as ROM from a file at the specified URL.
 	public func insertCartridge(fromFileAt url: URL) throws {
 		self.cartridge = try Data(contentsOf: url)
-		self.cpu.reset()
-		self.eventSubject.send(.reset)
 	}
 }
 

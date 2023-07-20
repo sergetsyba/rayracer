@@ -5,8 +5,6 @@
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
-import Combine
-
 public class MOS6507 {
 	private var operations: [Int: Operation] = [:]
 	
@@ -17,10 +15,9 @@ public class MOS6507 {
 	private(set) public var stackPointer: Int
 	private(set) public var programCounter: Address
 	
-	let bus: Bus
+	private var bus: Bus
 	var ready: Bool = true
-	
-	var cachedOperation: (() -> Void)?
+	var cachedOperation: (() -> Void)? = nil
 	
 	public init(bus: any Bus) {
 		self.accumulator = .randomWord

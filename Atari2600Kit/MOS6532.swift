@@ -5,8 +5,6 @@
 //  Created by Serge Tsyba on 1.7.2023.
 //
 
-import Combine
-
 public class MOS6532 {
 	internal(set) public var memory: Data
 	
@@ -19,6 +17,11 @@ public class MOS6532 {
 		
 		self.remainingTimerCycles = .randomWord
 		self.intervalIncrement = .random(of: [1, 8, 64, 1024])
+		self.isTimerOn = false
+	}
+	
+	// Resets internal state.
+	func reset() {
 		self.isTimerOn = false
 	}
 	

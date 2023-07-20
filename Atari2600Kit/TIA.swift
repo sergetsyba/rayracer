@@ -5,7 +5,6 @@
 //  Created by Serge Tsyba on 29.6.2023.
 //
 
-import Combine
 import CoreGraphics
 
 protocol CPU {
@@ -68,11 +67,11 @@ private extension TIA {
 // MARK: -
 // MARK: Bus integration
 extension TIA: Bus {
-	func read(at address: Address) -> Int {
+	public func read(at address: Address) -> Int {
 		return 0x00
 	}
 	
-	func write(_ data: Int, at address: Address) {
+	public func write(_ data: Int, at address: Address) {
 		switch address {
 		case 0x02:
 			self.wsync = true
