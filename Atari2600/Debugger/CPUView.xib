@@ -7,30 +7,23 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="CPUViewController" customModule="Atari2600" customModuleProvider="target">
             <connections>
-                <outlet property="accumulatorLabel" destination="xCA-lH-kJF" id="r16-z8-k3j"/>
-                <outlet property="cyclesLabel" destination="0KS-Pf-1mT" id="iNe-rs-AVx"/>
-                <outlet property="indexXLabel" destination="mJJ-uM-LKe" id="7Et-QZ-mMj"/>
-                <outlet property="indexYLabel" destination="BQ3-Sw-eBa" id="7Hg-Kt-DlY"/>
-                <outlet property="programCounterLabel" destination="9Ye-al-qAG" id="Wiv-cm-W1h"/>
-                <outlet property="stackPointerLabel" destination="mJu-te-3Pq" id="cfA-TI-Grq"/>
-                <outlet property="statusBreakLabel" destination="rqO-Mw-Vyp" id="das-3e-Dgb"/>
-                <outlet property="statusCarryLabel" destination="Pc5-iC-1U5" id="iig-qJ-blI"/>
-                <outlet property="statusDecimalModeLabel" destination="JmK-df-2jj" id="Zf7-6a-tDw"/>
-                <outlet property="statusInterruptDisabledLabel" destination="hYz-Ui-iF7" id="okd-tD-NCj"/>
-                <outlet property="statusNegativeLabel" destination="LFP-sM-lN3" id="uip-zK-CwV"/>
-                <outlet property="statusOverflowLabel" destination="nXC-ky-4Rs" id="CEq-HB-XkK"/>
-                <outlet property="statusZeroLabel" destination="jgb-sy-hbm" id="eU2-Dy-wvk"/>
-                <outlet property="view" destination="337-OA-EOy" id="wUn-M2-eld"/>
+                <outlet property="accumulatorLabel" destination="xCA-lH-kJF" id="py4-IF-MMD"/>
+                <outlet property="indexXLabel" destination="mJJ-uM-LKe" id="Gm8-ZD-49E"/>
+                <outlet property="indexYLabel" destination="BQ3-Sw-eBa" id="cid-yI-u1J"/>
+                <outlet property="programCounterLabel" destination="9Ye-al-qAG" id="FMi-zN-Eg6"/>
+                <outlet property="stackPointerLabel" destination="mJu-te-3Pq" id="Baz-RL-Ks7"/>
+                <outlet property="statusLabel" destination="LFP-sM-lN3" id="KdP-Ji-8HR"/>
+                <outlet property="view" destination="337-OA-EOy" id="KmZ-ZN-7PH"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView id="337-OA-EOy">
-            <rect key="frame" x="0.0" y="0.0" width="213" height="134"/>
+            <rect key="frame" x="0.0" y="0.0" width="226" height="112"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="X1L-4C-zxs">
-                    <rect key="frame" x="20" y="98" width="74" height="14"/>
+                    <rect key="frame" x="33" y="98" width="74" height="14"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Accumulator:" id="XbY-GD-X8a">
                         <font key="font" metaFont="smallSystem"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -38,7 +31,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="aK1-vd-Khn">
-                    <rect key="frame" x="47" y="80" width="47" height="14"/>
+                    <rect key="frame" x="60" y="80" width="47" height="14"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Index X:" id="24z-Gc-C7j">
                         <font key="font" metaFont="smallSystem"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -46,7 +39,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ha8-ya-cxZ">
-                    <rect key="frame" x="48" y="62" width="46" height="14"/>
+                    <rect key="frame" x="61" y="62" width="46" height="14"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Index Y:" id="Kdu-RK-na7">
                         <font key="font" metaFont="smallSystem"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -54,7 +47,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ZIk-pS-Gye">
-                    <rect key="frame" x="53" y="40" width="41" height="14"/>
+                    <rect key="frame" x="66" y="40" width="41" height="14"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Status:" id="wbw-76-X8Y">
                         <font key="font" metaFont="smallSystem"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -62,7 +55,7 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="VH0-gt-3aL">
-                    <rect key="frame" x="16" y="18" width="78" height="14"/>
+                    <rect key="frame" x="29" y="18" width="78" height="14"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Stack pointer:" id="Z2U-2q-JHC">
                         <font key="font" metaFont="smallSystem"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
@@ -70,120 +63,56 @@
                     </textFieldCell>
                 </textField>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ph4-W0-u2R">
-                    <rect key="frame" x="-2" y="0.0" width="96" height="14"/>
+                    <rect key="frame" x="11" y="0.0" width="96" height="14"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Program counter:" id="d4v-6d-P6H">
                         <font key="font" metaFont="smallSystem"/>
                         <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="xCA-lH-kJF" userLabel="Accumulator value">
-                    <rect key="frame" x="98" y="98" width="18" height="13"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="xCA-lH-kJF" userLabel="Accumulator value" customClass="DebuggerValueLabel" customModule="Atari2600" customModuleProvider="target">
+                    <rect key="frame" x="111" y="98" width="18" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="9a" id="Waa-8j-zCm">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mJJ-uM-LKe" userLabel="Index X value">
-                    <rect key="frame" x="98" y="80" width="18" height="13"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mJJ-uM-LKe" userLabel="Index X value" customClass="DebuggerValueLabel" customModule="Atari2600" customModuleProvider="target">
+                    <rect key="frame" x="111" y="80" width="18" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="c7" id="UiB-Nf-rKp">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="BQ3-Sw-eBa" userLabel="Index Y value">
-                    <rect key="frame" x="98" y="62" width="18" height="13"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="BQ3-Sw-eBa" userLabel="Index Y value" customClass="DebuggerValueLabel" customModule="Atari2600" customModuleProvider="target">
+                    <rect key="frame" x="111" y="62" width="18" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="03" id="bJI-sc-dyK">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mJu-te-3Pq" userLabel="Stack pointer value">
-                    <rect key="frame" x="98" y="18" width="18" height="13"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="mJu-te-3Pq" userLabel="Stack pointer value" customClass="DebuggerValueLabel" customModule="Atari2600" customModuleProvider="target">
+                    <rect key="frame" x="111" y="18" width="18" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="5b" id="sCS-iQ-dmn">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="9Ye-al-qAG" userLabel="Program counter value">
-                    <rect key="frame" x="98" y="0.0" width="38" height="13"/>
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="9Ye-al-qAG" userLabel="Program counter value" customClass="DebuggerValueLabel" customModule="Atari2600" customModuleProvider="target">
+                    <rect key="frame" x="111" y="0.0" width="38" height="13"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="$3f8d" id="X97-Oi-4E2">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                     </textFieldCell>
                 </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="LFP-sM-lN3">
-                    <rect key="frame" x="98" y="40" width="11" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="N" id="sQ4-Lp-VnY">
-                        <font key="font" size="11" name="SFMono-Regular"/>
-                        <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nXC-ky-4Rs">
-                    <rect key="frame" x="113" y="40" width="11" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="V" id="lFv-Ei-OZ2">
-                        <font key="font" size="11" name="SFMono-Regular"/>
-                        <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="rqO-Mw-Vyp">
-                    <rect key="frame" x="144" y="40" width="11" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="B" id="i9H-5R-YmT">
-                        <font key="font" size="11" name="SFMono-Regular"/>
-                        <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="JmK-df-2jj">
-                    <rect key="frame" x="159" y="40" width="11" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="D" id="QJz-4v-MsV">
-                        <font key="font" size="11" name="SFMono-Regular"/>
-                        <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="hYz-Ui-iF7">
-                    <rect key="frame" x="174" y="40" width="11" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="I" id="ESH-B1-4NO">
-                        <font key="font" size="11" name="SFMono-Regular"/>
-                        <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="jgb-sy-hbm">
-                    <rect key="frame" x="189" y="40" width="11" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="Z" id="M21-Od-2LD">
-                        <font key="font" size="11" name="SFMono-Regular"/>
-                        <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Pc5-iC-1U5">
-                    <rect key="frame" x="204" y="40" width="11" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="C" id="x3m-VJ-08D">
-                        <font key="font" size="11" name="SFMono-Regular"/>
-                        <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gdz-lt-oRA">
-                    <rect key="frame" x="51" y="120" width="43" height="14"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="Cycles:" id="AyD-G5-ssi">
-                        <font key="font" metaFont="smallSystem"/>
-                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                    </textFieldCell>
-                </textField>
-                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="0KS-Pf-1mT" userLabel="Accumulator value">
-                    <rect key="frame" x="98" y="120" width="11" height="13"/>
-                    <textFieldCell key="cell" lineBreakMode="clipping" title="0" id="hhv-SN-Szs">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="LFP-sM-lN3" customClass="DebuggerValueLabel" customModule="Atari2600" customModuleProvider="target">
+                    <rect key="frame" x="111" y="40" width="106" height="13"/>
+                    <textFieldCell key="cell" lineBreakMode="clipping" title="N V   B D I Z C" id="sQ4-Lp-VnY">
                         <font key="font" size="11" name="SFMono-Regular"/>
                         <color key="textColor" name="disabledControlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -191,62 +120,46 @@
                 </textField>
             </subviews>
             <constraints>
-                <constraint firstItem="hYz-Ui-iF7" firstAttribute="leading" secondItem="JmK-df-2jj" secondAttribute="trailing" constant="8" id="2Vv-nt-Yfm"/>
-                <constraint firstItem="gdz-lt-oRA" firstAttribute="trailing" secondItem="X1L-4C-zxs" secondAttribute="trailing" id="2gr-oX-YpJ"/>
-                <constraint firstItem="JmK-df-2jj" firstAttribute="leading" secondItem="rqO-Mw-Vyp" secondAttribute="trailing" constant="8" id="2wA-a6-vfW"/>
-                <constraint firstItem="X1L-4C-zxs" firstAttribute="top" secondItem="gdz-lt-oRA" secondAttribute="bottom" constant="8" symbolic="YES" id="34Z-Pv-Ia9"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="LFP-sM-lN3" secondAttribute="trailing" id="3I7-tZ-9gr"/>
                 <constraint firstItem="mJu-te-3Pq" firstAttribute="leading" secondItem="VH0-gt-3aL" secondAttribute="trailing" constant="8" symbolic="YES" id="3Wc-sK-e6a"/>
                 <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="xCA-lH-kJF" secondAttribute="trailing" id="3l5-SF-LRg"/>
-                <constraint firstItem="rqO-Mw-Vyp" firstAttribute="leading" secondItem="nXC-ky-4Rs" secondAttribute="trailing" constant="24" id="64M-jm-E4m"/>
                 <constraint firstItem="xCA-lH-kJF" firstAttribute="leading" secondItem="X1L-4C-zxs" secondAttribute="trailing" constant="8" symbolic="YES" id="6Fl-Vz-6nv"/>
                 <constraint firstItem="ZIk-pS-Gye" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="337-OA-EOy" secondAttribute="leading" id="8LJ-Bj-BoD"/>
-                <constraint firstItem="LFP-sM-lN3" firstAttribute="firstBaseline" secondItem="nXC-ky-4Rs" secondAttribute="firstBaseline" id="8w1-tR-JmC"/>
                 <constraint firstItem="ha8-ya-cxZ" firstAttribute="trailing" secondItem="X1L-4C-zxs" secondAttribute="trailing" id="Bzv-9K-CIW"/>
                 <constraint firstItem="aK1-vd-Khn" firstAttribute="trailing" secondItem="X1L-4C-zxs" secondAttribute="trailing" id="CLP-Ou-UPi"/>
-                <constraint firstItem="LFP-sM-lN3" firstAttribute="firstBaseline" secondItem="JmK-df-2jj" secondAttribute="firstBaseline" id="DkD-bD-tYq"/>
                 <constraint firstItem="BQ3-Sw-eBa" firstAttribute="leading" secondItem="ha8-ya-cxZ" secondAttribute="trailing" constant="8" symbolic="YES" id="E9O-Rs-bde"/>
-                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="0KS-Pf-1mT" secondAttribute="trailing" id="GpS-y7-aeZ"/>
+                <constraint firstAttribute="trailing" secondItem="X1L-4C-zxs" secondAttribute="trailing" constant="121" id="ESi-Ln-daI"/>
                 <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="mJJ-uM-LKe" secondAttribute="trailing" id="I4n-tO-Mcm"/>
+                <constraint firstItem="xCA-lH-kJF" firstAttribute="leading" secondItem="337-OA-EOy" secondAttribute="centerX" id="Ikw-Ls-gxf"/>
                 <constraint firstItem="aK1-vd-Khn" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="337-OA-EOy" secondAttribute="leading" id="Jtl-0B-fgu"/>
                 <constraint firstItem="ha8-ya-cxZ" firstAttribute="firstBaseline" secondItem="BQ3-Sw-eBa" secondAttribute="firstBaseline" id="KOu-5A-FLW"/>
                 <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="BQ3-Sw-eBa" secondAttribute="trailing" id="L0c-Nt-AiQ"/>
-                <constraint firstItem="gdz-lt-oRA" firstAttribute="firstBaseline" secondItem="0KS-Pf-1mT" secondAttribute="firstBaseline" id="N89-EK-Keb"/>
                 <constraint firstItem="ha8-ya-cxZ" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="337-OA-EOy" secondAttribute="leading" id="Nzh-es-Br5"/>
-                <constraint firstItem="0KS-Pf-1mT" firstAttribute="leading" secondItem="gdz-lt-oRA" secondAttribute="trailing" constant="8" symbolic="YES" id="Oum-1a-psi"/>
-                <constraint firstItem="gdz-lt-oRA" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="337-OA-EOy" secondAttribute="leading" id="Q0g-6c-jZY"/>
                 <constraint firstItem="Ph4-W0-u2R" firstAttribute="trailing" secondItem="X1L-4C-zxs" secondAttribute="trailing" id="QPV-y6-46N"/>
                 <constraint firstItem="ha8-ya-cxZ" firstAttribute="top" secondItem="aK1-vd-Khn" secondAttribute="bottom" constant="4" id="Qc3-3r-J3s"/>
                 <constraint firstItem="VH0-gt-3aL" firstAttribute="firstBaseline" secondItem="mJu-te-3Pq" secondAttribute="firstBaseline" id="QtQ-EI-UGU"/>
                 <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="9Ye-al-qAG" secondAttribute="trailing" id="Qwk-mi-ZQK"/>
-                <constraint firstItem="gdz-lt-oRA" firstAttribute="top" secondItem="337-OA-EOy" secondAttribute="top" id="Rew-UW-bBN"/>
                 <constraint firstItem="aK1-vd-Khn" firstAttribute="firstBaseline" secondItem="mJJ-uM-LKe" secondAttribute="firstBaseline" id="SUG-MC-oSS"/>
                 <constraint firstItem="X1L-4C-zxs" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="337-OA-EOy" secondAttribute="leading" id="V6h-gk-K3C"/>
                 <constraint firstItem="ZIk-pS-Gye" firstAttribute="firstBaseline" secondItem="LFP-sM-lN3" secondAttribute="firstBaseline" id="VK5-oy-up6"/>
-                <constraint firstAttribute="trailing" secondItem="Pc5-iC-1U5" secondAttribute="trailing" id="Wuc-tm-Lgz"/>
-                <constraint firstItem="Pc5-iC-1U5" firstAttribute="leading" secondItem="jgb-sy-hbm" secondAttribute="trailing" constant="8" id="WwZ-YT-vJB"/>
-                <constraint firstItem="LFP-sM-lN3" firstAttribute="firstBaseline" secondItem="rqO-Mw-Vyp" secondAttribute="firstBaseline" id="Y83-Lh-0nE"/>
                 <constraint firstItem="ZIk-pS-Gye" firstAttribute="top" secondItem="ha8-ya-cxZ" secondAttribute="bottom" constant="8" symbolic="YES" id="Yg9-mW-We0"/>
                 <constraint firstItem="Ph4-W0-u2R" firstAttribute="top" secondItem="VH0-gt-3aL" secondAttribute="bottom" constant="4" id="aCX-AP-j8r"/>
                 <constraint firstItem="VH0-gt-3aL" firstAttribute="trailing" secondItem="X1L-4C-zxs" secondAttribute="trailing" id="cO1-oL-x4U"/>
-                <constraint firstItem="jgb-sy-hbm" firstAttribute="leading" secondItem="hYz-Ui-iF7" secondAttribute="trailing" constant="8" id="dO6-GM-3Za"/>
                 <constraint firstItem="mJJ-uM-LKe" firstAttribute="leading" secondItem="aK1-vd-Khn" secondAttribute="trailing" constant="8" symbolic="YES" id="gOi-y6-Dto"/>
                 <constraint firstItem="aK1-vd-Khn" firstAttribute="top" secondItem="X1L-4C-zxs" secondAttribute="bottom" constant="4" id="gbP-fi-ZBg"/>
                 <constraint firstItem="VH0-gt-3aL" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="337-OA-EOy" secondAttribute="leading" id="gqL-fd-Cf4"/>
-                <constraint firstItem="Ph4-W0-u2R" firstAttribute="leading" secondItem="337-OA-EOy" secondAttribute="leading" id="hL4-aJ-C68"/>
+                <constraint firstItem="Ph4-W0-u2R" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="337-OA-EOy" secondAttribute="leading" id="hL4-aJ-C68"/>
                 <constraint firstItem="Ph4-W0-u2R" firstAttribute="firstBaseline" secondItem="9Ye-al-qAG" secondAttribute="firstBaseline" id="htI-Kj-SXk"/>
                 <constraint firstAttribute="bottom" secondItem="Ph4-W0-u2R" secondAttribute="bottom" id="jT7-1s-fbc"/>
-                <constraint firstItem="nXC-ky-4Rs" firstAttribute="leading" secondItem="LFP-sM-lN3" secondAttribute="trailing" constant="8" id="kWT-kc-Gk6"/>
                 <constraint firstItem="LFP-sM-lN3" firstAttribute="leading" secondItem="ZIk-pS-Gye" secondAttribute="trailing" constant="8" symbolic="YES" id="mJr-ny-z1s"/>
-                <constraint firstItem="LFP-sM-lN3" firstAttribute="firstBaseline" secondItem="jgb-sy-hbm" secondAttribute="firstBaseline" id="oBT-2E-xmh"/>
                 <constraint firstItem="VH0-gt-3aL" firstAttribute="top" secondItem="ZIk-pS-Gye" secondAttribute="bottom" constant="8" symbolic="YES" id="pMK-Kb-poM"/>
-                <constraint firstItem="LFP-sM-lN3" firstAttribute="firstBaseline" secondItem="hYz-Ui-iF7" secondAttribute="firstBaseline" id="q40-yF-e98"/>
                 <constraint firstItem="9Ye-al-qAG" firstAttribute="leading" secondItem="Ph4-W0-u2R" secondAttribute="trailing" constant="8" symbolic="YES" id="qbt-A5-o8t"/>
+                <constraint firstItem="X1L-4C-zxs" firstAttribute="top" secondItem="337-OA-EOy" secondAttribute="top" id="s2J-Ay-yxs"/>
                 <constraint firstItem="X1L-4C-zxs" firstAttribute="firstBaseline" secondItem="xCA-lH-kJF" secondAttribute="firstBaseline" id="tDT-q2-OLM"/>
                 <constraint firstItem="ZIk-pS-Gye" firstAttribute="trailing" secondItem="X1L-4C-zxs" secondAttribute="trailing" id="vR4-dU-V2S"/>
-                <constraint firstItem="LFP-sM-lN3" firstAttribute="firstBaseline" secondItem="Pc5-iC-1U5" secondAttribute="firstBaseline" id="wov-aL-XKc"/>
                 <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="mJu-te-3Pq" secondAttribute="trailing" id="zsa-re-5FW"/>
             </constraints>
-            <point key="canvasLocation" x="67.5" y="-52.5"/>
+            <point key="canvasLocation" x="67.5" y="-89"/>
         </customView>
     </objects>
 </document>

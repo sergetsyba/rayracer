@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9502E5972A423296007A32DA /* Assembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9502E5962A423296007A32DA /* Assembly.swift */; };
+		9502E5972A423296007A32DA /* MOS6507+Assembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9502E5962A423296007A32DA /* MOS6507+Assembly.swift */; };
 		950641DD2A39C4B700938403 /* AssemblyAddressCellView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 950641DC2A39C4B700938403 /* AssemblyAddressCellView.xib */; };
 		950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641DE2A39C4E700938403 /* AssemblyAddressCellView.swift */; };
 		950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641E22A39CDAB00938403 /* BreakpointToggle.swift */; };
@@ -15,7 +15,7 @@
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
 		953D92AA2A1AEB7400EC52AC /* Atari2600Kit.h in Headers */ = {isa = PBXBuildFile; fileRef = 953D92A92A1AEB7400EC52AC /* Atari2600Kit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92AE2A1AEB8300EC52AC /* Console.swift */; };
-		953D92B12A1AEB9E00EC52AC /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92B02A1AEB9E00EC52AC /* CPU.swift */; };
+		953D92B12A1AEB9E00EC52AC /* MOS6507.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92B02A1AEB9E00EC52AC /* MOS6507.swift */; };
 		95468AB12A5B09E90094A2D0 /* DebuggerValueLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95468AB02A5B09E90094A2D0 /* DebuggerValueLabel.swift */; };
 		954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18662A1AEE5800EBC582 /* AppDelegate.swift */; };
 		954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 954A18682A1AEE5A00EBC582 /* Assets.xcassets */; };
@@ -24,13 +24,14 @@
 		955619FF2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955619FE2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift */; };
 		95561A012A3C9048002CF4F5 /* AssemblyDataCellView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95561A002A3C9048002CF4F5 /* AssemblyDataCellView.xib */; };
 		9579CF7B2A3718D200D3EC01 /* MemoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */; };
-		9579CF7D2A37197800D3EC01 /* MemoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9579CF7C2A37197800D3EC01 /* MemoryView.xib */; };
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
 		958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958691B12A4FF61D00C727C0 /* MOS6532.swift */; };
 		9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9595FE912A4E02FE00F6F857 /* TIA.swift */; };
 		9597B00E2A46CBB80088822B /* Atari2600Kit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* Atari2600Kit.framework */; };
 		9597B0152A46CBC50088822B /* CPUTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9597B0142A46CBC50088822B /* CPUTests.swift */; };
 		959E142B2A574F9C006FCFF3 /* TimerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959E142A2A574F9C006FCFF3 /* TimerViewController.swift */; };
+		95A0AA5B2A6990BD003AC9D4 /* MemoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A0AA5A2A6990BD003AC9D4 /* MemoryView.xib */; };
+		95A0AA5D2A699CFE003AC9D4 /* TimerView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A0AA5C2A699CFE003AC9D4 /* TimerView.xib */; };
 		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
@@ -40,6 +41,7 @@
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95CE639E2A333383007BD72B /* CPUViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CE639D2A333383007BD72B /* CPUViewController.swift */; };
 		95CE63A02A3333BC007BD72B /* CPUView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95CE639F2A3333BC007BD72B /* CPUView.xib */; };
+		95DA0DF72A64481200B28D0B /* ScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95DA0DF62A64481200B28D0B /* ScreenView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,7 +62,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9502E5962A423296007A32DA /* Assembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assembly.swift; sourceTree = "<group>"; };
+		9502E5962A423296007A32DA /* MOS6507+Assembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MOS6507+Assembly.swift"; sourceTree = "<group>"; };
 		950641DC2A39C4B700938403 /* AssemblyAddressCellView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyAddressCellView.xib; sourceTree = "<group>"; };
 		950641DE2A39C4E700938403 /* AssemblyAddressCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyAddressCellView.swift; sourceTree = "<group>"; };
 		950641E22A39CDAB00938403 /* BreakpointToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakpointToggle.swift; sourceTree = "<group>"; };
@@ -69,7 +71,7 @@
 		953D92A72A1AEB7400EC52AC /* Atari2600Kit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Atari2600Kit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		953D92A92A1AEB7400EC52AC /* Atari2600Kit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Atari2600Kit.h; sourceTree = "<group>"; };
 		953D92AE2A1AEB8300EC52AC /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
-		953D92B02A1AEB9E00EC52AC /* CPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPU.swift; sourceTree = "<group>"; };
+		953D92B02A1AEB9E00EC52AC /* MOS6507.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6507.swift; sourceTree = "<group>"; };
 		95468AB02A5B09E90094A2D0 /* DebuggerValueLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerValueLabel.swift; sourceTree = "<group>"; };
 		954A18642A1AEE5800EBC582 /* Atari2600.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atari2600.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		954A18662A1AEE5800EBC582 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -80,13 +82,14 @@
 		955619FE2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyDataCellView.swift; sourceTree = "<group>"; };
 		95561A002A3C9048002CF4F5 /* AssemblyDataCellView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyDataCellView.xib; sourceTree = "<group>"; };
 		9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryViewController.swift; sourceTree = "<group>"; };
-		9579CF7C2A37197800D3EC01 /* MemoryView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MemoryView.xib; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
 		958691B12A4FF61D00C727C0 /* MOS6532.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6532.swift; sourceTree = "<group>"; };
 		9595FE912A4E02FE00F6F857 /* TIA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TIA.swift; sourceTree = "<group>"; };
 		9597B00A2A46CBB80088822B /* Atari2600KitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Atari2600KitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9597B0142A46CBC50088822B /* CPUTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUTests.swift; sourceTree = "<group>"; };
 		959E142A2A574F9C006FCFF3 /* TimerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerViewController.swift; sourceTree = "<group>"; };
+		95A0AA5A2A6990BD003AC9D4 /* MemoryView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MemoryView.xib; sourceTree = "<group>"; };
+		95A0AA5C2A699CFE003AC9D4 /* TimerView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TimerView.xib; sourceTree = "<group>"; };
 		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
 		95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindowController.swift; sourceTree = "<group>"; };
 		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
@@ -96,6 +99,7 @@
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 		95CE639D2A333383007BD72B /* CPUViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUViewController.swift; sourceTree = "<group>"; };
 		95CE639F2A3333BC007BD72B /* CPUView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CPUView.xib; sourceTree = "<group>"; };
+		95DA0DF62A64481200B28D0B /* ScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,10 +154,10 @@
 			children = (
 				953D92A92A1AEB7400EC52AC /* Atari2600Kit.h */,
 				953D92AE2A1AEB8300EC52AC /* Console.swift */,
-				953D92B02A1AEB9E00EC52AC /* CPU.swift */,
-				9502E5962A423296007A32DA /* Assembly.swift */,
-				9595FE912A4E02FE00F6F857 /* TIA.swift */,
+				953D92B02A1AEB9E00EC52AC /* MOS6507.swift */,
+				9502E5962A423296007A32DA /* MOS6507+Assembly.swift */,
 				958691B12A4FF61D00C727C0 /* MOS6532.swift */,
+				9595FE912A4E02FE00F6F857 /* TIA.swift */,
 			);
 			path = Atari2600Kit;
 			sourceTree = "<group>";
@@ -168,6 +172,7 @@
 				954A186A2A1AEE5A00EBC582 /* Main.xib */,
 				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
 				95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */,
+				95DA0DF62A64481200B28D0B /* ScreenView.swift */,
 			);
 			path = Atari2600;
 			sourceTree = "<group>";
@@ -193,16 +198,17 @@
 				950641E22A39CDAB00938403 /* BreakpointToggle.swift */,
 				95CE639F2A3333BC007BD72B /* CPUView.xib */,
 				95CE639D2A333383007BD72B /* CPUViewController.swift */,
+				95468AB02A5B09E90094A2D0 /* DebuggerValueLabel.swift */,
 				95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */,
 				95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */,
-				9579CF7C2A37197800D3EC01 /* MemoryView.xib */,
+				951CC4FD2A58723300537CD1 /* FormView.swift */,
+				95A0AA5A2A6990BD003AC9D4 /* MemoryView.xib */,
 				9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */,
 				955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */,
 				957A12882A3F4517002163C1 /* NSView+ContentView.swift */,
+				95A0AA5C2A699CFE003AC9D4 /* TimerView.xib */,
 				959E142A2A574F9C006FCFF3 /* TimerViewController.swift */,
 				9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */,
-				951CC4FD2A58723300537CD1 /* FormView.swift */,
-				95468AB02A5B09E90094A2D0 /* DebuggerValueLabel.swift */,
 			);
 			path = Debugger;
 			sourceTree = "<group>";
@@ -336,15 +342,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				95A0AA5D2A699CFE003AC9D4 /* TimerView.xib in Resources */,
 				95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */,
 				95CE63A02A3333BC007BD72B /* CPUView.xib in Resources */,
 				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
 				95561A012A3C9048002CF4F5 /* AssemblyDataCellView.xib in Resources */,
 				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
 				95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */,
+				95A0AA5B2A6990BD003AC9D4 /* MemoryView.xib in Resources */,
 				950641DD2A39C4B700938403 /* AssemblyAddressCellView.xib in Resources */,
 				954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */,
-				9579CF7D2A37197800D3EC01 /* MemoryView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -362,8 +369,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9502E5972A423296007A32DA /* Assembly.swift in Sources */,
-				953D92B12A1AEB9E00EC52AC /* CPU.swift in Sources */,
+				9502E5972A423296007A32DA /* MOS6507+Assembly.swift in Sources */,
+				953D92B12A1AEB9E00EC52AC /* MOS6507.swift in Sources */,
 				9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */,
 				953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */,
 				958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */,
@@ -380,6 +387,7 @@
 				957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */,
 				950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */,
 				955619FF2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift in Sources */,
+				95DA0DF72A64481200B28D0B /* ScreenView.swift in Sources */,
 				950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */,
 				95468AB12A5B09E90094A2D0 /* DebuggerValueLabel.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,

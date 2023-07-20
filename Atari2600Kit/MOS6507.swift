@@ -1,69 +1,25 @@
 //
-//  CPU.swift
+//  MOS6507.swift
 //  Atari2600Kit
 //
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
-import Combine
-
 public class MOS6507 {
-	private let eventSubject = PassthroughSubject<Event, Never>()
 	private var operations: [Int: Operation] = [:]
 	
-	@Published internal(set)
-	public var cycles: Int = 0
+	private(set) public var accumulator: Int
+	private(set) public var x: Int
+	private(set) public var y: Int
+	private(set) public var status: Status
+	private(set) public var stackPointer: Int
+	private(set) public var programCounter: Address
 	
-	@Published private(set)
-	public var accumulator: Int {
-		didSet {
-			assert((0x00...0xff).contains(self.accumulator), String(
-				format: "accumulator overflow: %02x", self.accumulator))
-		}
-	}
-	@Published private(set)
-	public var x: Int {
-		didSet {
-			assert((0x00...0xff).contains(self.x), String(
-				format: "x index overflow: %02x", self.x))
-		}
-	}
-	@Published private(set)
-	public var y: Int {
-		didSet {
-			assert((0x00...0xff).contains(self.y), String(
-				format: "y index overflow: %02x", self.y))
-		}
-	}
-	@Published private(set)
-	public var status: Status
-	
-	@Published private(set)
-	public var stackPointer: Int {
-		didSet {
-			assert((0x00...0xff).contains(self.stackPointer), String(
-				format: "stack pointer overflow: %02x", self.stackPointer))
-		}
-	}
-	@Published private(set)
-	public var programCounter: Address {
-		didSet {
-			if self.programCounter == 0x1b00 {
-				print(String(format: "$%04x", self.programCounter))
-			}
-			
-			
-			assert((0x0000...0xffff).contains(self.programCounter), String(
-				format: "program counter overflow: %02x", self.programCounter))
-		}
-	}
-	
-	var bus: Bus!
+	private var bus: Bus
 	var ready: Bool = true
+	var cachedOperation: (() -> Void)? = nil
 	
-	var cachedOperation: (() -> Void)?
-	
-	public init() {
+	public init(bus: any Bus) {
 		self.accumulator = .randomWord
 		self.x = .randomWord
 		self.y = .randomWord
@@ -71,19 +27,16 @@ public class MOS6507 {
 		
 		self.stackPointer = .randomWord
 		self.programCounter = .randomAddress
+		self.bus = bus
 	}
 	
 	/// Resets this CPU.
 	public func reset() {
-		self.eventSubject.send(.reset)
 		self.status.interruptDisabled = true
 		
 		self.programCounter = Address(
 			low: self.bus.read(at: 0xfffe),
 			high: self.bus.read(at: 0xfffd))
-		
-		// TODO: reset takes 7 cycles
-		self.cycles = 0
 	}
 	
 	/// Executes program instructions until it reaches one at any of the sepcified addresses.
@@ -118,7 +71,6 @@ public extension MOS6507 {
 	/// Executes the next instruction in the program.
 	func executeNextInstruction() {
 		if let operation = self.cachedOperation {
-			self.eventSubject.send(.sync)
 			operation()
 		}
 	}
@@ -932,13 +884,13 @@ private extension MOS6507 {
 // MARK: Type definitions
 public extension MOS6507 {
 	class Status: RawRepresentable {
-		@Published fileprivate(set) public var carry: Bool
-		@Published fileprivate(set) public var zero: Bool
-		@Published fileprivate(set) public var interruptDisabled: Bool
-		@Published fileprivate(set) public var decimalMode: Bool
-		@Published fileprivate(set) public var `break`: Bool
-		@Published fileprivate(set) public var overflow: Bool
-		@Published fileprivate(set) public var negative: Bool
+		public var carry: Bool
+		public var zero: Bool
+		public var interruptDisabled: Bool
+		public var decimalMode: Bool
+		public var `break`: Bool
+		public var overflow: Bool
+		public var negative: Bool
 		
 		required init() {
 			self.carry = false
@@ -976,20 +928,6 @@ public extension MOS6507 {
 		static var random: Self {
 			return .init(rawValue: .randomWord)!
 		}
-	}
-}
-
-
-// MARK: -
-// MARK: Event management
-public extension MOS6507 {
-	enum Event {
-		case reset
-		case sync
-	}
-	
-	var events: some Publisher<Event, Never> {
-		return self.eventSubject
 	}
 }
 

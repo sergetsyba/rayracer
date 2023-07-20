@@ -5,10 +5,7 @@
 //  Created by Serge Tsyba on 1.7.2023.
 //
 
-import Combine
-
 public class MOS6532 {
-	private var eventSubject = PassthroughSubject<Event, Never>()
 	internal(set) public var memory: Data
 	
 	private(set) public var remainingTimerCycles: Int
@@ -20,6 +17,11 @@ public class MOS6532 {
 		
 		self.remainingTimerCycles = .randomWord
 		self.intervalIncrement = .random(of: [1, 8, 64, 1024])
+		self.isTimerOn = false
+	}
+	
+	// Resets internal state.
+	func reset() {
 		self.isTimerOn = false
 	}
 	
@@ -35,20 +37,6 @@ public class MOS6532 {
 				self.isTimerOn = false
 			}
 		}
-	}
-}
-
-
-// MARK: -
-// MARK: Event management
-public extension MOS6532 {
-	enum Event {
-		case readMemory(Address)
-		case writeMemoty(Address)
-	}
-	
-	var events: some Publisher<Event, Never> {
-		return self.eventSubject
 	}
 }
 
@@ -93,8 +81,6 @@ extension MOS6532: Bus {
 		default:
 			break
 		}
-		
-		self.eventSubject.send(.writeMemoty(address))
 	}
 }
 
@@ -103,7 +89,7 @@ extension MOS6532: Bus {
 // MARK: Convenience functionality
 private extension UInt8 {
 	static var random: Self {
-		return Self.random(in: 0...255)
+		return Self.random(in: 1...255)
 	}
 }
 

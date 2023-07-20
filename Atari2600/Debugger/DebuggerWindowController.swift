@@ -75,21 +75,31 @@ private extension DebuggerWindowController {
 // MARK: UI updates
 private extension DebuggerWindowController {
 	func setUpSinks() {
-		self.console.$cartridge
-			.receive(on: DispatchQueue.main)
-			.sink() { [unowned self] data in
-				let inserted = data != nil
-				self.toolbar[.stepItem]?.isEnabled = inserted
-				self.toolbar[.resumeItem]?.isEnabled = inserted
-				self.toolbar[.resetItem]?.isEnabled = inserted
-			}.store(in: &self.cancellables)
+		self.cancellables.insert(
+			self.console.events
+				.receive(on: DispatchQueue.main)
+				.sink() { [unowned self] in
+					switch $0 {
+					case .reset:
+						self.updateToolbarItems()
+					}
+				})
 		
-		// NOTE: delay lets toolbar item to get deselected
-		self.assemblyViewController.$breakpoints
-			.delay(for: 0.01, scheduler: RunLoop.current)
-			.sink() { [unowned self] in
-				self.updateBreakpointsToolbarItemMenu(breakpoints: $0)
-			}.store(in: &self.cancellables)
+		self.cancellables.insert(
+			// NOTE: delay lets toolbar item to get deselected
+			self.assemblyViewController.$breakpoints
+				.delay(for: 0.01, scheduler: RunLoop.current)
+				.sink() { [unowned self] in
+					self.updateBreakpointsToolbarItemMenu(breakpoints: $0)
+				}
+		)
+	}
+	
+	func updateToolbarItems() {
+		let cartridgeInserted = self.console.cartridge != nil
+		self.toolbar[.stepItem]?.isEnabled = cartridgeInserted
+		self.toolbar[.resumeItem]?.isEnabled = cartridgeInserted
+		self.toolbar[.resetItem]?.isEnabled = cartridgeInserted
 	}
 	
 	func updateBreakpointsToolbarItemMenu(breakpoints: [Address]) {

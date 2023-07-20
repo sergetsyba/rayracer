@@ -76,7 +76,7 @@ import CoreText
 	override func prepareForInterfaceBuilder() {
 		self.title = "$0a4c"
 		self.isOn = true
-		self.font = .regular
+		self.font = .monospacedRegular
 	}
 }
 

@@ -5,28 +5,46 @@
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
+import Combine
+
 public class Atari2600: ObservableObject {
-	private(set) public var cpu: MOS6507
-	private(set) public var riot: MOS6532
-	private(set) public var tia: TIA
+	private var eventSubject = PassthroughSubject<Event, Never>()
+	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
 	
-	@Published
-	public var cartridge: Data? = nil
+	private(set) public var cpu: MOS6507!
+	private(set) public var riot: MOS6532!
+	private(set) public var tia: TIA!
+	private(set) public var cartridge: Data? = nil
 	
 	public init() {
-		let cpu = MOS6507()
-		
-		self.cpu = cpu
+		self.cpu = MOS6507(bus: self)
 		self.riot = MOS6532()
-		self.tia = TIA(cpu: cpu)
-		
-		// TODO: move to CPU init
-		self.cpu.bus = self
+		self.tia = TIA(cpu: self.cpu)
 	}
 	
+	// Resets internal state.
+	public func reset() {
+		self.cpu.reset()
+		self.riot.reset()
+		self.eventSubject.send(.reset)
+	}
+	
+	// Loads cartridge data as ROM from a file at the specified URL.
 	public func insertCartridge(fromFileAt url: URL) throws {
 		self.cartridge = try Data(contentsOf: url)
-		self.cpu.reset()
+	}
+}
+
+
+// MARK: -
+// MARK: Events
+public extension Atari2600 {
+	enum Event {
+		case reset
+	}
+	
+	var events: some Publisher<Event, Never> {
+		return self.eventSubject
 	}
 }
 
@@ -34,24 +52,37 @@ public class Atari2600: ObservableObject {
 // MARK: -
 // MARK: Debugging
 public extension Atari2600 {
-	func stepProgram() {
+	enum DebugEvent {
+		case `break`
+		case step
+		case resume
+	}
+	
+	var debugEvents: some Publisher<DebugEvent, Never> {
+		return self.debugEventSubject
+	}
+	
+	func advanceProgram() {
 		if self.tia.wsync {
-			let cycles = self.tia.resumeLine()
-			self.cpu.cycles += cycles / 3
+			self.tia.advanceLine()
 		}
 		
 		let cycles = self.cpu.nextExecutionDuration
-		self.tia.resume(cycles: cycles * 3)
-		self.riot.advanceClock(cycles: cycles)
-		
+		self.tia.advanceClock(cycles: cycles * 3)
+		self.riot.advanceClock(cycles: cycles)		
 		self.cpu.executeNextInstruction()
-		self.cpu.cycles += cycles
+	}
+	
+	func stepProgram() {
+		self.advanceProgram()
+		self.debugEventSubject.send(.break)
 	}
 	
 	func resumeProgram(until breakpoints: [Address]) {
 		repeat {
 			self.stepProgram()
 		} while breakpoints.contains(self.cpu.programCounter) == false
+		self.debugEventSubject.send(.break)
 	}
 }
 
@@ -59,7 +90,7 @@ public extension Atari2600 {
 // MARK: -
 public typealias Address = Int
 
-protocol Bus {
+public protocol Bus {
 	func read(at address: Address) -> Int
 	mutating func write(_ value: Int, at address: Address)
 }
@@ -73,7 +104,18 @@ extension MOS6507: CPU {
 
 // MARK: -
 extension Atari2600: Bus {
-	func read(at address: Address) -> Int {
+	private func unmirror(_ address: Address) -> Address {
+		if (0x0040..<0x0080).contains(address) {
+			return address - 0x40
+		}
+		if (0x5000..<0x6000).contains(address) {
+			return address + 0xa000
+		}
+		return address
+	}
+	
+	public func read(at address: Address) -> Int {
+		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
 			return self.tia.read(at: address)
 		}
@@ -87,18 +129,23 @@ extension Atari2600: Bus {
 			return self.riot.read(at: address)
 		}
 		
-		let address = address - 0xf000
-		let data = self.cartridge![address]
+		let data = self.cartridge![address - 0xf000]
 		return Int(data)
 	}
 	
-	func write(_ data: Int, at address: Address) {
+	public func write(_ data: Int, at address: Address) {
+		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
+			if address == 0x09 {
+				let message = String(format: "$%04x colubk: #%02x", self.cpu.programCounter, data)
+				print(message)
+			}
+			
 			return self.tia.write(data, at: address)
 		}
 		if (0x0080..<0x0100).contains(address) {
 			let address = address - 0x0080
-			self.riot.memory[address] = UInt8(data)
+			return self.riot.memory[address] = UInt8(data)
 		}
 		if (0x0280..<0x0300).contains(address) {
 			let address = address - 0x0280

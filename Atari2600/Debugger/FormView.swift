@@ -14,8 +14,8 @@ class FormView: NSView {
 	private var verticalSpacing: CGFloat = 0.0
 	private let horizontalSpacing: CGFloat = 8.0
 	
-	convenience init(_ entries: [[(String, NSView)]]) {
-		self.init(frame: .zero)
+	init(_ entries: [[(String, NSView)]]) {
+		super.init(frame: .zero)
 		
 		self.verticalAnchor = self.topAnchor
 		self.verticalSpacing = 0.0
@@ -29,6 +29,10 @@ class FormView: NSView {
 	
 	convenience init(_ entries: [(String, NSView)]) {
 		self.init([entries])
+	}
+	
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
 	}
 }
 
@@ -47,6 +51,7 @@ private extension FormView {
 		for (string, view) in entries {
 			let label = NSTextField(labelWithString: string)
 			label.font = self.labelFont
+			label.textColor = .secondaryLabelColor
 			
 			self.addEntry(label, view)
 			self.verticalAnchor = view.bottomAnchor
@@ -61,13 +66,13 @@ private extension FormView {
 		self.addSubview(label)
 		self.addSubview(view)
 		self.addConstraints([
-			label.leadingAnchor.constraint(greaterThanOrEqualTo: self.leadingAnchor),
+			self.leadingAnchor.constraint(lessThanOrEqualTo: label.leadingAnchor),
 			label.trailingAnchor.constraint(equalTo: view.leadingAnchor, constant: -self.horizontalSpacing),
 			label.firstBaselineAnchor.constraint(equalTo: view.firstBaselineAnchor),
 			
-			view.leadingAnchor.constraint(equalTo: self.centerXAnchor),
-			view.topAnchor.constraint(equalTo: self.verticalAnchor, constant: self.verticalSpacing),
-			view.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor)
+			self.centerXAnchor.constraint(equalTo: view.leadingAnchor),
+			self.verticalAnchor.constraint(equalTo: view.topAnchor, constant: -self.verticalSpacing),
+			self.trailingAnchor.constraint(greaterThanOrEqualTo: view.trailingAnchor)
 		])
 	}
 }
