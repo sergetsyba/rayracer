@@ -24,8 +24,9 @@ extension AppDelegate {
 	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
 		if self.console.cartridge == nil {
 			do {
-				let url = URL(filePath: "/Users/Serge/Developer/Проекты/Atari2600/Games/Fantastic Voyage.bin")
+				let url = URL(gameNamed: "Fantastic Voyage")
 				try self.console.insertCartridge(fromFileAt: url)
+				self.console.reset()
 				
 				let controller = ScreenWindowController()
 				controller.window?.title = url.lastPathComponent
@@ -34,19 +35,11 @@ extension AppDelegate {
 			} catch {
 				print(error)
 			}
-			
-		} else {
-			self.console.cartridge = nil
-			for controller in self.windowControllers {
-				if controller is ScreenWindowController {
-					controller.window?.close()
-				}
-			}
 		}
 	}
 	
 	@IBAction func resetGameMenuItemSelected(_ sender: AnyObject) {
-		self.console.cpu.reset()
+		self.console.reset()
 	}
 	
 	@IBAction func resumeMenuItemSelected(_ sender: AnyObject) {
@@ -102,6 +95,22 @@ private extension Set {
 			self.remove(at: index)
 		}
 	}
+}
+
+private extension URL {
+	init(gameNamed name: String) {
+		self = URL(filePath: .projectPath)
+			.appending(path: "Games")
+			.appending(path: "\(name).bin")
+	}
+}
+
+private extension String {
+	static let projectPath: String = {
+		let range = #file.range(of: "Atari2600")
+		let path = #file.prefix(upTo: range!.upperBound)
+		return String(path)
+	}()
 }
 
 extension Atari2600 {
