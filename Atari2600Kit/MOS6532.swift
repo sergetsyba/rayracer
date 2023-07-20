@@ -8,7 +8,6 @@
 import Combine
 
 public class MOS6532 {
-	private var eventSubject = PassthroughSubject<Event, Never>()
 	internal(set) public var memory: Data
 	
 	private(set) public var remainingTimerCycles: Int
@@ -35,20 +34,6 @@ public class MOS6532 {
 				self.isTimerOn = false
 			}
 		}
-	}
-}
-
-
-// MARK: -
-// MARK: Event management
-public extension MOS6532 {
-	enum Event {
-		case readMemory(Address)
-		case writeMemoty(Address)
-	}
-	
-	var events: some Publisher<Event, Never> {
-		return self.eventSubject
 	}
 }
 
@@ -93,8 +78,6 @@ extension MOS6532: Bus {
 		default:
 			break
 		}
-		
-		self.eventSubject.send(.writeMemoty(address))
 	}
 }
 

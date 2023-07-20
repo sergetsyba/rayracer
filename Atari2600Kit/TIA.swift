@@ -13,10 +13,6 @@ protocol CPU {
 }
 
 public class TIA {
-	private let eventSubject = PassthroughSubject<Event, Never>()
-	
-	private var backgroundColor: CGColor?
-	
 	private var cpu: CPU
 	private var cycles = 0
 	
@@ -31,6 +27,9 @@ public class TIA {
 	// Wait for horizontal sync register.
 	var wsync: Bool = false
 	
+	// Background color register
+	var columbk: Int = 0x00
+	
 	/// Reset sync strobe register.
 	/// Writing any value resets color clock to its value at the beginning of the current scanline.
 	var rsync: Bool {
@@ -38,24 +37,31 @@ public class TIA {
 		set { self.cycles -= self.cycles % 228 }
 	}
 	
-	public var events: some Publisher<Event, Never> {
-		return self.eventSubject
-	}
+	public var frame: [CGColor] = []
 	
 	func advanceClock(cycles: Int) {
 		self.cycles += cycles
+		if self.cycles > 228 {
+			self.frame.append(self.backgroundColor)
+			self.cycles %= 228
+			
+			if self.frame.count > 262 {
+				self.frame.removeAll(keepingCapacity: true)
+			}
+		}
 	}
 	
-	func resumeLine() -> Int {
-		let remaining = 228 - (self.cycles % 228)
-		self.cycles += remaining
+	func advanceLine() {
+		let cycles = 228 - (self.cycles % 228)
+		self.advanceClock(cycles: cycles)
 		self.wsync = false
-		
-		return remaining
 	}
-	
-	func resume(cycles: Int) {
-		self.cycles += cycles
+}
+
+private extension TIA {
+	var backgroundColor: CGColor {
+		let components = ntscPalette[self.columbk / 2]
+		return CGColor(red: components[0], green: components[1], blue: components[2], alpha: 1.0)
 	}
 }
 
@@ -69,21 +75,11 @@ extension TIA: Bus {
 	func write(_ data: Int, at address: Address) {
 		switch address {
 		case 0x02:
-			// wsync
 			self.wsync = true
 		case 0x03:
-			// rsync
 			self.rsync = true
-			
 		case 0x09:
-			// columbk
-			let components = ntscPalette[(data & 0xfe) / 2]
-			self.backgroundColor = CGColor(
-				red: components[0] / 0xff,
-				green: components[1] / 0xff,
-				blue: components[2] / 0xff,
-				alpha: 1.0)
-			
+			self.columbk = data & 0xfe
 		default:
 			break
 		}
@@ -116,11 +112,6 @@ extension Int {
 	static let frameSize = 262 * 228
 }
 
-extension TIA {
-	public enum Event {
-		case drawFrame(Data)
-	}
-}
 
 
 // MARK: -

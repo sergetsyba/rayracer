@@ -8,15 +8,13 @@
 import Combine
 
 public class Atari2600: ObservableObject {
-	private(set) public var cpu: MOS6507
-	private(set) public var riot: MOS6532
-	private(set) public var tia: TIA
-	
 	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
 	private var eventSubject = PassthroughSubject<Event, Never>()
 	
-	@Published
-	public var cartridge: Data? = nil
+	private(set) public var cpu: MOS6507
+	private(set) public var riot: MOS6532
+	private(set) public var tia: TIA
+	private(set) public var cartridge: Data? = nil
 	
 	public init() {
 		let cpu = MOS6507()
@@ -70,10 +68,8 @@ public extension Atari2600 {
 		
 		let cycles = self.cpu.nextExecutionDuration
 		self.tia.advanceClock(cycles: cycles * 3)
-		self.riot.advanceClock(cycles: cycles)
-		
+		self.riot.advanceClock(cycles: cycles)		
 		self.cpu.executeNextInstruction()
-		self.cpu.cycles += cycles
 	}
 	
 	func stepProgram() {
