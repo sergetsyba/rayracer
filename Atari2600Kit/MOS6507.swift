@@ -618,7 +618,7 @@ private extension MOS6507 {
 			// MARK: ORA
 			return ({ [unowned self] in
 				let operand = self.bus.read(at: $0)
-				let result = self.accumulator & operand
+				let result = self.accumulator | operand
 				
 				self.accumulator = result
 				self.status.zero = result == 0x00
