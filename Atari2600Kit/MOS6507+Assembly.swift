@@ -1,5 +1,5 @@
 //
-//  Assembly.swift
+//  MOS6507+Assembly.swift
 //  Atari2600Kit
 //
 //  Created by Serge Tsyba on 20.6.2023.

@@ -1,5 +1,5 @@
 //
-//  CPU.swift
+//  MOS6507.swift
 //  Atari2600Kit
 //
 //  Created by Serge Tsyba on 22.5.2023.
