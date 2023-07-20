@@ -8,16 +8,29 @@
 import Cocoa
 
 class DebuggerValueLabel: NSTextField {
-	convenience init() {
-		self.init(labelWithString: "")
-		self.font = .monospacedRegular
+	required init?(coder: NSCoder) {
+		super.init(coder: coder)
 	}
 	
-	override var isEnabled: Bool {
-		didSet {
-			self.textColor = self.isEnabled
-			? .controlTextColor
-			: .disabledControlTextColor
+	override func awakeFromNib() {
+		super.awakeFromNib()
+		self.font = .monospacedRegular
+	}
+}
+
+
+// MARK: -
+// MARK: UI updates
+extension DebuggerValueLabel {
+	func reset(_ value: String) {
+		self.stringValue = value
+		self.textColor = .disabledControlTextColor
+	}
+	
+	func update(_ value: String) {
+		if self.stringValue != value {
+			self.stringValue = value
+			self.textColor = .controlTextColor
 		}
 	}
 }

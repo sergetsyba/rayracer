@@ -61,6 +61,7 @@ class AssemblyViewController: NSViewController {
 		])
 		
 		self.updateTableColumnWidths()
+		self.updateProgramView()
 		self.setUpSinks()
 	}
 }
@@ -69,23 +70,34 @@ class AssemblyViewController: NSViewController {
 // MARK: -
 private extension AssemblyViewController {
 	func setUpSinks() {
-		// TODO: remove delay in showing program after cartridge insert
-		self.console.$cartridge
-			.delay(for: 0.01, scheduler: RunLoop.current)
-			.receive(on: DispatchQueue.main)
-			.sink() { [unowned self] in
-				if let data = $0 {
-					self.program = MOS6507Assembly.disassemble(data)
-				} else {
-					self.program = nil
-				}
-			}.store(in: &self.cancellables)
+		self.cancellables.insert(
+			self.console.events
+				.delay(for: 0.1, scheduler: RunLoop.main)
+				.receive(on: DispatchQueue.main)
+				.sink() { [unowned self] in
+					switch $0 {
+					case .reset:
+						if let data = self.console.cartridge {
+							self.program = MOS6507Assembly.disassemble(data)
+							self.programAddress = self.console.cpu.programCounter
+						} else {
+							self.program = nil
+							self.programAddress = nil
+						}
+					}
+				})
 		
-		self.console.cpu.$programCounter
-			.receive(on: DispatchQueue.main)
-			.sink() { [unowned self] in
-				self.programAddress = $0
-			}.store(in: &self.cancellables)
+		self.cancellables.insert(
+			self.console.debugEvents
+				.receive(on: DispatchQueue.main)
+				.sink() {
+					switch $0 {
+					case .break, .step:
+						self.programAddress = self.console.cpu.programCounter
+					default:
+						self.programAddress = nil
+					}
+				})
 	}
 }
 
@@ -224,11 +236,7 @@ private extension NSUserInterfaceItemIdentifier {
 
 // MARK: -
 // MARK: Data formatting
-extension String {
-	init(address: Int) {
-		self = .init(format: "$%04x", address)
-	}
-	
+private extension String {
 	init(mnemonic: MOS6507Assembly.Mnemonic) {
 		self = "\(mnemonic)"
 	}

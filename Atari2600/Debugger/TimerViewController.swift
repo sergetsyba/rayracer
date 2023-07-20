@@ -10,14 +10,14 @@ import Combine
 import Atari2600Kit
 
 class TimerViewController: NSViewController {
-	private var intervalsLabel = IntervalsLabel()
-	private var cyclesLabel = CyclesLabel()
+	@IBOutlet private var intervalsLabel: DebuggerValueLabel!
+	@IBOutlet private var cyclesLabel: DebuggerValueLabel!
 	
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
 	
 	convenience init() {
-		self.init(nibName: nil, bundle: nil)
+		self.init(nibName: "TimerView", bundle: .main)
 		self.title = "Timer"
 	}
 }
@@ -26,15 +26,9 @@ class TimerViewController: NSViewController {
 // MARK: -
 // MARK: View lifecycle
 extension TimerViewController {
-	override func loadView() {
-		self.view = FormView([
-			("Intervals:", self.intervalsLabel),
-			("Cycles:", self.cyclesLabel)
-		])
-	}
-	
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		self.resetView(self.console.riot)
 		self.setUpSinks()
 	}
 }
@@ -45,74 +39,70 @@ extension TimerViewController {
 private extension TimerViewController {
 	func setUpSinks() {
 		self.cancellables.insert(
-			self.console.cpu.events
+			self.console.events
 				.receive(on: DispatchQueue.main)
-				.sink() { [unowned self] _ in
-					self.updateCyclesLabel()
-					self.updateIntervalsLabel()
+				.sink() { [unowned self] in
+					switch $0 {
+					case .reset:
+						self.resetView(self.console.riot)
+					}
+				})
+		
+		self.cancellables.insert(
+			self.console.debugEvents
+				.receive(on: DispatchQueue.main)
+				.sink() { [unowned self] in
+					switch $0 {
+					case .break, .step:
+						self.updateView(self.console.riot)
+					default:
+						break
+					}
 				})
 	}
 	
-	func updateCyclesLabel() {
-		self.cyclesLabel.isEnabled = self.console.riot.isTimerOn
-		self.cyclesLabel.value = (self.console.riot.remainingTimerCycles, self.console.riot.intervalIncrement)
+	func resetView(_ riot: MOS6532) {
+		self.intervalsLabel.reset(intervals: riot.remainingTimerIntervals)
+		self.cyclesLabel.reset(
+			cycles: riot.remainingTimerCycles,
+			increment: riot.intervalIncrement)
 	}
 	
-	func updateIntervalsLabel() {
-		self.intervalsLabel.isEnabled = self.console.riot.isTimerOn
-		self.intervalsLabel.value = self.console.riot.remainingTimerIntervals
+	func updateView(_ riot: MOS6532) {
+		self.intervalsLabel.update(intervals: riot.remainingTimerIntervals)
+		self.cyclesLabel.update(
+			cycles: riot.remainingTimerCycles,
+			increment: riot.intervalIncrement)
 	}
 }
 
 
 // MARK: -
 // MARK: Convenience functionality
+private extension DebuggerValueLabel {
+	func reset(intervals: Int) {
+		let newValue = String(format: "%d (%+02x)", intervals, intervals)
+		self.reset(newValue)
+	}
+	
+	func reset(cycles: Int, increment: Int) {
+		let newValue = String(format: "%d /%d", cycles, increment)
+		self.reset(newValue)
+	}
+	
+	func update(intervals: Int) {
+		let newValue = String(format: "%d (%+02x)", intervals, intervals)
+		self.update(newValue)
+	}
+	
+	func update(cycles: Int, increment: Int) {
+		let newValue = String(format: "%d /%d", cycles, increment)
+		self.update(newValue)
+	}
+}
+
 private extension MOS6532 {
 	var remainingTimerIntervals: Int {
 		return self.read(at: 0x0c)
-	}
-}
-
-
-// MARK: -
-// MARK: Custom controls
-private class IntervalsLabel: DebuggerValueLabel {
-	var value: Int! {
-		didSet {
-			let hexFormatted = String(format: "%x", self.value)
-			var string1 = AttributedString("\(self.value!)")
-			var string2 = AttributedString(hexFormatted)
-			
-			if self.value != oldValue,
-			   self.isEnabled {
-				string1.font = .monospacedBold
-				string2.font = .monospacedBold
-			}
-			
-			let string = string1 + " (" + string2 + ")"
-			self.attributedStringValue = NSAttributedString(string)
-		}
-	}
-}
-
-private class CyclesLabel: DebuggerValueLabel {
-	var value: (Int, Int)! {
-		didSet {
-			let (cycles, increment) = self.value
-			var string1 = AttributedString("\(cycles)")
-			var string2 = AttributedString("\(increment)")
-			
-			if cycles != oldValue?.0,
-			   self.isEnabled {
-				string1.font = .monospacedBold
-			}
-			if increment != oldValue?.1,
-			   self.isEnabled {
-				string2.font = .monospacedBold
-			}
-			
-			let string = string1 + " /" + string2
-			self.attributedStringValue = NSAttributedString(string)
-		}
 	}
 }
