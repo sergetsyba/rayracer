@@ -17,12 +17,12 @@ public class MOS6507 {
 	private(set) public var stackPointer: Int
 	private(set) public var programCounter: Address
 	
-	var bus: Bus!
+	let bus: Bus
 	var ready: Bool = true
 	
 	var cachedOperation: (() -> Void)?
 	
-	public init() {
+	public init(bus: any Bus) {
 		self.accumulator = .randomWord
 		self.x = .randomWord
 		self.y = .randomWord
@@ -30,6 +30,7 @@ public class MOS6507 {
 		
 		self.stackPointer = .randomWord
 		self.programCounter = .randomAddress
+		self.bus = bus
 	}
 	
 	/// Resets this CPU.

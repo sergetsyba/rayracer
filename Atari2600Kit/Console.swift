@@ -11,20 +11,15 @@ public class Atari2600: ObservableObject {
 	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
 	private var eventSubject = PassthroughSubject<Event, Never>()
 	
-	private(set) public var cpu: MOS6507
-	private(set) public var riot: MOS6532
-	private(set) public var tia: TIA
+	private(set) public var cpu: MOS6507!
+	private(set) public var riot: MOS6532!
+	private(set) public var tia: TIA!
 	private(set) public var cartridge: Data? = nil
 	
 	public init() {
-		let cpu = MOS6507()
-		
-		self.cpu = cpu
+		self.cpu = MOS6507(bus: self)
 		self.riot = MOS6532()
-		self.tia = TIA(cpu: cpu)
-		
-		// TODO: move to CPU init
-		self.cpu.bus = self
+		self.tia = TIA(cpu: self.cpu)
 	}
 	
 	public func insertCartridge(fromFileAt url: URL) throws {
@@ -89,7 +84,7 @@ public extension Atari2600 {
 // MARK: -
 public typealias Address = Int
 
-protocol Bus {
+public protocol Bus {
 	func read(at address: Address) -> Int
 	mutating func write(_ value: Int, at address: Address)
 }
@@ -113,7 +108,7 @@ extension Atari2600: Bus {
 		return address
 	}
 	
-	func read(at address: Address) -> Int {
+	public func read(at address: Address) -> Int {
 		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
 			return self.tia.read(at: address)
@@ -132,7 +127,7 @@ extension Atari2600: Bus {
 		return Int(data)
 	}
 	
-	func write(_ data: Int, at address: Address) {
+	public func write(_ data: Int, at address: Address) {
 		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
 			if address == 0x09 {
