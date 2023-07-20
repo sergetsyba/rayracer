@@ -69,6 +69,11 @@ private extension TimerViewController {
 	}
 	
 	func updateView(_ riot: MOS6532) {
+		guard riot.isTimerOn else {
+			self.resetView(riot)
+			return
+		}
+		
 		self.intervalsLabel.update(intervals: riot.remainingTimerIntervals)
 		self.cyclesLabel.update(
 			cycles: riot.remainingTimerCycles,
