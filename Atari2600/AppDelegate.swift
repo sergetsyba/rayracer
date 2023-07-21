@@ -31,7 +31,7 @@ extension AppDelegate {
 				let controller = ScreenWindowController()
 				controller.window?.title = url.lastPathComponent
 				self.showWindow(of: controller)
-//				self.resumeMenuItemSelected(self)
+				self.resumeMenuItemSelected(self)
 			} catch {
 				print(error)
 			}
@@ -43,21 +43,14 @@ extension AppDelegate {
 	}
 	
 	@IBAction func resumeMenuItemSelected(_ sender: AnyObject) {
-		DispatchQueue.global(qos: .default)
-			.async { [unowned self] in
-				repeat {
-					self.console.stepProgram()
-				} while true
-			}
+		let queue = DispatchQueue.global(qos: .background)
 		
-		//		let queue = DispatchQueue.global(qos: .background)
-		//
-		//		let timer = DispatchSource.makeTimerSource(queue: queue)
-		//		timer.schedule(deadline: .now(), repeating: .microseconds(2))
-		//		timer.setEventHandler() { [unowned self] in self.console.step() }
-		//
-		//		self.timer = timer
-		//		self.timer?.resume()
+		let timer = DispatchSource.makeTimerSource(queue: queue)
+		timer.schedule(deadline: .now(), repeating: .microseconds(2))
+		timer.setEventHandler() { [unowned self] in self.console.stepProgram() }
+		
+		self.timer = timer
+		self.timer?.resume()
 	}
 	
 	@IBAction func stepProgramMenuItemSelected(_ sender: AnyObject) {

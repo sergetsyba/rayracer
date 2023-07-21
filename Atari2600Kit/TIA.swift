@@ -6,12 +6,15 @@
 //
 
 import CoreGraphics
+import Combine
 
 protocol CPU {
 	var ready: Bool { get set }
 }
 
 public class TIA {
+	private var eventSubject = PassthroughSubject<Event, Never>()
+	
 	private var cpu: CPU
 	private var cycles = 0
 	
@@ -40,11 +43,13 @@ public class TIA {
 	
 	func advanceClock(cycles: Int) {
 		self.cycles += cycles
+		
 		if self.cycles > 228 {
 			self.frame.append(self.backgroundColor)
 			self.cycles %= 228
 			
 			if self.frame.count > 262 {
+				self.eventSubject.send(.frame(self.frame))
 				self.frame.removeAll(keepingCapacity: true)
 			}
 		}
@@ -60,7 +65,21 @@ public class TIA {
 private extension TIA {
 	var backgroundColor: CGColor {
 		let components = ntscPalette[self.columbk / 2]
-		return CGColor(red: components[0], green: components[1], blue: components[2], alpha: 1.0)
+		return CGColor(
+			red: CGFloat(components[0])/255.0,
+			green: CGFloat(components[1]/255.0),
+			blue: CGFloat(components[2])/255.0,
+			alpha: 1.0)
+	}
+}
+
+public extension TIA {
+	enum Event {
+		case frame([CGColor])
+	}
+	
+	var events: some Publisher<Event, Never> {
+		return self.eventSubject
 	}
 }
 

@@ -7,12 +7,9 @@
 
 import Cocoa
 import Combine
-import CoreGraphics
 import Atari2600Kit
 
 class ScreenWindowController: NSWindowController {
-	@IBOutlet private var imageView: NSImageView!
-	
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
 	
@@ -35,14 +32,15 @@ class ScreenWindowController: NSWindowController {
 // MARK: UI updates
 private extension ScreenWindowController {
 	func setUpSinks() {
-//		self.console.tia.events
-//			.receive(on: DispatchQueue.main)
-//			.sink() {
-//				switch $0 {
-//				case .frame:
-//					let view = self.window?.contentView as? ScreenView
-//					view?.lines = self.console.tia.frame
-//				}
-//			}.store(in: &self.cancellables)
+		self.cancellables.insert(
+			self.console.tia.events
+				.receive(on: DispatchQueue.main)
+				.sink() { [unowned self] in
+					switch $0 {
+					case .frame(let lines):
+						(self.window?.contentView as? ScreenView)?
+							.lines = lines
+					}
+				})
 	}
 }
