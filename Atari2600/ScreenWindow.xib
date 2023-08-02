@@ -7,6 +7,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="ScreenWindowController" customModule="Atari2600" customModuleProvider="target">
             <connections>
+                <outlet property="imageView" destination="hW1-s8-FPT" id="Hd3-RO-lv9"/>
                 <outlet property="window" destination="1T6-Xt-SkL" id="MRc-pr-Zsy"/>
             </connections>
         </customObject>
@@ -17,9 +18,21 @@
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="398" y="444" width="384" height="320"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
-            <view key="contentView" id="4UU-MD-Pkh" customClass="ScreenView" customModule="Atari2600" customModuleProvider="target">
+            <view key="contentView" id="4UU-MD-Pkh">
                 <rect key="frame" x="0.0" y="0.0" width="384" height="320"/>
                 <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="hW1-s8-FPT">
+                        <rect key="frame" x="0.0" y="0.0" width="384" height="320"/>
+                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="Idy-aq-JUa"/>
+                    </imageView>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="hW1-s8-FPT" firstAttribute="leading" secondItem="4UU-MD-Pkh" secondAttribute="leading" id="8BU-KG-zva"/>
+                    <constraint firstItem="hW1-s8-FPT" firstAttribute="top" secondItem="4UU-MD-Pkh" secondAttribute="top" id="GiP-CX-1Pe"/>
+                    <constraint firstAttribute="bottom" secondItem="hW1-s8-FPT" secondAttribute="bottom" id="PDj-iu-ncL"/>
+                    <constraint firstAttribute="trailing" secondItem="hW1-s8-FPT" secondAttribute="trailing" id="ST5-li-rK4"/>
+                </constraints>
             </view>
             <point key="canvasLocation" x="32" y="81"/>
         </window>
