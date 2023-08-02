@@ -48,22 +48,22 @@ public class TIA {
 	// Background color and luminosity register.
 	var colubk: Int = 0x00
 	
-	
 	var pf0: Int = 0x00 {
 		didSet {
-			self.playfiled &= 0x00ffff
-			self.playfiled |= (self.pf0 >> 4) << 16
+			self.playfiled &= 0xffff0
+			self.playfiled |= self.pf0 >> 4
 		}
 	}
 	var pf1: Int = 0x00 {
 		didSet {
-			self.playfiled &= 0xff00ff
-			self.playfiled |= (self.pf1) << 8
+			self.playfiled &= 0xff00f
+			self.playfiled |= self.pf1 << 4
 		}
 	}
 	var pf2: Int = 0x00 {
 		didSet {
-			self.playfiled &= (self.pf2)
+			self.playfiled &= 0x00fff
+			self.playfiled |= self.pf2
 		}
 	}
 	var ctrlpf: Int = 0x00
@@ -79,7 +79,7 @@ public class TIA {
 	
 	func advanceClock(cycles: Int) {
 		for _ in 0..<cycles {
-			self.drawPoint()			
+			self.drawPoint()
 			self.cycle += 1
 		}
 	}
@@ -95,21 +95,46 @@ public class TIA {
 // MARK: -
 // MARK: Drawing
 extension TIA {
-	var backgroundColor: UInt8 {
-		return UInt8(self.colubk) / 2
-	}
-	
 	func drawPoint() {
-		let x = self.cycle % 228
-		let y = self.cycle / 228
+		let y = self.cycle / 228 - (3+37)
+		let x = self.cycle % 228 - 68
 		
-		guard y >= 3+37
-				&& y < 3+37+192
-				&& x >= 68 else {
+		guard y >= 0 && y < 192
+				&& x >= 0 else {
 			return
 		}
 		
-		self.data[self.cycle] = self.backgroundColor
+		// draw background
+		self.data[self.cycle] = UInt8(self.colubk) / 2
+		self.drawPlayfield(x: x, y: y)
+	}
+	
+	func drawPlayfield(x: Int, y: Int) {
+		if x < 160/2 {
+			// left playfield side
+			if self.playfiled[x/4] {
+				let color = self.ctrlpf[1]
+				? self.colup0
+				: self.colupf
+				
+				self.data[self.cycle] = UInt8(color) / 2
+			}
+		} else {
+			// right playfield side
+			var bit = x/4-20
+			if self.ctrlpf[0] {
+				// mirrorred right playfield side
+				bit = 20-bit
+			}
+			
+			if self.playfiled[bit] {
+				let color = self.ctrlpf[1]
+				? self.colup1
+				: self.colupf
+				
+				self.data[self.cycle] = UInt8(color) / 2
+			}
+		}
 	}
 }
 
@@ -144,7 +169,7 @@ extension TIA: Bus {
 		case 0x0d:
 			self.pf0 = data
 		case 0x0e:
-			self.pf1 = data
+			self.pf1 = Int(reversingBits: data)
 		case 0x0f:
 			self.pf2 = data
 		default:
@@ -167,6 +192,13 @@ public extension TIA {
 
 extension Int {
 	static let frameSize = 262 * 228
+	
+	init(reversingBits value: Int) {
+		self = 0
+		for bit in 0..<8 {
+			self[bit] = value[7-bit]
+		}
+	}
 }
 
 
