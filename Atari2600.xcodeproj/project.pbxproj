@@ -41,7 +41,6 @@
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95CE639E2A333383007BD72B /* CPUViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CE639D2A333383007BD72B /* CPUViewController.swift */; };
 		95CE63A02A3333BC007BD72B /* CPUView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95CE639F2A3333BC007BD72B /* CPUView.xib */; };
-		95DA0DF72A64481200B28D0B /* ScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95DA0DF62A64481200B28D0B /* ScreenView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -99,7 +98,6 @@
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 		95CE639D2A333383007BD72B /* CPUViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUViewController.swift; sourceTree = "<group>"; };
 		95CE639F2A3333BC007BD72B /* CPUView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CPUView.xib; sourceTree = "<group>"; };
-		95DA0DF62A64481200B28D0B /* ScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,7 +170,6 @@
 				954A186A2A1AEE5A00EBC582 /* Main.xib */,
 				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
 				95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */,
-				95DA0DF62A64481200B28D0B /* ScreenView.swift */,
 			);
 			path = Atari2600;
 			sourceTree = "<group>";
@@ -387,7 +384,6 @@
 				957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */,
 				950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */,
 				955619FF2A3C8FDD002CF4F5 /* AssemblyDataCellView.swift in Sources */,
-				95DA0DF72A64481200B28D0B /* ScreenView.swift in Sources */,
 				950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */,
 				95468AB12A5B09E90094A2D0 /* DebuggerValueLabel.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,

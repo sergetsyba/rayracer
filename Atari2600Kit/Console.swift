@@ -136,11 +136,6 @@ extension Atari2600: Bus {
 	public func write(_ data: Int, at address: Address) {
 		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
-			if address == 0x09 {
-				let message = String(format: "$%04x colubk: #%02x", self.cpu.programCounter, data)
-				print(message)
-			}
-			
 			return self.tia.write(data, at: address)
 		}
 		if (0x0080..<0x0100).contains(address) {
