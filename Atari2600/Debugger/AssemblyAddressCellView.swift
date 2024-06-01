@@ -37,3 +37,9 @@ private extension AssemblyAddressCellView {
 		}
 	}
 }
+
+
+// MARK: -
+extension NSUserInterfaceItemIdentifier {
+	static let assemblyAddressCellView = NSUserInterfaceItemIdentifier("AssemblyAddressCellView")
+}

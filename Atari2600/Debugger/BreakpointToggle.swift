@@ -98,8 +98,6 @@ extension BreakpointToggle {
 // MARK: Drawing
 extension BreakpointToggle {
 	func drawToggle(in rect: CGRect, with context: CGContext) {
-		context.saveGState()
-		
 		let origin = CGPoint(x: rect.minX, y: rect.midY)
 		let pointerWidth = rect.height / 3.0
 		
@@ -112,6 +110,7 @@ extension BreakpointToggle {
 			CGPoint(x: rect.minX, y: rect.minY)
 		]
 		
+		context.saveGState()
 		context.move(to: origin)
 		for index in corners.indices.dropLast() {
 			context.addArc(
@@ -147,7 +146,11 @@ extension BreakpointToggle {
 			return
 		}
 		
-		let rect = CGRect(origin: dirtyRect.origin, size: self.intrinsicContentSize)
+		let origin = CGPoint(
+			x: max(dirtyRect.origin.x, 0),
+			y: max(dirtyRect.origin.y, 0))
+		
+		let rect = CGRect(origin: origin, size: self.intrinsicContentSize)
 		if self.isOn {
 			self.drawToggle(in: rect, with: context)
 		}

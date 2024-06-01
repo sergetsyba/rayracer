@@ -56,8 +56,8 @@ class AssemblyViewController: NSViewController {
 		super.viewDidLoad()
 		
 		self.tableView.registerNibs([
-			"AssemblyAddressCellView": .addressCell,
-			"AssemblyDataCellView": .dataCell
+			"AssemblyAddressCellView": .assemblyAddressCellView,
+			"DebuggerCellView": .debuggerCellView
 		])
 		
 		self.updateTableColumnWidths()
@@ -105,7 +105,7 @@ private extension AssemblyViewController {
 // MARK: -
 // MARK: UI updates
 private extension AssemblyViewController {
-	static let tableColumnDataTemplates = ["$0000    ", "adc", "($a4),Y"]
+	static let tableColumnDataTemplates = ["$0000  ", "adc  ", "($a4),Y  "]
 	static let tableTextAttributes: [NSAttributedString.Key: Any] = [
 		.font: NSFont.monospacedRegular
 	]
@@ -202,7 +202,7 @@ extension AssemblyViewController: NSTableViewDelegate {
 		
 		switch tableColumn {
 		case tableView.tableColumns[0]:
-			let view = tableView.makeView(withIdentifier: .addressCell, owner: nil) as! AssemblyAddressCellView
+			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
 			view.toggle.title = String(address: address)
 			view.toggle.isOn = self.breakpoints.contains(address)
 			
@@ -213,12 +213,12 @@ extension AssemblyViewController: NSTableViewDelegate {
 			return view
 			
 		case tableView.tableColumns[1]:
-			let view = tableView.makeView(withIdentifier: .dataCell, owner: nil) as! AssemblyDataCellView
+			let view = tableView.makeView(withIdentifier: .debuggerCellView, owner: nil) as! DebuggerCellView
 			view.label.stringValue = String(mnemonic: instruction.mnemonic)
 			return view
 			
 		case tableView.tableColumns[2]:
-			let view = tableView.makeView(withIdentifier: .dataCell, owner: nil) as! AssemblyDataCellView
+			let view = tableView.makeView(withIdentifier: .debuggerCellView, owner: nil) as! DebuggerCellView
 			view.label.stringValue = String(addressingMode: instruction.mode, operand: instruction.operand)
 			return view
 			
@@ -226,11 +226,6 @@ extension AssemblyViewController: NSTableViewDelegate {
 			return nil
 		}
 	}
-}
-
-private extension NSUserInterfaceItemIdentifier {
-	static let addressCell = NSUserInterfaceItemIdentifier("AssemblyAddressCell")
-	static let dataCell = NSUserInterfaceItemIdentifier("AssemblyDataCell")
 }
 
 
@@ -289,13 +284,6 @@ private extension NSScrollView {
 }
 
 private extension NSTableView {
-	func registerNibs(_ nibs: [NSNib.Name: NSUserInterfaceItemIdentifier], bundle: Bundle = .main) {
-		for (name, id) in nibs {
-			let nib = NSNib(nibNamed: name, bundle: bundle)
-			self.register(nib, forIdentifier: id)
-		}
-	}
-	
 	func ensureRowVisible(_ row: Int) {
 		if self.isRowVisible(row) == false {
 			self.scrollToRow(row)

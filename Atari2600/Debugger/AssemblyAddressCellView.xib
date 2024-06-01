@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="21701" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="21701"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22690"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -16,8 +17,8 @@
                 </customView>
             </subviews>
             <constraints>
+                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="S5V-iO-mST" secondAttribute="bottom" constant="2" id="0ig-dX-0HO"/>
                 <constraint firstItem="S5V-iO-mST" firstAttribute="leading" secondItem="U8y-Ei-fz3" secondAttribute="leading" id="9bL-hz-q3a"/>
-                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="S5V-iO-mST" secondAttribute="bottom" constant="2" id="CRS-2z-vpQ"/>
                 <constraint firstItem="S5V-iO-mST" firstAttribute="top" relation="greaterThanOrEqual" secondItem="U8y-Ei-fz3" secondAttribute="top" constant="2" id="STf-yC-6SJ"/>
                 <constraint firstItem="S5V-iO-mST" firstAttribute="centerY" secondItem="U8y-Ei-fz3" secondAttribute="centerY" id="eco-ve-Gi9"/>
                 <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="S5V-iO-mST" secondAttribute="trailing" id="xCT-0x-K9w"/>
@@ -25,7 +26,7 @@
             <connections>
                 <outlet property="toggle" destination="S5V-iO-mST" id="pAw-gF-ipF"/>
             </connections>
-            <point key="canvasLocation" x="54.5" y="-88.5"/>
+            <point key="canvasLocation" x="54.5" y="10"/>
         </customView>
     </objects>
     <designables>

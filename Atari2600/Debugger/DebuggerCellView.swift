@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class AssemblyDataCellView: NSTableCellView {
+class DebuggerCellView: NSTableCellView {
 	@IBOutlet var label: NSTextField!
 	
 	override func awakeFromNib() {
