@@ -64,6 +64,11 @@ class AssemblyViewController: NSViewController {
 		self.updateProgramView()
 		self.setUpSinks()
 	}
+	
+	override func viewDidAppear() {
+		super.viewDidAppear()
+		self.updateTableColumnWidths()
+	}
 }
 
 
@@ -105,14 +110,11 @@ private extension AssemblyViewController {
 // MARK: -
 // MARK: UI updates
 private extension AssemblyViewController {
-	static let tableColumnDataTemplates = ["$0000  ", "adc  ", "($a4),Y  "]
-	static let tableTextAttributes: [NSAttributedString.Key: Any] = [
-		.font: NSFont.monospacedRegular
-	]
+	static let tableColumnDataTemplates = ["$0000   ", "adc ", "($a4),Y "]
 	
 	func updateTableColumnWidths() {
 		Self.tableColumnDataTemplates
-			.map() { $0.size(withAttributes: Self.tableTextAttributes) }
+			.map() { $0.size(withFont: .monospacedRegular) }
 			.enumerated()
 			.forEach() { self.tableView.tableColumns[$0.0].width = $0.1.width }
 	}
@@ -148,7 +150,7 @@ private extension AssemblyViewController {
 // MARK: Breakpoint management
 extension AssemblyViewController {
 	@objc func breakpointToggled(_ sender: BreakpointToggle) {
-		if sender.isOn {
+		if sender.state == .on {
 			self.breakpoints.append(sender.tag)
 		} else {
 			if let index = self.breakpoints.firstIndex(of: sender.tag) {
@@ -203,8 +205,8 @@ extension AssemblyViewController: NSTableViewDelegate {
 		switch tableColumn {
 		case tableView.tableColumns[0]:
 			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
-			view.toggle.title = String(address: address)
-			view.toggle.isOn = self.breakpoints.contains(address)
+			view.toggle.stringValue = String(address: address)
+			view.toggle.state = self.breakpoints.contains(address) ? .on : .off
 			
 			view.toggle.tag = address
 			view.toggle.target = self
