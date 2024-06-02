@@ -1,90 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="21701" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="21701"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22690"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="DebuggerWindowController" customModule="Atari2600" customModuleProvider="target">
             <connections>
-                <outlet property="assemblyContainerView" destination="5uR-n5-g3c" id="hAc-XB-kIK"/>
-                <outlet property="cpuContainerView" destination="VWt-lO-tev" id="fAf-Dh-Som"/>
-                <outlet property="memoryContainerView" destination="kA6-bv-ffK" id="f11-PS-hbq"/>
-                <outlet property="timerContainerView" destination="Mdu-Y4-bef" id="SzL-jX-mlw"/>
+                <outlet property="assemblyViewBox" destination="skw-07-vdS" id="SFb-zx-Vif"/>
                 <outlet property="toolbar" destination="LSb-J4-Z97" id="zSf-sB-E5d"/>
                 <outlet property="window" destination="O0w-qX-Wdo" id="sAT-d3-VcK"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <window title="Debugger" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" hidesOnDeactivate="YES" releasedWhenClosed="NO" frameAutosaveName="" animationBehavior="default" toolbarStyle="expanded" id="O0w-qX-Wdo" customClass="NSPanel">
+        <window title="Debugger" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" frameAutosaveName="" animationBehavior="default" toolbarStyle="expanded" id="O0w-qX-Wdo">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="803" y="281" width="448" height="520"/>
+            <rect key="contentRect" x="803" y="281" width="517" height="510"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
             <view key="contentView" id="vgU-mt-Beg">
-                <rect key="frame" x="0.0" y="0.0" width="468" height="520"/>
+                <rect key="frame" x="0.0" y="0.0" width="517" height="500"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
-                    <box title="Program" translatesAutoresizingMaskIntoConstraints="NO" id="Agp-2z-HPG">
-                        <rect key="frame" x="17" y="16" width="226" height="484"/>
-                        <view key="contentView" id="5uR-n5-g3c">
-                            <rect key="frame" x="4" y="5" width="218" height="464"/>
+                    <box title="Box" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="skw-07-vdS">
+                        <rect key="frame" x="17" y="16" width="226" height="466"/>
+                        <view key="contentView" id="CE4-T2-Rsc">
+                            <rect key="frame" x="4" y="5" width="218" height="458"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         </view>
                         <constraints>
-                            <constraint firstAttribute="width" constant="220" id="0tC-n2-ode"/>
+                            <constraint firstAttribute="width" constant="220" id="Ggf-8s-okU"/>
                         </constraints>
-                    </box>
-                    <box title="CPU" translatesAutoresizingMaskIntoConstraints="NO" id="3Mq-Qg-SlX">
-                        <rect key="frame" x="245" y="346" width="206" height="154"/>
-                        <view key="contentView" id="VWt-lO-tev">
-                            <rect key="frame" x="12" y="13" width="182" height="118"/>
-                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        </view>
-                        <constraints>
-                            <constraint firstAttribute="width" constant="200" placeholder="YES" id="tcP-Ky-1cw"/>
-                            <constraint firstAttribute="height" constant="150" placeholder="YES" id="zet-6m-ZkR"/>
-                        </constraints>
-                        <size key="contentViewMargins" width="8" height="8"/>
-                    </box>
-                    <box title="Memory" translatesAutoresizingMaskIntoConstraints="NO" id="Apx-y3-fW7">
-                        <rect key="frame" x="245" y="238" width="206" height="104"/>
-                        <view key="contentView" id="kA6-bv-ffK">
-                            <rect key="frame" x="12" y="13" width="182" height="68"/>
-                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        </view>
-                        <constraints>
-                            <constraint firstAttribute="height" constant="100" placeholder="YES" id="z4H-tO-wC6"/>
-                        </constraints>
-                        <size key="contentViewMargins" width="8" height="8"/>
-                    </box>
-                    <box title="Timer" translatesAutoresizingMaskIntoConstraints="NO" id="dYp-mN-Mte">
-                        <rect key="frame" x="245" y="130" width="206" height="104"/>
-                        <view key="contentView" id="Mdu-Y4-bef">
-                            <rect key="frame" x="12" y="13" width="182" height="68"/>
-                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        </view>
-                        <constraints>
-                            <constraint firstAttribute="height" constant="100" placeholder="YES" id="4Ux-hA-OXm"/>
-                        </constraints>
-                        <size key="contentViewMargins" width="8" height="8"/>
                     </box>
                 </subviews>
                 <constraints>
-                    <constraint firstAttribute="trailing" secondItem="3Mq-Qg-SlX" secondAttribute="trailing" constant="20" symbolic="YES" id="1X0-GT-ujF"/>
-                    <constraint firstItem="Apx-y3-fW7" firstAttribute="leading" secondItem="Agp-2z-HPG" secondAttribute="trailing" constant="8" symbolic="YES" id="4Cg-Qc-cuN"/>
-                    <constraint firstItem="Agp-2z-HPG" firstAttribute="top" secondItem="vgU-mt-Beg" secondAttribute="top" constant="20" symbolic="YES" id="5r4-Hv-J7j"/>
-                    <constraint firstItem="Apx-y3-fW7" firstAttribute="top" secondItem="3Mq-Qg-SlX" secondAttribute="bottom" constant="8" symbolic="YES" id="LFc-z9-naf"/>
-                    <constraint firstItem="dYp-mN-Mte" firstAttribute="top" secondItem="Apx-y3-fW7" secondAttribute="bottom" constant="8" symbolic="YES" id="MIF-4d-IJP"/>
-                    <constraint firstAttribute="trailing" secondItem="Apx-y3-fW7" secondAttribute="trailing" constant="20" symbolic="YES" id="MRF-Qu-5ia"/>
-                    <constraint firstItem="3Mq-Qg-SlX" firstAttribute="leading" secondItem="Agp-2z-HPG" secondAttribute="trailing" constant="8" symbolic="YES" id="SnI-oK-LdQ"/>
-                    <constraint firstItem="dYp-mN-Mte" firstAttribute="leading" secondItem="Agp-2z-HPG" secondAttribute="trailing" constant="8" symbolic="YES" id="UYr-fT-ayU"/>
-                    <constraint firstAttribute="trailing" secondItem="dYp-mN-Mte" secondAttribute="trailing" constant="20" symbolic="YES" id="Z5C-CN-vcG"/>
-                    <constraint firstItem="3Mq-Qg-SlX" firstAttribute="top" secondItem="vgU-mt-Beg" secondAttribute="top" constant="20" symbolic="YES" id="cxQ-c7-DfT"/>
-                    <constraint firstItem="Agp-2z-HPG" firstAttribute="leading" secondItem="vgU-mt-Beg" secondAttribute="leading" constant="20" symbolic="YES" id="ghp-d3-8hA"/>
-                    <constraint firstAttribute="bottom" secondItem="Agp-2z-HPG" secondAttribute="bottom" constant="20" symbolic="YES" id="rd7-aF-kw6"/>
-                    <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="dYp-mN-Mte" secondAttribute="bottom" constant="20" symbolic="YES" id="zqA-Hd-zoX"/>
+                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="skw-07-vdS" secondAttribute="trailing" constant="20" symbolic="YES" id="8WT-AH-rFT"/>
+                    <constraint firstItem="skw-07-vdS" firstAttribute="top" secondItem="vgU-mt-Beg" secondAttribute="top" constant="20" symbolic="YES" id="Cjg-i9-aeJ"/>
+                    <constraint firstItem="skw-07-vdS" firstAttribute="leading" secondItem="vgU-mt-Beg" secondAttribute="leading" constant="20" symbolic="YES" id="PCS-vo-6oK"/>
+                    <constraint firstAttribute="bottom" secondItem="skw-07-vdS" secondAttribute="bottom" constant="20" symbolic="YES" id="hAo-3X-ztS"/>
                 </constraints>
             </view>
             <toolbar key="toolbar" implicitIdentifier="1042316F-9260-480B-AC8B-55DC96BF8C6E" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="LSb-J4-Z97">
@@ -118,7 +73,7 @@
                     <outlet property="delegate" destination="-2" id="ntx-RV-MXm"/>
                 </connections>
             </toolbar>
-            <point key="canvasLocation" x="14" y="141"/>
+            <point key="canvasLocation" x="48.5" y="141"/>
         </window>
     </objects>
     <resources>

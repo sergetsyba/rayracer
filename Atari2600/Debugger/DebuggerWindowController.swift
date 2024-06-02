@@ -12,15 +12,11 @@ import Atari2600Kit
 class DebuggerWindowController: NSWindowController {
 	@IBOutlet private var toolbar: NSToolbar!
 	
-	@IBOutlet private var assemblyContainerView: NSView!
-	@IBOutlet private var cpuContainerView: NSView!
-	@IBOutlet private var memoryContainerView: NSView!
-	@IBOutlet private var timerContainerView: NSView!
+	@IBOutlet private var assemblyViewBox: NSBox!
+	@IBOutlet private var systemContainerView: NSView!
 	
 	private var assemblyViewController = AssemblyViewController()
-	private let cpuViewController = CPUViewController()
-	private let memoryViewController = MemoryViewController()
-	private let timerViewController = TimerViewController()
+	private var systemStateViewController: NSViewController!
 	
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
@@ -40,10 +36,9 @@ class DebuggerWindowController: NSWindowController {
 	override func windowDidLoad() {
 		super.windowDidLoad()
 		
-		self.assemblyContainerView.setContentView(self.assemblyViewController.view)
-		self.cpuContainerView.setContentView(self.cpuViewController.view, layout: .centerHorizontally)
-		self.memoryContainerView.setContentView(self.memoryViewController.view)
-		self.timerContainerView.setContentView(self.timerViewController.view, layout: .centerHorizontally)
+		self.assemblyViewBox.contentView = self.assemblyViewController.view
+		self.assemblyViewBox.contentView?
+			.maskLayerToBounds(cornerRadius: 4.5)
 		
 		self.setUpSinks()
 	}
@@ -194,5 +189,13 @@ private extension NSToolbarItem.Identifier {
 private extension NSToolbar {
 	subscript (identifier: NSToolbarItem.Identifier) -> NSToolbarItem? {
 		return self.items.first(where: { $0.itemIdentifier == identifier })
+	}
+}
+
+private extension NSView {
+	func maskLayerToBounds(cornerRadius: CGFloat) {
+		self.wantsLayer = true
+		self.layer?.masksToBounds = true
+		self.layer?.cornerRadius = cornerRadius
 	}
 }

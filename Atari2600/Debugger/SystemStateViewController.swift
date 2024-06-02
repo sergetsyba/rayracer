@@ -7,11 +7,11 @@
 
 import Cocoa
 
-class SystemViewController: NSViewController {
+class SystemOutlineViewController: NSViewController {
 	@IBOutlet private var outlineView: NSOutlineView!
 	
 	convenience init() {
-		self.init(nibName: "SystemView", bundle: .main)
+		self.init(nibName: "SystemOutlineView", bundle: .main)
 	}
 	
 	override func viewDidLoad() {
@@ -20,7 +20,7 @@ class SystemViewController: NSViewController {
 	}
 }
 
-extension SystemViewController: NSOutlineViewDataSource {
+extension SystemOutlineViewController: NSOutlineViewDataSource {
 	func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
 		if item == nil {
 			return 1
@@ -38,14 +38,17 @@ extension SystemViewController: NSOutlineViewDataSource {
 	}
 }
 
-extension SystemViewController: NSOutlineViewDelegate {
+extension SystemOutlineViewController: NSOutlineViewDelegate {
 	func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
-		let view = outlineView.makeView(withIdentifier: .systemViewCell, owner: self) as? NSTableCellView
-		view?.textField?.stringValue = item as? String ?? ""
+		let view = outlineView.makeView(withIdentifier: .debuggerCellView, owner: self) as? DebuggerCellView2
+		view?.textField?.stringValue = "CPU"
 		return view
 	}
 }
 
-private extension NSUserInterfaceItemIdentifier {
-	static let systemViewCell = NSUserInterfaceItemIdentifier("SystemViewCell")
+class DebuggerCellView2: NSTableCellView {
+	override func awakeFromNib() {
+		super.awakeFromNib()
+		self.textField?.font = .monospacedRegular
+	}
 }
