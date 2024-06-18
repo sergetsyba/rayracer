@@ -25,7 +25,6 @@
 		95561A012A3C9048002CF4F5 /* DebuggerValueCellView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95561A002A3C9048002CF4F5 /* DebuggerValueCellView.xib */; };
 		9574E3712C0CAB7B00655737 /* DebuggerLabelCellView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9574E3702C0CAB7B00655737 /* DebuggerLabelCellView.xib */; };
 		9574E3732C0CAB8600655737 /* DebuggerLabelCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9574E3722C0CAB8600655737 /* DebuggerLabelCellView.swift */; };
-		9579CF7B2A3718D200D3EC01 /* MemoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */; };
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
 		957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957AADDA2C0B22BB00692B3F /* String+Extensions.swift */; };
 		957DAFD52C07A3F200CB07B4 /* NSTableView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957DAFD42C07A3F200CB07B4 /* NSTableView+Extensions.swift */; };
@@ -33,9 +32,6 @@
 		9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9595FE912A4E02FE00F6F857 /* TIA.swift */; };
 		9597B00E2A46CBB80088822B /* Atari2600Kit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* Atari2600Kit.framework */; };
 		9597B0152A46CBC50088822B /* CPUTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9597B0142A46CBC50088822B /* CPUTests.swift */; };
-		959E142B2A574F9C006FCFF3 /* TimerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959E142A2A574F9C006FCFF3 /* TimerViewController.swift */; };
-		95A0AA5B2A6990BD003AC9D4 /* MemoryView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A0AA5A2A6990BD003AC9D4 /* MemoryView.xib */; };
-		95A0AA5D2A699CFE003AC9D4 /* TimerView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A0AA5C2A699CFE003AC9D4 /* TimerView.xib */; };
 		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
@@ -45,8 +41,6 @@
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
-		95CE639E2A333383007BD72B /* CPUViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CE639D2A333383007BD72B /* CPUViewController.swift */; };
-		95CE63A02A3333BC007BD72B /* CPUView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95CE639F2A3333BC007BD72B /* CPUView.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,7 +82,6 @@
 		95561A002A3C9048002CF4F5 /* DebuggerValueCellView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerValueCellView.xib; sourceTree = "<group>"; };
 		9574E3702C0CAB7B00655737 /* DebuggerLabelCellView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerLabelCellView.xib; sourceTree = "<group>"; };
 		9574E3722C0CAB8600655737 /* DebuggerLabelCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerLabelCellView.swift; sourceTree = "<group>"; };
-		9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryViewController.swift; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
 		957AADDA2C0B22BB00692B3F /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		957DAFD42C07A3F200CB07B4 /* NSTableView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSTableView+Extensions.swift"; sourceTree = "<group>"; };
@@ -96,9 +89,6 @@
 		9595FE912A4E02FE00F6F857 /* TIA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TIA.swift; sourceTree = "<group>"; };
 		9597B00A2A46CBB80088822B /* Atari2600KitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Atari2600KitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9597B0142A46CBC50088822B /* CPUTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUTests.swift; sourceTree = "<group>"; };
-		959E142A2A574F9C006FCFF3 /* TimerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerViewController.swift; sourceTree = "<group>"; };
-		95A0AA5A2A6990BD003AC9D4 /* MemoryView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MemoryView.xib; sourceTree = "<group>"; };
-		95A0AA5C2A699CFE003AC9D4 /* TimerView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TimerView.xib; sourceTree = "<group>"; };
 		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
 		95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindowController.swift; sourceTree = "<group>"; };
 		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
@@ -108,8 +98,6 @@
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 		95C918E82C07810000B431C4 /* SystemStateView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SystemStateView.xib; sourceTree = "<group>"; };
 		95C918EA2C07810900B431C4 /* SystemStateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStateViewController.swift; sourceTree = "<group>"; };
-		95CE639D2A333383007BD72B /* CPUViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUViewController.swift; sourceTree = "<group>"; };
-		95CE639F2A3333BC007BD72B /* CPUView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CPUView.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -203,8 +191,6 @@
 				95A501802A2CFCA400A59616 /* AssemblyView.xib */,
 				95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */,
 				950641E22A39CDAB00938403 /* BreakpointToggle.swift */,
-				95CE639F2A3333BC007BD72B /* CPUView.xib */,
-				95CE639D2A333383007BD72B /* CPUViewController.swift */,
 				9574E3722C0CAB8600655737 /* DebuggerLabelCellView.swift */,
 				9574E3702C0CAB7B00655737 /* DebuggerLabelCellView.xib */,
 				955619FE2A3C8FDD002CF4F5 /* DebuggerValueCellView.swift */,
@@ -213,16 +199,12 @@
 				95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */,
 				95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */,
 				951CC4FD2A58723300537CD1 /* FormView.swift */,
-				95A0AA5A2A6990BD003AC9D4 /* MemoryView.xib */,
-				9579CF7A2A3718D200D3EC01 /* MemoryViewController.swift */,
 				955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */,
 				957DAFD42C07A3F200CB07B4 /* NSTableView+Extensions.swift */,
 				957A12882A3F4517002163C1 /* NSView+ContentView.swift */,
 				957AADDA2C0B22BB00692B3F /* String+Extensions.swift */,
 				95C918E82C07810000B431C4 /* SystemStateView.xib */,
 				95C918EA2C07810900B431C4 /* SystemStateViewController.swift */,
-				95A0AA5C2A699CFE003AC9D4 /* TimerView.xib */,
-				959E142A2A574F9C006FCFF3 /* TimerViewController.swift */,
 				9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */,
 			);
 			path = Debugger;
@@ -357,16 +339,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				95A0AA5D2A699CFE003AC9D4 /* TimerView.xib in Resources */,
 				95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */,
 				95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */,
-				95CE63A02A3333BC007BD72B /* CPUView.xib in Resources */,
 				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
 				95561A012A3C9048002CF4F5 /* DebuggerValueCellView.xib in Resources */,
 				9574E3712C0CAB7B00655737 /* DebuggerLabelCellView.xib in Resources */,
 				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
 				95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */,
-				95A0AA5B2A6990BD003AC9D4 /* MemoryView.xib in Resources */,
 				950641DD2A39C4B700938403 /* AssemblyAddressCellView.xib in Resources */,
 				954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */,
 			);
@@ -413,9 +392,6 @@
 				95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */,
 				9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */,
 				95B429D92A4EFDB100EB6A5D /* ScreenWindowController.swift in Sources */,
-				95CE639E2A333383007BD72B /* CPUViewController.swift in Sources */,
-				959E142B2A574F9C006FCFF3 /* TimerViewController.swift in Sources */,
-				9579CF7B2A3718D200D3EC01 /* MemoryViewController.swift in Sources */,
 				95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

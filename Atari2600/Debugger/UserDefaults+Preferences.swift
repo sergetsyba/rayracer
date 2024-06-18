@@ -42,7 +42,7 @@ extension UserDefaults {
 	func setBreakpoints(_ breakpoints: [Breakpoint], forGameIdentifier identifier: String = Atari2600.current.gameIdentifier) {
 		var preferences = self.preferences(forGameIdentifier: identifier)
 		preferences["Breakpoints"] = breakpoints
-			.map() { String(address: $0) }
+			.map() { String(format: "$%04x", $0) }
 		
 		self.setPreferences(preferences, forGameIdentifier: identifier)
 	}

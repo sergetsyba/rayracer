@@ -205,7 +205,7 @@ extension AssemblyViewController: NSTableViewDelegate {
 		switch tableColumn {
 		case tableView.tableColumns[0]:
 			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
-			view.toggle.stringValue = String(address: address)
+			view.toggle.stringValue = String(format: "$%04x", address)
 			view.toggle.state = self.breakpoints.contains(address) ? .on : .off
 			
 			view.toggle.tag = address

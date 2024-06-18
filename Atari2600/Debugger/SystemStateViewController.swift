@@ -182,15 +182,15 @@ private extension SystemStateViewController {
 	func formatDebugItem(_ item: CPUDebugItem) -> NSAttributedString {
 		switch item {
 		case .accumulator:
-			let value = String(word: self.console.cpu.accumulator)
+			let value = String(format: "%02x", self.console.cpu.accumulator)
 			return NSAttributedString(debugItem: item, value: value)
 			
 		case .indexX:
-			let value = String(word: self.console.cpu.x)
+			let value = String(format: "%02x", self.console.cpu.x)
 			return NSAttributedString(debugItem: item, value: value)
 			
 		case .indexY:
-			let value = String(word: self.console.cpu.y)
+			let value = String(format: "%02x", self.console.cpu.y)
 			return NSAttributedString(debugItem: item, value: value)
 			
 		case .status:
@@ -198,11 +198,11 @@ private extension SystemStateViewController {
 			return NSAttributedString(debugItem: item, value: value)
 			
 		case .stackPointer:
-			let value = String(word: self.console.cpu.stackPointer)
+			let value = String(format: "%02x", self.console.cpu.stackPointer)
 			return NSAttributedString(debugItem: item, value: value)
 			
 		case .programCounter:
-			let value = String(address: self.console.cpu.programCounter)
+			let value = String(format: "$%04x", self.console.cpu.programCounter)
 			return NSAttributedString(debugItem: item, value: value)
 		}
 	}
@@ -272,5 +272,20 @@ private extension Range where Index == Int {
 	func split(by count: Int) -> any Sequence<Self> {
 		return Swift.stride(from: self.startIndex, to: self.endIndex, by: count)
 			.map() { $0..<$0+count }
+	}
+}
+
+extension MOS6507.Status: Sequence {
+	public func makeIterator() -> some IteratorProtocol<Bool> {
+		return [
+			self.negative,
+			self.overflow,
+			false,
+			self.break,
+			self.decimalMode,
+			self.interruptDisabled,
+			self.zero,
+			self.carry
+		].makeIterator()
 	}
 }

@@ -125,7 +125,7 @@ private extension DebuggerWindowController {
 		let menuItem = NSMenuItem()
 		menuItem.tag = breakpoint
 		menuItem.attributedTitle = NSAttributedString(
-			string: String(address: breakpoint),
+			string: String(format: "$%04x", breakpoint),
 			attributes: [
 				.font: NSFont.monospacedRegular
 			])
