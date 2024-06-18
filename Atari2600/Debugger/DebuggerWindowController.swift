@@ -10,13 +10,12 @@ import Combine
 import Atari2600Kit
 
 class DebuggerWindowController: NSWindowController {
-	@IBOutlet private var toolbar: NSToolbar!
-	
+	@IBOutlet private var toolbar: NSToolbar!	
 	@IBOutlet private var assemblyViewBox: NSBox!
-	@IBOutlet private var systemContainerView: NSView!
+	@IBOutlet private var systemStateViewBox: NSBox!
 	
 	private var assemblyViewController = AssemblyViewController()
-	private var systemStateViewController: NSViewController!
+	private var systemStateViewController = SystemStateViewController()
 	
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
@@ -38,7 +37,11 @@ class DebuggerWindowController: NSWindowController {
 		
 		self.assemblyViewBox.contentView = self.assemblyViewController.view
 		self.assemblyViewBox.contentView?
-			.maskLayerToBounds(cornerRadius: 4.5)
+			.maskLayerToBounds(cornerRadius: NSBox.defaultCornerRaius)
+		
+		self.systemStateViewBox.contentView = self.systemStateViewController.view
+		self.systemStateViewBox.contentView?
+			.maskLayerToBounds(cornerRadius: NSBox.defaultCornerRaius)
 		
 		self.setUpSinks()
 	}
@@ -198,4 +201,8 @@ private extension NSView {
 		self.layer?.masksToBounds = true
 		self.layer?.cornerRadius = cornerRadius
 	}
+}
+
+private extension NSBox {
+	static let defaultCornerRaius: CGFloat = 4.5
 }

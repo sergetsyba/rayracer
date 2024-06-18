@@ -9,6 +9,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="DebuggerWindowController" customModule="Atari2600" customModuleProvider="target">
             <connections>
                 <outlet property="assemblyViewBox" destination="skw-07-vdS" id="SFb-zx-Vif"/>
+                <outlet property="systemStateViewBox" destination="tPf-EC-MbN" id="vVN-VR-8Zj"/>
                 <outlet property="toolbar" destination="LSb-J4-Z97" id="zSf-sB-E5d"/>
                 <outlet property="window" destination="O0w-qX-Wdo" id="sAT-d3-VcK"/>
             </connections>
@@ -18,13 +19,13 @@
         <window title="Debugger" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" frameAutosaveName="" animationBehavior="default" toolbarStyle="expanded" id="O0w-qX-Wdo">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="803" y="281" width="517" height="510"/>
+            <rect key="contentRect" x="803" y="281" width="464" height="500"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
             <view key="contentView" id="vgU-mt-Beg">
-                <rect key="frame" x="0.0" y="0.0" width="517" height="500"/>
+                <rect key="frame" x="0.0" y="0.0" width="668" height="500"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
-                    <box title="Box" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="skw-07-vdS">
+                    <box title="Program" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="skw-07-vdS">
                         <rect key="frame" x="17" y="16" width="226" height="466"/>
                         <view key="contentView" id="CE4-T2-Rsc">
                             <rect key="frame" x="4" y="5" width="218" height="458"/>
@@ -34,12 +35,25 @@
                             <constraint firstAttribute="width" constant="220" id="Ggf-8s-okU"/>
                         </constraints>
                     </box>
+                    <box title="System State" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="tPf-EC-MbN">
+                        <rect key="frame" x="245" y="16" width="406" height="466"/>
+                        <view key="contentView" id="men-PB-s6i">
+                            <rect key="frame" x="4" y="5" width="398" height="458"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        </view>
+                        <constraints>
+                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="400" id="8TF-Fv-kfO"/>
+                        </constraints>
+                    </box>
                 </subviews>
                 <constraints>
-                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="skw-07-vdS" secondAttribute="trailing" constant="20" symbolic="YES" id="8WT-AH-rFT"/>
                     <constraint firstItem="skw-07-vdS" firstAttribute="top" secondItem="vgU-mt-Beg" secondAttribute="top" constant="20" symbolic="YES" id="Cjg-i9-aeJ"/>
+                    <constraint firstAttribute="bottom" secondItem="tPf-EC-MbN" secondAttribute="bottom" constant="20" symbolic="YES" id="GrO-HK-bkI"/>
                     <constraint firstItem="skw-07-vdS" firstAttribute="leading" secondItem="vgU-mt-Beg" secondAttribute="leading" constant="20" symbolic="YES" id="PCS-vo-6oK"/>
+                    <constraint firstItem="tPf-EC-MbN" firstAttribute="leading" secondItem="skw-07-vdS" secondAttribute="trailing" constant="8" symbolic="YES" id="RcY-3k-6tz"/>
+                    <constraint firstAttribute="trailing" secondItem="tPf-EC-MbN" secondAttribute="trailing" constant="20" symbolic="YES" id="X6Y-yn-4g8"/>
                     <constraint firstAttribute="bottom" secondItem="skw-07-vdS" secondAttribute="bottom" constant="20" symbolic="YES" id="hAo-3X-ztS"/>
+                    <constraint firstItem="tPf-EC-MbN" firstAttribute="top" secondItem="vgU-mt-Beg" secondAttribute="top" constant="20" symbolic="YES" id="hd4-pg-GVr"/>
                 </constraints>
             </view>
             <toolbar key="toolbar" implicitIdentifier="1042316F-9260-480B-AC8B-55DC96BF8C6E" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="LSb-J4-Z97">
@@ -73,7 +87,7 @@
                     <outlet property="delegate" destination="-2" id="ntx-RV-MXm"/>
                 </connections>
             </toolbar>
-            <point key="canvasLocation" x="48.5" y="141"/>
+            <point key="canvasLocation" x="22" y="141"/>
         </window>
     </objects>
     <resources>

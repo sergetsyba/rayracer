@@ -57,7 +57,7 @@ class AssemblyViewController: NSViewController {
 		
 		self.tableView.registerNibs([
 			"AssemblyAddressCellView": .assemblyAddressCellView,
-			"DebuggerCellView": .debuggerCellView
+			"DebuggerValueCellView": .debuggerValueCellView
 		])
 		
 		self.updateTableColumnWidths()
@@ -215,13 +215,13 @@ extension AssemblyViewController: NSTableViewDelegate {
 			return view
 			
 		case tableView.tableColumns[1]:
-			let view = tableView.makeView(withIdentifier: .debuggerCellView, owner: nil) as! DebuggerCellView
-			view.label.stringValue = String(mnemonic: instruction.mnemonic)
+			let view = tableView.makeView(withIdentifier: .debuggerValueCellView, owner: nil) as! NSTableCellView
+			view.textField?.stringValue = String(mnemonic: instruction.mnemonic)
 			return view
 			
 		case tableView.tableColumns[2]:
-			let view = tableView.makeView(withIdentifier: .debuggerCellView, owner: nil) as! DebuggerCellView
-			view.label.stringValue = String(addressingMode: instruction.mode, operand: instruction.operand)
+			let view = tableView.makeView(withIdentifier: .debuggerValueCellView, owner: nil) as! NSTableCellView
+			view.textField?.stringValue = String(addressingMode: instruction.mode, operand: instruction.operand)
 			return view
 			
 		default:
