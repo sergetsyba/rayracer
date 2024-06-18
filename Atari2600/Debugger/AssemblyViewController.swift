@@ -55,11 +55,6 @@ class AssemblyViewController: NSViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
-		self.tableView.registerNibs([
-			"AssemblyAddressCellView": .assemblyAddressCellView,
-			"DebuggerValueCellView": .debuggerValueCellView
-		])
-		
 		self.updateTableColumnWidths()
 		self.updateProgramView()
 		self.setUpSinks()
@@ -215,13 +210,15 @@ extension AssemblyViewController: NSTableViewDelegate {
 			return view
 			
 		case tableView.tableColumns[1]:
-			let view = tableView.makeView(withIdentifier: .debuggerValueCellView, owner: nil) as! NSTableCellView
-			view.textField?.stringValue = String(mnemonic: instruction.mnemonic)
+			let view = tableView.makeView(withIdentifier: .assemblyTableCellView, owner: nil) as! NSTableCellView
+			view.textField?.font = .monospacedRegular
+			view.textField?.stringValue = "\(instruction.mnemonic)"
 			return view
 			
 		case tableView.tableColumns[2]:
-			let view = tableView.makeView(withIdentifier: .debuggerValueCellView, owner: nil) as! NSTableCellView
-			view.textField?.stringValue = String(addressingMode: instruction.mode, operand: instruction.operand)
+			let view = tableView.makeView(withIdentifier: .assemblyTableCellView, owner: nil) as! NSTableCellView
+			view.textField?.font = .monospacedRegular
+			view.textField?.stringValue = self.formatInstruction(instruction)
 			return view
 			
 		default:
@@ -230,42 +227,38 @@ extension AssemblyViewController: NSTableViewDelegate {
 	}
 }
 
+extension NSUserInterfaceItemIdentifier {
+	static let assemblyAddressCellView = NSUserInterfaceItemIdentifier("AssemblyAddressCellView")
+	static let assemblyTableCellView = NSUserInterfaceItemIdentifier("AssemblyTableCellView")
+}
+
+
 
 // MARK: -
 // MARK: Data formatting
-private extension String {
-	init(mnemonic: MOS6507Assembly.Mnemonic) {
-		self = "\(mnemonic)"
-	}
-	
-	init(addressingMode mode: MOS6507Assembly.AddressingMode, operand: Int) {
-		self = .init(format: mode.formatPattern, operand)
-	}
-}
-
-private extension MOS6507Assembly.AddressingMode {
-	var formatPattern: String {
-		switch self {
+private extension AssemblyViewController {
+	func formatInstruction(_ instruction: MOS6507Assembly.Instruction) -> String {
+		switch instruction.mode {
 		case .implied:
 			return ""
 		case .immediate:
-			return "#$%02x"
+			return String(format: "#$%02x", instruction.operand)
 		case .absolute, .relative:
-			return "$%04x"
+			return String(format: "$%04x", instruction.operand)
 		case .absoluteX:
-			return "$%04x,X"
+			return String(format: "$%04x,X", instruction.operand)
 		case .absoluteY:
-			return "$%04x,Y"
+			return String(format: "$%04x,Y", instruction.operand)
 		case .zeroPage:
-			return "$%02x"
+			return String(format: "$%02x", instruction.operand)
 		case .zeroPageX:
-			return "$%02x,X"
+			return String(format: "$%02x,X", instruction.operand)
 		case .zeroPageY:
-			return "$%02x,Y"
+			return String(format: "$%02x,Y", instruction.operand)
 		case .indirectX:
-			return "($%02x,X)"
+			return String(format: "($%02x,X)", instruction.operand)
 		case .indirectY:
-			return "($%02x),Y"
+			return String(format: "($%02x),Y", instruction.operand)
 		}
 	}
 }

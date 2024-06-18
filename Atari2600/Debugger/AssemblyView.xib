@@ -83,22 +83,23 @@
                                 </textFieldCell>
                                 <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                 <prototypeCellViews>
-                                    <tableCellView id="KH1-jv-csg">
-                                        <rect key="frame" x="8" y="0.0" width="62" height="24"/>
+                                    <tableCellView identifier="AssemblyAddressCellView" id="KH1-jv-csg" customClass="AssemblyAddressCellView" customModule="Atari2600" customModuleProvider="target">
+                                        <rect key="frame" x="8" y="0.0" width="62" height="26"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qEe-vT-KQU">
-                                                <rect key="frame" x="0.0" y="4" width="62" height="16"/>
-                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
-                                                <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="wEk-0b-Jzy">
-                                                    <font key="font" usesAppearanceFont="YES"/>
-                                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                </textFieldCell>
-                                            </textField>
+                                            <customView translatesAutoresizingMaskIntoConstraints="NO" id="1Ou-S7-4e0" customClass="BreakpointToggle" customModule="Atari2600" customModuleProvider="target">
+                                                <rect key="frame" x="0.0" y="2" width="57" height="22"/>
+                                            </customView>
                                         </subviews>
+                                        <constraints>
+                                            <constraint firstItem="1Ou-S7-4e0" firstAttribute="top" relation="greaterThanOrEqual" secondItem="KH1-jv-csg" secondAttribute="top" constant="2" id="4Ea-xJ-PAF"/>
+                                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="1Ou-S7-4e0" secondAttribute="bottom" constant="2" id="4YH-9P-eYn"/>
+                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="1Ou-S7-4e0" secondAttribute="trailing" id="P9W-md-qMd"/>
+                                            <constraint firstItem="1Ou-S7-4e0" firstAttribute="leading" secondItem="KH1-jv-csg" secondAttribute="leading" id="t98-JR-1ZL"/>
+                                            <constraint firstItem="1Ou-S7-4e0" firstAttribute="centerY" secondItem="KH1-jv-csg" secondAttribute="centerY" id="uQq-Km-NuN"/>
+                                        </constraints>
                                         <connections>
-                                            <outlet property="textField" destination="qEe-vT-KQU" id="G1n-et-gXT"/>
+                                            <outlet property="toggle" destination="1Ou-S7-4e0" id="Q8M-zk-Txg"/>
                                         </connections>
                                     </tableCellView>
                                 </prototypeCellViews>
@@ -115,7 +116,7 @@
                                 </textFieldCell>
                                 <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                 <prototypeCellViews>
-                                    <tableCellView id="qGQ-aT-CvY">
+                                    <tableCellView identifier="AssemblyTableCellView" id="qGQ-aT-CvY">
                                         <rect key="frame" x="87" y="0.0" width="64" height="24"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
@@ -186,4 +187,9 @@
             <point key="canvasLocation" x="67" y="-280.5"/>
         </scrollView>
     </objects>
+    <designables>
+        <designable name="1Ou-S7-4e0">
+            <size key="intrinsicContentSize" width="57.332356770833336" height="22"/>
+        </designable>
+    </designables>
 </document>

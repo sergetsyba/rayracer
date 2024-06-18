@@ -207,10 +207,6 @@ private extension CGContext {
 
 // MARK: -
 // MARK: Convenience functionality
-private extension NSFont {
-	static let systemRegular: NSFont = .systemFont(ofSize: NSFont.systemFontSize)
-}
-
 private extension CGSize {
 	static func + (_ lhs: Self, _ rhs: NSEdgeInsets) -> Self {
 		return .init(

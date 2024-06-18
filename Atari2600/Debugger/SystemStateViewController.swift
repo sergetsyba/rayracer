@@ -73,11 +73,11 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 extension SystemStateViewController: NSOutlineViewDelegate {
 	func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .systemStateTableCellView, owner: self) as! NSTableCellView
-		view.textField?.font = .systemFont(ofSize: 11.0)
+		view.textField?.font = .systemRegular
 		
 		if let section = item as? DebugSection {
 			view.textField?.stringValue = section.description
-			view.textField?.font = .boldSystemFont(ofSize: 11.0)
+			view.textField?.font = .systemBold
 		} else if let item = item as? CPUDebugItem {
 			view.textField?.attributedStringValue = self.formatDebugItem(item)
 		} else if let item = item as? MemoryDebugItem {

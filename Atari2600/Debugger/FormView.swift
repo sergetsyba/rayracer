@@ -8,8 +8,6 @@
 import Cocoa
 
 class FormView: NSView {
-	private var labelFont: NSFont = .systemFont(ofSize: .smallFontSize)
-	
 	private var verticalAnchor: NSLayoutYAxisAnchor!
 	private var verticalSpacing: CGFloat = 0.0
 	private let horizontalSpacing: CGFloat = 8.0
@@ -50,7 +48,7 @@ private extension FormView {
 	private func addEntries(_ entries: [(String, NSView)]) {
 		for (string, view) in entries {
 			let label = NSTextField(labelWithString: string)
-			label.font = self.labelFont
+			label.font = .systemRegular
 			label.textColor = .secondaryLabelColor
 			
 			self.addEntry(label, view)
@@ -75,11 +73,4 @@ private extension FormView {
 			self.trailingAnchor.constraint(greaterThanOrEqualTo: view.trailingAnchor)
 		])
 	}
-}
-
-
-// MARK: -
-// MARK: Convenience functionality
-private extension CGFloat {
-	static let smallFontSize: Self = NSFont.smallSystemFontSize
 }
