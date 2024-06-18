@@ -10,15 +10,8 @@ import CoreGraphics
 import CoreText
 
 @IBDesignable class BreakpointToggle: NSControl {
-	/// Text, displayed on this toggle.
-	public var title: String {
-		didSet {
-			self.invalidateIntrinsicContentSize()
-			self.needsDisplay = true
-		}
-	}
 	/// State of this toggle.
-	public var isOn: Bool {
+	public var state: NSControl.StateValue {
 		didSet {
 			self.needsDisplay = true
 		}
@@ -60,9 +53,7 @@ import CoreText
 	}
 	
 	required init?(coder: NSCoder) {
-		self.title = ""
-		self.isOn = false
-		
+		self.state = .off
 		self.tintColor = .controlAccentColor
 		self.textColor = .controlTextColor
 		
@@ -74,8 +65,8 @@ import CoreText
 	}
 	
 	override func prepareForInterfaceBuilder() {
-		self.title = "$0a4c"
-		self.isOn = true
+		self.state = .on
+		self.stringValue = "$0a4c"
 		self.font = .monospacedRegular
 	}
 }
@@ -85,9 +76,9 @@ import CoreText
 // MARK: Autolayout handling
 extension BreakpointToggle {
 	override var intrinsicContentSize: NSSize {
-		var size = self.title.size(withFont: self.font!)
+		var size = self.stringValue.size(withFont: self.font!)
 		size += self.insets
-		size.width += size.height / 3.0
+		size.width += size.height / 3
 		
 		return size
 	}
@@ -97,9 +88,21 @@ extension BreakpointToggle {
 // MARK: -
 // MARK: Drawing
 extension BreakpointToggle {
-	func drawToggle(in rect: CGRect, with context: CGContext) {
-		context.saveGState()
+	override func draw(_ dirtyRect: NSRect) {
+		super.draw(dirtyRect)
+		guard let context: CGContext = .current else {
+			return
+		}
 		
+		if self.state == .on {
+			self.drawToggle(in: self.bounds, with: context)
+		}
+		if self.stringValue.count > 0 {
+			self.drawText(in: self.bounds, with: context)
+		}
+	}
+	
+	private func drawToggle(in rect: CGRect, with context: CGContext) {
 		let origin = CGPoint(x: rect.minX, y: rect.midY)
 		let pointerWidth = rect.height / 3.0
 		
@@ -112,6 +115,7 @@ extension BreakpointToggle {
 			CGPoint(x: rect.minX, y: rect.minY)
 		]
 		
+		context.saveGState()
 		context.move(to: origin)
 		for index in corners.indices.dropLast() {
 			context.addArc(
@@ -126,35 +130,22 @@ extension BreakpointToggle {
 		context.restoreGState()
 	}
 	
-	func drawText(at point: CGPoint, with context: CGContext) {
-		let color = self.isOn
-		? NSColor.white
+	private func drawText(in rect: CGRect, with context: CGContext) {
+		let color: NSColor = self.state == .on
+		? .white
 		: self.textColor
 		
-		let string = NSAttributedString(string: self.title, attributes: [
+		let string = NSAttributedString(string: self.stringValue, attributes: [
 			.font: self.font!,
 			.foregroundColor: color
 		])
 		
+		let offset = CGPoint(x: self.insets.left, y: self.insets.bottom)
+		let point = rect.origin + offset
+		
 		context.saveGState()
 		string.draw(at: point)
 		context.restoreGState()
-	}
-	
-	override func draw(_ dirtyRect: NSRect) {
-		super.draw(dirtyRect)
-		guard let context: CGContext = .current else {
-			return
-		}
-		
-		let rect = CGRect(origin: dirtyRect.origin, size: self.intrinsicContentSize)
-		if self.isOn {
-			self.drawToggle(in: rect, with: context)
-		}
-		if self.title.isEmpty == false {
-			let offset = CGPoint(x: self.insets.left, y: self.insets.bottom)
-			self.drawText(at: rect.origin + offset, with: context)
-		}
 	}
 }
 
@@ -163,7 +154,7 @@ extension BreakpointToggle {
 // MARK: Event management
 extension BreakpointToggle {
 	override func mouseDown(with event: NSEvent) {
-		self.isOn = !self.isOn
+		self.state = self.state == .on ? .off : .on
 		self.needsDisplay = true
 		self.sendAction(self.action, to: self.target)
 	}
@@ -216,10 +207,6 @@ private extension CGContext {
 
 // MARK: -
 // MARK: Convenience functionality
-private extension NSFont {
-	static let systemRegular: NSFont = .systemFont(ofSize: NSFont.systemFontSize)
-}
-
 private extension CGSize {
 	static func + (_ lhs: Self, _ rhs: NSEdgeInsets) -> Self {
 		return .init(
@@ -241,14 +228,5 @@ private extension CGPoint {
 	static func += (_ lhs: inout Self, _ rhs: Self) {
 		lhs.x += rhs.x
 		lhs.y += rhs.y
-	}
-}
-
-private extension String {
-	func size(withFont font: NSFont) -> NSSize {
-		return NSString(string: self)
-			.size(withAttributes: [
-				.font: font
-			])
 	}
 }

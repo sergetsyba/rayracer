@@ -8,6 +8,13 @@
 import Cocoa
 
 extension NSFont {
-	static let monospacedRegular: NSFont = .monospacedSystemFont(ofSize: 11.0, weight: .regular)
-	static let monospacedBold: NSFont = .monospacedSystemFont(ofSize: 11.0, weight: .bold)
+	static let systemRegular: NSFont = .systemFont(ofSize: .smallSystemFontSize)
+	static let systemBold: NSFont = .boldSystemFont(ofSize: .smallSystemFontSize)
+	
+	static let monospacedRegular: NSFont = .monospacedSystemFont(ofSize: .smallSystemFontSize, weight: .regular)
+	static let monospacedBold: NSFont = .monospacedSystemFont(ofSize: .smallSystemFontSize, weight: .bold)
+}
+
+private extension CGFloat {
+	static let smallSystemFontSize = NSFont.smallSystemFontSize
 }

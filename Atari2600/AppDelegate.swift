@@ -31,7 +31,7 @@ extension AppDelegate {
 				let controller = ScreenWindowController()
 				controller.window?.title = url.lastPathComponent
 				self.showWindow(of: controller)
-				self.resumeMenuItemSelected(self)
+//				self.resumeMenuItemSelected(self)
 			} catch {
 				print(error)
 			}

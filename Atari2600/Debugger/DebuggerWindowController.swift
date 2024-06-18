@@ -10,17 +10,12 @@ import Combine
 import Atari2600Kit
 
 class DebuggerWindowController: NSWindowController {
-	@IBOutlet private var toolbar: NSToolbar!
-	
-	@IBOutlet private var assemblyContainerView: NSView!
-	@IBOutlet private var cpuContainerView: NSView!
-	@IBOutlet private var memoryContainerView: NSView!
-	@IBOutlet private var timerContainerView: NSView!
+	@IBOutlet private var toolbar: NSToolbar!	
+	@IBOutlet private var assemblyViewBox: NSBox!
+	@IBOutlet private var systemStateViewBox: NSBox!
 	
 	private var assemblyViewController = AssemblyViewController()
-	private let cpuViewController = CPUViewController()
-	private let memoryViewController = MemoryViewController()
-	private let timerViewController = TimerViewController()
+	private var systemStateViewController = SystemStateViewController()
 	
 	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
@@ -40,10 +35,13 @@ class DebuggerWindowController: NSWindowController {
 	override func windowDidLoad() {
 		super.windowDidLoad()
 		
-		self.assemblyContainerView.setContentView(self.assemblyViewController.view)
-		self.cpuContainerView.setContentView(self.cpuViewController.view, layout: .centerHorizontally)
-		self.memoryContainerView.setContentView(self.memoryViewController.view)
-		self.timerContainerView.setContentView(self.timerViewController.view, layout: .centerHorizontally)
+		self.assemblyViewBox.contentView = self.assemblyViewController.view
+		self.assemblyViewBox.contentView?
+			.maskLayerToBounds(cornerRadius: NSBox.defaultCornerRaius)
+		
+		self.systemStateViewBox.contentView = self.systemStateViewController.view
+		self.systemStateViewBox.contentView?
+			.maskLayerToBounds(cornerRadius: NSBox.defaultCornerRaius)
 		
 		self.setUpSinks()
 	}
@@ -127,7 +125,7 @@ private extension DebuggerWindowController {
 		let menuItem = NSMenuItem()
 		menuItem.tag = breakpoint
 		menuItem.attributedTitle = NSAttributedString(
-			string: String(address: breakpoint),
+			string: String(format: "$%04x", breakpoint),
 			attributes: [
 				.font: NSFont.monospacedRegular
 			])
@@ -195,4 +193,16 @@ private extension NSToolbar {
 	subscript (identifier: NSToolbarItem.Identifier) -> NSToolbarItem? {
 		return self.items.first(where: { $0.itemIdentifier == identifier })
 	}
+}
+
+private extension NSView {
+	func maskLayerToBounds(cornerRadius: CGFloat) {
+		self.wantsLayer = true
+		self.layer?.masksToBounds = true
+		self.layer?.cornerRadius = cornerRadius
+	}
+}
+
+private extension NSBox {
+	static let defaultCornerRaius: CGFloat = 4.5
 }

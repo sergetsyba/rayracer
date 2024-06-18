@@ -55,14 +55,14 @@ class AssemblyViewController: NSViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
-		self.tableView.registerNibs([
-			"AssemblyAddressCellView": .addressCell,
-			"AssemblyDataCellView": .dataCell
-		])
-		
 		self.updateTableColumnWidths()
 		self.updateProgramView()
 		self.setUpSinks()
+	}
+	
+	override func viewDidAppear() {
+		super.viewDidAppear()
+		self.updateTableColumnWidths()
 	}
 }
 
@@ -105,14 +105,11 @@ private extension AssemblyViewController {
 // MARK: -
 // MARK: UI updates
 private extension AssemblyViewController {
-	static let tableColumnDataTemplates = ["$0000    ", "adc", "($a4),Y"]
-	static let tableTextAttributes: [NSAttributedString.Key: Any] = [
-		.font: NSFont.monospacedRegular
-	]
+	static let tableColumnDataTemplates = ["$0000   ", "adc ", "($a4),Y "]
 	
 	func updateTableColumnWidths() {
 		Self.tableColumnDataTemplates
-			.map() { $0.size(withAttributes: Self.tableTextAttributes) }
+			.map() { $0.size(withFont: .monospacedRegular) }
 			.enumerated()
 			.forEach() { self.tableView.tableColumns[$0.0].width = $0.1.width }
 	}
@@ -148,7 +145,7 @@ private extension AssemblyViewController {
 // MARK: Breakpoint management
 extension AssemblyViewController {
 	@objc func breakpointToggled(_ sender: BreakpointToggle) {
-		if sender.isOn {
+		if sender.state == .on {
 			self.breakpoints.append(sender.tag)
 		} else {
 			if let index = self.breakpoints.firstIndex(of: sender.tag) {
@@ -202,9 +199,9 @@ extension AssemblyViewController: NSTableViewDelegate {
 		
 		switch tableColumn {
 		case tableView.tableColumns[0]:
-			let view = tableView.makeView(withIdentifier: .addressCell, owner: nil) as! AssemblyAddressCellView
-			view.toggle.title = String(address: address)
-			view.toggle.isOn = self.breakpoints.contains(address)
+			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
+			view.toggle.stringValue = String(format: "$%04x", address)
+			view.toggle.state = self.breakpoints.contains(address) ? .on : .off
 			
 			view.toggle.tag = address
 			view.toggle.target = self
@@ -213,13 +210,15 @@ extension AssemblyViewController: NSTableViewDelegate {
 			return view
 			
 		case tableView.tableColumns[1]:
-			let view = tableView.makeView(withIdentifier: .dataCell, owner: nil) as! AssemblyDataCellView
-			view.label.stringValue = String(mnemonic: instruction.mnemonic)
+			let view = tableView.makeView(withIdentifier: .assemblyTableCellView, owner: nil) as! NSTableCellView
+			view.textField?.font = .monospacedRegular
+			view.textField?.stringValue = "\(instruction.mnemonic)"
 			return view
 			
 		case tableView.tableColumns[2]:
-			let view = tableView.makeView(withIdentifier: .dataCell, owner: nil) as! AssemblyDataCellView
-			view.label.stringValue = String(addressingMode: instruction.mode, operand: instruction.operand)
+			let view = tableView.makeView(withIdentifier: .assemblyTableCellView, owner: nil) as! NSTableCellView
+			view.textField?.font = .monospacedRegular
+			view.textField?.stringValue = self.formatInstruction(instruction)
 			return view
 			
 		default:
@@ -228,47 +227,38 @@ extension AssemblyViewController: NSTableViewDelegate {
 	}
 }
 
-private extension NSUserInterfaceItemIdentifier {
-	static let addressCell = NSUserInterfaceItemIdentifier("AssemblyAddressCell")
-	static let dataCell = NSUserInterfaceItemIdentifier("AssemblyDataCell")
+extension NSUserInterfaceItemIdentifier {
+	static let assemblyAddressCellView = NSUserInterfaceItemIdentifier("AssemblyAddressCellView")
+	static let assemblyTableCellView = NSUserInterfaceItemIdentifier("AssemblyTableCellView")
 }
+
 
 
 // MARK: -
 // MARK: Data formatting
-private extension String {
-	init(mnemonic: MOS6507Assembly.Mnemonic) {
-		self = "\(mnemonic)"
-	}
-	
-	init(addressingMode mode: MOS6507Assembly.AddressingMode, operand: Int) {
-		self = .init(format: mode.formatPattern, operand)
-	}
-}
-
-private extension MOS6507Assembly.AddressingMode {
-	var formatPattern: String {
-		switch self {
+private extension AssemblyViewController {
+	func formatInstruction(_ instruction: MOS6507Assembly.Instruction) -> String {
+		switch instruction.mode {
 		case .implied:
 			return ""
 		case .immediate:
-			return "#$%02x"
+			return String(format: "#$%02x", instruction.operand)
 		case .absolute, .relative:
-			return "$%04x"
+			return String(format: "$%04x", instruction.operand)
 		case .absoluteX:
-			return "$%04x,X"
+			return String(format: "$%04x,X", instruction.operand)
 		case .absoluteY:
-			return "$%04x,Y"
+			return String(format: "$%04x,Y", instruction.operand)
 		case .zeroPage:
-			return "$%02x"
+			return String(format: "$%02x", instruction.operand)
 		case .zeroPageX:
-			return "$%02x,X"
+			return String(format: "$%02x,X", instruction.operand)
 		case .zeroPageY:
-			return "$%02x,Y"
+			return String(format: "$%02x,Y", instruction.operand)
 		case .indirectX:
-			return "($%02x,X)"
+			return String(format: "($%02x,X)", instruction.operand)
 		case .indirectY:
-			return "($%02x),Y"
+			return String(format: "($%02x),Y", instruction.operand)
 		}
 	}
 }
@@ -289,13 +279,6 @@ private extension NSScrollView {
 }
 
 private extension NSTableView {
-	func registerNibs(_ nibs: [NSNib.Name: NSUserInterfaceItemIdentifier], bundle: Bundle = .main) {
-		for (name, id) in nibs {
-			let nib = NSNib(nibNamed: name, bundle: bundle)
-			self.register(nib, forIdentifier: id)
-		}
-	}
-	
 	func ensureRowVisible(_ row: Int) {
 		if self.isRowVisible(row) == false {
 			self.scrollToRow(row)
