@@ -1,0 +1,70 @@
+//
+//  DebugItemTableCellView.swift
+//  Atari2600
+//
+//  Created by Serge Tsyba on 23.6.2024.
+//
+
+import Cocoa
+
+class DebugItemTableCellView: NSTableCellView {
+	private static let valueAttributes: [NSAttributedString.Key: Any] = [
+		.font: NSFont.monospacedRegular
+	]
+	
+	var attributedStringValue: (any CustomStringConvertible, NSAttributedString) {
+		get { fatalError() }
+		set {
+			let string = NSMutableAttributedString(attributedString: newValue.1)
+			string.addAttributes(Self.valueAttributes)
+			self.textField?.attributedStringValue = "\(newValue.0) = " + string
+		}
+	}
+	
+	var stringValue: (String, String) {
+		get { fatalError() }
+		set {
+			let string = NSMutableAttributedString(string: newValue.1)
+			string.addAttributes(Self.valueAttributes)
+			self.textField?.attributedStringValue = "\(newValue.0) = " + string
+		}
+	}
+	
+	var wordValue: (String, Int) {
+		get { fatalError() }
+		set {
+			let value = String(format: "%02x", newValue.1)
+			self.stringValue = (newValue.0, value)
+		}
+	}
+	
+	var addressValue: (String, Int) {
+		get { fatalError() }
+		set {
+			let value = String(format: "$%04x", newValue.1)
+			self.stringValue = (newValue.0, value)
+		}
+	}
+	
+	override func awakeFromNib() {
+		super.awakeFromNib()
+		self.textField?.font = .systemRegular
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+private extension NSMutableAttributedString {
+	func addAttributes(_ attributes: [NSAttributedString.Key: Any]) {
+		let range = NSRange(location: 0, length: self.string.count)
+		self.addAttributes(attributes, range: range)
+	}
+}
+
+private func + (lhs: String, rhs: NSAttributedString) -> NSAttributedString {
+	let string = NSMutableAttributedString(string: lhs)
+	string.append(rhs)
+	
+	return string
+}
