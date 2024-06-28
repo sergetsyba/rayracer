@@ -30,19 +30,27 @@ class DebugItemTableCellView: NSTableCellView {
 		}
 	}
 	
+	var boolValue: (String, Bool) {
+		get { fatalError() }
+		set {
+			let string = newValue.1 ? "Yes" : "No"
+			self.stringValue = (newValue.0, string)
+		}
+	}
+	
 	var wordValue: (String, Int) {
 		get { fatalError() }
 		set {
-			let value = String(format: "%02x", newValue.1)
-			self.stringValue = (newValue.0, value)
+			let string = String(format: "%02x", newValue.1)
+			self.stringValue = (newValue.0, string)
 		}
 	}
 	
 	var addressValue: (String, Int) {
 		get { fatalError() }
 		set {
-			let value = String(format: "$%04x", newValue.1)
-			self.stringValue = (newValue.0, value)
+			let string = String(format: "$%04x", newValue.1)
+			self.stringValue = (newValue.0, string)
 		}
 	}
 	

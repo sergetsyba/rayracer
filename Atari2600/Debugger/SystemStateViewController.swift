@@ -19,7 +19,7 @@ class SystemStateViewController: NSViewController {
 	
 	override func viewWillAppear() {
 		super.viewWillAppear()
-		self.outlineView.expandTopItems()
+		self.outlineView.expandAllItems()
 	}
 }
 
@@ -29,8 +29,8 @@ class SystemStateViewController: NSViewController {
 extension SystemStateViewController: NSOutlineViewDataSource {
 	func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
 		if item == nil {
-			return Section.allCases.count
-		} else if let section = item as? Section {
+			return DebugSection.allCases.count
+		} else if let section = item as? DebugSection {
 			switch section {
 			case .cpu:
 				return CPUDebugItem.allCases.count
@@ -38,6 +38,17 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 				return MemoryDebugItem.allCases.count
 			case .timer:
 				return TimerDebugItem.allCases.count
+			case .graphics:
+				return GraphicsDebugSection.allCases.count
+			}
+		} else if let section = item as? GraphicsDebugSection {
+			switch section {
+			case .frame:
+				return FrameDebugItem.allCases.count
+			case .background:
+				return BackgroundDebugItem.allCases.count
+			case .playField:
+				return PlayFieldDebugItem.allCases.count
 			}
 		} else {
 			return 0
@@ -46,8 +57,8 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 	
 	func outlineView(_ outlineView: NSOutlineView, child index: Int, ofItem item: Any?) -> Any {
 		if item == nil {
-			return Section.allCases[index]
-		} else if let section = item as? Section {
+			return DebugSection.allCases[index]
+		} else if let section = item as? DebugSection {
 			switch section {
 			case .cpu:
 				return CPUDebugItem.allCases[index]
@@ -55,6 +66,17 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 				return MemoryDebugItem.allCases[index]
 			case .timer:
 				return TimerDebugItem.allCases[index]
+			case .graphics:
+				return GraphicsDebugSection.allCases[index]
+			}
+		} else if let section = item as? GraphicsDebugSection {
+			switch section {
+			case .frame:
+				return FrameDebugItem.allCases[index]
+			case .background:
+				return BackgroundDebugItem.allCases[index]
+			case .playField:
+				return PlayFieldDebugItem.allCases[index]
 			}
 		} else {
 			return 0
@@ -62,13 +84,13 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 	}
 	
 	func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
-		return item is Section
+		return item is DebugSection || item is GraphicsDebugSection
 	}
 }
 
 extension SystemStateViewController: NSOutlineViewDelegate {
 	func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
-		if let section = item as? Section {
+		if let section = item as? DebugSection {
 			return self.makeView(outlineView, forSectionItem: section)
 		} else if let item = item as? CPUDebugItem {
 			return self.makeView(outlineView, forCPUDebugItem: item)
@@ -76,12 +98,20 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			return self.makeView(outlineView, forMemoryDebugItem: item)
 		} else if let item = item as? TimerDebugItem {
 			return self.makeView(outlineView, forTimerDebugItem: item)
+		} else if let section = item as? GraphicsDebugSection {
+			return self.makeView(outlineView, forSectionItem: section)
+		} else if let item = item as? FrameDebugItem {
+			return self.makeView(outlineView, forFrameDebugItem: item)
+		} else if let item = item as? BackgroundDebugItem {
+			return self.makeView(outlineView, forBackgroundDebugItem: item)
+		} else if let item = item as? PlayFieldDebugItem {
+			return self.makeView(outlineView, forPlayFieldDebugItem: item)
+		} else {
+			return nil
 		}
-		
-		return view
 	}
 	
-	private func makeView(_ outlineView: NSOutlineView, forSectionItem item: Section) -> NSView? {
+	private func makeView(_ outlineView: NSOutlineView, forSectionItem item: any RawRepresentable<String>) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugSectionTableCellView, owner: nil) as? DebugSectionTableCellView
 		view?.textField?.stringValue = item.rawValue
 		
@@ -127,30 +157,85 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		
 		return view
 	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forFrameDebugItem item: FrameDebugItem) -> NSView? {
+		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		switch item {
+		case .beamPosition:
+			let (scanLine, point) = self.console.tia.beamPosition
+			view?.stringValue = (item.rawValue, "\(scanLine):\(point)")
+		case .waitForSync:
+			view?.boolValue = (item.rawValue, self.console.tia.awaitingHorizontalSync)
+		}
+		
+		return view
+	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forBackgroundDebugItem item: BackgroundDebugItem) -> NSView? {
+		switch item {
+		case .color:
+			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
+			view?.colorValue = (item.rawValue, self.console.tia.backgroundColor)
+			return view
+		}
+	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forPlayFieldDebugItem item: PlayFieldDebugItem) -> NSView? {
+		switch item {
+		case .pattern:
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, self.formatPlayFieldGraphics())
+			return view
+			
+		case .reflected:
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.boolValue = (item.rawValue, self.console.tia.playfield.reflected)
+			return view
+			
+		case .color:
+			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
+			view?.colorValue = (item.rawValue, self.console.tia.playfield.color)
+			return view
+		}
+	}
+	
+	private func formatPlayFieldGraphics() -> String {
+		let graphics = self.console.tia.playfield.graphics
+		let values = graphics
+			.map({ String(format: "%02x", $0) })
+			.joined()
+		
+		let pattern = graphics.map({
+			return $0[0..<8]
+				.map({ $0 ? "■" : "□" })
+				.joined()
+		}).joined()
+		
+		return "\(values)  \(pattern.suffix(20))"
+	}
 }
 
 private extension NSUserInterfaceItemIdentifier {
 	static let debugSectionTableCellView = NSUserInterfaceItemIdentifier("DebugSectionTableCellView")
 	static let debugValueTableCellView = NSUserInterfaceItemIdentifier("DebugValueTableCellView")
 	static let debugItemTableCellView = NSUserInterfaceItemIdentifier("DebugItemTableCellView")
+	static let debugColorTableCellView = NSUserInterfaceItemIdentifier("DebugColorTableCellView")
 }
 
 
 // MARK: -
 // MARK: Outline view model
 private extension SystemStateViewController {
-	enum Section: String, CaseIterable {
+	enum DebugSection: String, CaseIterable {
 		case cpu = "CPU"
 		case memory = "Memory"
 		case timer = "Timer"
-		
-		static var allCases: [Section] {
-			return [
-				.cpu,
-				.memory,
-				.timer
-			]
-		}
+		case graphics = "Graphics"
+	}
+	
+	enum FrameDebugItem: String, CaseIterable {
+		case beamPosition = "Beam position"
+		case waitForSync = "Wait for sync"
 	}
 	
 	private enum CPUDebugItem: String, CaseIterable {
@@ -160,39 +245,47 @@ private extension SystemStateViewController {
 		case status = "Status"
 		case stackPointer = "Stack pointer"
 		case programCounter = "Program counter"
-		
-		static var allCases: [CPUDebugItem] {
-			return [
-				.accumulator,
-				.indexX,
-				.indexY,
-				.status,
-				.stackPointer,
-				.programCounter
-			]
-		}
 	}
 	
 	private enum MemoryDebugItem: String, CaseIterable {
 		case memory = "Memory"
-		
-		static var allCases: [MemoryDebugItem] {
-			return [
-				.memory
-			]
-		}
 	}
 	
 	private enum TimerDebugItem: String, CaseIterable {
 		case value = "Remaining cycles"
 		case interval = "Interval"
-		
-		static var allCases: [TimerDebugItem] {
-			return [
-				.value,
-				.interval
-			]
-		}
+	}
+	
+	private enum GraphicsDebugSection: String, CaseIterable {
+		case frame = "Frame"
+		case background = "Background"
+		case playField = "Play field"
+		//		case player0 = "Player 0"
+		//		case player1 = "Player 1"
+		//		case missile0 = "Missile 0"
+		//		case missile1 = "Missile 1"
+		//		case ball = "Ball"
+	}
+	
+	enum BackgroundDebugItem: String, CaseIterable {
+		case color = "Color"
+	}
+	
+	enum PlayFieldDebugItem: String, CaseIterable {
+		case pattern = "Pattern"
+		case reflected = "Reflected"
+		case color = "Color"
+	}
+	
+	enum PlayerDebugItem: String, CaseIterable {
+		case enabled = "Enabled"
+		case pattern = "Pattern"
+		case copies = "Copies"
+		case reflected = "Reflected"
+		case color = "Color"
+		case position = "Position"
+		case verticalDelay = "Vertical delay"
+		case reset = "Reset"
 	}
 }
 

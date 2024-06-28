@@ -15,14 +15,14 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="24" horizontalPageScroll="10" verticalLineScroll="24" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="TG1-Q0-bLy">
-            <rect key="frame" x="0.0" y="0.0" width="240" height="137"/>
+            <rect key="frame" x="0.0" y="0.0" width="240" height="135"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <clipView key="contentView" id="efZ-Hf-Twp">
-                <rect key="frame" x="0.0" y="0.0" width="240" height="137"/>
+                <rect key="frame" x="0.0" y="0.0" width="240" height="135"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" usesAutomaticRowHeights="YES" viewBased="YES" indentationPerLevel="13" outlineTableColumn="glj-Cl-6VK" id="dgc-zO-aRP">
-                        <rect key="frame" x="0.0" y="0.0" width="272" height="137"/>
+                        <rect key="frame" x="0.0" y="0.0" width="272" height="135"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <size key="intercellSpacing" width="17" height="0.0"/>
                         <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -41,11 +41,11 @@
                                 <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                 <prototypeCellViews>
                                     <tableCellView identifier="DebugSectionTableCellView" id="YMK-tn-Tg3" customClass="DebugSectionTableCellView" customModule="Atari2600" customModuleProvider="target">
-                                        <rect key="frame" x="18" y="0.0" width="235" height="17"/>
+                                        <rect key="frame" x="18" y="0.0" width="235" height="20"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
                                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="fI3-EO-t8I">
-                                                <rect key="frame" x="0.0" y="1" width="96" height="16"/>
+                                                <rect key="frame" x="0.0" y="2" width="96" height="16"/>
                                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="bDJ-en-H2Q">
                                                     <font key="font" usesAppearanceFont="YES"/>
                                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -54,9 +54,9 @@
                                             </textField>
                                         </subviews>
                                         <constraints>
-                                            <constraint firstItem="fI3-EO-t8I" firstAttribute="top" secondItem="YMK-tn-Tg3" secondAttribute="top" id="UNq-G6-UOv"/>
+                                            <constraint firstItem="fI3-EO-t8I" firstAttribute="top" secondItem="YMK-tn-Tg3" secondAttribute="top" constant="2" id="UNq-G6-UOv"/>
                                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="fI3-EO-t8I" secondAttribute="trailing" constant="2" id="W1F-Bf-hQp"/>
-                                            <constraint firstAttribute="bottom" secondItem="fI3-EO-t8I" secondAttribute="bottom" constant="1" id="pMM-ZH-Gib"/>
+                                            <constraint firstAttribute="bottom" secondItem="fI3-EO-t8I" secondAttribute="bottom" constant="2" id="pMM-ZH-Gib"/>
                                             <constraint firstItem="fI3-EO-t8I" firstAttribute="leading" secondItem="YMK-tn-Tg3" secondAttribute="leading" constant="2" id="rr9-Qb-ws8"/>
                                         </constraints>
                                         <connections>
@@ -64,11 +64,11 @@
                                         </connections>
                                     </tableCellView>
                                     <tableCellView identifier="DebugValueTableCellView" id="xAn-Zx-UTW" customClass="DebugValueTableCellView" customModule="Atari2600" customModuleProvider="target">
-                                        <rect key="frame" x="18" y="17" width="235" height="17"/>
+                                        <rect key="frame" x="18" y="20" width="235" height="20"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
                                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="e9M-CV-vpj">
-                                                <rect key="frame" x="0.0" y="1" width="96" height="16"/>
+                                                <rect key="frame" x="0.0" y="2" width="96" height="16"/>
                                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Table View Cell" id="RFC-I5-qMz">
                                                     <font key="font" usesAppearanceFont="YES"/>
                                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -77,8 +77,8 @@
                                             </textField>
                                         </subviews>
                                         <constraints>
-                                            <constraint firstAttribute="bottom" secondItem="e9M-CV-vpj" secondAttribute="bottom" constant="1" id="3P5-Yp-tBF"/>
-                                            <constraint firstItem="e9M-CV-vpj" firstAttribute="top" secondItem="xAn-Zx-UTW" secondAttribute="top" id="5Rz-Rg-43b"/>
+                                            <constraint firstAttribute="bottom" secondItem="e9M-CV-vpj" secondAttribute="bottom" constant="2" id="3P5-Yp-tBF"/>
+                                            <constraint firstItem="e9M-CV-vpj" firstAttribute="top" secondItem="xAn-Zx-UTW" secondAttribute="top" constant="2" id="5Rz-Rg-43b"/>
                                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="e9M-CV-vpj" secondAttribute="trailing" constant="2" id="JAg-ko-ZhC"/>
                                             <constraint firstItem="e9M-CV-vpj" firstAttribute="leading" secondItem="xAn-Zx-UTW" secondAttribute="leading" constant="2" id="gCc-ST-P17"/>
                                         </constraints>
@@ -87,11 +87,11 @@
                                         </connections>
                                     </tableCellView>
                                     <tableCellView identifier="DebugItemTableCellView" id="yCm-Gy-mrS" customClass="DebugItemTableCellView" customModule="Atari2600" customModuleProvider="target">
-                                        <rect key="frame" x="18" y="34" width="235" height="17"/>
+                                        <rect key="frame" x="18" y="40" width="235" height="20"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
                                             <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="hIo-w3-C30">
-                                                <rect key="frame" x="0.0" y="1" width="96" height="16"/>
+                                                <rect key="frame" x="0.0" y="2" width="96" height="16"/>
                                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="D0f-uJ-Tbj">
                                                     <font key="font" usesAppearanceFont="YES"/>
                                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
@@ -100,13 +100,46 @@
                                             </textField>
                                         </subviews>
                                         <constraints>
-                                            <constraint firstAttribute="bottom" secondItem="hIo-w3-C30" secondAttribute="bottom" constant="1" id="Fwg-PI-B67"/>
+                                            <constraint firstAttribute="bottom" secondItem="hIo-w3-C30" secondAttribute="bottom" constant="2" id="Fwg-PI-B67"/>
                                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="hIo-w3-C30" secondAttribute="trailing" constant="2" id="Hw9-N9-XRa"/>
                                             <constraint firstItem="hIo-w3-C30" firstAttribute="leading" secondItem="yCm-Gy-mrS" secondAttribute="leading" constant="2" id="QSs-MA-yvG"/>
-                                            <constraint firstItem="hIo-w3-C30" firstAttribute="top" secondItem="yCm-Gy-mrS" secondAttribute="top" id="eg9-lt-j5t"/>
+                                            <constraint firstItem="hIo-w3-C30" firstAttribute="top" secondItem="yCm-Gy-mrS" secondAttribute="top" constant="2" id="eg9-lt-j5t"/>
                                         </constraints>
                                         <connections>
                                             <outlet property="textField" destination="hIo-w3-C30" id="Pge-V1-8WP"/>
+                                        </connections>
+                                    </tableCellView>
+                                    <tableCellView identifier="DebugColorTableCellView" id="1HW-vp-pqz" customClass="DebugColorTableCellView" customModule="Atari2600" customModuleProvider="target">
+                                        <rect key="frame" x="18" y="60" width="235" height="20"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <subviews>
+                                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="hYg-JW-WRQ">
+                                                <rect key="frame" x="0.0" y="2" width="96" height="16"/>
+                                                <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="jmy-wl-GAs">
+                                                    <font key="font" usesAppearanceFont="YES"/>
+                                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                </textFieldCell>
+                                            </textField>
+                                            <customView translatesAutoresizingMaskIntoConstraints="NO" id="33p-Gu-DyV">
+                                                <rect key="frame" x="102" y="4" width="21" height="12"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" secondItem="33p-Gu-DyV" secondAttribute="height" multiplier="1.71:1" id="vWJ-n3-3iV"/>
+                                                </constraints>
+                                            </customView>
+                                        </subviews>
+                                        <constraints>
+                                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="33p-Gu-DyV" secondAttribute="trailing" constant="2" id="TCm-6T-nzw"/>
+                                            <constraint firstItem="hYg-JW-WRQ" firstAttribute="leading" secondItem="1HW-vp-pqz" secondAttribute="leading" constant="2" id="TY4-KY-25c"/>
+                                            <constraint firstItem="hYg-JW-WRQ" firstAttribute="centerY" secondItem="33p-Gu-DyV" secondAttribute="centerY" id="hE9-ui-xyJ"/>
+                                            <constraint firstItem="33p-Gu-DyV" firstAttribute="leading" secondItem="hYg-JW-WRQ" secondAttribute="trailing" constant="8" symbolic="YES" id="nUH-hc-tbR"/>
+                                            <constraint firstItem="33p-Gu-DyV" firstAttribute="height" secondItem="hYg-JW-WRQ" secondAttribute="height" multiplier="0.75" id="rzc-kI-0qU"/>
+                                            <constraint firstItem="hYg-JW-WRQ" firstAttribute="top" secondItem="1HW-vp-pqz" secondAttribute="top" constant="2" id="saJ-yW-i58"/>
+                                            <constraint firstAttribute="bottom" secondItem="hYg-JW-WRQ" secondAttribute="bottom" constant="2" id="wSF-tE-asl"/>
+                                        </constraints>
+                                        <connections>
+                                            <outlet property="colorView" destination="33p-Gu-DyV" id="GCN-e4-FQ0"/>
+                                            <outlet property="textField" destination="hYg-JW-WRQ" id="gfJ-qK-BJq"/>
                                         </connections>
                                     </tableCellView>
                                 </prototypeCellViews>
@@ -120,7 +153,7 @@
                 </subviews>
             </clipView>
             <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="0.40625" horizontal="YES" id="oqc-19-dIL">
-                <rect key="frame" x="0.0" y="121" width="240" height="16"/>
+                <rect key="frame" x="0.0" y="119" width="240" height="16"/>
                 <autoresizingMask key="autoresizingMask"/>
             </scroller>
             <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="ns1-4q-IWP">
