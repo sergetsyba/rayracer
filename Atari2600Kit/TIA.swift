@@ -23,7 +23,7 @@ public class TIA {
 	
 	public var data = Data(count: 228*262)
 	
-	private var cycle = 0
+	var cycle = 0
 	
 	// Vertical sync register.
 	var vsync: Bool = false {
@@ -44,23 +44,23 @@ public class TIA {
 	// Player 1 and missile 1 color and luminosity register.
 	var colup1: Int = 0x00
 	// Playfield and ball color and luminosity register.
-	var colupf: Int = 0x00
+	var colupf: Int = .randomWord
 	// Background color and luminosity register.
-	var colubk: Int = 0x00
+	var colubk: Int = .randomWord
 	
-	var pf0: Int = 0x00 {
+	var pf0: Int = .randomWord {
 		didSet {
 			self.playfiled &= 0xffff0
 			self.playfiled |= self.pf0 >> 4
 		}
 	}
-	var pf1: Int = 0x00 {
+	var pf1: Int = .randomWord {
 		didSet {
 			self.playfiled &= 0xff00f
 			self.playfiled |= self.pf1 << 4
 		}
 	}
-	var pf2: Int = 0x00 {
+	var pf2: Int = .randomWord {
 		didSet {
 			self.playfiled &= 0x00fff
 			self.playfiled |= self.pf2
@@ -69,6 +69,10 @@ public class TIA {
 	var ctrlpf: Int = 0x00
 	
 	var playfiled: Int = 0x00
+	
+	var grp0: Int = .randomWord
+	var nusiz0: Int = .randomWord
+	var refp0: Int = .randomWord
 	
 	/// Reset sync strobe register.
 	/// Writing any value resets color clock to its value at the beginning of the current scanline.
@@ -190,7 +194,7 @@ public extension TIA {
 	}
 }
 
-extension Int {
+public extension Int {
 	static let frameSize = 262 * 228
 	
 	init(reversingBits value: Int) {
@@ -198,6 +202,10 @@ extension Int {
 		for bit in 0..<8 {
 			self[bit] = value[7-bit]
 		}
+	}
+	
+	subscript (range: Range<Int>) -> [Bool] {
+		return range.map({ self[$0] })
 	}
 }
 

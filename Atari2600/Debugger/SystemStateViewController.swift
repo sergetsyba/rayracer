@@ -16,18 +16,10 @@ class SystemStateViewController: NSViewController {
 	convenience init() {
 		self.init(nibName: "SystemStateView", bundle: .main)
 	}
-}
-
-
-// MARK: -
-// MARK: View lifecycle
-extension SystemStateViewController {
+	
 	override func viewWillAppear() {
 		super.viewWillAppear()
-		
-		for section in DebugSection.allCases {
-			self.outlineView.expandItem(section)
-		}
+		self.outlineView.expandAllItems()
 	}
 }
 
@@ -46,6 +38,17 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 				return MemoryDebugItem.allCases.count
 			case .timer:
 				return TimerDebugItem.allCases.count
+			case .graphics:
+				return GraphicsDebugSection.allCases.count
+			}
+		} else if let section = item as? GraphicsDebugSection {
+			switch section {
+			case .frame:
+				return FrameDebugItem.allCases.count
+			case .background:
+				return BackgroundDebugItem.allCases.count
+			case .playField:
+				return PlayFieldDebugItem.allCases.count
 			}
 		} else {
 			return 0
@@ -63,183 +66,252 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 				return MemoryDebugItem.allCases[index]
 			case .timer:
 				return TimerDebugItem.allCases[index]
+			case .graphics:
+				return GraphicsDebugSection.allCases[index]
+			}
+		} else if let section = item as? GraphicsDebugSection {
+			switch section {
+			case .frame:
+				return FrameDebugItem.allCases[index]
+			case .background:
+				return BackgroundDebugItem.allCases[index]
+			case .playField:
+				return PlayFieldDebugItem.allCases[index]
 			}
 		} else {
 			return 0
 		}
 	}
+	
+	func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
+		return item is DebugSection || item is GraphicsDebugSection
+	}
 }
 
 extension SystemStateViewController: NSOutlineViewDelegate {
 	func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
-		let view = outlineView.makeView(withIdentifier: .systemStateTableCellView, owner: self) as! NSTableCellView
-		view.textField?.font = .systemRegular
-		
 		if let section = item as? DebugSection {
-			view.textField?.stringValue = section.description
-			view.textField?.font = .systemBold
+			return self.makeView(outlineView, forSectionItem: section)
 		} else if let item = item as? CPUDebugItem {
-			view.textField?.attributedStringValue = self.formatDebugItem(item)
+			return self.makeView(outlineView, forCPUDebugItem: item)
 		} else if let item = item as? MemoryDebugItem {
-			view.textField?.attributedStringValue = self.formatDebugItem(item)
+			return self.makeView(outlineView, forMemoryDebugItem: item)
 		} else if let item = item as? TimerDebugItem {
-			view.textField?.attributedStringValue = self.formatDebugItem(item)
+			return self.makeView(outlineView, forTimerDebugItem: item)
+		} else if let section = item as? GraphicsDebugSection {
+			return self.makeView(outlineView, forSectionItem: section)
+		} else if let item = item as? FrameDebugItem {
+			return self.makeView(outlineView, forFrameDebugItem: item)
+		} else if let item = item as? BackgroundDebugItem {
+			return self.makeView(outlineView, forBackgroundDebugItem: item)
+		} else if let item = item as? PlayFieldDebugItem {
+			return self.makeView(outlineView, forPlayFieldDebugItem: item)
+		} else {
+			return nil
+		}
+	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forSectionItem item: any RawRepresentable<String>) -> NSView? {
+		let view = outlineView.makeView(withIdentifier: .debugSectionTableCellView, owner: nil) as? DebugSectionTableCellView
+		view?.textField?.stringValue = item.rawValue
+		
+		return view
+	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forCPUDebugItem item: CPUDebugItem) -> NSView? {
+		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		switch item {
+		case .accumulator:
+			view?.wordValue = (item.rawValue, self.console.cpu.accumulator)
+		case .indexX:
+			view?.wordValue = (item.rawValue, self.console.cpu.x)
+		case .indexY:
+			view?.wordValue = (item.rawValue, self.console.cpu.y)
+		case .status:
+			let string = NSMutableAttributedString(mos6507Status: self.console.cpu.status)
+			view?.attributedStringValue = (item.rawValue, string)
+		case .stackPointer:
+			view?.wordValue = (item.rawValue, self.console.cpu.stackPointer)
+		case .programCounter:
+			view?.addressValue = (item.rawValue, self.console.cpu.programCounter)
 		}
 		
 		return view
 	}
 	
-	func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
-		return item is DebugSection
+	private func makeView(_ outlineView: NSOutlineView, forMemoryDebugItem item: MemoryDebugItem) -> NSView? {
+		let view = outlineView.makeView(withIdentifier: .debugValueTableCellView, owner: nil) as? DebugValueTableCellView
+		view?.textField?.stringValue = String(memory: self.console.riot.memory)
+		
+		return view
+	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forTimerDebugItem item: TimerDebugItem) -> NSView? {
+		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		switch item {
+		case .value:
+			view?.stringValue = (item.rawValue, "\(self.console.riot.remainingTimerCycles)")
+		case .interval:
+			view?.stringValue = (item.rawValue, "\(self.console.riot.intervalIncrement)")
+		}
+		
+		return view
+	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forFrameDebugItem item: FrameDebugItem) -> NSView? {
+		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		switch item {
+		case .beamPosition:
+			let (scanLine, point) = self.console.tia.beamPosition
+			view?.stringValue = (item.rawValue, "\(scanLine):\(point)")
+		case .waitForSync:
+			view?.boolValue = (item.rawValue, self.console.tia.awaitingHorizontalSync)
+		}
+		
+		return view
+	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forBackgroundDebugItem item: BackgroundDebugItem) -> NSView? {
+		switch item {
+		case .color:
+			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
+			view?.colorValue = (item.rawValue, self.console.tia.backgroundColor)
+			return view
+		}
+	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forPlayFieldDebugItem item: PlayFieldDebugItem) -> NSView? {
+		switch item {
+		case .pattern:
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, self.formatPlayFieldGraphics())
+			return view
+			
+		case .reflected:
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.boolValue = (item.rawValue, self.console.tia.playfield.reflected)
+			return view
+			
+		case .color:
+			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
+			view?.colorValue = (item.rawValue, self.console.tia.playfield.color)
+			return view
+		}
+	}
+	
+	private func formatPlayFieldGraphics() -> String {
+		let graphics = self.console.tia.playfield.graphics
+		let values = graphics
+			.map({ String(format: "%02x", $0) })
+			.joined()
+		
+		let pattern = graphics.map({
+			return $0[0..<8]
+				.map({ $0 ? "■" : "□" })
+				.joined()
+		}).joined()
+		
+		return "\(values)  \(pattern.suffix(20))"
 	}
 }
 
 private extension NSUserInterfaceItemIdentifier {
-	static let systemStateTableCellView = NSUserInterfaceItemIdentifier("SystemStateTableCellView")
+	static let debugSectionTableCellView = NSUserInterfaceItemIdentifier("DebugSectionTableCellView")
+	static let debugValueTableCellView = NSUserInterfaceItemIdentifier("DebugValueTableCellView")
+	static let debugItemTableCellView = NSUserInterfaceItemIdentifier("DebugItemTableCellView")
+	static let debugColorTableCellView = NSUserInterfaceItemIdentifier("DebugColorTableCellView")
 }
 
 
-private enum DebugSection: String, CaseIterable, CustomStringConvertible {
-	case cpu = "CPU"
-	case memory = "Memory"
-	case timer = "Timer"
-	
-	static var allCases: [DebugSection] {
-		return [
-			.cpu,
-			.memory,
-			.timer
-		]
+// MARK: -
+// MARK: Outline view model
+private extension SystemStateViewController {
+	enum DebugSection: String, CaseIterable {
+		case cpu = "CPU"
+		case memory = "Memory"
+		case timer = "Timer"
+		case graphics = "Graphics"
 	}
 	
-	var description: String {
-		return self.rawValue
-	}
-}
-
-private enum CPUDebugItem: String, CaseIterable, CustomStringConvertible {
-	case accumulator = "Accumulator"
-	case indexX = "X"
-	case indexY = "Y"
-	case status = "Status"
-	case stackPointer = "Stack pointer"
-	case programCounter = "Program counter"
-	
-	static var allCases: [CPUDebugItem] {
-		return [
-			.accumulator,
-			.indexX,
-			.indexY,
-			.status,
-			.stackPointer,
-			.programCounter
-		]
+	enum FrameDebugItem: String, CaseIterable {
+		case beamPosition = "Beam position"
+		case waitForSync = "Wait for sync"
 	}
 	
-	var description: String {
-		return self.rawValue
-	}
-}
-
-private enum MemoryDebugItem: String, CaseIterable, CustomStringConvertible {
-	case memory = "Memory"
-	
-	static var allCases: [MemoryDebugItem] {
-		return [
-			.memory
-		]
+	private enum CPUDebugItem: String, CaseIterable {
+		case accumulator = "Accumulator"
+		case indexX = "X"
+		case indexY = "Y"
+		case status = "Status"
+		case stackPointer = "Stack pointer"
+		case programCounter = "Program counter"
 	}
 	
-	var description: String {
-		return self.rawValue
-	}
-}
-
-private enum TimerDebugItem: String, CaseIterable, CustomStringConvertible {
-	case value = "Remaining cycles"
-	case interval = "Interval"
-	
-	static var allCases: [TimerDebugItem] {
-		return [
-			.value,
-			.interval
-		]
+	private enum MemoryDebugItem: String, CaseIterable {
+		case memory = "Memory"
 	}
 	
-	var description: String {
-		return self.rawValue
+	private enum TimerDebugItem: String, CaseIterable {
+		case value = "Remaining cycles"
+		case interval = "Interval"
+	}
+	
+	private enum GraphicsDebugSection: String, CaseIterable {
+		case frame = "Frame"
+		case background = "Background"
+		case playField = "Play field"
+		//		case player0 = "Player 0"
+		//		case player1 = "Player 1"
+		//		case missile0 = "Missile 0"
+		//		case missile1 = "Missile 1"
+		//		case ball = "Ball"
+	}
+	
+	enum BackgroundDebugItem: String, CaseIterable {
+		case color = "Color"
+	}
+	
+	enum PlayFieldDebugItem: String, CaseIterable {
+		case pattern = "Pattern"
+		case reflected = "Reflected"
+		case color = "Color"
+	}
+	
+	enum PlayerDebugItem: String, CaseIterable {
+		case enabled = "Enabled"
+		case pattern = "Pattern"
+		case copies = "Copies"
+		case reflected = "Reflected"
+		case color = "Color"
+		case position = "Position"
+		case verticalDelay = "Vertical delay"
+		case reset = "Reset"
 	}
 }
 
 
 // MARK: -
 // MARK: Data formatting
-private extension SystemStateViewController {
-	private static let attributes: [NSAttributedString.Key: Any] = [
-		.font: NSFont.monospacedRegular
-	]
-	
-	func formatDebugItem(_ item: CPUDebugItem) -> NSAttributedString {
-		switch item {
-		case .accumulator:
-			let value = String(format: "%02x", self.console.cpu.accumulator)
-			return NSAttributedString(debugItem: item, value: value)
-			
-		case .indexX:
-			let value = String(format: "%02x", self.console.cpu.x)
-			return NSAttributedString(debugItem: item, value: value)
-			
-		case .indexY:
-			let value = String(format: "%02x", self.console.cpu.y)
-			return NSAttributedString(debugItem: item, value: value)
-			
-		case .status:
-			let value = self.formatCPUStatus(self.console.cpu.status)
-			return NSAttributedString(debugItem: item, value: value)
-			
-		case .stackPointer:
-			let value = String(format: "%02x", self.console.cpu.stackPointer)
-			return NSAttributedString(debugItem: item, value: value)
-			
-		case .programCounter:
-			let value = String(format: "$%04x", self.console.cpu.programCounter)
-			return NSAttributedString(debugItem: item, value: value)
-		}
-	}
-	
-	private func formatCPUStatus(_ status: MOS6507.Status) -> NSAttributedString {
-		let string = NSMutableAttributedString(string: "N V   B D I Z C")
-		for (index, value) in status.enumerated() {
-			if !value {
-				let range = NSRange(location: index * 2, length: 1)
-				string.addAttribute(.foregroundColor, value: NSColor.disabledControlTextColor, range: range)
-			}
-		}
-		
-		return string
-	}
-	
-	func formatDebugItem(_ item: MemoryDebugItem) -> NSAttributedString {
-		let string = self.console.riot.memory.indices
+private extension String {
+	init(memory: Data) {
+		self = memory.indices
 			.split(by: 16)
 			.map() {
-				return self.console.riot.memory[$0]
+				return memory[$0]
 					.map() { String(format: "%02x", $0) }
 					.joined(separator: " ")
 			}.joined(separator: "\n")
-		
-		return NSAttributedString(string: string, attributes: Self.attributes)
 	}
-	
-	func formatDebugItem(_ item: TimerDebugItem) -> NSAttributedString {
-		switch item {
-		case .value:
-			let value = "\(self.console.riot.remainingTimerCycles)"
-			return NSAttributedString(debugItem: item, value: value)
-			
-		case .interval:
-			let value = "\(self.console.riot.intervalIncrement)"
-			return NSAttributedString(debugItem: item, value: value)
+}
+
+private extension NSMutableAttributedString {
+	convenience init(mos6507Status status: MOS6507.Status) {
+		self.init(string: "N V   B D I Z C")
+		for (index, value) in status.enumerated() {
+			if !value {
+				let range = NSRange(location: index * 2, length: 1)
+				self.addAttribute(.foregroundColor, value: NSColor.disabledControlTextColor, range: range)
+			}
 		}
 	}
 }
@@ -247,27 +319,6 @@ private extension SystemStateViewController {
 
 // MARK: -
 // MARK: Convenience functionality
-private extension NSAttributedString {
-	private static let valueAttributes: [NSAttributedString.Key: Any] = [
-		.font: NSFont.monospacedRegular
-	]
-	
-	convenience init(debugItem item: any CustomStringConvertible, value: String) {
-		let string1 = NSMutableAttributedString(string: "\(item) = ")
-		let string2 = NSAttributedString(string: value, attributes: Self.valueAttributes)
-		string1.append(string2)
-		
-		self.init(attributedString: string1)
-	}
-	
-	convenience init(debugItem item: any CustomStringConvertible, value: NSAttributedString) {
-		let string = NSMutableAttributedString(string: "\(item.description) = ")
-		string.append(value)
-		
-		self.init(attributedString: string)
-	}
-}
-
 private extension Range where Index == Int {
 	func split(by count: Int) -> any Sequence<Self> {
 		return Swift.stride(from: self.startIndex, to: self.endIndex, by: count)
