@@ -74,6 +74,8 @@ public class TIA {
 	var nusiz0: Int = .randomWord
 	var refp0: Int = .randomWord
 	
+	var enabl: Int = .randomWord
+	
 	/// Reset sync strobe register.
 	/// Writing any value resets color clock to its value at the beginning of the current scanline.
 	var rsync: Bool {
@@ -204,7 +206,15 @@ public extension Int {
 		}
 	}
 	
-	subscript (range: Range<Int>) -> [Bool] {
+	init(bits: [Bool]) {
+		self = 0
+		for bit in bits {
+			self <<= 1
+			self &= bit ? 0x1 : 0x0
+		}
+	}
+	
+	subscript (range: any Collection<Int>) -> [Bool] {
 		return range.map({ self[$0] })
 	}
 }

@@ -18,15 +18,24 @@ public extension TIA {
 		return self.colubk
 	}
 	
-	var playfield: PlayField {
-		return PlayField(
+	var playfield: Playfield {
+		return Playfield(
 			graphics: [self.pf0, self.pf1, self.pf2],
 			reflected: self.ctrlpf[0],
 			color: self.colupf)
 	}
+	
+	var ball: Ball {
+		return Ball(
+			enabled: self.enabl[1],
+			size: 0x1 << Int(bits: self.ctrlpf[4...5]),
+			color: self.colupf,
+			position: (0, 0),
+			verticalDelay: false)
+	}
 }
 
-public struct PlayField {
+public struct Playfield {
 	public var graphics: [Int]
 	public var reflected: Bool
 	public var color: Int
@@ -42,4 +51,12 @@ public struct Player {
 	public var horizontalMotion: Int
 	public var verticalDelay: Int
 	public var reset: Bool
+}
+
+public struct Ball {
+	public var enabled: Bool
+	public var size: Int
+	public var color: Int
+	public var position: (Int, Int)
+	public var verticalDelay: Bool
 }

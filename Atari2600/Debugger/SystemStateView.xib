@@ -152,7 +152,7 @@
                     </outlineView>
                 </subviews>
             </clipView>
-            <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="0.40625" horizontal="YES" id="oqc-19-dIL">
+            <scroller key="horizontalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="oqc-19-dIL">
                 <rect key="frame" x="0.0" y="119" width="240" height="16"/>
                 <autoresizingMask key="autoresizingMask"/>
             </scroller>
