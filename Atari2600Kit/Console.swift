@@ -26,6 +26,7 @@ public class Atari2600: ObservableObject {
 	public func reset() {
 		self.cpu.reset()
 		self.riot.reset()
+		self.tia.reset()
 		self.eventSubject.send(.reset)
 	}
 	
@@ -67,7 +68,7 @@ public extension Atari2600 {
 			self.tia.advanceLine()
 		}
 		
-		let cycles = self.cpu.nextExecutionDuration
+		let cycles = self.cpu.nextInstructionExecutionDuration
 		self.tia.advanceClock(cycles: cycles * 3)
 		self.riot.advanceClock(cycles: cycles)		
 		self.cpu.executeNextInstruction()
