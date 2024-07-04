@@ -6,20 +6,54 @@
 //
 
 import Cocoa
+import Combine
 import Atari2600Kit
 
 class SystemStateViewController: NSViewController {
 	@IBOutlet private var outlineView: NSOutlineView!
 	
 	private let console: Atari2600 = .current
+	private var cancellables: Set<AnyCancellable> = []
 	
 	convenience init() {
 		self.init(nibName: "SystemStateView", bundle: .main)
 	}
 	
+	override func viewDidLoad() {
+		super.viewDidLoad()
+		self.setUpSyncs()
+	}
+	
 	override func viewWillAppear() {
 		super.viewWillAppear()
 		self.outlineView.expandAllItems()
+	}
+}
+
+
+// MARK: -
+private extension SystemStateViewController {
+	func setUpSyncs() {
+		self.cancellables.insert(self.console.events
+			.receive(on: DispatchQueue.main)
+			.sink() {
+				switch $0 {
+				case .reset:
+					self.outlineView.reloadData()
+				}
+			})
+		
+		self.cancellables.insert(
+			self.console.debugEvents
+				.receive(on: DispatchQueue.main)
+				.sink() {
+					switch $0 {
+					case .break, .step:
+						self.outlineView.reloadData()
+					default:
+						break
+					}
+				})
 	}
 }
 
@@ -43,8 +77,8 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 			}
 		} else if let section = item as? GraphicsDebugSection {
 			switch section {
-			case .frame:
-				return FrameDebugItem.allCases.count
+			case .screen:
+				return ScreenDebugItem.allCases.count
 			case .background:
 				return BackgroundDebugItem.allCases.count
 			case .playField:
@@ -73,8 +107,8 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 			}
 		} else if let section = item as? GraphicsDebugSection {
 			switch section {
-			case .frame:
-				return FrameDebugItem.allCases[index]
+			case .screen:
+				return ScreenDebugItem.allCases[index]
 			case .background:
 				return BackgroundDebugItem.allCases[index]
 			case .playField:
@@ -104,8 +138,8 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			return self.makeView(outlineView, forTimerDebugItem: item)
 		} else if let section = item as? GraphicsDebugSection {
 			return self.makeView(outlineView, forSectionItem: section)
-		} else if let item = item as? FrameDebugItem {
-			return self.makeView(outlineView, forFrameDebugItem: item)
+		} else if let item = item as? ScreenDebugItem {
+			return self.makeView(outlineView, forScreenDebugItem: item)
 		} else if let item = item as? BackgroundDebugItem {
 			return self.makeView(outlineView, forBackgroundDebugItem: item)
 		} else if let item = item as? PlayfieldDebugItem {
@@ -164,13 +198,17 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		return view
 	}
 	
-	private func makeView(_ outlineView: NSOutlineView, forFrameDebugItem item: FrameDebugItem) -> NSView? {
+	private func makeView(_ outlineView: NSOutlineView, forScreenDebugItem item: ScreenDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 		switch item {
 		case .beamPosition:
 			let (scanLine, point) = self.console.tia.beamPosition
 			view?.stringValue = (item.rawValue, "\(scanLine):\(point)")
-		case .waitForSync:
+		case .verticalSync:
+			view?.boolValue = (item.rawValue, self.console.tia.verticalSync)
+		case .verticalBlank:
+			view?.boolValue = (item.rawValue, self.console.tia.verticalBlank)
+		case .waitForHorizontalSync:
 			view?.boolValue = (item.rawValue, self.console.tia.awaitingHorizontalSync)
 		}
 		
@@ -279,9 +317,11 @@ private extension SystemStateViewController {
 		case graphics = "Graphics"
 	}
 	
-	enum FrameDebugItem: String, CaseIterable {
+	enum ScreenDebugItem: String, CaseIterable {
 		case beamPosition = "Beam position"
-		case waitForSync = "Wait for sync"
+		case verticalSync = "Vertical sync"
+		case verticalBlank = "Vertical blank"
+		case waitForHorizontalSync = "Wait for horizontal sync"
 	}
 	
 	private enum CPUDebugItem: String, CaseIterable {
@@ -303,7 +343,7 @@ private extension SystemStateViewController {
 	}
 	
 	private enum GraphicsDebugSection: String, CaseIterable {
-		case frame = "Frame"
+		case screen = "Screen"
 		case background = "Background"
 		case playField = "Play field"
 		case ball = "Ball"

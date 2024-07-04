@@ -10,6 +10,14 @@ public extension TIA {
 		return (self.cycle / 228, self.cycle % 228)
 	}
 	
+	var verticalSync: Bool {
+		return self.vsync
+	}
+	
+	var verticalBlank: Bool {
+		return self.vblank
+	}
+	
 	var awaitingHorizontalSync: Bool {
 		return self.wsync
 	}
