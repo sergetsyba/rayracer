@@ -966,12 +966,12 @@ private extension MOS6507 {
 	}
 	
 	func decrementY() {
-		var result = self.x - 0x01
+		var result = self.y - 0x01
 		if result < 0x00 {
 			result = 0xff
 		}
 		
-		self.x = result
+		self.y = result
 		self.status.zero = result == 0x00
 		self.status.negative = result[7]
 	}
