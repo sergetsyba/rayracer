@@ -74,51 +74,50 @@ public extension MOS6507 {
 		case 0x69: return self.withImmediateAddressing(
 			self.addToAccumulator(valueAt:))
 		case 0x65: return self.with0PageAddressing(
-			self.addToAccumulator(valueAt:))
+			self.addToAccumulator(valueAt:), cycles: 3)
 		case 0x75: return self.with0PageXIndexedAddressing(
-			self.addToAccumulator(valueAt:))
+			self.addToAccumulator(valueAt:), cycles: 4)
 		case 0x6d: return self.withAbsoluteAddressing(
-			self.addToAccumulator(valueAt:))
+			self.addToAccumulator(valueAt:), cycles: 4)
 		case 0x7d: return self.withAbsoluteXIndexedAddressing(
-			self.addToAccumulator(valueAt:))
+			self.addToAccumulator(valueAt:), cycles: 4)
 		case 0x79: return self.withAbsoluteYIndexedAddressing(
-			self.addToAccumulator(valueAt:))
+			self.addToAccumulator(valueAt:), cycles: 4)
 		case 0x61: return self.withXIndexedIndirectAddressing(
-			self.addToAccumulator(valueAt:))
+			self.addToAccumulator(valueAt:), cycles: 6)
 		case 0x71: return self.withIndirectYIndexedAddressing(
-			self.addToAccumulator(valueAt:))
+			self.addToAccumulator(valueAt:), cycles: 5)
 			
 			// MARK: AND
 		case 0x29: return self.withImmediateAddressing(
 			self.conjunctAccumulator(withValueAt:))
 		case 0x25: return self.with0PageAddressing(
-			self.conjunctAccumulator(withValueAt:))
+			self.conjunctAccumulator(withValueAt:), cycles: 3)
 		case 0x35: return self.with0PageXIndexedAddressing(
-			self.conjunctAccumulator(withValueAt:))
+			self.conjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x2D: return self.withAbsoluteAddressing(
-			self.conjunctAccumulator(withValueAt:))
+			self.conjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x3D: return self.withAbsoluteXIndexedAddressing(
-			self.conjunctAccumulator(withValueAt:))
+			self.conjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x39: return self.withAbsoluteYIndexedAddressing(
-			self.conjunctAccumulator(withValueAt:))
+			self.conjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x21: return self.withXIndexedIndirectAddressing(
-			self.conjunctAccumulator(withValueAt:))
+			self.conjunctAccumulator(withValueAt:), cycles: 6)
 		case 0x31: return self.withIndirectYIndexedAddressing(
-			self.conjunctAccumulator(withValueAt:))
+			self.conjunctAccumulator(withValueAt:), cycles: 5)
 			
 			// MARK: ASL (accumulator)
 		case 0x0a: return self.withImpliedAddressing(
 			self.bitShiftLeftAccumulator)
-			
 			// MARK: ASL
 		case 0x06: return self.with0PageAddressing(
-			self.bitShiftLeft(valueAt:), cycles: 2)
+			self.bitShiftLeft(valueAt:), cycles: 5)
 		case 0x16: return self.with0PageXIndexedAddressing(
-			self.bitShiftLeft(valueAt:), cycles: 2)
+			self.bitShiftLeft(valueAt:), cycles: 6)
 		case 0x0e: return self.withAbsoluteAddressing(
-			self.bitShiftLeft(valueAt:), cycles: 2)
+			self.bitShiftLeft(valueAt:), cycles: 6)
 		case 0x1e: return self.withAbsoluteXIndexedAddressing(
-			self.bitShiftLeft(valueAt:), cycles: 2)
+			self.bitShiftLeft(valueAt:), cycles: 7)
 			
 			// MARK: BCC
 		case 0x90: return self.withRelativeAddressing(
@@ -132,9 +131,9 @@ public extension MOS6507 {
 			
 			// MARK: BIT
 		case 0x24: return self.with0PageAddressing(
-			self.bitTestAccumulator(withValueAt:))
+			self.bitTestAccumulator(withValueAt:), cycles: 3)
 		case 0x2c: return self.withAbsoluteAddressing(
-			self.bitTestAccumulator(withValueAt:))
+			self.bitTestAccumulator(withValueAt:), cycles: 4)
 			
 			// MARK: BMI
 		case 0x30: return self.withRelativeAddressing(
@@ -148,7 +147,7 @@ public extension MOS6507 {
 			
 			// MARK: BRK
 		case 0x00: return self.withImpliedAddressing(
-			self.forceBreak, cycles: 5)
+			self.forceBreak, cycles: 7)
 			
 			// MARK: BVC
 		case 0x50: return self.withRelativeAddressing(
@@ -174,45 +173,45 @@ public extension MOS6507 {
 		case 0xc9: return self.withImmediateAddressing(
 			self.compareAccumulator(withValueAt:))
 		case 0xc5: return self.with0PageAddressing(
-			self.compareAccumulator(withValueAt:))
+			self.compareAccumulator(withValueAt:), cycles: 3)
 		case 0xd5: return self.with0PageXIndexedAddressing(
-			self.compareAccumulator(withValueAt:))
+			self.compareAccumulator(withValueAt:), cycles: 4)
 		case 0xcd: return self.withAbsoluteAddressing(
-			self.compareAccumulator(withValueAt:))
+			self.compareAccumulator(withValueAt:), cycles: 4)
 		case 0xdd: return self.withAbsoluteXIndexedAddressing(
-			self.compareAccumulator(withValueAt:))
+			self.compareAccumulator(withValueAt:), cycles: 4)
 		case 0xd9: return self.withAbsoluteYIndexedAddressing(
-			self.compareAccumulator(withValueAt:))
+			self.compareAccumulator(withValueAt:), cycles: 4)
 		case 0xc1: return self.withXIndexedIndirectAddressing(
-			self.compareAccumulator(withValueAt:))
+			self.compareAccumulator(withValueAt:), cycles: 6)
 		case 0xd1: return self.withIndirectYIndexedAddressing(
-			self.compareAccumulator(withValueAt:))
+			self.compareAccumulator(withValueAt:), cycles: 5)
 			
 			// MARK: CPX
 		case 0xe0: return self.withImmediateAddressing(
 			self.compareX(withValueAt:))
 		case 0xe4: return self.with0PageAddressing(
-			self.compareX(withValueAt:))
+			self.compareX(withValueAt:), cycles: 3)
 		case 0xec: return self.withAbsoluteAddressing(
-			self.compareX(withValueAt:))
+			self.compareX(withValueAt:), cycles: 4)
 			
 			// MARK: CPY
 		case 0xc0: return self.withImmediateAddressing(
 			self.compareY(withValueAt:))
 		case 0xc4: return self.with0PageAddressing(
-			self.compareY(withValueAt:))
+			self.compareY(withValueAt:), cycles: 3)
 		case 0xcc: return self.withAbsoluteAddressing(
-			self.compareY(withValueAt:))
+			self.compareY(withValueAt:), cycles: 4)
 			
 			// MARK: DEC
 		case 0xc6: return self.with0PageAddressing(
-			self.decrement(valueAt:), cycles: 2)
+			self.decrement(valueAt:), cycles: 5)
 		case 0xd6: return self.with0PageXIndexedAddressing(
-			self.decrement(valueAt:), cycles: 2)
+			self.decrement(valueAt:), cycles: 6)
 		case 0xce: return self.withAbsoluteAddressing(
-			self.decrement(valueAt:), cycles: 2)
+			self.decrement(valueAt:), cycles: 6)
 		case 0xde: return self.withAbsoluteXIndexedAddressing(
-			self.decrement(valueAt:), cycles: 2)
+			self.decrement(valueAt:), cycles: 7)
 			
 			// MARK: DEX
 		case 0xca: return self.withImpliedAddressing(
@@ -225,29 +224,29 @@ public extension MOS6507 {
 		case 0x49: return self.withImmediateAddressing(
 			self.exclusiveDisjunctAccumulator(withValueAt:))
 		case 0x45: return self.with0PageAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:))
+			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 3)
 		case 0x55: return self.with0PageXIndexedAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:))
+			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x4d: return self.withAbsoluteAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:))
+			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x5d: return self.withAbsoluteXIndexedAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:))
+			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x59: return self.withAbsoluteYIndexedAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:))
+			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x41: return self.withXIndexedIndirectAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:))
+			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 6)
 		case 0x51: return self.withIndirectYIndexedAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:))
+			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 5)
 			
 			// MARK: INC
 		case 0xe6: return self.with0PageAddressing(
-			self.increment(valueAt:), cycles: 2)
+			self.increment(valueAt:), cycles: 5)
 		case 0xf6: return self.with0PageXIndexedAddressing(
-			self.increment(valueAt:), cycles: 2)
+			self.increment(valueAt:), cycles: 6)
 		case 0xee: return self.withAbsoluteAddressing(
-			self.increment(valueAt:), cycles: 2)
+			self.increment(valueAt:), cycles: 6)
 		case 0xfe: return self.withAbsoluteXIndexedAddressing(
-			self.increment(valueAt:), cycles: 2)
+			self.increment(valueAt:), cycles: 7)
 			
 			// MARK: INX
 		case 0xe8: return self.withImpliedAddressing(
@@ -258,154 +257,154 @@ public extension MOS6507 {
 			
 			// MARK: JMP
 		case 0x4c: return self.withAbsoluteAddressing(
-			{ self.programCounter = $0}, cycles: 0)
+			{ self.programCounter = $0}, cycles: 3)
 		case 0x6c: return self.withIndirectAddressing(
-			{ self.programCounter = $0}, cycles: 0)
+			{ self.programCounter = $0}, cycles: 5)
 			
 			// MARK: JSR
 		case 0x20: return self.withAbsoluteAddressing(
-			self.jumpToSubroutine(at:), cycles: 3)
+			self.jumpToSubroutine(at:), cycles: 6)
 			
 			// MARK: LDA
 		case 0xa9: return self.withImmediateAddressing(
 			self.loadAccumulator(withValueAt:))
 		case 0xa5: return self.with0PageAddressing(
-			self.loadAccumulator(withValueAt:))
+			self.loadAccumulator(withValueAt:), cycles: 3)
 		case 0xb5: return self.with0PageXIndexedAddressing(
-			self.loadAccumulator(withValueAt:))
+			self.loadAccumulator(withValueAt:), cycles: 4)
 		case 0xad: return self.withAbsoluteAddressing(
-			self.loadAccumulator(withValueAt:))
+			self.loadAccumulator(withValueAt:), cycles: 4)
 		case 0xbd: return self.withAbsoluteXIndexedAddressing(
-			self.loadAccumulator(withValueAt:))
+			self.loadAccumulator(withValueAt:), cycles: 4)
 		case 0xb9: return self.withAbsoluteYIndexedAddressing(
-			self.loadAccumulator(withValueAt:))
+			self.loadAccumulator(withValueAt:), cycles: 4)
 		case 0xa1: return self.withXIndexedIndirectAddressing(
-			self.loadAccumulator(withValueAt:))
+			self.loadAccumulator(withValueAt:), cycles: 6)
 		case 0xb1: return self.withIndirectYIndexedAddressing(
-			self.loadAccumulator(withValueAt:))
+			self.loadAccumulator(withValueAt:), cycles: 5)
 			
 			// MARK: LDX
 		case 0xa2: return self.withImmediateAddressing(
 			self.loadX(withValueAt:))
 		case 0xa6: return self.with0PageAddressing(
-			self.loadX(withValueAt:))
+			self.loadX(withValueAt:), cycles: 3)
 		case 0xb6: return self.with0PageYIndexedAddressing(
-			self.loadX(withValueAt:))
+			self.loadX(withValueAt:), cycles: 4)
 		case 0xae: return self.withAbsoluteAddressing(
-			self.loadX(withValueAt:))
+			self.loadX(withValueAt:), cycles: 4)
 		case 0xbe: return self.withAbsoluteYIndexedAddressing(
-			self.loadX(withValueAt:))
+			self.loadX(withValueAt:), cycles: 4)
 			
 			// MARK: LDY
 		case 0xa0: return self.withImmediateAddressing(
 			self.loadY(withValueAt:))
 		case 0xa4: return self.with0PageAddressing(
-			self.loadY(withValueAt:))
+			self.loadY(withValueAt:), cycles: 3)
 		case 0xb4: return self.with0PageXIndexedAddressing(
-			self.loadY(withValueAt:))
+			self.loadY(withValueAt:), cycles: 4)
 		case 0xac: return self.withAbsoluteAddressing(
-			self.loadY(withValueAt:))
+			self.loadY(withValueAt:), cycles: 4)
 		case 0xbc: return self.withAbsoluteXIndexedAddressing(
-			self.loadY(withValueAt:))
+			self.loadY(withValueAt:), cycles: 4)
 			
 			// MARK: LSR (accumulator)
 		case 0x4a: return self.withImpliedAddressing(
 			self.bitShiftRightAccumulator)
 			// MARK: LSR
 		case 0x46: return self.with0PageAddressing(
-			self.bitShiftRight(valueAt:), cycles: 2)
+			self.bitShiftRight(valueAt:), cycles: 5)
 		case 0x56: return self.with0PageXIndexedAddressing(
-			self.bitShiftRight(valueAt:), cycles: 2)
+			self.bitShiftRight(valueAt:), cycles: 6)
 		case 0x4e: return self.withAbsoluteAddressing(
-			self.bitShiftRight(valueAt:), cycles: 2)
+			self.bitShiftRight(valueAt:), cycles: 6)
 		case 0x5e: return self.withAbsoluteXIndexedAddressing(
-			self.bitShiftRight(valueAt:), cycles: 2)
+			self.bitShiftRight(valueAt:), cycles: 7)
 			
 			// MARK: NOP
 		case 0xea: return self.withImpliedAddressing(
-			{}, cycles: 2)
+			{})
 			
 			// MARK: ORA
 		case 0x09: return self.withImmediateAddressing(
 			self.disjunctAccumulator(withValueAt:))
 		case 0x05: return self.with0PageAddressing(
-			self.disjunctAccumulator(withValueAt:))
+			self.disjunctAccumulator(withValueAt:), cycles: 3)
 		case 0x15: return self.with0PageXIndexedAddressing(
-			self.disjunctAccumulator(withValueAt:))
+			self.disjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x0d: return self.withAbsoluteAddressing(
-			self.disjunctAccumulator(withValueAt:))
+			self.disjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x1d: return self.withAbsoluteXIndexedAddressing(
-			self.disjunctAccumulator(withValueAt:))
+			self.disjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x19: return self.withAbsoluteYIndexedAddressing(
-			self.disjunctAccumulator(withValueAt:))
+			self.disjunctAccumulator(withValueAt:), cycles: 4)
 		case 0x01: return self.withXIndexedIndirectAddressing(
-			self.disjunctAccumulator(withValueAt:))
+			self.disjunctAccumulator(withValueAt:), cycles: 6)
 		case 0x11: return self.withIndirectYIndexedAddressing(
-			self.disjunctAccumulator(withValueAt:))
+			self.disjunctAccumulator(withValueAt:), cycles: 5)
 			
 			// MARK: PHA
 		case 0x48: return self.withImpliedAddressing(
-			{ self.pushStack(self.accumulator) }, cycles: 1)
+			{ self.pushStack(self.accumulator) }, cycles: 3)
 			// MARK: PHP
 		case 0x08: return self.withImpliedAddressing(
-			{ self.pushStack(self.status.rawValue) }, cycles: 1)
+			{ self.pushStack(self.status.rawValue) }, cycles: 3)
 			// MARK: PLA
 		case 0x68: return self.withImpliedAddressing(
-			{ self.accumulator = self.pullStack() }, cycles: 2)
+			{ self.accumulator = self.pullStack() }, cycles: 4)
 			// MARK: PLP
 		case 0x28: return self.withImpliedAddressing(
-			{ self.status = Status(rawValue: self.pullStack())! }, cycles: 2)
+			{ self.status = Status(rawValue: self.pullStack())! }, cycles: 4)
 			
 			// MARK: ROL (accumulator)
 		case 0x2a: return self.withImpliedAddressing(
 			self.bitRotateLeftAccumulator)
 			// MARK: ROL
 		case 0x26: return self.with0PageAddressing(
-			self.bitRotateLeft(valueAt:), cycles: 2)
+			self.bitRotateLeft(valueAt:), cycles: 5)
 		case 0x36: return self.with0PageXIndexedAddressing(
-			self.bitRotateLeft(valueAt:), cycles: 2)
+			self.bitRotateLeft(valueAt:), cycles: 6)
 		case 0x2e: return self.withAbsoluteAddressing(
-			self.bitRotateLeft(valueAt:), cycles: 2)
+			self.bitRotateLeft(valueAt:), cycles: 6)
 		case 0x3e: return self.withAbsoluteXIndexedAddressing(
-			self.bitRotateLeft(valueAt:), cycles: 2)
+			self.bitRotateLeft(valueAt:), cycles: 7)
 			
 			// MARK: ROR (accumulator)
 		case 0x6a: return self.withImpliedAddressing(
 			self.bitRotateRightAccumulator)
 			// MARK: ROR
 		case 0x66: return self.with0PageAddressing(
-			self.bitRotateRight(valueAt:), cycles: 2)
+			self.bitRotateRight(valueAt:), cycles: 5)
 		case 0x76: return self.with0PageXIndexedAddressing(
-			self.bitRotateRight(valueAt:), cycles: 2)
+			self.bitRotateRight(valueAt:), cycles: 6)
 		case 0x6e: return self.withAbsoluteAddressing(
-			self.bitRotateRight(valueAt:), cycles: 2)
+			self.bitRotateRight(valueAt:), cycles: 6)
 		case 0x7e: return self.withAbsoluteXIndexedAddressing(
-			self.bitRotateRight(valueAt:), cycles: 2)
+			self.bitRotateRight(valueAt:), cycles: 7)
 			
 			// MARK: RTI
 		case 0x40: return self.withImpliedAddressing(
-			self.returnFromInterrupt, cycles: 4)
+			self.returnFromInterrupt, cycles: 6)
 			// MARK: RTS
 		case 0x60: return self.withImpliedAddressing(
-			self.returnFromSubroutine, cycles: 4)
+			self.returnFromSubroutine, cycles: 6)
 			
 			// MARK: SBC
 		case 0xe9: return self.withImmediateAddressing(
 			self.subtractFromAccumulator(valueAt:))
 		case 0xe5: return self.with0PageAddressing(
-			self.subtractFromAccumulator(valueAt:))
+			self.subtractFromAccumulator(valueAt:), cycles: 3)
 		case 0xf5: return self.with0PageXIndexedAddressing(
-			self.subtractFromAccumulator(valueAt:))
+			self.subtractFromAccumulator(valueAt:), cycles: 4)
 		case 0xed: return self.withAbsoluteAddressing(
-			self.subtractFromAccumulator(valueAt:))
+			self.subtractFromAccumulator(valueAt:), cycles: 4)
 		case 0xfd: return self.withAbsoluteXIndexedAddressing(
-			self.subtractFromAccumulator(valueAt:))
+			self.subtractFromAccumulator(valueAt:), cycles: 4)
 		case 0xf9: return self.withAbsoluteYIndexedAddressing(
-			self.subtractFromAccumulator(valueAt:))
+			self.subtractFromAccumulator(valueAt:), cycles: 4)
 		case 0xe1: return self.withXIndexedIndirectAddressing(
-			self.subtractFromAccumulator(valueAt:))
+			self.subtractFromAccumulator(valueAt:), cycles: 6)
 		case 0xf1: return self.withIndirectYIndexedAddressing(
-			self.subtractFromAccumulator(valueAt:))
+			self.subtractFromAccumulator(valueAt:), cycles: 5)
 			
 			// MARK: SEC
 		case 0x38: return self.withImpliedAddressing(
@@ -419,35 +418,35 @@ public extension MOS6507 {
 			
 			// MARK: STA
 		case 0x85: return self.with0PageAddressing(
-			self.storeAccumulator(at:))
+			self.storeAccumulator(at:), cycles: 3)
 		case 0x95: return self.with0PageXIndexedAddressing(
-			self.storeAccumulator(at:))
+			self.storeAccumulator(at:), cycles: 4)
 		case 0x8d: return self.withAbsoluteAddressing(
-			self.storeAccumulator(at:))
+			self.storeAccumulator(at:), cycles: 4)
 		case 0x9d: return self.withAbsoluteXIndexedAddressing(
-			self.storeAccumulator(at:))
+			self.storeAccumulator(at:), cycles: 5)
 		case 0x99: return self.withAbsoluteYIndexedAddressing(
-			self.storeAccumulator(at:))
+			self.storeAccumulator(at:), cycles: 5)
 		case 0x81: return self.withXIndexedIndirectAddressing(
-			self.storeAccumulator(at:))
+			self.storeAccumulator(at:), cycles: 6)
 		case 0x91: return self.withIndirectYIndexedAddressing(
-			self.storeAccumulator(at:))
+			self.storeAccumulator(at:), cycles: 6)
 			
 			// MARK: STX
 		case 0x86: return self.with0PageAddressing(
-			self.storeX(at:))
+			self.storeX(at:), cycles: 3)
 		case 0x96: return self.with0PageYIndexedAddressing(
-			self.storeX(at:))
+			self.storeX(at:), cycles: 4)
 		case 0x8e: return self.withAbsoluteAddressing(
-			self.storeX(at:))
+			self.storeX(at:), cycles: 4)
 			
 			// MARK: STY
 		case 0x84: return self.with0PageAddressing(
-			self.storeY(at:))
+			self.storeY(at:), cycles: 3)
 		case 0x94: return self.with0PageXIndexedAddressing(
-			self.storeY(at:))
+			self.storeY(at:), cycles: 4)
 		case 0x8c: return self.withAbsoluteAddressing(
-			self.storeY(at:))
+			self.storeY(at:), cycles: 4)
 			
 			// MARK: TAX
 		case 0xaa: return self.withImpliedAddressing(
@@ -496,23 +495,23 @@ public extension MOS6507 {
 // MARK: -
 // MARK: Memory addressing
 private extension MOS6507 {
-	func withImpliedAddressing(_ operation: @escaping () -> Void, cycles: Int = 0) -> (() -> Void, Int) {
+	func withImpliedAddressing(_ operation: @escaping () -> Void, cycles: Int = 2) -> (() -> Void, Int) {
 		return ({ [unowned self] in
 			self.programCounter += 1
 			operation()
-		}, cycles + 2)
+		}, cycles)
 	}
 	
-	func withImmediateAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func withImmediateAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 2) -> (() -> Void, Int) {
 		let address = self.programCounter + 1
 		
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles + 1)
+		}, cycles)
 	}
 	
-	func with0PageAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func with0PageAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -521,10 +520,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles + 2)
+		}, cycles)
 	}
 	
-	func with0PageXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func with0PageXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -535,10 +534,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles + 3)
+		}, cycles)
 	}
 	
-	func with0PageYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func with0PageYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -549,10 +548,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles + 3)
+		}, cycles)
 	}
 	
-	func withAbsoluteAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func withAbsoluteAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -561,10 +560,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 3
 			operation(address)
-		}, cycles + 3)
+		}, cycles)
 	}
 	
-	func withAbsoluteXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func withAbsoluteXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -573,8 +572,13 @@ private extension MOS6507 {
 		let page = address.high
 		address += self.x
 		
+		// only read-only operations take 5 cycles, unless indexing crosses
+		// page boundary
 		var cycles = cycles
-		cycles += address.high > page ? 4 : 3
+		if cycles == 4
+			&& address.high > page {
+			cycles += 1
+		}
 		
 		return ({ [unowned self] in
 			self.programCounter += 3
@@ -582,7 +586,7 @@ private extension MOS6507 {
 		}, cycles)
 	}
 	
-	func withAbsoluteYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func withAbsoluteYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -591,8 +595,13 @@ private extension MOS6507 {
 		let page = address.high
 		address += self.y
 		
+		// only read-only operations take 4 cycles, unless indexing crosses
+		// page boundary
 		var cycles = cycles
-		cycles += address.high > page ? 4 : 3
+		if cycles == 4
+			&& address.high > page {
+			cycles += 1
+		}
 		
 		return ({ [unowned self] in
 			self.programCounter += 3
@@ -600,7 +609,7 @@ private extension MOS6507 {
 		}, cycles)
 	}
 	
-	func withIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func withIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 5) -> (() -> Void, Int) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -613,10 +622,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 3
 			operation(address)
-		}, cycles + 5)
+		}, cycles)
 	}
 	
-	func withXIndexedIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func withXIndexedIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 6) -> (() -> Void, Int) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -630,10 +639,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles + 5)
+		}, cycles)
 	}
 	
-	func withIndirectYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 1) -> (() -> Void, Int) {
+	func withIndirectYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -646,8 +655,13 @@ private extension MOS6507 {
 		let page = address.high
 		address += self.y
 		
+		// only read-only operations take 5 cycles, unless indexing crosses
+		// page boundary
 		var cycles = cycles
-		cycles += address.high > page ? 5 : 4
+		if cycles == 5
+			&& address.high > page {
+			cycles += 1
+		}
 		
 		return ({ [unowned self] in
 			self.programCounter += 2
