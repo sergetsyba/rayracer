@@ -26,14 +26,7 @@ public class TIA {
 	var cycle = 0
 	
 	// Vertical sync register.
-	var vsync: Bool = false {
-		didSet {
-			if self.vsync == true {
-				self.eventSubject.send(.frame)
-				self.cycle = 0
-			}
-		}
-	}
+	var vsync: Int = -1
 	// Vertical blank register.
 	var vblank: Bool = false
 	// Wait for horizontal sync register.
@@ -76,11 +69,8 @@ public class TIA {
 	
 	var enabl: Int = .randomWord
 	
-	/// Reset sync strobe register.
-	/// Writing any value resets color clock to its value at the beginning of the current scanline.
-	var rsync: Bool {
-		get { return false }
-		set { self.cycle -= self.cycle % 228 }
+	func reset() {
+		self.cycle = 0
 	}
 	
 	func advanceClock(cycles: Int) {
@@ -154,13 +144,25 @@ extension TIA: Bus {
 	public func write(_ data: Int, at address: Address) {
 		switch address {
 		case 0x00:
-			self.vsync = data[1]
+			if data[1] {
+				self.vsync = self.cycle
+			} else {
+				let scanLines = (self.cycle - self.vsync) / 228
+				if scanLines >= 3 {
+					self.cycle = 0
+					self.eventSubject.send(.frame)
+				}
+				
+				self.vsync = -1
+			}
+			
 		case 0x01:
 			self.vblank = data[1]
 		case 0x02:
 			self.wsync = true
 		case 0x03:
-			self.rsync = true
+			self.advanceLine()
+			self.cycle -= 3
 			
 		case 0x06:
 			self.colup0 = data

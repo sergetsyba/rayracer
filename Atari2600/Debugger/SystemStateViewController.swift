@@ -205,7 +205,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			let (scanLine, point) = self.console.tia.beamPosition
 			view?.stringValue = (item.rawValue, "\(scanLine):\(point)")
 		case .verticalSync:
-			view?.boolValue = (item.rawValue, self.console.tia.verticalSync)
+			view?.stringValue = (item.rawValue, self.formattedVerticalSync)
 		case .verticalBlank:
 			view?.boolValue = (item.rawValue, self.console.tia.verticalBlank)
 		case .waitForHorizontalSync:
@@ -228,7 +228,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		switch item {
 		case .graphics:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatPlayfieldGraphics())
+			view?.stringValue = (item.rawValue, self.formattedPlayfieldGraphics)
 			return view
 			
 		case .secondHalf:
@@ -253,7 +253,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .graphics:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatBallGraphics())
+			view?.stringValue = (item.rawValue, self.formattedBallGraphics)
 			return view
 			
 		case .color:
@@ -274,7 +274,16 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		}
 	}
 	
-	private func formatPlayfieldGraphics() -> String {
+	private var formattedVerticalSync: String {
+		let (sync, cycles) = self.console.tia.verticalSync
+		if sync {
+			return "Yes, \(cycles)/\(3*228)"
+		} else {
+			return "No"
+		}
+	}
+	
+	private var formattedPlayfieldGraphics: String {
 		var graphics = self.console.tia.playfield.graphics
 		let values = graphics
 			.map({ String(format: "%02x", $0) })
@@ -290,7 +299,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		return "\(values) \(pattern.suffix(20))"
 	}
 	
-	private func formatBallGraphics() -> String {
+	private var formattedBallGraphics: String {
 		let size = self.console.tia.ball.size
 		
 		return (0..<size)

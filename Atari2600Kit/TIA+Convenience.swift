@@ -10,8 +10,8 @@ public extension TIA {
 		return (self.cycle / 228, self.cycle % 228)
 	}
 	
-	var verticalSync: Bool {
-		return self.vsync
+	var verticalSync: (Bool, Int) {
+		return (self.vsync > -1, self.cycle - self.vsync)
 	}
 	
 	var verticalBlank: Bool {
