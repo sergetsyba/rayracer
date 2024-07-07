@@ -70,12 +70,22 @@ public extension Atari2600 {
 		
 		let cycles = self.cpu.nextInstructionExecutionDuration
 		self.tia.advanceClock(cycles: cycles * 3)
-		self.riot.advanceClock(cycles: cycles)		
+		self.riot.advanceClock(cycles: cycles)
 		self.cpu.executeNextInstruction()
 	}
 	
 	func stepProgram() {
 		self.advanceProgram()
+		self.debugEventSubject.send(.break)
+		self.tia.emitFrame()
+	}
+	
+	func stepScanLine() {
+		let scanLine = self.tia.scanLine
+		repeat {
+			self.advanceProgram()
+		} while scanLine == self.tia.scanLine
+		
 		self.debugEventSubject.send(.break)
 		self.tia.emitFrame()
 	}
@@ -151,5 +161,14 @@ extension Atari2600: Bus {
 		
 		let message = String(format: "Ignoring write at address $%04x", address)
 		print(message)
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+private extension TIA {
+	var scanLine: Int {
+		return self.cycle / 228
 	}
 }

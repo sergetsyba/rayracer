@@ -57,6 +57,10 @@ extension AppDelegate {
 		self.console.stepProgram()
 	}
 	
+	@IBAction func stepScanLineMenuItemSelected(_ sender: AnyObject) {
+		self.console.stepScanLine()
+	}
+	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {
 		let windowController = DebuggerWindowController()
 		self.showWindow(of: windowController)
