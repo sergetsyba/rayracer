@@ -65,9 +65,15 @@ public class TIA {
 	
 	var grp0: Int = .randomWord
 	var nusiz0: Int = .randomWord
+	var nusiz1: Int = .randomWord
 	var refp0: Int = .randomWord
 	
+	var enam0: Int = .randomWord
+	var enam1: Int = .randomWord
 	var enabl: Int = .randomWord
+	
+	var hmm0: Int = .randomWord
+	var hmm1: Int = .randomWord
 	
 	func reset() {
 		self.cycle = 0
@@ -164,6 +170,11 @@ extension TIA: Bus {
 			self.advanceLine()
 			self.cycle -= 3
 			
+		case 0x04:
+			self.nusiz0 = data
+		case 0x05:
+			self.nusiz1 = data
+			
 		case 0x06:
 			self.colup0 = data
 		case 0x07:
@@ -180,6 +191,12 @@ extension TIA: Bus {
 			self.pf1 = Int(reversingBits: data)
 		case 0x0f:
 			self.pf2 = data
+			
+		case 0x1d:
+			self.enam0 = data
+		case 0x1e:
+			self.enam1 = data
+			
 		default:
 			break
 		}
