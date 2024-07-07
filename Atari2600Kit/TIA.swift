@@ -68,12 +68,15 @@ public class TIA {
 	var nusiz1: Int = .randomWord
 	var refp0: Int = .randomWord
 	
-	var enam0: Int = .randomWord
-	var enam1: Int = .randomWord
-	var enabl: Int = .randomWord
-	
+	var enam0: Bool = .random()
+	var resm0: Int = .randomWord
 	var hmm0: Int = .randomWord
+	
+	var enam1: Bool = .random()
+	var resm1: Int = .randomWord
 	var hmm1: Int = .randomWord
+	
+	var enabl: Int = .randomWord
 	
 	func reset() {
 		self.cycle = 0
@@ -90,6 +93,10 @@ public class TIA {
 		let cycles = 228 - (self.cycle % 228)
 		self.advanceClock(cycles: cycles)
 		self.wsync = false
+	}
+	
+	func emitFrame() {
+		self.eventSubject.send(.frame)
 	}
 }
 
@@ -109,6 +116,8 @@ extension TIA {
 		// draw background
 		self.data[self.cycle] = UInt8(self.colubk) / 2
 		self.drawPlayfield(x: x, y: y)
+		self.drawMissile0(x: x, y: y)
+		self.drawMissile1(x: x, y: y)
 	}
 	
 	func drawPlayfield(x: Int, y: Int) {
@@ -136,6 +145,28 @@ extension TIA {
 				
 				self.data[self.cycle] = UInt8(color) / 2
 			}
+		}
+	}
+	
+	func drawMissile0(x: Int, y: Int) {
+		guard self.enam0 else {
+			return
+		}
+		
+		let size = 1 << ((self.nusiz0 >> 4) & 0x3)
+		if x >= self.resm0 && x < self.resm0 + size {
+			self.data[self.cycle] = UInt8(self.colup0) / 2
+		}
+	}
+	
+	func drawMissile1(x: Int, y: Int) {
+		guard self.enam1 else {
+			return
+		}
+		
+		let size = 1 << ((self.nusiz1 >> 4) & 0x3)
+		if x >= self.resm1 && x < self.resm1 + size {
+			self.data[self.cycle] = UInt8(self.colup1) / 2
 		}
 	}
 }
@@ -193,9 +224,22 @@ extension TIA: Bus {
 			self.pf2 = data
 			
 		case 0x1d:
-			self.enam0 = data
+			self.enam0 = data[1]
 		case 0x1e:
-			self.enam1 = data
+			self.enam1 = data[1]
+			
+		case 0x12:
+			self.resm0 = self.cycle % 228
+		case 0x13:
+			self.resm1 = self.cycle % 228
+		case 0x22:
+			self.hmm0 = data
+		case 0x23:
+			self.hmm1 = data
+			
+		case 0x2a:
+			self.resm0 += Int(signedWord: self.hmm0 >> 4)
+			self.resm1 += Int(signedWord: self.hmm1 >> 4)
 			
 		default:
 			break

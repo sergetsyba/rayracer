@@ -77,6 +77,7 @@ public extension Atari2600 {
 	func stepProgram() {
 		self.advanceProgram()
 		self.debugEventSubject.send(.break)
+		self.tia.emitFrame()
 	}
 	
 	func resumeProgram(until breakpoints: [Address]) {
