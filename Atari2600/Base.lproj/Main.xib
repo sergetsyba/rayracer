@@ -99,6 +99,12 @@
                                     <action selector="stepScanLineMenuItemSelected:" target="-1" id="Rin-DU-tkP"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Step Frame" keyEquivalent="" id="OO4-lS-ntS">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="stepFrameMenuItemSelected:" target="-1" id="D0T-8n-mwo"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>

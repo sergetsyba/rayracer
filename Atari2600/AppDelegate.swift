@@ -31,7 +31,7 @@ extension AppDelegate {
 				let controller = ScreenWindowController()
 				controller.window?.title = url.lastPathComponent
 				self.showWindow(of: controller)
-//				self.resumeMenuItemSelected(self)
+				//				self.resumeMenuItemSelected(self)
 			} catch {
 				print(error)
 			}
@@ -59,6 +59,10 @@ extension AppDelegate {
 	
 	@IBAction func stepScanLineMenuItemSelected(_ sender: AnyObject) {
 		self.console.stepScanLine()
+	}
+	
+	@IBAction func stepFrameMenuItemSelected(_ sender: AnyObject) {
+		self.console.stepFrame()
 	}
 	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {

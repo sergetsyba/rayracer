@@ -90,6 +90,15 @@ public extension Atari2600 {
 		self.tia.emitFrame()
 	}
 	
+	func stepFrame() {
+		repeat {
+			self.advanceProgram()
+		} while self.tia.cycle > 0
+					
+		self.debugEventSubject.send(.break)
+		self.tia.emitFrame()
+	}
+	
 	func resumeProgram(until breakpoints: [Address]) {
 		repeat {
 			self.stepProgram()
