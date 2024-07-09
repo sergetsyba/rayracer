@@ -678,7 +678,9 @@ private extension MOS6507 {
 			let page = address.high
 			
 			address += Int(signedWord: offset)
-			cycles += address.high > page ? 2 : 1
+			// in relative addressing page can be crossed both to a higher
+			// or a lower one
+			cycles += address.high != page ? 2 : 1
 		}
 		
 		return ({
