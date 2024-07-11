@@ -14,8 +14,7 @@ public class MOS6507 {
 	private(set) public var programCounter: Address
 	
 	private var bus: Bus
-	var ready: Bool = true
-	var cachedOperation: (() -> Void)? = nil
+	private var cachedOperation: (() -> Void)? = nil
 	
 	public init(bus: any Bus) {
 		self.accumulator = .randomWord
@@ -748,7 +747,7 @@ private extension MOS6507 {
 				result += 0xa0
 			}
 		} else {
-			result = self.accumulator - operand - carry
+			result = self.accumulator - operand// - carry
 			if result < 0x00 {
 				self.status.carry = true
 				result += 0x100

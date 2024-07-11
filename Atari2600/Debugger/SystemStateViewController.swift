@@ -166,20 +166,21 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forCPUDebugItem item: CPUDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		let cpu = self.console.cpu!
+		
 		switch item {
 		case .accumulator:
-			view?.wordValue = (item.rawValue, self.console.cpu.accumulator)
+			view?.wordValue = (item.rawValue, cpu.accumulator)
 		case .indexX:
-			view?.wordValue = (item.rawValue, self.console.cpu.x)
+			view?.wordValue = (item.rawValue, cpu.x)
 		case .indexY:
-			view?.wordValue = (item.rawValue, self.console.cpu.y)
+			view?.wordValue = (item.rawValue, cpu.y)
 		case .status:
-			let string = NSMutableAttributedString(mos6507Status: self.console.cpu.status)
-			view?.attributedStringValue = (item.rawValue, string)
+			view?.attributedStringValue = (item.rawValue, self.formattedCPUStatus)
 		case .stackPointer:
-			view?.wordValue = (item.rawValue, self.console.cpu.stackPointer)
+			view?.wordValue = (item.rawValue, cpu.stackPointer)
 		case .programCounter:
-			view?.addressValue = (item.rawValue, self.console.cpu.programCounter)
+			view?.addressValue = (item.rawValue, cpu.programCounter)
 		}
 		
 		return view
@@ -187,18 +188,21 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forMemoryDebugItem item: MemoryDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugValueTableCellView, owner: nil) as? DebugValueTableCellView
-		view?.textField?.stringValue = String(memory: self.console.riot.memory)
+		let riot = self.console.riot!
 		
+		view?.textField?.stringValue = String(memory: riot.memory)
 		return view
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forTimerDebugItem item: TimerDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		let riot = self.console.riot!
+		
 		switch item {
 		case .value:
-			view?.stringValue = (item.rawValue, "\(self.console.riot.remainingTimerCycles)")
+			view?.stringValue = (item.rawValue, "\(riot.remainingTimerCycles)")
 		case .interval:
-			view?.stringValue = (item.rawValue, "\(self.console.riot.intervalIncrement)")
+			view?.stringValue = (item.rawValue, "\(riot.intervalIncrement)")
 		}
 		
 		return view
@@ -206,6 +210,8 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forScreenDebugItem item: ScreenDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		let tia = self.console.tia!
+		
 		switch item {
 		case .beamPosition:
 			let (scanLine, point) = self.console.tia.beamPosition
@@ -213,24 +219,28 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		case .verticalSync:
 			view?.stringValue = (item.rawValue, self.formattedVerticalSync)
 		case .verticalBlank:
-			view?.boolValue = (item.rawValue, self.console.tia.verticalBlank)
+			view?.boolValue = (item.rawValue, tia.verticalBlank)
 		case .waitForHorizontalSync:
-			view?.boolValue = (item.rawValue, self.console.tia.awaitingHorizontalSync)
+			view?.boolValue = (item.rawValue, tia.awaitingHorizontalSync)
 		}
 		
 		return view
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forBackgroundDebugItem item: BackgroundDebugItem) -> NSView? {
+		let backgroundColor = self.console.tia.backgroundColor
+		
 		switch item {
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, self.console.tia.backgroundColor)
+			view?.colorValue = (item.rawValue, backgroundColor)
 			return view
 		}
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forPlayfieldDebugItem item: PlayfieldDebugItem) -> NSView? {
+		let playfield = self.console.tia.playfield
+		
 		switch item {
 		case .graphics:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
@@ -245,7 +255,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, self.console.tia.playfield.color)
+			view?.colorValue = (item.rawValue, playfield.color)
 			return view
 		}
 	}
@@ -307,6 +317,20 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			view?.boolValue = (item.rawValue, ball.verticalDelay)
 			return view
 		}
+	}
+	
+	private var formattedCPUStatus: NSAttributedString {
+		let string = NSMutableAttributedString(string: "N V   B D I Z C")
+		let status = self.console.cpu.status
+		
+		for (index, value) in status.enumerated() {
+			if !value {
+				let range = NSRange(location: index * 2, length: 1)
+				string.addAttribute(.foregroundColor, value: NSColor.disabledControlTextColor, range: range)
+			}
+		}
+		
+		return string
 	}
 	
 	private var formattedVerticalSync: String {
@@ -436,18 +460,6 @@ private extension String {
 					.map() { String(format: "%02x", $0) }
 					.joined(separator: " ")
 			}.joined(separator: "\n")
-	}
-}
-
-private extension NSMutableAttributedString {
-	convenience init(mos6507Status status: MOS6507.Status) {
-		self.init(string: "N V   B D I Z C")
-		for (index, value) in status.enumerated() {
-			if !value {
-				let range = NSRange(location: index * 2, length: 1)
-				self.addAttribute(.foregroundColor, value: NSColor.disabledControlTextColor, range: range)
-			}
-		}
 	}
 }
 

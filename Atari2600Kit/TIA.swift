@@ -9,18 +9,8 @@ import CoreGraphics
 import Combine
 import Cocoa
 
-protocol CPU {
-	var ready: Bool { get set }
-}
-
 public class TIA {
 	private var eventSubject = PassthroughSubject<Event, Never>()
-	
-	private var cpu: CPU
-	init(cpu: CPU) {
-		self.cpu = cpu
-	}
-	
 	public var data = Data(count: 228*262)
 	
 	var cycle = 0
@@ -89,9 +79,12 @@ public class TIA {
 		}
 	}
 	
-	func advanceLine() {
-		let cycles = 228 - (self.cycle % 228)
-		self.advanceClock(cycles: cycles)
+	func advanceClockToHorizontalSync() {
+		let colorClock = self.cycle % 228
+		if colorClock > 0 {
+			self.advanceClock(cycles: 228 - colorClock)
+		}
+		
 		self.wsync = false
 	}
 	
@@ -184,10 +177,13 @@ extension TIA: Bus {
 			if data[1] {
 				self.vsync = self.cycle
 			} else {
-				let scanLines = (self.cycle - self.vsync) / 228
-				if scanLines >= 3 {
-					self.cycle = 0
-					self.eventSubject.send(.frame)
+				if self.vsync > -1 {
+					let scanLines = (self.cycle - self.vsync) / 228
+					if scanLines >= 3 {
+						// TODO: Stella sets color clock to the beginning of store operation instead of it end
+						self.cycle = 9
+						self.eventSubject.send(.frame)
+					}
 				}
 				
 				self.vsync = -1
@@ -196,9 +192,9 @@ extension TIA: Bus {
 		case 0x01:
 			self.vblank = data[1]
 		case 0x02:
-			self.wsync = true
+			self.wsync = true			
 		case 0x03:
-			self.advanceLine()
+			self.advanceClockToHorizontalSync()
 			self.cycle -= 3
 			
 		case 0x04:

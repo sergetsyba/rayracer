@@ -19,7 +19,7 @@ public class Atari2600: ObservableObject {
 	public init() {
 		self.cpu = MOS6507(bus: self)
 		self.riot = MOS6532()
-		self.tia = TIA(cpu: self.cpu)
+		self.tia = TIA()
 	}
 	
 	// Resets internal state.
@@ -33,6 +33,13 @@ public class Atari2600: ObservableObject {
 	// Loads cartridge data as ROM from a file at the specified URL.
 	public func insertCartridge(fromFileAt url: URL) throws {
 		self.cartridge = try Data(contentsOf: url)
+	}
+	
+	private func executeNextCPUInstruction() {
+		let cycles = self.cpu.nextInstructionExecutionDuration
+		self.tia.advanceClock(cycles: cycles * 3)
+		self.riot.advanceClock(cycles: cycles)
+		self.cpu.executeNextInstruction()
 	}
 }
 
@@ -63,19 +70,15 @@ public extension Atari2600 {
 		return self.debugEventSubject
 	}
 	
-	func advanceProgram() {
-		if self.tia.wsync {
-			self.tia.advanceLine()
+	func stepProgram() {
+		// when stepping by CPU instruction with WSYNC on, advance TIA to
+		// horizontal sync and execute the next CPU instruction
+		if self.tia.awaitingHorizontalSync {
+			self.tia.advanceClockToHorizontalSync()
 		}
 		
-		let cycles = self.cpu.nextInstructionExecutionDuration
-		self.tia.advanceClock(cycles: cycles * 3)
-		self.riot.advanceClock(cycles: cycles)
-		self.cpu.executeNextInstruction()
-	}
-	
-	func stepProgram() {
-		self.advanceProgram()
+		self.executeNextCPUInstruction()
+		
 		self.debugEventSubject.send(.break)
 		self.tia.emitFrame()
 	}
@@ -83,7 +86,13 @@ public extension Atari2600 {
 	func stepScanLine() {
 		let scanLine = self.tia.scanLine
 		repeat {
-			self.advanceProgram()
+			// when stepping by scan line with WSYNC on, advance TIA to
+			// horizontal sync but do not execute the next CPU instruction
+			if self.tia.awaitingHorizontalSync {
+				self.tia.advanceClockToHorizontalSync()
+			} else {
+				self.executeNextCPUInstruction()
+			}
 		} while scanLine == self.tia.scanLine
 		
 		self.debugEventSubject.send(.break)
@@ -92,9 +101,9 @@ public extension Atari2600 {
 	
 	func stepFrame() {
 		repeat {
-			self.advanceProgram()
+			self.executeNextCPUInstruction()
 		} while self.tia.cycle > 0
-					
+		
 		self.debugEventSubject.send(.break)
 		self.tia.emitFrame()
 	}
@@ -114,12 +123,6 @@ public typealias Address = Int
 public protocol Bus {
 	func read(at address: Address) -> Int
 	mutating func write(_ value: Int, at address: Address)
-}
-
-
-// MARK: -
-// MARK: Memory segments
-extension MOS6507: CPU {
 }
 
 
