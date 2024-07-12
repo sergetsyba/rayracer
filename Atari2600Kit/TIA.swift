@@ -10,8 +10,8 @@ import Combine
 import Cocoa
 
 public class TIA {
+	private(set) public var data = Data(count: 228*262)
 	private var eventSubject = PassthroughSubject<Event, Never>()
-	public var data = Data(count: 228*262)
 	
 	var cycle = 0
 	
@@ -69,7 +69,9 @@ public class TIA {
 	var enabl: Int = .randomWord
 	
 	func reset() {
+		self.data = Data(count: 228*262)
 		self.cycle = 0
+		self.eventSubject.send(.frame)
 	}
 	
 	func advanceClock(cycles: Int) {
@@ -192,7 +194,7 @@ extension TIA: Bus {
 		case 0x01:
 			self.vblank = data[1]
 		case 0x02:
-			self.wsync = true			
+			self.wsync = true
 		case 0x03:
 			self.advanceClockToHorizontalSync()
 			self.cycle -= 3
