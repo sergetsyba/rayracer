@@ -71,12 +71,11 @@ public extension Atari2600 {
 	}
 	
 	func stepProgram() {
-		// when stepping by CPU instruction with WSYNC on, advance TIA to
-		// horizontal sync and execute the next CPU instruction
-		if self.tia.awaitingHorizontalSync {
+		// when stepping a CPU instruction and WSYNC is on, advance TIA to
+		// horizontal sync with CPU instruction
+		if self.tia.wsync {
 			self.tia.advanceClockToHorizontalSync()
 		}
-		
 		self.executeNextCPUInstruction()
 		
 		self.debugEventSubject.send(.break)
@@ -86,9 +85,9 @@ public extension Atari2600 {
 	func stepScanLine() {
 		let scanLine = self.tia.scanLine
 		repeat {
-			// when stepping by scan line with WSYNC on, advance TIA to
-			// horizontal sync but do not execute the next CPU instruction
-			if self.tia.awaitingHorizontalSync {
+			// when stepping a scan line and WSYNC is on, advance TIA to
+			// horizontal sync but break before CPU instruction
+			if self.tia.wsync {
 				self.tia.advanceClockToHorizontalSync()
 			} else {
 				self.executeNextCPUInstruction()
@@ -100,9 +99,19 @@ public extension Atari2600 {
 	}
 	
 	func stepFrame() {
+		var clock1 = self.tia.cycle
+		var clock2 = self.tia.cycle
+		
+		// keep executing CPU instructions until color clock decreases
 		repeat {
+			clock1 = clock2
+			if self.tia.wsync {
+				self.tia.advanceClockToHorizontalSync()
+			}
+			
 			self.executeNextCPUInstruction()
-		} while self.tia.cycle > 0
+			clock2 = self.tia.cycle
+		} while clock1 < clock2
 		
 		self.debugEventSubject.send(.break)
 		self.tia.emitFrame()
