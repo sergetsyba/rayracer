@@ -9,31 +9,14 @@ import CoreGraphics
 import Combine
 import Cocoa
 
-protocol CPU {
-	var ready: Bool { get set }
-}
-
 public class TIA {
+	private(set) public var data = Data(count: 228*262)
 	private var eventSubject = PassthroughSubject<Event, Never>()
-	
-	private var cpu: CPU
-	init(cpu: CPU) {
-		self.cpu = cpu
-	}
-	
-	public var data = Data(count: 228*262)
 	
 	var cycle = 0
 	
 	// Vertical sync register.
-	var vsync: Bool = false {
-		didSet {
-			if self.vsync == true {
-				self.eventSubject.send(.frame)
-				self.cycle = 0
-			}
-		}
-	}
+	var vsync: Int = -1
 	// Vertical blank register.
 	var vblank: Bool = false
 	// Wait for horizontal sync register.
@@ -72,13 +55,23 @@ public class TIA {
 	
 	var grp0: Int = .randomWord
 	var nusiz0: Int = .randomWord
+	var nusiz1: Int = .randomWord
 	var refp0: Int = .randomWord
 	
-	/// Reset sync strobe register.
-	/// Writing any value resets color clock to its value at the beginning of the current scanline.
-	var rsync: Bool {
-		get { return false }
-		set { self.cycle -= self.cycle % 228 }
+	var enam0: Bool = .random()
+	var resm0: Int = .randomWord
+	var hmm0: Int = .randomWord
+	
+	var enam1: Bool = .random()
+	var resm1: Int = .randomWord
+	var hmm1: Int = .randomWord
+	
+	var enabl: Int = .randomWord
+	
+	func reset() {
+		self.data = Data(count: 228*262)
+		self.cycle = 0
+		self.eventSubject.send(.frame)
 	}
 	
 	func advanceClock(cycles: Int) {
@@ -88,10 +81,17 @@ public class TIA {
 		}
 	}
 	
-	func advanceLine() {
-		let cycles = 228 - (self.cycle % 228)
-		self.advanceClock(cycles: cycles)
+	func advanceClockToHorizontalSync() {
+		let colorClock = self.cycle % 228
+		if colorClock > 0 {
+			self.advanceClock(cycles: 228 - colorClock)
+		}
+		
 		self.wsync = false
+	}
+	
+	func emitFrame() {
+		self.eventSubject.send(.frame)
 	}
 }
 
@@ -111,6 +111,8 @@ extension TIA {
 		// draw background
 		self.data[self.cycle] = UInt8(self.colubk) / 2
 		self.drawPlayfield(x: x, y: y)
+		self.drawMissile0(x: x, y: y)
+		self.drawMissile1(x: x, y: y)
 	}
 	
 	func drawPlayfield(x: Int, y: Int) {
@@ -140,6 +142,28 @@ extension TIA {
 			}
 		}
 	}
+	
+	func drawMissile0(x: Int, y: Int) {
+		guard self.enam0 else {
+			return
+		}
+		
+		let size = 1 << ((self.nusiz0 >> 4) & 0x3)
+		if x >= self.resm0 && x < self.resm0 + size {
+			self.data[self.cycle] = UInt8(self.colup0) / 2
+		}
+	}
+	
+	func drawMissile1(x: Int, y: Int) {
+		guard self.enam1 else {
+			return
+		}
+		
+		let size = 1 << ((self.nusiz1 >> 4) & 0x3)
+		if x >= self.resm1 && x < self.resm1 + size {
+			self.data[self.cycle] = UInt8(self.colup1) / 2
+		}
+	}
 }
 
 // MARK: -
@@ -152,13 +176,33 @@ extension TIA: Bus {
 	public func write(_ data: Int, at address: Address) {
 		switch address {
 		case 0x00:
-			self.vsync = data[1]
+			if data[1] {
+				self.vsync = self.cycle
+			} else {
+				if self.vsync > -1 {
+					let scanLines = (self.cycle - self.vsync) / 228
+					if scanLines >= 3 {
+						// TODO: Stella sets color clock to the beginning of store operation instead of it end
+						self.cycle = 9
+						self.eventSubject.send(.frame)
+					}
+				}
+				
+				self.vsync = -1
+			}
+			
 		case 0x01:
 			self.vblank = data[1]
 		case 0x02:
 			self.wsync = true
 		case 0x03:
-			self.rsync = true
+			self.advanceClockToHorizontalSync()
+			self.cycle -= 3
+			
+		case 0x04:
+			self.nusiz0 = data
+		case 0x05:
+			self.nusiz1 = data
 			
 		case 0x06:
 			self.colup0 = data
@@ -176,6 +220,29 @@ extension TIA: Bus {
 			self.pf1 = Int(reversingBits: data)
 		case 0x0f:
 			self.pf2 = data
+			
+		case 0x1d:
+			self.enam0 = data[1]
+		case 0x1e:
+			self.enam1 = data[1]
+			
+		case 0x12:
+			self.resm0 = max(0, self.cycle % 228 - 68) + 4
+		case 0x13:
+			self.resm1 = max(0, self.cycle % 228 - 68) + 4
+		case 0x22:
+			self.hmm0 = data
+		case 0x23:
+			self.hmm1 = data
+			
+		case 0x2a:
+			self.resm0 -= Int(signed: self.hmm0 >> 4, bits: 4)
+			self.resm1 -= Int(signed: self.hmm1 >> 4, bits: 4)
+			
+		case 0x2b:
+			self.resm0 = 0
+			self.resm1 = 0
+			
 		default:
 			break
 		}
@@ -204,7 +271,15 @@ public extension Int {
 		}
 	}
 	
-	subscript (range: Range<Int>) -> [Bool] {
+	init(bits: [Bool]) {
+		self = 0
+		for bit in bits {
+			self <<= 1
+			self &= bit ? 0x1 : 0x0
+		}
+	}
+	
+	subscript (range: any Collection<Int>) -> [Bool] {
 		return range.map({ self[$0] })
 	}
 }

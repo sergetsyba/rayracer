@@ -45,8 +45,10 @@ public class MOS6532 {
 // MARK: Bus integration
 extension MOS6532: Bus {
 	public func read(at address: Address) -> Int {
-		switch address {
-		case 0x0c:
+		switch address % 0x08 {
+		case 0x02:
+			return 0x3f
+		case 0x04:
 			return  self.remainingTimerCycles < 0
 			? self.remainingTimerCycles
 			: self.remainingTimerCycles / self.intervalIncrement

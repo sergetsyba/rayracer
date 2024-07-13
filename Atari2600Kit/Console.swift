@@ -19,19 +19,27 @@ public class Atari2600: ObservableObject {
 	public init() {
 		self.cpu = MOS6507(bus: self)
 		self.riot = MOS6532()
-		self.tia = TIA(cpu: self.cpu)
+		self.tia = TIA()
 	}
 	
 	// Resets internal state.
 	public func reset() {
 		self.cpu.reset()
 		self.riot.reset()
+		self.tia.reset()
 		self.eventSubject.send(.reset)
 	}
 	
 	// Loads cartridge data as ROM from a file at the specified URL.
 	public func insertCartridge(fromFileAt url: URL) throws {
 		self.cartridge = try Data(contentsOf: url)
+	}
+	
+	private func executeNextCPUInstruction() {
+		let cycles = self.cpu.nextInstructionExecutionDuration
+		self.tia.advanceClock(cycles: cycles * 3)
+		self.riot.advanceClock(cycles: cycles)
+		self.cpu.executeNextInstruction()
 	}
 }
 
@@ -62,20 +70,51 @@ public extension Atari2600 {
 		return self.debugEventSubject
 	}
 	
-	func advanceProgram() {
+	func stepProgram() {
+		// when stepping a CPU instruction and WSYNC is on, advance TIA to
+		// horizontal sync with CPU instruction
 		if self.tia.wsync {
-			self.tia.advanceLine()
+			self.tia.advanceClockToHorizontalSync()
 		}
+		self.executeNextCPUInstruction()
 		
-		let cycles = self.cpu.nextExecutionDuration
-		self.tia.advanceClock(cycles: cycles * 3)
-		self.riot.advanceClock(cycles: cycles)		
-		self.cpu.executeNextInstruction()
+		self.debugEventSubject.send(.break)
+		self.tia.emitFrame()
 	}
 	
-	func stepProgram() {
-		self.advanceProgram()
+	func stepScanLine() {
+		let scanLine = self.tia.scanLine
+		repeat {
+			// when stepping a scan line and WSYNC is on, advance TIA to
+			// horizontal sync but break before CPU instruction
+			if self.tia.wsync {
+				self.tia.advanceClockToHorizontalSync()
+			} else {
+				self.executeNextCPUInstruction()
+			}
+		} while scanLine == self.tia.scanLine
+		
 		self.debugEventSubject.send(.break)
+		self.tia.emitFrame()
+	}
+	
+	func stepFrame() {
+		var clock1 = self.tia.cycle
+		var clock2 = self.tia.cycle
+		
+		// keep executing CPU instructions until color clock decreases
+		repeat {
+			clock1 = clock2
+			if self.tia.wsync {
+				self.tia.advanceClockToHorizontalSync()
+			}
+			
+			self.executeNextCPUInstruction()
+			clock2 = self.tia.cycle
+		} while clock1 < clock2
+		
+		self.debugEventSubject.send(.break)
+		self.tia.emitFrame()
 	}
 	
 	func resumeProgram(until breakpoints: [Address]) {
@@ -93,12 +132,6 @@ public typealias Address = Int
 public protocol Bus {
 	func read(at address: Address) -> Int
 	mutating func write(_ value: Int, at address: Address)
-}
-
-
-// MARK: -
-// MARK: Memory segments
-extension MOS6507: CPU {
 }
 
 
@@ -149,5 +182,14 @@ extension Atari2600: Bus {
 		
 		let message = String(format: "Ignoring write at address $%04x", address)
 		print(message)
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+private extension TIA {
+	var scanLine: Int {
+		return self.cycle / 228
 	}
 }

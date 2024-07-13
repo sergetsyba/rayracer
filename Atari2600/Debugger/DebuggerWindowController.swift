@@ -95,9 +95,11 @@ private extension DebuggerWindowController {
 	
 	func updateToolbarItems() {
 		let cartridgeInserted = self.console.cartridge != nil
-		self.toolbar[.stepItem]?.isEnabled = cartridgeInserted
+		self.toolbar[.stepProgramItem]?.isEnabled = cartridgeInserted
+		self.toolbar[.stepScanLineItem]?.isEnabled = cartridgeInserted
+		self.toolbar[.stepFrameItem]?.isEnabled = cartridgeInserted
 		self.toolbar[.resumeItem]?.isEnabled = cartridgeInserted
-		self.toolbar[.resetItem]?.isEnabled = cartridgeInserted
+		self.toolbar[.gameResetItem]?.isEnabled = cartridgeInserted
 	}
 	
 	func updateBreakpointsToolbarItemMenu(breakpoints: [Address]) {
@@ -160,8 +162,10 @@ extension DebuggerWindowController: NSToolbarDelegate {
 		return [
 			.breakpointsItem,
 			.resumeItem,
-			.stepItem,
-			.resetItem,
+			.stepProgramItem,
+			.stepScanLineItem,
+			.stepFrameItem,
+			.gameResetItem,
 			.space,
 			.flexibleSpace
 		]
@@ -172,18 +176,22 @@ extension DebuggerWindowController: NSToolbarDelegate {
 			.breakpointsItem,
 			.space,
 			.resumeItem,
-			.stepItem,
+			.stepProgramItem,
+			.stepScanLineItem,
+			.stepFrameItem,
 			.flexibleSpace,
-			.resetItem
+			.gameResetItem
 		]
 	}
 }
 
 private extension NSToolbarItem.Identifier {
-	static let breakpointsItem = NSToolbarItem.Identifier("BreakpointsItem")
-	static let resumeItem = NSToolbarItem.Identifier("ResumeItem")
-	static let stepItem = NSToolbarItem.Identifier("StepItem")
-	static let resetItem = NSToolbarItem.Identifier("ResetItem")
+	static let breakpointsItem = NSToolbarItem.Identifier("BreakpointsToolbarItem")
+	static let resumeItem = NSToolbarItem.Identifier("ResumeToolbarItem")
+	static let stepProgramItem = NSToolbarItem.Identifier("StepProgramToolbarItem")
+	static let stepScanLineItem = NSToolbarItem.Identifier("StepScanLineToolbarItem")
+	static let stepFrameItem = NSToolbarItem.Identifier("StepFrameToolbarItem")
+	static let gameResetItem = NSToolbarItem.Identifier("GameResetToolbarItem")
 }
 
 
