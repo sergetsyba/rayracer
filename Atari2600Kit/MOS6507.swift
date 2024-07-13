@@ -676,7 +676,7 @@ private extension MOS6507 {
 			let offset = self.bus.read(at: address - 1)
 			let page = address.high
 			
-			address += Int(signedWord: offset)
+			address += Int(signed: offset)
 			// in relative addressing page can be crossed both to a higher
 			// or a lower one
 			cycles += address.high != page ? 2 : 1
@@ -1179,18 +1179,6 @@ extension Int {
 		return Self.random(in: 0x0000...0xffff)
 	}
 	
-	init(signedWord value: Int) {
-		self = value > 0x7f
-		? value - 0x100
-		: value
-	}
-	
-	init(signedWord value: UInt8) {
-		self = value > 0x7f
-		? Int(value) - 0x100
-		: Int(value)
-	}
-	
 	subscript(bit: Int) -> Bool {
 		get {
 			let mask = 0x01 << bit
@@ -1203,6 +1191,15 @@ extension Int {
 			} else {
 				self &= ~mask
 			}
+		}
+	}
+	
+	init(signed value: Int, bits: Int = 8) {
+		self = value
+		
+		let mask = 1 << (bits - 1)
+		if value & mask == mask {
+			self -= (mask << 1)
 		}
 	}
 }

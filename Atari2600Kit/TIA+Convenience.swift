@@ -39,12 +39,12 @@ public extension TIA {
 				enabled: self.enam0,
 				size: 1 << ((self.nusiz0 >> 4) & 0x3),
 				color: self.colup0,
-				position: (self.resm0, Int(signedWord: self.hmm0 >> 4))),
+				position: (self.resm0, Int(signed: self.hmm0 >> 4, bits: 4))),
 			Missile(
 				enabled: self.enam1,
 				size: 1 << ((self.nusiz1 >> 4) & 0x3),
 				color: self.colup1,
-				position: (self.resm1, Int(signedWord: self.hmm1 >> 4)))
+				position: (self.resm1, Int(signed: self.hmm1 >> 4, bits: 4)))
 		)
 	}
 	

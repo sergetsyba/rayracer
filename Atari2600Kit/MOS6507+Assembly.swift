@@ -167,7 +167,7 @@ extension MOS6507Assembly {
 			return high * 0x0100 + low
 			
 		case .relative:
-			let offset = Int(signedWord: data[index])
+			let offset = Int(signed: Int(data[index]))
 			return 0xf001 + index + offset
 		}
 	}
