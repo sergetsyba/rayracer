@@ -227,17 +227,21 @@ extension TIA: Bus {
 			self.enam1 = data[1]
 			
 		case 0x12:
-			self.resm0 = max(0, self.cycle % 228 - 68)
+			self.resm0 = max(0, self.cycle % 228 - 68) + 4
 		case 0x13:
-			self.resm1 = max(0, self.cycle % 228 - 68)
+			self.resm1 = max(0, self.cycle % 228 - 68) + 4
 		case 0x22:
 			self.hmm0 = data
 		case 0x23:
 			self.hmm1 = data
 			
 		case 0x2a:
-			self.resm0 += Int(signed: self.hmm0 >> 4, bits: 4)
-			self.resm1 += Int(signed: self.hmm1 >> 4, bits: 4)
+			self.resm0 -= Int(signed: self.hmm0 >> 4, bits: 4)
+			self.resm1 -= Int(signed: self.hmm1 >> 4, bits: 4)
+			
+		case 0x2b:
+			self.resm0 = 0
+			self.resm1 = 0
 			
 		default:
 			break

@@ -26,7 +26,9 @@ class SystemStateViewController: NSViewController {
 	
 	override func viewWillAppear() {
 		super.viewWillAppear()
-		self.outlineView.expandAllItems()
+		
+		self.outlineView.expandItem(nil, expandChildren: true)
+		self.outlineView.reloadData()
 	}
 }
 
@@ -83,8 +85,10 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 				return BackgroundDebugItem.allCases.count
 			case .playField:
 				return PlayfieldDebugItem.allCases.count
-			case .missile0, .missile1:
-				return MissileDebugItem.allCases.count
+			case .missile0:
+				return Missile0DebugItem.allCases.count
+			case .missile1:
+				return Missile1DebugItem.allCases.count
 			case .ball:
 				return BallDebugItem.allCases.count
 			}
@@ -115,8 +119,10 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 				return BackgroundDebugItem.allCases[index]
 			case .playField:
 				return PlayfieldDebugItem.allCases[index]
-			case .missile0, .missile1:
-				return MissileDebugItem.allCases[index]
+			case .missile0:
+				return Missile0DebugItem.allCases[index]
+			case .missile1:
+				return Missile1DebugItem.allCases[index]
 			case .ball:
 				return BallDebugItem.allCases[index]
 			}
@@ -148,8 +154,10 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			return self.makeView(outlineView, forBackgroundDebugItem: item)
 		} else if let item = item as? PlayfieldDebugItem {
 			return self.makeView(outlineView, forPlayfieldDebugItem: item)
-		} else if let item = item as? MissileDebugItem {
-			return self.makeView(outlineView, forMissileDebugItem: item)
+		} else if let item = item as? Missile0DebugItem {
+			return self.makeView(outlineView, forMissile0DebugItem: item)
+		} else if let item = item as? Missile1DebugItem {
+			return self.makeView(outlineView, forMissile1DebugItem: item)
 		} else if let item = item as? BallDebugItem {
 			return self.makeView(outlineView, forBallDebugItem: item)
 		} else {
@@ -260,11 +268,33 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		}
 	}
 	
-	private func makeView(_ outlineView: NSOutlineView, forMissileDebugItem item: MissileDebugItem) -> NSView? {
-		let parentItem = outlineView.parent(forItem: item) as? GraphicsDebugSection
-		let missiles = self.console.tia.missiles
-		let missile = parentItem == .missile0 ? missiles.0 : missiles.1
-		
+	private func makeView(_ outlineView: NSOutlineView, forMissile0DebugItem item: Missile0DebugItem) -> NSView? {
+		let missile = self.console.tia.missiles.0
+		switch item {
+		case .enabled:
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.boolValue = (item.rawValue, missile.enabled)
+			return view
+			
+		case .graphics:
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, String(bitPatternOfWidth: missile.size))
+			return view
+			
+		case .color:
+			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
+			view?.colorValue = (item.rawValue, missile.color)
+			return view
+			
+		case .position:
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, String(format: "%d %+d", missile.position.0, missile.position.1))
+			return view
+		}
+	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forMissile1DebugItem item: Missile1DebugItem) -> NSView? {
+		let missile = self.console.tia.missiles.1
 		switch item {
 		case .enabled:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
@@ -432,7 +462,14 @@ private extension SystemStateViewController {
 		case reset = "Reset"
 	}
 	
-	enum MissileDebugItem: String, CaseIterable {
+	enum Missile0DebugItem: String, CaseIterable {
+		case enabled = "Enabled"
+		case graphics = "Graphics"
+		case color = "Color"
+		case position = "Position"
+	}
+	
+	enum Missile1DebugItem: String, CaseIterable {
 		case enabled = "Enabled"
 		case graphics = "Graphics"
 		case color = "Color"
@@ -493,17 +530,5 @@ extension MOS6507.Status: Sequence {
 			self.zero,
 			self.carry
 		].makeIterator()
-	}
-}
-
-private extension NSOutlineView {
-	func expandAllItems() {
-		let count = self.numberOfChildren(ofItem: nil)
-		let items = (0..<count)
-			.map({ self.item(atRow: $0) })
-		
-		for item in items {
-			self.expandItem(item, expandChildren: true)
-		}
 	}
 }
