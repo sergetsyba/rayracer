@@ -105,7 +105,7 @@ private extension AssemblyViewController {
 // MARK: -
 // MARK: UI updates
 private extension AssemblyViewController {
-	static let tableColumnDataTemplates = ["$0000   ", "adc ", "($a4),Y "]
+	static let tableColumnDataTemplates = ["$0000   ", "adc ", "($a4),y "]
 	
 	func updateTableColumnWidths() {
 		Self.tableColumnDataTemplates
@@ -210,15 +210,18 @@ extension AssemblyViewController: NSTableViewDelegate {
 			return view
 			
 		case tableView.tableColumns[1]:
-			let view = tableView.makeView(withIdentifier: .assemblyTableCellView, owner: nil) as! NSTableCellView
-			view.textField?.font = .monospacedRegular
+			let view = tableView.makeView(withIdentifier: .debugValueTableCellView, owner: nil) as! DebugValueTableCellView
 			view.textField?.stringValue = "\(instruction.mnemonic)"
 			return view
 			
 		case tableView.tableColumns[2]:
-			let view = tableView.makeView(withIdentifier: .assemblyTableCellView, owner: nil) as! NSTableCellView
-			view.textField?.font = .monospacedRegular
-			view.textField?.stringValue = self.formatInstruction(instruction)
+			let view = tableView.makeView(withIdentifier: .debugValueTableCellView, owner: nil) as! DebugValueTableCellView
+			view.textField?.stringValue = self.formatOperand(of: instruction)
+			return view
+			
+		case tableView.tableColumns[3]:
+			let view = tableView.makeView(withIdentifier: .debugValueTableCellView, owner: nil) as! DebugValueTableCellView
+			view.textField?.stringValue = self.formatTarget(of: instruction) ?? ""
 			return view
 			
 		default:
@@ -227,38 +230,143 @@ extension AssemblyViewController: NSTableViewDelegate {
 	}
 }
 
-extension NSUserInterfaceItemIdentifier {
+private extension NSUserInterfaceItemIdentifier {
 	static let assemblyAddressCellView = NSUserInterfaceItemIdentifier("AssemblyAddressCellView")
-	static let assemblyTableCellView = NSUserInterfaceItemIdentifier("AssemblyTableCellView")
+	static let debugValueTableCellView = NSUserInterfaceItemIdentifier("DebugValueTableCellView")
 }
-
 
 
 // MARK: -
 // MARK: Data formatting
 private extension AssemblyViewController {
-	func formatInstruction(_ instruction: MOS6507Assembly.Instruction) -> String {
+	func formatOperand(of instruction: MOS6507Assembly.Instruction) -> String {
+		return String(format: instruction.operandFormat, instruction.operand)
+	}
+	
+	func formatTarget(of instruction: MOS6507Assembly.Instruction) -> String? {
 		switch instruction.mode {
+		case .zeroPage, .absolute:
+			let address = self.console.unmirrorAddress(instruction.operand)
+			if let target = self.formatTarget(at: address) {
+				return "→ \(target)"
+			} else {
+				return nil
+			}
+			
+		default:
+			return nil
+		}
+	}
+	
+	private func formatTarget(at address: Int) -> String? {
+		if (0x0000..<0x0040).contains(address) {
+			return Self.tiaLabels[address]
+		} else if (0x080..<0x0100).contains(address) {
+			return String(format: "$%02x mem", address - 0x0080)
+		} else if (0x0280..<0x0300).contains(address) {
+			return Self.riotLabels[address - 0x0280]
+		} else {
+			return nil
+		}
+	}
+	
+	private static let tiaLabels = [
+		0x00: "vsync",
+		0x01: "vblank",
+		0x02: "wsync",
+		0x03: "rsync",
+		0x04: "nusiz0",
+		0x05: "nusiz1",
+		0x06: "colup0",
+		0x07: "colup1",
+		0x08: "colupf",
+		0x09: "colubk",
+		0x0a: "ctrlpf",
+		0x0b: "refp0",
+		0x0c: "refp1",
+		0x0d: "pf0",
+		0x0e: "pf1",
+		0x0f: "pf2",
+		0x10: "resp0",
+		0x11: "resp1",
+		0x12: "resm0",
+		0x13: "resm1",
+		0x14: "resbl",
+		0x15: "audc0",
+		0x16: "audc1",
+		0x17: "audf0",
+		0x18: "audf1",
+		0x19: "audv0",
+		0x1a: "audv1",
+		0x1b: "grp0",
+		0x1c: "grp1",
+		0x1d: "enam0",
+		0x1e: "enam1",
+		0x1f: "enabl",
+		0x20: "hmp0",
+		0x21: "hmp1",
+		0x22: "hmm0",
+		0x23: "hmm1",
+		0x24: "hmbl",
+		0x25: "vdelp0",
+		0x26: "vdelp1",
+		0x27: "vdelbl",
+		0x28: "resmp0",
+		0x29: "resmp1",
+		0x2a: "hmove",
+		0x2b: "hmclr",
+		0x2c: "cxclr",
+		0x30: "cxm0p",
+		0x31: "cxm1p",
+		0x32: "cxp0fb",
+		0x33: "cxp1fb",
+		0x34: "cxm0fb",
+		0x35: "cxm1fb",
+		0x36: "cxblpf",
+		0x37: "cxppmm",
+		0x38: "inpt0",
+		0x39: "inpt1",
+		0x3a: "inpt2",
+		0x3b: "inpt3",
+		0x3c: "inpt4",
+		0x3d: "inpt5"
+	]
+	
+	static let riotLabels = [
+		0x00: "swcha",
+		0x01: "swacnt",
+		0x02: "swchb",
+		0x03: "swbcnt",
+		0x04: "intim",
+		0x06: "intim"
+	]
+}
+
+private extension MOS6507Assembly.Instruction {
+	var operandFormat: String {
+		switch self.mode {
 		case .implied:
 			return ""
 		case .immediate:
-			return String(format: "#$%02x", instruction.operand)
-		case .absolute, .relative:
-			return String(format: "$%04x", instruction.operand)
-		case .absoluteX:
-			return String(format: "$%04x,X", instruction.operand)
-		case .absoluteY:
-			return String(format: "$%04x,Y", instruction.operand)
+			return "#$%02x"
 		case .zeroPage:
-			return String(format: "$%02x", instruction.operand)
+			return "$%02x"
 		case .zeroPageX:
-			return String(format: "$%02x,X", instruction.operand)
+			return "$%02x,x"
 		case .zeroPageY:
-			return String(format: "$%02x,Y", instruction.operand)
+			return "$%02x,y"
+		case .absolute:
+			return "$%04x"
+		case .absoluteX:
+			return "$%04x,x"
+		case .absoluteY:
+			return "$%04x,y"
 		case .indirectX:
-			return String(format: "($%02x,X)", instruction.operand)
+			return "($%02x,x)"
 		case .indirectY:
-			return String(format: "($%02x),Y", instruction.operand)
+			return "($%02x),y"
+		case .relative:
+			return "$%04x"
 		}
 	}
 }
@@ -312,5 +420,12 @@ private extension NSTableView {
 		self.reloadData(
 			forRowIndexes: IndexSet(rows),
 			columnIndexes: IndexSet(0..<self.tableColumns.count))
+	}
+}
+
+private extension Bus {
+	func unmirrorAddress(_ address: Int) -> Int {
+		// TODO: unmirror
+		return address
 	}
 }
