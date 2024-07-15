@@ -105,7 +105,7 @@ private extension AssemblyViewController {
 // MARK: -
 // MARK: UI updates
 private extension AssemblyViewController {
-	static let tableColumnDataTemplates = ["$0000   ", "adc ", "($a4),Y "]
+	static let tableColumnDataTemplates = ["$0000   ", "adc ($a4),y  ", "$c2 mem "]
 	
 	func updateTableColumnWidths() {
 		Self.tableColumnDataTemplates
@@ -134,6 +134,10 @@ private extension AssemblyViewController {
 		   let row = program.firstIndex(where: { $0.0 == self.programAddress }) {
 			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
 			self.tableView.ensureRowVisible(row)
+			
+			// reload data for the current program address row to update
+			// operand address target
+			self.tableView.reloadData(in: [row])
 		} else {
 			self.tableView.deselectAll(self)
 		}
@@ -189,6 +193,7 @@ extension AssemblyViewController: NSTableViewDataSource {
 
 extension AssemblyViewController: NSTableViewDelegate {
 	func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
+		// disable row selection from user interactions
 		return row == tableView.selectedRow
 	}
 	
@@ -210,15 +215,13 @@ extension AssemblyViewController: NSTableViewDelegate {
 			return view
 			
 		case tableView.tableColumns[1]:
-			let view = tableView.makeView(withIdentifier: .assemblyTableCellView, owner: nil) as! NSTableCellView
-			view.textField?.font = .monospacedRegular
-			view.textField?.stringValue = "\(instruction.mnemonic)"
+			let view = tableView.makeView(withIdentifier: .debugValueTableCellView, owner: nil) as! DebugValueTableCellView
+			view.textField?.stringValue = instruction.description
 			return view
 			
 		case tableView.tableColumns[2]:
-			let view = tableView.makeView(withIdentifier: .assemblyTableCellView, owner: nil) as! NSTableCellView
-			view.textField?.font = .monospacedRegular
-			view.textField?.stringValue = self.formatInstruction(instruction)
+			let view = tableView.makeView(withIdentifier: .debugValueTableCellView, owner: nil) as! DebugValueTableCellView
+			view.textField?.stringValue = self.formatTarget(of: instruction, at: row) ?? ""
 			return view
 			
 		default:
@@ -227,38 +230,50 @@ extension AssemblyViewController: NSTableViewDelegate {
 	}
 }
 
-extension NSUserInterfaceItemIdentifier {
+private extension NSUserInterfaceItemIdentifier {
 	static let assemblyAddressCellView = NSUserInterfaceItemIdentifier("AssemblyAddressCellView")
-	static let assemblyTableCellView = NSUserInterfaceItemIdentifier("AssemblyTableCellView")
+	static let debugValueTableCellView = NSUserInterfaceItemIdentifier("DebugValueTableCellView")
 }
-
 
 
 // MARK: -
 // MARK: Data formatting
 private extension AssemblyViewController {
-	func formatInstruction(_ instruction: MOS6507Assembly.Instruction) -> String {
-		switch instruction.mode {
+	func formatTarget(of instruction: MOS6507Assembly.Instruction, at row: Int) -> String? {
+		switch instruction.addressing {
 		case .implied:
-			return ""
-		case .immediate:
-			return String(format: "#$%02x", instruction.operand)
-		case .absolute, .relative:
-			return String(format: "$%04x", instruction.operand)
-		case .absoluteX:
-			return String(format: "$%04x,X", instruction.operand)
-		case .absoluteY:
-			return String(format: "$%04x,Y", instruction.operand)
-		case .zeroPage:
-			return String(format: "$%02x", instruction.operand)
-		case .zeroPageX:
-			return String(format: "$%02x,X", instruction.operand)
-		case .zeroPageY:
-			return String(format: "$%02x,Y", instruction.operand)
-		case .indirectX:
-			return String(format: "($%02x,X)", instruction.operand)
-		case .indirectY:
-			return String(format: "($%02x),Y", instruction.operand)
+			// instructions with implied addressing do not have operands
+			return nil
+			
+		case .zeroPage, .absolute:
+			// for instructions with absolute addressing, always return
+			// formatted operand address target
+			let address = self.console.unmirror(instruction.operand)
+			return self.formatTarget(at: address)
+			
+		default:
+			// for instructions with indexed addressing, return formatted
+			// operand address target only when program is currently at
+			// that instruction
+			if self.program?[row].0 == self.programAddress {
+				let address = self.console.unmirror(
+					self.console.cpu.nextOperandAddress!)
+				return self.formatTarget(at: address)
+			} else {
+				return nil
+			}
+		}
+	}
+	
+	private func formatTarget(at address: Int) -> String? {
+		if (0x0000..<0x0040).contains(address) {
+			return MOS6507Assembly.tiaLabels[address]
+		} else if (0x080..<0x0100).contains(address) {
+			return String(format: "mem $%02x", address - 0x0080)
+		} else if (0x0280..<0x0300).contains(address) {
+			return MOS6507Assembly.riotLabels[address - 0x0280]
+		} else {
+			return nil
 		}
 	}
 }

@@ -14,7 +14,7 @@ public class MOS6507 {
 	private(set) public var programCounter: Address
 	
 	private var bus: Bus
-	private var cachedOperation: (() -> Void)? = nil
+	private var decoded: (() -> Void, Int, Address?)? = nil
 	
 	public init(bus: any Bus) {
 		self.accumulator = .randomWord
@@ -48,25 +48,32 @@ public class MOS6507 {
 // MARK: -
 public extension MOS6507 {
 	/// Returns the number of CPU cycles it will take to execute the next instruction in the program.
-	var nextInstructionExecutionDuration: Int {
-		let (operation, cycles) = self.decodeNextOperation()
-		self.cachedOperation = operation
-		
-		return cycles
+	var nextInstructionDuration: Int {
+		if self.decoded == nil {
+			self.decoded = self.decodeNextOperation()
+		}
+		return self.decoded!.1
+	}
+	
+	var nextOperandAddress: Address? {
+		if self.decoded == nil {
+			self.decoded = self.decodeNextOperation()
+		}
+		return self.decoded!.2
 	}
 	
 	/// Executes the next instruction in the program.
 	func executeNextInstruction() {
-		if let operation = self.cachedOperation {
-			operation()
-		} else {
-			let (operation, _) = self.decodeNextOperation()
-			operation()
+		if self.decoded == nil {
+			self.decoded = self.decodeNextOperation()
 		}
+		
+		self.decoded!.0()
+		self.decoded = self.decodeNextOperation()
 	}
 	
 	/// Returns the next operation in the program and the amount of CPU cycles it will take to execute.
-	private func decodeNextOperation() -> (() -> Void, Int) {
+	private func decodeNextOperation() -> (() -> Void, Int, Address?) {
 		let opcode = self.bus.read(at: self.programCounter)
 		switch opcode {
 			// MARK: ADC
@@ -494,23 +501,23 @@ public extension MOS6507 {
 // MARK: -
 // MARK: Memory addressing
 private extension MOS6507 {
-	func withImpliedAddressing(_ operation: @escaping () -> Void, cycles: Int = 2) -> (() -> Void, Int) {
+	func withImpliedAddressing(_ operation: @escaping () -> Void, cycles: Int = 2) -> (() -> Void, Int, Address?) {
 		return ({ [unowned self] in
 			self.programCounter += 1
 			operation()
-		}, cycles)
+		}, cycles, nil)
 	}
 	
-	func withImmediateAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 2) -> (() -> Void, Int) {
+	func withImmediateAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 2) -> (() -> Void, Int, Address?) {
 		let address = self.programCounter + 1
 		
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func with0PageAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
+	func with0PageAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -519,10 +526,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func with0PageXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
+	func with0PageXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -533,10 +540,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func with0PageYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
+	func with0PageYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -547,10 +554,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func withAbsoluteAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
+	func withAbsoluteAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -559,10 +566,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 3
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func withAbsoluteXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
+	func withAbsoluteXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -582,10 +589,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 3
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func withAbsoluteYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
+	func withAbsoluteYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -605,10 +612,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 3
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func withIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 5) -> (() -> Void, Int) {
+	func withIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 5) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -621,10 +628,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 3
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func withXIndexedIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 6) -> (() -> Void, Int) {
+	func withXIndexedIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 6) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -638,10 +645,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func withIndirectYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int) {
+	func withIndirectYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 1
 		address = Address(
 			low: self.bus.read(at: address),
@@ -665,10 +672,10 @@ private extension MOS6507 {
 		return ({ [unowned self] in
 			self.programCounter += 2
 			operation(address)
-		}, cycles)
+		}, cycles, address)
 	}
 	
-	func withRelativeAddressing(on condition: () -> Bool) -> (() -> Void, Int) {
+	func withRelativeAddressing(on condition: () -> Bool) -> (() -> Void, Int, Address?) {
 		var address = self.programCounter + 2
 		var cycles = 2
 		
@@ -684,7 +691,7 @@ private extension MOS6507 {
 		
 		return ({
 			self.programCounter = address
-		}, cycles)
+		}, cycles, address)
 	}
 }
 
