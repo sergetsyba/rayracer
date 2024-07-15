@@ -36,7 +36,7 @@ public class Atari2600: ObservableObject {
 	}
 	
 	private func executeNextCPUInstruction() {
-		let cycles = self.cpu.nextInstructionExecutionDuration
+		let cycles = self.cpu.nextInstructionDuration
 		self.tia.advanceClock(cycles: cycles * 3)
 		self.riot.advanceClock(cycles: cycles)
 		self.cpu.executeNextInstruction()
@@ -137,7 +137,7 @@ public protocol Bus {
 
 // MARK: -
 extension Atari2600: Bus {
-	private func unmirror(_ address: Address) -> Address {
+	public func unmirror(_ address: Address) -> Address {
 		if (0x0040..<0x0080).contains(address) {
 			return address - 0x40
 		}
