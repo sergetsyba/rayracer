@@ -247,8 +247,6 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forPlayfieldDebugItem item: PlayfieldDebugItem) -> NSView? {
-		let playfield = self.console.tia.playfield
-		
 		switch item {
 		case .graphics:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
@@ -256,64 +254,64 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			return view
 			
 		case .secondHalf:
-			let string = self.console.tia.playfield.reflected ? "Reflect" : "Duplicate"
+			let string = self.console.tia.playfieldReflected ? "Reflect" : "Duplicate"
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.stringValue = (item.rawValue, string)
 			return view
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, playfield.color)
+			view?.colorValue = (item.rawValue, self.console.tia.playfieldColor)
 			return view
 		}
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forMissile0DebugItem item: Missile0DebugItem) -> NSView? {
-		let missile = self.console.tia.missiles.0
 		switch item {
 		case .enabled:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, missile.enabled)
+			view?.boolValue = (item.rawValue, self.console.tia.missile0Enabled)
 			return view
 			
 		case .graphics:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, String(bitPatternOfWidth: missile.size))
+			view?.stringValue = (item.rawValue, String(bitPatternWidth: self.console.tia.missile0Size))
 			return view
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, missile.color)
+			view?.colorValue = (item.rawValue, self.console.tia.player0Color)
 			return view
 			
 		case .position:
+			let formatted = String(format: "%d %+d", self.console.tia.missile0Position, self.console.tia.missile0Motion)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, String(format: "%d %+d", missile.position.0, missile.position.1))
+			view?.stringValue = (item.rawValue, formatted)
 			return view
 		}
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forMissile1DebugItem item: Missile1DebugItem) -> NSView? {
-		let missile = self.console.tia.missiles.1
 		switch item {
 		case .enabled:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, missile.enabled)
+			view?.boolValue = (item.rawValue, self.console.tia.missile1Enabled)
 			return view
 			
 		case .graphics:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, String(bitPatternOfWidth: missile.size))
+			view?.stringValue = (item.rawValue, String(bitPatternWidth: self.console.tia.missile1Size))
 			return view
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, missile.color)
+			view?.colorValue = (item.rawValue, self.console.tia.player1Color)
 			return view
 			
 		case .position:
+			let formatted = String(format: "%d %+d", self.console.tia.missile1Position, self.console.tia.missile1Motion)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, String(format: "%d %+d", missile.position.0, missile.position.1))
+			view?.stringValue = (item.rawValue, formatted)
 			return view
 		}
 	}
@@ -329,7 +327,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .graphics:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, String(bitPatternOfWidth: ball.size))
+			view?.stringValue = (item.rawValue, String(bitPatternWidth: ball.size))
 			return view
 			
 		case .color:
@@ -373,17 +371,20 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	}
 	
 	private var formattedPlayfieldGraphics: String {
-		var graphics = self.console.tia.playfield.graphics
-		let values = graphics
-			.map({ String(format: "%02x", $0) })
-			.joined()
+		let playfield = self.console.tia.playfield
+		let pfs = [
+			(playfield & 0x0000f) << 4,
+			Int(reversingBits: (playfield & 0x00ff0) >> 4),
+			(playfield & 0xff000) >> 12
+		]
 		
-		graphics[1] = Int(bits: graphics[1][0...7].reversed())
-		let pattern = graphics.map({
-			return $0[0..<8]
-				.map({ $0 ? "■" : "□" })
-				.joined()
-		}).joined()
+		let values = pfs
+			.map({ String(format: "%02x", $0) })
+			.joined(separator: " ")
+		
+		let pattern = (0..<20)
+			.map({ playfield[$0] ? "■": "□" })
+			.joined()
 		
 		return "\(values) \(pattern.suffix(20))"
 	}
@@ -504,7 +505,7 @@ private extension String {
 // MARK: -
 // MARK: Convenience functionality
 private extension String {
-	init(bitPatternOfWidth width: Int) {
+	init(bitPatternWidth width: Int) {
 		self = (0..<width)
 			.map({ _ in "■" })
 			.joined()
@@ -530,5 +531,22 @@ extension MOS6507.Status: Sequence {
 			self.zero,
 			self.carry
 		].makeIterator()
+	}
+}
+
+private extension Int {
+	subscript(bit: Int) -> Bool {
+		get {
+			let mask: Int = 0x01 << bit
+			return self & mask == mask
+		}
+		set {
+			let mask: Int = 0x01 << bit
+			if newValue {
+				self |= mask
+			} else {
+				self &= ~mask
+			}
+		}
 	}
 }
