@@ -120,6 +120,14 @@ extension TIA {
 		return self.playfieldControl[0]
 	}
 	
+	public var player0Copies: Int {
+		return self.numberSize0 & 0x3
+	}
+	
+	public var player1Copies: Int {
+		return self.numberSize1 & 0x3
+	}
+	
 	public var missile0Size: Int {
 		return 1 << ((self.numberSize0 >> 4) & 0x3)
 	}
@@ -177,8 +185,8 @@ extension TIA {
 		guard self.missile0Enabled,
 			  self.missile0Position <= x,
 			  self.missile0Position + self.missile0Size > x else {
-				  return
-			  }
+			return
+		}
 		
 		self.data[self.cycle] = UInt8(self.player0Color)
 	}
@@ -317,6 +325,7 @@ public extension Int {
 	}
 	
 	init(bits: [Bool]) {
+		// TODO: re-implement with a look-up table
 		self = 0
 		for bit in bits {
 			self <<= 1

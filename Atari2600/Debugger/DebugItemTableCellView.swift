@@ -54,6 +54,14 @@ class DebugItemTableCellView: NSTableCellView {
 		}
 	}
 	
+	var positionValue: (String, Int, Int) {
+		get { fatalError() }
+		set {
+			let string = String(format: "%d, %+d", newValue.1, newValue.2)
+			self.stringValue = (newValue.0, string)
+		}
+	}
+	
 	override func awakeFromNib() {
 		super.awakeFromNib()
 		self.textField?.font = .systemRegular
