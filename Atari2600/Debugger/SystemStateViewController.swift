@@ -282,12 +282,12 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	private func makeView(_ outlineView: NSOutlineView, forPlayer0DebugItem item: Player0DebugItem) -> NSView? {
 		switch item {
 		case .graphics:
-			let formatted = self.formatPlayerGraphics(self.console.tia.player0Graphics, reflected: self.console.tia.player0Reflected)
+			let formatted = self.formatPlayerGraphics(self.console.tia.player0Graphics, reflected: self.console.tia.player0Reflected, delayed: self.console.tia.player0Delay)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, formatted)
+			view?.attributedStringValue = (item.rawValue, formatted)
 			return view
 			
-		case .reflected:
+		case .reflect:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.boolValue = (item.rawValue, self.console.tia.player0Reflected)
 			return view
@@ -318,12 +318,12 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	private func makeView(_ outlineView: NSOutlineView, forPlayer1DebugItem item: Player1DebugItem) -> NSView? {
 		switch item {
 		case .graphics:
-			let formatted = self.formatPlayerGraphics(self.console.tia.player1Graphics, reflected: self.console.tia.player1Reflected)
+			let formatted = self.formatPlayerGraphics(self.console.tia.player1Graphics, reflected: self.console.tia.player1Reflected, delayed: self.console.tia.player1Delay)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, formatted)
+			view?.attributedStringValue = (item.rawValue, formatted)
 			return view
 			
-		case .reflected:
+		case .reflect:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.boolValue = (item.rawValue, self.console.tia.player1Reflected)
 			return view
@@ -432,7 +432,19 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			return view
 		}
 	}
-	
+}
+
+private extension NSUserInterfaceItemIdentifier {
+	static let debugSectionTableCellView = NSUserInterfaceItemIdentifier("DebugSectionTableCellView")
+	static let debugValueTableCellView = NSUserInterfaceItemIdentifier("DebugValueTableCellView")
+	static let debugItemTableCellView = NSUserInterfaceItemIdentifier("DebugItemTableCellView")
+	static let debugColorTableCellView = NSUserInterfaceItemIdentifier("DebugColorTableCellView")
+}
+
+
+// MARK: -
+// MARK: Data formatting
+private extension SystemStateViewController {
 	private var formattedCPUStatus: NSAttributedString {
 		let string = NSMutableAttributedString(string: "N V   B D I Z C")
 		let status = self.console.cpu.status
@@ -475,9 +487,23 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		return "\(values) \(pattern.suffix(20))"
 	}
 	
+	private func formatPlayerGraphics(_ graphics: (Int, Int), reflected: Bool, delayed: Bool) -> NSAttributedString {
+		let formatted = (
+			self.formatPlayerGraphics(graphics.0, reflected: reflected),
+			self.formatPlayerGraphics(graphics.1, reflected: reflected))
+		
+		let string = NSMutableAttributedString(string: formatted.0 + "  " + formatted.1)
+		let range = delayed
+		? NSRange(location: 0, length: formatted.0.count)
+		: NSRange(location: formatted.0.count + 2, length: formatted.1.count)
+		
+		string.addAttribute(.foregroundColor, value: NSColor.disabledControlTextColor, range: range)
+		return string
+	}
+	
 	private func formatPlayerGraphics(_ graphics: Int, reflected: Bool) -> String {
 		let value = String(format: "%02x", graphics)
-		var pattern = stride(from: 8, to: 0, by: -1)
+		var pattern = stride(from: 7, through: 0, by: -1)
 			.map({ graphics[$0] ? "■": "□" })
 			.joined()
 		
@@ -496,7 +522,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func formatPlayerCopies(_ copies: Int) -> String {
 		switch copies {
-		case 0: return "1, regular size"
+		case 0: return "1, single size"
 		case 1: return "2, close"
 		case 2: return "2, medium"
 		case 3: return "3, close"
@@ -507,13 +533,6 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		default: fatalError()
 		}
 	}
-}
-
-private extension NSUserInterfaceItemIdentifier {
-	static let debugSectionTableCellView = NSUserInterfaceItemIdentifier("DebugSectionTableCellView")
-	static let debugValueTableCellView = NSUserInterfaceItemIdentifier("DebugValueTableCellView")
-	static let debugItemTableCellView = NSUserInterfaceItemIdentifier("DebugItemTableCellView")
-	static let debugColorTableCellView = NSUserInterfaceItemIdentifier("DebugColorTableCellView")
 }
 
 
@@ -575,7 +594,7 @@ private extension SystemStateViewController {
 	
 	enum Player0DebugItem: String, CaseIterable {
 		case graphics = "Graphics"
-		case reflected = "Reflected"
+		case reflect = "Reflect"
 		case copies = "Copies"
 		case color = "Color"
 		case position = "Position"
@@ -584,7 +603,7 @@ private extension SystemStateViewController {
 	
 	enum Player1DebugItem: String, CaseIterable {
 		case graphics = "Graphics"
-		case reflected = "Reflected"
+		case reflect = "Reflect"
 		case copies = "Copies"
 		case color = "Color"
 		case position = "Position"
