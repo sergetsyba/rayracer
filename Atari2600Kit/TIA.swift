@@ -30,14 +30,14 @@ public class TIA {
 	private(set) public var numberSize0: Int
 	private(set) public var numberSize1: Int
 	
-	private(set) public var player0Graphics: Int
+	private(set) public var player0Graphics: (Int, Int)
 	private(set) public var player0Reflected: Bool
 	private(set) public var player0Color: Int
 	private(set) public var player0Position: Int
 	private(set) public var player0Motion: Int
 	private(set) public var player0Delay: Bool
 	
-	private(set) public var player1Graphics: Int
+	private(set) public var player1Graphics: (Int, Int)
 	private(set) public var player1Reflected: Bool
 	private(set) public var player1Color: Int
 	private(set) public var player1Position: Int
@@ -62,14 +62,14 @@ public class TIA {
 		self.numberSize0 = .random(in: 0x00...0xff)
 		self.numberSize1 = .random(in: 0x00...0xff)
 		
-		self.player0Graphics = .random(in: 0x00...0xff)
+		self.player0Graphics = (.random(in: 0x00...0xff), .random(in: 0x00...0xff))
 		self.player0Reflected = .random()
 		self.player0Color = .random(in: 0x00...0x7f)
 		self.player0Position = .random(in: 5...159)
 		self.player0Motion = .random(in: -8...7)
 		self.player0Delay = .random()
 		
-		self.player1Graphics = .random(in: 0x00...0xff)
+		self.player1Graphics = (.random(in: 0x00...0xff), .random(in: 0x00...0xff))
 		self.player1Reflected = .random()
 		self.player1Color = .random(in: 0x00...0x7f)
 		self.player1Position = .random(in: 5...159)
@@ -151,7 +151,7 @@ extension TIA {
 		}
 		
 		// draw background
-		self.data[self.cycle] = UInt8(self.backgroundColor)
+		self.data[self.cycle] = UInt8(self.backgroundColor) >> 1
 		self.drawPlayfield(x: x, y: y)
 		self.drawMissile1(at: x)
 		self.drawPlayer1(at: x)
@@ -184,28 +184,36 @@ extension TIA {
 	}
 	
 	func drawPlayer0(at point: Int) {
-		guard self.player0Graphics > 0 else {
+		let graphics = self.player0Delay
+		? self.player0Graphics.1
+		: self.player0Graphics.0
+		
+		guard graphics > 0 else {
 			return
 		}
 		
 		let point = point - self.player0Position
 		if (0..<8).contains(point) {
-			if (self.player0Reflected && self.player0Graphics[point])
-				|| self.player0Graphics[7 - point] {
+			let bit = self.player0Reflected ? point : 7 - point
+			if graphics[bit] {
 				self.data[self.cycle] = UInt8(self.player0Color) >> 1
 			}
 		}
 	}
 	
 	func drawPlayer1(at point: Int) {
-		guard self.player1Graphics > 0 else {
+		let graphics = self.player1Delay
+		? self.player1Graphics.1
+		: self.player1Graphics.0
+		
+		guard graphics > 0 else {
 			return
 		}
 		
 		let point = point - self.player1Position
 		if (0..<8).contains(point) {
-			if (self.player1Reflected && self.player1Graphics[point])
-				|| self.player1Graphics[7 - point] {
+			let bit = self.player1Reflected ? point : 7 - point
+			if graphics[bit] {
 				self.data[self.cycle] = UInt8(self.player1Color) >> 1
 			}
 		}
@@ -334,10 +342,18 @@ extension TIA: Bus {
 			self.missile1Position = max(0, self.cycle % 228 - 68) + 4
 		case 0x1b:
 			// MARK: GRP0
-			self.player0Graphics = data
+			self.player0Graphics.0 = data
+			self.player1Graphics.1 = self.player1Graphics.0
 		case 0x1c:
 			// MARK: GRP1
-			self.player1Graphics = data
+			self.player1Graphics.0 = data
+			self.player0Graphics.1 = self.player0Graphics.0
+		case 0x20:
+			// MARK: HMP0
+			self.player0Motion = Int(signed: data >> 4, bits: 4)
+		case 0x21:
+			// MARK: HMP1
+			self.player1Motion = Int(signed: data >> 4, bits: 4)
 		case 0x22:
 			// MARK: HMM0
 			self.missile0Motion = Int(signed: data >> 4, bits: 4)
@@ -352,6 +368,8 @@ extension TIA: Bus {
 			self.player1Delay = data[0]
 		case 0x2a:
 			// MARK: HMOVE
+			self.player0Position -= self.player0Motion
+			self.player1Position -= self.player1Motion
 			self.missile0Position -= self.missile0Motion
 			self.missile1Position -= self.missile1Motion
 		case 0x2b:
