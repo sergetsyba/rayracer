@@ -30,14 +30,12 @@ public class TIA {
 	private(set) public var numberSize0: Int
 	private(set) public var numberSize1: Int
 	
-	private(set) public var player0Enabled: Bool
 	private(set) public var player0Graphics: Int
 	private(set) public var player0Reflected: Bool
 	private(set) public var player0Position: Int
 	private(set) public var player0Motion: Int
 	private(set) public var player0Color: Int
 	
-	private(set) public var player1Enabled: Bool
 	private(set) public var player1Graphics: Int
 	private(set) public var player1Reflected: Bool
 	private(set) public var player1Position: Int
@@ -62,14 +60,12 @@ public class TIA {
 		self.numberSize0 = .random(in: 0x00...0xff)
 		self.numberSize1 = .random(in: 0x00...0xff)
 		
-		self.player0Enabled = .random()
 		self.player0Graphics = .random(in: 0x00...0xff)
 		self.player0Reflected = .random()
 		self.player0Position = .random(in: 5...159)
 		self.player0Motion = .random(in: -8...7)
 		self.player0Color = .random(in: 0x00...0x7f)
 		
-		self.player1Enabled = .random()
 		self.player1Graphics = .random(in: 0x00...0xff)
 		self.player1Reflected = .random()
 		self.player1Position = .random(in: 5...159)
@@ -153,8 +149,10 @@ extension TIA {
 		// draw background
 		self.data[self.cycle] = UInt8(self.backgroundColor)
 		self.drawPlayfield(x: x, y: y)
-		self.drawMissile0(x: x, y: y)
-		self.drawMissile1(x: x, y: y)
+		self.drawMissile1(at: x)
+		self.drawPlayer1(at: x)
+		self.drawMissile0(at: x)
+		self.drawPlayer0(at: x)
 	}
 	
 	func drawPlayfield(x: Int, y: Int) {
@@ -162,8 +160,8 @@ extension TIA {
 			// left playfield side
 			if self.playfield[x/4] {
 				self.data[self.cycle] = self.playfieldControl[1]
-				? UInt8(self.player0Color)
-				: UInt8(self.playfieldColor)
+				? UInt8(self.player0Color) >> 1
+				: UInt8(self.playfieldColor) >> 1
 			}
 		} else {
 			// right playfield side
@@ -175,30 +173,60 @@ extension TIA {
 			
 			if self.playfield[bit] {
 				self.data[self.cycle] = self.playfieldControl[1]
-				? UInt8(self.player1Color)
-				: UInt8(self.playfieldColor)
+				? UInt8(self.player1Color) >> 1
+				: UInt8(self.playfieldColor) >> 1
 			}
 		}
 	}
 	
-	func drawMissile0(x: Int, y: Int) {
-		guard self.missile0Enabled,
-			  self.missile0Position <= x,
-			  self.missile0Position + self.missile0Size > x else {
+	func drawPlayer0(at point: Int) {
+		guard self.player0Graphics > 0 else {
 			return
 		}
 		
-		self.data[self.cycle] = UInt8(self.player0Color)
+		let point = point - self.player0Position
+		if (0..<8).contains(point) {
+			if (self.player0Reflected && self.player0Graphics[point])
+				|| self.player0Graphics[7 - point] {
+				self.data[self.cycle] = UInt8(self.player0Color) >> 1
+			}
+		}
 	}
 	
-	func drawMissile1(x: Int, y: Int) {
-		guard self.missile1Enabled,
-			  self.missile1Position <= x,
-			  self.missile1Position + self.missile1Size > x else {
+	func drawPlayer1(at point: Int) {
+		guard self.player1Graphics > 0 else {
 			return
 		}
 		
-		self.data[self.cycle] = UInt8(self.player1Color)
+		let point = point - self.player1Position
+		if (0..<8).contains(point) {
+			if (self.player1Reflected && self.player1Graphics[point])
+				|| self.player1Graphics[7 - point] {
+				self.data[self.cycle] = UInt8(self.player1Color) >> 1
+			}
+		}
+	}
+	
+	func drawMissile0(at point: Int) {
+		guard self.missile0Enabled else {
+			return
+		}
+		
+		let point = point - self.missile0Position
+		if (0..<self.missile0Size).contains(point) {
+			self.data[self.cycle] = UInt8(self.player0Color) >> 1
+		}
+	}
+	
+	func drawMissile1(at point: Int) {
+		guard self.missile1Enabled else {
+			return
+		}
+		
+		let point = point - self.missile1Position
+		if (0..<self.missile1Size).contains(point) {
+			self.data[self.cycle] = UInt8(self.player1Color) >> 1
+		}
 	}
 }
 
@@ -243,15 +271,16 @@ extension TIA: Bus {
 			self.numberSize1 = data
 		case 0x06:
 			// MARK: COLUP0
-			self.player0Color = data >> 1
+			self.player0Color = data
 		case 0x07:
 			// MARK: COLUP1
-			self.player1Color = data >> 1
+			self.player1Color = data
 		case 0x08:
 			// MARK: COLUPF
-			self.playfieldColor = data >> 1
+			self.playfieldColor = data
 		case 0x09:
-			self.backgroundColor = data >> 1
+			// MARK: COLUBK
+			self.backgroundColor = data
 		case 0x0a:
 			// MARK: CTRLPF
 			self.playfieldControl = data
@@ -267,20 +296,44 @@ extension TIA: Bus {
 			// MARK: PF2
 			self.playfield &= 0x00fff
 			self.playfield |= data << 12
+		case 0x0b:
+			// MARK: REFP0
+			self.player0Reflected = data[3]
+		case 0x0c:
+			// MARK: REFP1
+			self.player1Reflected = data[3]
 		case 0x1d:
 			// MARK: ENAM0
 			self.missile0Enabled = data[1]
 		case 0x1e:
 			// MARK: ENAM1
 			self.missile1Enabled = data[1]
+		case 0x10:
+			// MARK: RESP0
+			// resetting player position takes additional 4 color clock to
+			// decode and 1 to latch
+			self.player0Position = max(0, self.cycle % 228 - 68) + 5
+		case 0x11:
+			// MARK: RESP1
+			// resetting player position takes additional 4 color clock to
+			// decode and 1 to latch
+			self.player1Position = max(0, self.cycle % 228 - 68) + 5
 		case 0x12:
 			// MARK: RESM0
-			// resetting missile position takes additional 4 color clocks
+			// resetting missile position takes additional 4 color clocks to
+			// decode
 			self.missile0Position = max(0, self.cycle % 228 - 68) + 4
 		case 0x13:
 			// MARK: RESM1
-			// resetting missile position takes additional 4 color clocks
+			// resetting missile position takes additional 4 color clocks to
+			// decode
 			self.missile1Position = max(0, self.cycle % 228 - 68) + 4
+		case 0x1b:
+			// MARK: GRP0
+			self.player0Graphics = data
+		case 0x1c:
+			// MARK: GRP1
+			self.player1Graphics = data
 		case 0x22:
 			// MARK: HMM0
 			self.missile0Motion = Int(signed: data >> 4, bits: 4)

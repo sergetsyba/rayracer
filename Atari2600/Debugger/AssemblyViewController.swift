@@ -255,9 +255,9 @@ private extension AssemblyViewController {
 			// for instructions with indexed addressing, return formatted
 			// operand address target only when program is currently at
 			// that instruction
-			if self.program?[row].0 == self.programAddress {
-				let address = self.console.unmirror(
-					self.console.cpu.nextOperandAddress!)
+			if self.program?[row].0 == self.programAddress,
+			   let address = self.console.cpu.nextOperandAddress {
+				let address = self.console.unmirror(address)
 				return self.formatTarget(at: address)
 			} else {
 				return nil

@@ -281,11 +281,6 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forPlayer0DebugItem item: Player0DebugItem) -> NSView? {
 		switch item {
-		case .enabled:
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, self.console.tia.player0Enabled)
-			return view
-			
 		case .graphics:
 			let formatted = self.formatPlayerGraphics(self.console.tia.player0Graphics, reflected: self.console.tia.player0Reflected)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
@@ -323,11 +318,6 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forPlayer1DebugItem item: Player1DebugItem) -> NSView? {
 		switch item {
-		case .enabled:
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, self.console.tia.player1Enabled)
-			return view
-			
 		case .graphics:
 			let formatted = self.formatPlayerGraphics(self.console.tia.player1Graphics, reflected: self.console.tia.player1Reflected)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
@@ -489,7 +479,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func formatPlayerGraphics(_ graphics: Int, reflected: Bool) -> String {
 		let value = String(format: "%02x", graphics)
-		var pattern = (0..<8)
+		var pattern = stride(from: 8, to: 0, by: -1)
 			.map({ graphics[$0] ? "■": "□" })
 			.joined()
 		
@@ -586,7 +576,6 @@ private extension SystemStateViewController {
 	}
 	
 	enum Player0DebugItem: String, CaseIterable {
-		case enabled = "Enabled"
 		case graphics = "Graphics"
 		case reflected = "Reflected"
 		case copies = "Copies"
@@ -596,7 +585,6 @@ private extension SystemStateViewController {
 	}
 	
 	enum Player1DebugItem: String, CaseIterable {
-		case enabled = "Enabled"
 		case graphics = "Graphics"
 		case reflected = "Reflected"
 		case copies = "Copies"
