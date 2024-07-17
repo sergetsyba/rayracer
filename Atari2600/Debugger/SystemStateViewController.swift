@@ -308,10 +308,9 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			view?.positionValue = (item.rawValue, self.console.tia.player0Position, self.console.tia.player0Motion)
 			return view
 			
-		case .verticalDelay:
+		case .delay:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			// TODO: player 0 vertical delay
-			view?.boolValue = (item.rawValue, false)
+			view?.boolValue = (item.rawValue, self.console.tia.player0Delay)
 			return view
 		}
 	}
@@ -345,10 +344,9 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			view?.positionValue = (item.rawValue, self.console.tia.player1Position, self.console.tia.player1Motion)
 			return view
 			
-		case .verticalDelay:
+		case .delay:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			// TODO: player 1 vertical delay
-			view?.boolValue = (item.rawValue, false)
+			view?.boolValue = (item.rawValue, self.console.tia.player1Delay)
 			return view
 		}
 	}
@@ -581,7 +579,7 @@ private extension SystemStateViewController {
 		case copies = "Copies"
 		case color = "Color"
 		case position = "Position"
-		case verticalDelay = "Vertical delay"
+		case delay = "Delay"
 	}
 	
 	enum Player1DebugItem: String, CaseIterable {
@@ -590,7 +588,7 @@ private extension SystemStateViewController {
 		case copies = "Copies"
 		case color = "Color"
 		case position = "Position"
-		case verticalDelay = "Vertical delay"
+		case delay = "Delay"
 	}
 	
 	enum Missile0DebugItem: String, CaseIterable {

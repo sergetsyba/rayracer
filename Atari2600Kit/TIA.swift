@@ -32,15 +32,17 @@ public class TIA {
 	
 	private(set) public var player0Graphics: Int
 	private(set) public var player0Reflected: Bool
+	private(set) public var player0Color: Int
 	private(set) public var player0Position: Int
 	private(set) public var player0Motion: Int
-	private(set) public var player0Color: Int
+	private(set) public var player0Delay: Bool
 	
 	private(set) public var player1Graphics: Int
 	private(set) public var player1Reflected: Bool
+	private(set) public var player1Color: Int
 	private(set) public var player1Position: Int
 	private(set) public var player1Motion: Int
-	private(set) public var player1Color: Int
+	private(set) public var player1Delay: Bool
 	
 	private(set) public var missile0Enabled: Bool
 	private(set) public var missile0Position: Int
@@ -62,15 +64,17 @@ public class TIA {
 		
 		self.player0Graphics = .random(in: 0x00...0xff)
 		self.player0Reflected = .random()
+		self.player0Color = .random(in: 0x00...0x7f)
 		self.player0Position = .random(in: 5...159)
 		self.player0Motion = .random(in: -8...7)
-		self.player0Color = .random(in: 0x00...0x7f)
+		self.player0Delay = .random()
 		
 		self.player1Graphics = .random(in: 0x00...0xff)
 		self.player1Reflected = .random()
+		self.player1Color = .random(in: 0x00...0x7f)
 		self.player1Position = .random(in: 5...159)
 		self.player1Motion = .random(in: -8...7)
-		self.player1Color = .random(in: 0x00...0x7f)
+		self.player1Delay = .random()
 		
 		self.missile0Enabled = .random()
 		self.missile0Position = .random(in: 4...159)
@@ -340,6 +344,12 @@ extension TIA: Bus {
 		case 0x23:
 			// MARK: HMM1
 			self.missile1Motion = Int(signed: data >> 4, bits: 4)
+		case 0x25:
+			// MARK: VDELP0
+			self.player0Delay = data[0]
+		case 0x26:
+			// MARK: VDELP1
+			self.player1Delay = data[0]
 		case 0x2a:
 			// MARK: HMOVE
 			self.missile0Position -= self.missile0Motion
