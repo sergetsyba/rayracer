@@ -22,21 +22,21 @@
             <rect key="contentRect" x="803" y="281" width="464" height="500"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
             <view key="contentView" id="vgU-mt-Beg">
-                <rect key="frame" x="0.0" y="0.0" width="703" height="500"/>
+                <rect key="frame" x="0.0" y="0.0" width="718" height="500"/>
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <box title="Program" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="skw-07-vdS">
-                        <rect key="frame" x="17" y="16" width="261" height="466"/>
+                        <rect key="frame" x="17" y="16" width="276" height="466"/>
                         <view key="contentView" id="CE4-T2-Rsc">
-                            <rect key="frame" x="4" y="5" width="253" height="458"/>
+                            <rect key="frame" x="4" y="5" width="268" height="458"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         </view>
                         <constraints>
-                            <constraint firstAttribute="width" constant="255" id="Ggf-8s-okU"/>
+                            <constraint firstAttribute="width" constant="270" id="Ggf-8s-okU"/>
                         </constraints>
                     </box>
                     <box title="System State" titlePosition="noTitle" translatesAutoresizingMaskIntoConstraints="NO" id="tPf-EC-MbN">
-                        <rect key="frame" x="280" y="16" width="406" height="466"/>
+                        <rect key="frame" x="295" y="16" width="406" height="466"/>
                         <view key="contentView" id="men-PB-s6i">
                             <rect key="frame" x="4" y="5" width="398" height="458"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

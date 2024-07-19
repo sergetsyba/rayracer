@@ -22,51 +22,68 @@ public class TIA {
 	// Wait for horizontal sync register.
 	var wsync: Bool = false
 	
-	// Player 0 and missile 0 color and luminosity register.
-	var colup0: Int = 0x00
-	// Player 1 and missile 1 color and luminosity register.
-	var colup1: Int = 0x00
-	// Playfield and ball color and luminosity register.
-	var colupf: Int = .randomWord
-	// Background color and luminosity register.
-	var colubk: Int = .randomWord
+	private(set) public var backgroundColor: Int
+	private(set) public var playfield: Int
+	private(set) public var playfieldControl: Int
+	private(set) public var playfieldColor: Int
 	
-	var pf0: Int = .randomWord {
-		didSet {
-			self.playfiled &= 0xffff0
-			self.playfiled |= self.pf0 >> 4
-		}
+	private(set) public var numberSize0: Int
+	private(set) public var numberSize1: Int
+	
+	private(set) public var player0Graphics: (Int, Int)
+	private(set) public var player0Reflected: Bool
+	private(set) public var player0Color: Int
+	private(set) public var player0Position: Int
+	private(set) public var player0Motion: Int
+	private(set) public var player0Delay: Bool
+	
+	private(set) public var player1Graphics: (Int, Int)
+	private(set) public var player1Reflected: Bool
+	private(set) public var player1Color: Int
+	private(set) public var player1Position: Int
+	private(set) public var player1Motion: Int
+	private(set) public var player1Delay: Bool
+	
+	private(set) public var missile0Enabled: Bool
+	private(set) public var missile0Position: Int
+	private(set) public var missile0Motion: Int
+	
+	private(set) public var missile1Enabled: Bool
+	private(set) public var missile1Position: Int
+	private(set) public var missile1Motion: Int
+	
+	init() {
+		self.backgroundColor = .random(in: 0x00...0x7f)
+		
+		self.playfield = .random(in: 0x0...0xf0ffff)
+		self.playfieldControl = .random(in: 0x00...0xff)
+		self.playfieldColor = .random(in: 0x00...0x7f)
+		
+		self.numberSize0 = .random(in: 0x00...0xff)
+		self.numberSize1 = .random(in: 0x00...0xff)
+		
+		self.player0Graphics = (.random(in: 0x00...0xff), .random(in: 0x00...0xff))
+		self.player0Reflected = .random()
+		self.player0Color = .random(in: 0x00...0x7f)
+		self.player0Position = .random(in: 5...159)
+		self.player0Motion = .random(in: -8...7)
+		self.player0Delay = .random()
+		
+		self.player1Graphics = (.random(in: 0x00...0xff), .random(in: 0x00...0xff))
+		self.player1Reflected = .random()
+		self.player1Color = .random(in: 0x00...0x7f)
+		self.player1Position = .random(in: 5...159)
+		self.player1Motion = .random(in: -8...7)
+		self.player1Delay = .random()
+		
+		self.missile0Enabled = .random()
+		self.missile0Position = .random(in: 4...159)
+		self.missile0Motion = .random(in: -8...7)
+		
+		self.missile1Enabled = .random()
+		self.missile1Position = .random(in: 4...159)
+		self.missile1Motion = .random(in: -8...7)
 	}
-	var pf1: Int = .randomWord {
-		didSet {
-			self.playfiled &= 0xff00f
-			self.playfiled |= self.pf1 << 4
-		}
-	}
-	var pf2: Int = .randomWord {
-		didSet {
-			self.playfiled &= 0x00fff
-			self.playfiled |= self.pf2
-		}
-	}
-	var ctrlpf: Int = 0x00
-	
-	var playfiled: Int = 0x00
-	
-	var grp0: Int = .randomWord
-	var nusiz0: Int = .randomWord
-	var nusiz1: Int = .randomWord
-	var refp0: Int = .randomWord
-	
-	var enam0: Bool = .random()
-	var resm0: Int = .randomWord
-	var hmm0: Int = .randomWord
-	
-	var enam1: Bool = .random()
-	var resm1: Int = .randomWord
-	var hmm1: Int = .randomWord
-	
-	var enabl: Int = .randomWord
 	
 	func reset() {
 		self.data = Data(count: 228*262)
@@ -97,10 +114,35 @@ public class TIA {
 
 
 // MARK: -
+// MARK: Conveniece registers
+extension TIA {
+	public var playfieldReflected: Bool {
+		return self.playfieldControl[0]
+	}
+	
+	public var player0Copies: Int {
+		return self.numberSize0 & 0x3
+	}
+	
+	public var player1Copies: Int {
+		return self.numberSize1 & 0x3
+	}
+	
+	public var missile0Size: Int {
+		return 1 << ((self.numberSize0 >> 4) & 0x3)
+	}
+	
+	public var missile1Size: Int {
+		return 1 << ((self.numberSize1 >> 4) & 0x3)
+	}
+}
+
+
+// MARK: -
 // MARK: Drawing
 extension TIA {
 	func drawPoint() {
-		let y = self.cycle / 228 - (3+37)
+		let y = self.cycle / 228 - 30//(3+37)
 		let x = self.cycle % 228 - 68
 		
 		guard y >= 0 && y < 192
@@ -109,59 +151,117 @@ extension TIA {
 		}
 		
 		// draw background
-		self.data[self.cycle] = UInt8(self.colubk) / 2
+		self.data[self.cycle] = UInt8(self.backgroundColor) >> 1
 		self.drawPlayfield(x: x, y: y)
-		self.drawMissile0(x: x, y: y)
-		self.drawMissile1(x: x, y: y)
+		self.drawMissile1(at: x)
+		self.drawPlayer1(at: x)
+		self.drawMissile0(at: x)
+		self.drawPlayer0(at: x)
 	}
 	
 	func drawPlayfield(x: Int, y: Int) {
 		if x < 160/2 {
 			// left playfield side
-			if self.playfiled[x/4] {
-				let color = self.ctrlpf[1]
-				? self.colup0
-				: self.colupf
-				
-				self.data[self.cycle] = UInt8(color) / 2
+			if self.playfield[x/4] {
+				self.data[self.cycle] = self.playfieldControl[1]
+				? UInt8(self.player0Color) >> 1
+				: UInt8(self.playfieldColor) >> 1
 			}
 		} else {
 			// right playfield side
 			var bit = x/4-20
-			if self.ctrlpf[0] {
+			if self.playfieldControl[0] {
 				// mirrorred right playfield side
 				bit = 20-bit
 			}
 			
-			if self.playfiled[bit] {
-				let color = self.ctrlpf[1]
-				? self.colup1
-				: self.colupf
-				
-				self.data[self.cycle] = UInt8(color) / 2
+			if self.playfield[bit] {
+				self.data[self.cycle] = self.playfieldControl[1]
+				? UInt8(self.player1Color) >> 1
+				: UInt8(self.playfieldColor) >> 1
 			}
 		}
 	}
 	
-	func drawMissile0(x: Int, y: Int) {
-		guard self.enam0 else {
+	func drawPlayer0(at point: Int) {
+		let counter = point - self.player0Position
+		guard counter >= 0 else {
 			return
 		}
 		
-		let size = 1 << ((self.nusiz0 >> 4) & 0x3)
-		if x >= self.resm0 && x < self.resm0 + size {
-			self.data[self.cycle] = UInt8(self.colup0) / 2
+		let copies = self.numberSize0 & 0x3
+		switch (counter / 8, copies) {
+		case (0, _),
+			(2, 1), (2, 3),
+			(4, 2), (4, 3), (4, 6),
+			(8, 4), (8, 6):
+			
+			let graphics = self.player0Delay
+			? self.player0Graphics.1
+			: self.player0Graphics.0
+			
+			let bit = self.player0Reflected
+			? counter % 8
+			: 7 - (counter % 8)
+			
+			if graphics[bit] {
+				self.data[self.cycle] = UInt8(self.player0Color) >> 1
+			}
+			
+		default:
+			return
 		}
 	}
 	
-	func drawMissile1(x: Int, y: Int) {
-		guard self.enam1 else {
+	func drawPlayer1(at point: Int) {
+		let counter = point - self.player1Position
+		guard counter >= 0 else {
 			return
 		}
 		
-		let size = 1 << ((self.nusiz1 >> 4) & 0x3)
-		if x >= self.resm1 && x < self.resm1 + size {
-			self.data[self.cycle] = UInt8(self.colup1) / 2
+		let copies = self.numberSize1 & 0x3
+		switch (counter / 8, copies) {
+		case (0, _),
+			(2, 1), (2, 3),
+			(4, 2), (4, 3), (4, 6),
+			(8, 4), (8, 6):
+			
+			let graphics = self.player1Delay
+			? self.player1Graphics.1
+			: self.player1Graphics.0
+			
+			let bit = self.player1Reflected
+			? counter % 8
+			: 7 - (counter % 8)
+			
+			if graphics[bit] {
+				self.data[self.cycle] = UInt8(self.player1Color) >> 1
+			}
+			
+		default:
+			return
+		}
+	}
+	
+	func drawMissile0(at point: Int) {
+		guard self.missile0Enabled else {
+			return
+		}
+		
+		let point = point - self.missile0Position
+		if (0..<self.missile0Size).contains(point) {
+			self.data[self.cycle] = UInt8(self.player0Color) >> 1
+		}
+	}
+	
+	func drawMissile1(at point: Int) {
+		guard self.missile1Enabled else {
+			return
+		}
+		
+		let point = point - self.missile1Position
+		if (0..<self.missile1Size).contains(point) {
+			self.data[self.cycle] = UInt8(self.player1Color) >> 1
 		}
 	}
 }
@@ -200,48 +300,106 @@ extension TIA: Bus {
 			self.cycle -= 3
 			
 		case 0x04:
-			self.nusiz0 = data
+			// MARK: NUSIZ0
+			self.numberSize0 = data
 		case 0x05:
-			self.nusiz1 = data
-			
+			// MARK: NUSIZ1
+			self.numberSize1 = data
 		case 0x06:
-			self.colup0 = data
+			// MARK: COLUP0
+			self.player0Color = data
 		case 0x07:
-			self.colup1 = data
+			// MARK: COLUP1
+			self.player1Color = data
 		case 0x08:
-			self.colupf = data
+			// MARK: COLUPF
+			self.playfieldColor = data
 		case 0x09:
-			self.colubk = data
+			// MARK: COLUBK
+			self.backgroundColor = data
 		case 0x0a:
-			self.ctrlpf = data
+			// MARK: CTRLPF
+			self.playfieldControl = data
 		case 0x0d:
-			self.pf0 = data
+			// MARK: PF0
+			self.playfield &= 0xffff0
+			self.playfield |= data >> 4
 		case 0x0e:
-			self.pf1 = Int(reversingBits: data)
+			// MARK: PF1
+			self.playfield &= 0xff00f
+			self.playfield |= Int(reversingBits: data) << 4
 		case 0x0f:
-			self.pf2 = data
-			
+			// MARK: PF2
+			self.playfield &= 0x00fff
+			self.playfield |= data << 12
+		case 0x0b:
+			// MARK: REFP0
+			self.player0Reflected = data[3]
+		case 0x0c:
+			// MARK: REFP1
+			self.player1Reflected = data[3]
 		case 0x1d:
-			self.enam0 = data[1]
+			// MARK: ENAM0
+			self.missile0Enabled = data[1]
 		case 0x1e:
-			self.enam1 = data[1]
-			
+			// MARK: ENAM1
+			self.missile1Enabled = data[1]
+		case 0x10:
+			// MARK: RESP0
+			// resetting player position takes additional 4 color clock to
+			// decode and 1 to latch
+			self.player0Position = max(0, self.cycle % 228 - 68) + 5
+		case 0x11:
+			// MARK: RESP1
+			// resetting player position takes additional 4 color clock to
+			// decode and 1 to latch
+			self.player1Position = max(0, self.cycle % 228 - 68) + 5
 		case 0x12:
-			self.resm0 = max(0, self.cycle % 228 - 68) + 4
+			// MARK: RESM0
+			// resetting missile position takes additional 4 color clocks to
+			// decode
+			self.missile0Position = max(0, self.cycle % 228 - 68) + 4
 		case 0x13:
-			self.resm1 = max(0, self.cycle % 228 - 68) + 4
+			// MARK: RESM1
+			// resetting missile position takes additional 4 color clocks to
+			// decode
+			self.missile1Position = max(0, self.cycle % 228 - 68) + 4
+		case 0x1b:
+			// MARK: GRP0
+			self.player0Graphics.0 = data
+			self.player1Graphics.1 = self.player1Graphics.0
+		case 0x1c:
+			// MARK: GRP1
+			self.player1Graphics.0 = data
+			self.player0Graphics.1 = self.player0Graphics.0
+		case 0x20:
+			// MARK: HMP0
+			self.player0Motion = Int(signed: data >> 4, bits: 4)
+		case 0x21:
+			// MARK: HMP1
+			self.player1Motion = Int(signed: data >> 4, bits: 4)
 		case 0x22:
-			self.hmm0 = data
+			// MARK: HMM0
+			self.missile0Motion = Int(signed: data >> 4, bits: 4)
 		case 0x23:
-			self.hmm1 = data
-			
+			// MARK: HMM1
+			self.missile1Motion = Int(signed: data >> 4, bits: 4)
+		case 0x25:
+			// MARK: VDELP0
+			self.player0Delay = data[0]
+		case 0x26:
+			// MARK: VDELP1
+			self.player1Delay = data[0]
 		case 0x2a:
-			self.resm0 -= Int(signed: self.hmm0 >> 4, bits: 4)
-			self.resm1 -= Int(signed: self.hmm1 >> 4, bits: 4)
-			
+			// MARK: HMOVE
+			self.player0Position -= self.player0Motion
+			self.player1Position -= self.player1Motion
+			self.missile0Position -= self.missile0Motion
+			self.missile1Position -= self.missile1Motion
 		case 0x2b:
-			self.resm0 = 0
-			self.resm1 = 0
+			// MARK: HMCLR
+			self.missile0Motion = 0
+			self.missile1Motion = 0
 			
 		default:
 			break
@@ -272,6 +430,7 @@ public extension Int {
 	}
 	
 	init(bits: [Bool]) {
+		// TODO: re-implement with a look-up table
 		self = 0
 		for bit in bits {
 			self <<= 1

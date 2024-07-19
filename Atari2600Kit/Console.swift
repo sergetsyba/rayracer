@@ -161,6 +161,10 @@ extension Atari2600: Bus {
 			let address = address - 0x0280
 			return self.riot.read(at: address)
 		}
+		if (0xf000...0xffff).contains(address) {
+			print(self.cartridge![address - 0xf000])
+			return Int(self.cartridge![address - 0xf000])
+		}
 		
 		let data = self.cartridge![address - 0xf000]
 		return Int(data)
