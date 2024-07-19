@@ -269,9 +269,11 @@ private extension AssemblyViewController {
 		if (0x0000..<0x0040).contains(address) {
 			return MOS6507Assembly.tiaLabels[address]
 		} else if (0x080..<0x0100).contains(address) {
-			return String(format: "mem $%02x", address - 0x0080)
+			return String(format: "ram $%02x", address)
 		} else if (0x0280..<0x0300).contains(address) {
 			return MOS6507Assembly.riotLabels[address - 0x0280]
+		} else if (0xf000...0xffff).contains(address) {
+			return String(format: "rom $%03x", address)
 		} else {
 			return nil
 		}
