@@ -142,7 +142,7 @@ extension TIA {
 // MARK: Drawing
 extension TIA {
 	func drawPoint() {
-		let y = self.cycle / 228 - (3+37)
+		let y = self.cycle / 228 - 30//(3+37)
 		let x = self.cycle % 228 - 68
 		
 		guard y >= 0 && y < 192
@@ -184,38 +184,62 @@ extension TIA {
 	}
 	
 	func drawPlayer0(at point: Int) {
-		let graphics = self.player0Delay
-		? self.player0Graphics.1
-		: self.player0Graphics.0
-		
-		guard graphics > 0 else {
+		let counter = point - self.player0Position
+		guard counter >= 0 else {
 			return
 		}
 		
-		let point = point - self.player0Position
-		if (0..<8).contains(point) {
-			let bit = self.player0Reflected ? point : 7 - point
+		let copies = self.numberSize0 & 0x3
+		switch (counter / 8, copies) {
+		case (0, _),
+			(2, 1), (2, 3),
+			(4, 2), (4, 3), (4, 6),
+			(8, 4), (8, 6):
+			
+			let graphics = self.player0Delay
+			? self.player0Graphics.1
+			: self.player0Graphics.0
+			
+			let bit = self.player0Reflected
+			? counter % 8
+			: 7 - (counter % 8)
+			
 			if graphics[bit] {
 				self.data[self.cycle] = UInt8(self.player0Color) >> 1
 			}
+			
+		default:
+			return
 		}
 	}
 	
 	func drawPlayer1(at point: Int) {
-		let graphics = self.player1Delay
-		? self.player1Graphics.1
-		: self.player1Graphics.0
-		
-		guard graphics > 0 else {
+		let counter = point - self.player1Position
+		guard counter >= 0 else {
 			return
 		}
 		
-		let point = point - self.player1Position
-		if (0..<8).contains(point) {
-			let bit = self.player1Reflected ? point : 7 - point
+		let copies = self.numberSize1 & 0x3
+		switch (counter / 8, copies) {
+		case (0, _),
+			(2, 1), (2, 3),
+			(4, 2), (4, 3), (4, 6),
+			(8, 4), (8, 6):
+			
+			let graphics = self.player1Delay
+			? self.player1Graphics.1
+			: self.player1Graphics.0
+			
+			let bit = self.player1Reflected
+			? counter % 8
+			: 7 - (counter % 8)
+			
 			if graphics[bit] {
 				self.data[self.cycle] = UInt8(self.player1Color) >> 1
 			}
+			
+		default:
+			return
 		}
 	}
 	
