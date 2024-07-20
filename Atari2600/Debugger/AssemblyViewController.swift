@@ -83,7 +83,9 @@ private extension AssemblyViewController {
 						} else {
 							self.program = nil
 							self.programAddress = nil
-						}
+						}						
+					default:
+						break
 					}
 				})
 		

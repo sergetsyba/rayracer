@@ -36,12 +36,12 @@ class ScreenWindowController: NSWindowController {
 private extension ScreenWindowController {
 	func setUpSinks() {
 		self.cancellables.insert(
-			self.console.tia.events
+			self.console.events
 				.receive(on: DispatchQueue.main)
 				.sink() { [unowned self] in
 					switch $0 {
 					case .frame:
-						if let provider = CGDataProvider(data: self.console.tia.data as CFData) {
+						if let provider = CGDataProvider(data: self.console.frame as CFData) {
 							let image = CGImage(
 								width: 228,
 								height: 262,
@@ -59,6 +59,8 @@ private extension ScreenWindowController {
 								cgImage: image!,
 								size: NSSize(width: 228, height: 262))
 						}
+					default:
+						break
 					}
 				})
 	}
