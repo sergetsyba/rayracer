@@ -25,7 +25,6 @@ class ScreenWindowController: NSWindowController {
 	
 	override func windowDidLoad() {
 		super.windowDidLoad()
-		self.window?.contentView?.wantsLayer = true
 		self.setUpSinks()
 	}
 }
@@ -41,45 +40,81 @@ private extension ScreenWindowController {
 				.sink() { [unowned self] in
 					switch $0 {
 					case .frame:
-						if let provider = CGDataProvider(data: self.console.frame as CFData) {
-							let image = CGImage(
-								width: 228,
-								height: 262,
-								bitsPerComponent: 8,
-								bitsPerPixel: 8,
-								bytesPerRow: 228,
-								space: .ntsc,
-								bitmapInfo: CGBitmapInfo(),
-								provider: provider,
-								decode: nil,
-								shouldInterpolate: false,
-								intent: .defaultIntent)
-							
-							self.imageView.image = NSImage(
-								cgImage: image!,
-								size: NSSize(width: 228, height: 262))
-						}
+						self.updateImage()
 					default:
 						break
 					}
 				})
+		
+		self.cancellables.insert(
+			self.console.debugEvents
+				.receive(on: DispatchQueue.main)
+				.sink() {
+					switch $0 {
+					case .break:
+						self.updateImage()
+					default:
+						break
+					}
+				})
+	}
+	
+	private func updateImage() {
+		let size = NSSize(width: self.console.width, height: self.console.height)
+		self.imageView.image = NSImage(ntscData: self.console.frame, size: size)
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+private extension NSImage {
+	convenience init(ntscData data: Data, size: NSSize) {
+		let provider = CGDataProvider(data: data as CFData)
+		let image = CGImage(
+			width: Int(size.width),
+			height: Int(size.height),
+			bitsPerComponent: 8,
+			bitsPerPixel: 8,
+			bytesPerRow: Int(size.width),
+			space: .ntsc,
+			bitmapInfo: CGBitmapInfo(),
+			provider: provider!,
+			decode: nil,
+			shouldInterpolate: false,
+			intent: .defaultIntent)
+		
+		
+		self.init(cgImage: image!, size: size)
 	}
 }
 
 private extension CGColorSpace {
 	static let ntsc: CGColorSpace = {
 		var colorSpace: CGColorSpace!
-		ntscPalette.withUnsafeBufferPointer() {
+		palette.withUnsafeBufferPointer() {
 			colorSpace = CGColorSpace(
 				indexedBaseSpace: CGColorSpaceCreateDeviceRGB(),
-				last: ntscPalette.count/3 - 1,
+				last: palette.count/3 - 1,
 				colorTable: $0.baseAddress!)
 		}
 		return colorSpace
 	}()
 }
 
-let ntscPalette: [UInt8] = [
+extension NSColor {
+	convenience init(ntscColor color: Int) {
+		let index = (color / 2) * 3
+		
+		self.init(
+			red: CGFloat(palette[index]) / 255.0,
+			green: CGFloat(palette[index + 1]) / 255.0,
+			blue: CGFloat(palette[index + 2]) / 255.0,
+			alpha: 1.0)
+	}
+}
+
+private let palette: [UInt8] = [
 	0x00, 0x00, 0x00,
 	0x1a, 0x1a, 0x1a,
 	0x39, 0x39, 0x39,

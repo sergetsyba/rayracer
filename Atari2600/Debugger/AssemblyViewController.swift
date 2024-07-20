@@ -83,7 +83,7 @@ private extension AssemblyViewController {
 						} else {
 							self.program = nil
 							self.programAddress = nil
-						}						
+						}
 					default:
 						break
 					}
@@ -94,7 +94,7 @@ private extension AssemblyViewController {
 				.receive(on: DispatchQueue.main)
 				.sink() {
 					switch $0 {
-					case .break, .step:
+					case .break:
 						self.programAddress = self.console.cpu.programCounter
 					default:
 						self.programAddress = nil

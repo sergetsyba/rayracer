@@ -13,7 +13,7 @@ public class TIA {
 	private var screen: Screen
 	private var screenClock: Int
 	
-	private var verticalSyncClock: Int
+	private(set) internal var verticalSyncClock: Int
 	private(set) public var verticalBlank: Bool
 	private(set) public var waitingHorizontalSync: Bool
 	
@@ -87,6 +87,10 @@ public class TIA {
 		self.missile1Motion = .random(in: -8...7)
 	}
 	
+	private var colorClock: Int {
+		return self.screenClock % self.screen.width
+	}
+	
 	func reset() {
 		self.screenClock = 0
 		self.verticalSyncClock = -1
@@ -100,46 +104,13 @@ public class TIA {
 	}
 	
 	func advanceClockToHorizontalSync() {
-		let clock = self.screen.width - (self.screenClock % self.screen.width)
+		let clock = self.screen.width - self.colorClock
 		for _ in 0..<clock {
 			self.screen.write(color: self.color)
 		}
 		
 		self.screenClock += clock
 		self.waitingHorizontalSync = false
-	}
-}
-
-
-// MARK: -
-// MARK: Conveniece registers
-extension TIA {
-	public var colorClock: Int {
-		return self.screenClock % self.screen.width
-	}
-	
-	public var verticalSync: (Bool, Int) {
-		return (self.verticalSyncClock > -1, self.verticalSyncClock)
-	}
-	
-	public var playfieldReflected: Bool {
-		return self.playfieldControl[0]
-	}
-	
-	public var player0Copies: Int {
-		return self.numberSize0 & 0x3
-	}
-	
-	public var player1Copies: Int {
-		return self.numberSize1 & 0x3
-	}
-	
-	public var missile0Size: Int {
-		return 1 << ((self.numberSize0 >> 4) & 0x3)
-	}
-	
-	public var missile1Size: Int {
-		return 1 << ((self.numberSize1 >> 4) & 0x3)
 	}
 }
 
@@ -261,7 +232,8 @@ extension TIA {
 		}
 		
 		let point = point - self.missile0Position
-		if (0..<self.missile0Size).contains(point) {
+		let size = 1 << ((self.numberSize0 >> 4) & 0x3)
+		if (0..<size).contains(point) {
 			//			self.data[self.cycle] = UInt8(self.player0Color) >> 1
 		}
 	}
@@ -272,7 +244,8 @@ extension TIA {
 		}
 		
 		let point = point - self.missile1Position
-		if (0..<self.missile1Size).contains(point) {
+		let size = 1 << ((self.numberSize1 >> 4) & 0x3)
+		if (0..<size).contains(point) {
 			//			self.data[self.cycle] = UInt8(self.player1Color) >> 1
 		}
 	}
@@ -301,8 +274,8 @@ extension TIA: Bus {
 				// when vertical sync has been on for at least 3 scan lines,
 				// send composite sync signal to the screen and reset frame
 				// clock
-				let clock = self.screenClock - self.verticalSyncClock
-				let scanLines = clock / self.screen.width
+				let elapsedCycles = self.screenClock - self.verticalSyncClock
+				let scanLines = elapsedCycles / self.screen.width
 				if scanLines >= 3 {
 					self.screenClock = 0
 					self.screen.sync()
@@ -429,6 +402,7 @@ extension TIA: Bus {
 	}
 }
 
+
 // MARK: -
 // MARK: Convenience functionality
 public extension Int {
@@ -437,18 +411,5 @@ public extension Int {
 		for bit in 0..<8 {
 			self[bit] = value[7-bit]
 		}
-	}
-	
-	init(bits: [Bool]) {
-		// TODO: re-implement with a look-up table
-		self = 0
-		for bit in bits {
-			self <<= 1
-			self &= bit ? 0x1 : 0x0
-		}
-	}
-	
-	subscript (range: any Collection<Int>) -> [Bool] {
-		return range.map({ self[$0] })
 	}
 }

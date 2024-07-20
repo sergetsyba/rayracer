@@ -16,8 +16,8 @@ public class Atari2600: ObservableObject {
 	private(set) public var tia: TIA!
 	private(set) public var cartridge: Data? = nil
 	
-	internal(set) public var frame = Data(count: 262 * 228)
-	private(set) public var frameClock = 0	
+	private(set) public var frame = Data(count: 262 * 228)
+	private(set) public var frameClock = 0
 	
 	public init() {
 		self.cpu = MOS6507(bus: self)
@@ -55,24 +55,21 @@ public extension Atari2600 {
 	}
 }
 
-
-// MARK: -
-// MARK: Debugging
 public extension Atari2600 {
 	enum DebugEvent {
 		case `break`
-		case step
 		case resume
 	}
 	
 	var debugEvents: some Publisher<DebugEvent, Never> {
 		return self.debugEventSubject
 	}
-	
-	var currentScanLine: Int {
-		return self.frameClock / self.width
-	}
-	
+}
+
+
+// MARK: -
+// MARK: Debugging
+public extension Atari2600 {
 	func stepProgram() {
 		// when stepping a CPU instruction and WSYNC is on, advance TIA to
 		// horizontal sync with CPU instruction
@@ -85,7 +82,7 @@ public extension Atari2600 {
 	}
 	
 	func stepScanLine() {
-		let scanLine = self.currentScanLine
+		let scanLine = self.scanLine
 		repeat {
 			// when stepping a scan line and WSYNC is on, advance TIA to
 			// horizontal sync but break before CPU instruction
@@ -94,7 +91,7 @@ public extension Atari2600 {
 			} else {
 				self.executeNextCPUInstruction()
 			}
-		} while self.currentScanLine == scanLine
+		} while self.scanLine == scanLine
 		
 		self.debugEventSubject.send(.break)
 	}
@@ -121,6 +118,7 @@ public extension Atari2600 {
 		repeat {
 			self.stepProgram()
 		} while breakpoints.contains(self.cpu.programCounter) == false
+		
 		self.debugEventSubject.send(.break)
 	}
 	
@@ -129,44 +127,6 @@ public extension Atari2600 {
 		self.tia.advanceClock(cycles: cycles * 3)
 		self.riot.advanceClock(cycles: cycles)
 		self.cpu.executeNextInstruction()
-	}
-}
-
-
-// MARK: -
-public typealias Address = Int
-
-public protocol Bus {
-	func read(at address: Address) -> Int
-	mutating func write(_ value: Int, at address: Address)
-}
-
-public protocol Screen {
-	var height: Int { get }
-	var width: Int { get }
-	mutating func sync()
-	mutating func write(color: Int)
-}
-
-extension Atari2600: Screen {
-	public var height: Int {
-		return 262
-	}
-	
-	public var width: Int {
-		return 228
-	}
-	
-	public func sync() {
-		self.eventSubject.send(.frame)
-		self.frameClock = 0
-	}
-	
-	public func write(color: Int) {
-		if self.frameClock < self.frame.count {
-			self.frame[self.frameClock] = UInt8(color) >> 1
-		}
-		self.frameClock += 1
 	}
 }
 
@@ -218,5 +178,33 @@ extension Atari2600: Bus {
 		
 		let message = String(format: "Ignoring write at address $%04x", address)
 		print(message)
+	}
+}
+
+
+// MARK: -
+extension Atari2600: Screen {
+	public var height: Int {
+		return 262
+	}
+	
+	public var width: Int {
+		return 228
+	}
+	
+	private var scanLine: Int {
+		return self.frameClock / self.width
+	}
+	
+	public func sync() {
+		self.eventSubject.send(.frame)
+		self.frameClock = 0
+	}
+	
+	public func write(color: Int) {
+		if self.frameClock < self.frame.count {
+			self.frame[self.frameClock] = UInt8(color) >> 1
+		}
+		self.frameClock += 1
 	}
 }

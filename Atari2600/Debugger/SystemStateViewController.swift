@@ -52,7 +52,7 @@ private extension SystemStateViewController {
 				.receive(on: DispatchQueue.main)
 				.sink() {
 					switch $0 {
-					case .break, .step:
+					case .break:
 						self.outlineView.reloadData()
 					default:
 						break
@@ -405,33 +405,33 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forBallDebugItem item: BallDebugItem) -> NSView? {
-//		switch item {
-//		case .enabled:
-//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.boolValue = (item.rawValue, ball.enabled)
-//			return view
-//			
-//		case .graphics:
-//			let formatted = self.formatMissileGraphics(width: ball.size)
-//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.stringValue = (item.rawValue, formatted)
-//			return view
-//			
-//		case .color:
-//			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-//			view?.colorValue = (item.rawValue, ball.color)
-//			return view
-//			
-//		case .position:
-//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.positionValue = (item.rawValue, ball.position.0, ball.position.1)
-//			return view
-//			
-//		case .verticalDelay:
-//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.boolValue = (item.rawValue, ball.verticalDelay)
-//			return view
-//		}
+		//		switch item {
+		//		case .enabled:
+		//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		//			view?.boolValue = (item.rawValue, ball.enabled)
+		//			return view
+		//
+		//		case .graphics:
+		//			let formatted = self.formatMissileGraphics(width: ball.size)
+		//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		//			view?.stringValue = (item.rawValue, formatted)
+		//			return view
+		//
+		//		case .color:
+		//			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
+		//			view?.colorValue = (item.rawValue, ball.color)
+		//			return view
+		//
+		//		case .position:
+		//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		//			view?.positionValue = (item.rawValue, ball.position.0, ball.position.1)
+		//			return view
+		//
+		//		case .verticalDelay:
+		//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		//			view?.boolValue = (item.rawValue, ball.verticalDelay)
+		//			return view
+		//		}
 		return nil
 	}
 }
