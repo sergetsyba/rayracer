@@ -5,10 +5,6 @@
 //  Created by Serge Tsyba on 29.6.2023.
 //
 
-import CoreGraphics
-import Combine
-import Cocoa
-
 public class TIA {
 	private var screen: Screen
 	private var screenClock: Int
@@ -87,11 +83,7 @@ public class TIA {
 		self.missile1Motion = .random(in: -8...7)
 	}
 	
-	private var colorClock: Int {
-		return self.screenClock % self.screen.width
-	}
-	
-	func reset() {
+	public func reset() {
 		self.screenClock = 0
 		self.verticalSyncClock = -1
 	}
@@ -104,13 +96,48 @@ public class TIA {
 	}
 	
 	func advanceClockToHorizontalSync() {
-		let clock = self.screen.width - self.colorClock
-		for _ in 0..<clock {
-			self.screen.write(color: self.color)
+		if self.colorClock > 0 {
+			let cycles = self.screen.width - self.colorClock
+			self.advanceClock(cycles: cycles)
 		}
-		
-		self.screenClock += clock
 		self.waitingHorizontalSync = false
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience registers
+extension TIA {
+	public var colorClock: Int {
+		return self.screenClock % self.screen.width
+	}
+	
+	public var verticalSync: (Bool, Int) {
+		return (self.verticalSyncClock > -1, self.verticalSyncClock)
+	}
+	
+	public var playfieldReflected: Bool {
+		return self.playfieldControl[0]
+	}
+	
+	public var playfieldScoreMode: Bool {
+		return self.playfieldControl[1]
+	}
+	
+	public var player0Copies: Int {
+		return self.numberSize0 & 0x3
+	}
+	
+	public var player1Copies: Int {
+		return self.numberSize1 & 0x3
+	}
+	
+	public var missile0Size: Int {
+		return 1 << ((self.numberSize0 >> 4) & 0x3)
+	}
+	
+	public var missile1Size: Int {
+		return 1 << ((self.numberSize1 >> 4) & 0x3)
 	}
 }
 
@@ -118,136 +145,123 @@ public class TIA {
 // MARK: -
 // MARK: Drawing
 extension TIA {
-	var color: Int {
+	private var color: Int {
+		guard self.verticalBlank == false else {
+			return 0
+		}
+		
+		let point = self.colorClock - 68
+		guard point >= 0 else {
+			return 0
+		}
+		
+		if self.player0(at: point) || self.missile0(at: point) {
+			return self.player0Color
+		}
+		if self.player1(at: point) || self.missile1(at: point) {
+			return self.player1Color
+		}
+		if self.playfield(at: point) {
+			if self.playfieldScoreMode {
+				return point < 80
+				? self.player0Color
+				: self.player1Color
+			} else {
+				return self.playfieldColor
+			}
+		}
 		return self.backgroundColor
 	}
 	
-	func drawPoint() {
-		let x = 0
-		let y = 0
-		//		let y = self.cycle / 228 - 30//(3+37)
-		//		let x = self.cycle % 228 - 68
-		//
-		//		guard y >= 0 && y < 192
-		//				&& x >= 0 else {
-		//			return
-		//		}
-		
-		// draw background
-		//		self.data[self.cycle] = UInt8(self.backgroundColor) >> 1
-		self.drawPlayfield(x: x, y: y)
-		self.drawMissile1(at: x)
-		self.drawPlayer1(at: x)
-		self.drawMissile0(at: x)
-		self.drawPlayer0(at: x)
-	}
-	
-	func drawPlayfield(x: Int, y: Int) {
-		if x < 160/2 {
+	private func playfield(at point: Int) -> Bool {
+		let bit = (point / 4) % 20
+		if point < 80 {
 			// left playfield side
-			if self.playfield[x/4] {
-				//				self.data[self.cycle] = self.playfieldControl[1]
-				//				? UInt8(self.player0Color) >> 1
-				//				: UInt8(self.playfieldColor) >> 1
-			}
+			return self.playfield[bit]
 		} else {
 			// right playfield side
-			var bit = x/4-20
-			if self.playfieldControl[0] {
-				// mirrorred right playfield side
-				bit = 20-bit
-			}
-			
-			if self.playfield[bit] {
-				//				self.data[self.cycle] = self.playfieldControl[1]
-				//				? UInt8(self.player1Color) >> 1
-				//				: UInt8(self.playfieldColor) >> 1
-			}
+			return self.playfieldReflected
+			? self.playfield[19 - bit]
+			: self.playfield[bit]
 		}
 	}
 	
-	func drawPlayer0(at point: Int) {
+	private func player0(at point: Int) -> Bool {
+		// ensure beam position is within possible player graphics
+		// positions range
 		let counter = point - self.player0Position
-		guard counter >= 0 else {
-			return
+		guard (0..<80).contains(counter) else {
+			return false
 		}
 		
-		let copies = self.numberSize0 & 0x3
-		switch (counter / 8, copies) {
-		case (0, _),
-			(2, 1), (2, 3),
-			(4, 2), (4, 3), (4, 6),
-			(8, 4), (8, 6):
-			
-			let graphics = self.player0Delay
-			? self.player0Graphics.1
-			: self.player0Graphics.0
-			
-			let bit = self.player0Reflected
-			? counter % 8
-			: 7 - (counter % 8)
-			
-			if graphics[bit] {
-				//				self.data[self.cycle] = UInt8(self.player0Color) >> 1
-			}
-			
-		default:
-			return
-		}
-	}
-	
-	func drawPlayer1(at point: Int) {
-		let counter = point - self.player1Position
-		guard counter >= 0 else {
-			return
+		// ensure player copy appears in the current 8-point section
+		guard sectionLookUp[self.player0Copies][counter / 8] else {
+			return false
 		}
 		
-		let copies = self.numberSize1 & 0x3
-		switch (counter / 8, copies) {
-		case (0, _),
-			(2, 1), (2, 3),
-			(4, 2), (4, 3), (4, 6),
-			(8, 4), (8, 6):
-			
-			let graphics = self.player1Delay
-			? self.player1Graphics.1
-			: self.player1Graphics.0
-			
-			let bit = self.player1Reflected
-			? counter % 8
-			: 7 - (counter % 8)
-			
-			if graphics[bit] {
-				//				self.data[self.cycle] = UInt8(self.player1Color) >> 1
-			}
-			
-		default:
-			return
+		let graphics = self.player0Delay
+		? self.player0Graphics.1
+		: self.player0Graphics.0
+		
+		// ensure player graphics enabled
+		guard graphics > 0 else {
+			return false
 		}
+		
+		return self.player0Reflected
+		? graphics[counter % 8]
+		: graphics[7 - counter % 8]
 	}
 	
-	func drawMissile0(at point: Int) {
+	private func missile0(at point: Int) -> Bool {
 		guard self.missile0Enabled else {
-			return
+			return false
 		}
 		
-		let point = point - self.missile0Position
-		let size = 1 << ((self.numberSize0 >> 4) & 0x3)
-		if (0..<size).contains(point) {
-			//			self.data[self.cycle] = UInt8(self.player0Color) >> 1
-		}
+		let counter = point - self.missile0Position
+		let size = self.missile0Size
+		
+		return (0..<size)
+			.contains(counter)
 	}
 	
-	func drawMissile1(at point: Int) {
-		guard self.missile1Enabled else {
-			return
+	private func player1(at point: Int) -> Bool {
+		// ensure beam position is within possible player graphics
+		// positions range
+		let counter = point - self.player1Position
+		guard (0..<80).contains(counter) else {
+			return false
 		}
 		
-		let point = point - self.missile1Position
-		let size = 1 << ((self.numberSize1 >> 4) & 0x3)
-		if (0..<size).contains(point) {
-			//			self.data[self.cycle] = UInt8(self.player1Color) >> 1
+		// ensure player copy appears in the current 8-point section
+		guard sectionLookUp[self.player1Copies][counter / 8] else {
+			return false
 		}
+		
+		let graphics = self.player1Delay
+		? self.player1Graphics.1
+		: self.player1Graphics.0
+		
+		// ensure player graphics enabled
+		guard graphics > 0 else {
+			return false
+		}
+		
+		return self.player1Reflected
+		? graphics[counter % 8]
+		: graphics[7 - counter % 8]
+	}
+	
+	private func missile1(at point: Int) -> Bool {
+		guard self.missile1Enabled else {
+			return false
+		}
+		
+		let counter = point - self.missile1Position
+		let size = self.missile1Size
+		
+		return (0..<size)
+			.contains(counter)
 	}
 }
 
@@ -413,3 +427,14 @@ public extension Int {
 		}
 	}
 }
+
+private let sectionLookUp = [
+	0x001, // ●○○○○○○○○○
+	0x005, // ●○●○○○○○○○
+	0x011, // ●○○●○○○○○○
+	0x015, // ●○●○●○○○○○
+	0x101, // ●○○○○○○○●○
+	0x001, // ●●○○○○○○○○
+	0x111, // ●○○○●○○○●○
+	0x001  // ●●●●○○○○○○
+]

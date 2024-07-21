@@ -12,7 +12,6 @@
 		950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641E22A39CDAB00938403 /* BreakpointToggle.swift */; };
 		950A64A12C4BCD3C007D4362 /* Bus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950A64A02C4BCD3C007D4362 /* Bus.swift */; };
 		950A64A32C4BCD4F007D4362 /* Screen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950A64A22C4BCD4F007D4362 /* Screen.swift */; };
-		950A64A52C4BD23A007D4362 /* TIA+Convenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950A64A42C4BD23A007D4362 /* TIA+Convenience.swift */; };
 		9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */; };
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
 		953D92AA2A1AEB7400EC52AC /* Atari2600Kit.h in Headers */ = {isa = PBXBuildFile; fileRef = 953D92A92A1AEB7400EC52AC /* Atari2600Kit.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -66,7 +65,6 @@
 		950641E22A39CDAB00938403 /* BreakpointToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakpointToggle.swift; sourceTree = "<group>"; };
 		950A64A02C4BCD3C007D4362 /* Bus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bus.swift; sourceTree = "<group>"; };
 		950A64A22C4BCD4F007D4362 /* Screen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Screen.swift; sourceTree = "<group>"; };
-		950A64A42C4BD23A007D4362 /* TIA+Convenience.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TIA+Convenience.swift"; sourceTree = "<group>"; };
 		9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Preferences.swift"; sourceTree = "<group>"; };
 		951CC4FD2A58723300537CD1 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		953D92A72A1AEB7400EC52AC /* Atari2600Kit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Atari2600Kit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -158,7 +156,6 @@
 				958691B12A4FF61D00C727C0 /* MOS6532.swift */,
 				950A64A22C4BCD4F007D4362 /* Screen.swift */,
 				9595FE912A4E02FE00F6F857 /* TIA.swift */,
-				950A64A42C4BD23A007D4362 /* TIA+Convenience.swift */,
 			);
 			path = Atari2600Kit;
 			sourceTree = "<group>";
@@ -368,7 +365,6 @@
 				953D92B12A1AEB9E00EC52AC /* MOS6507.swift in Sources */,
 				9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */,
 				953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */,
-				950A64A52C4BD23A007D4362 /* TIA+Convenience.swift in Sources */,
 				958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
