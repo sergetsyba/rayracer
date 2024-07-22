@@ -407,8 +407,9 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	private func makeView(_ outlineView: NSOutlineView, forBallDebugItem item: BallDebugItem) -> NSView? {
 		switch item {
 		case .enabled:
+			let formatted = self.formatBallEnabled(self.console.tia.ballEnabled, delayed: self.console.tia.ballDelay)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, self.console.tia.ballEnabled)
+			view?.attributedStringValue = (item.rawValue, formatted)
 			return view
 			
 		case .graphics:
@@ -533,6 +534,20 @@ private extension SystemStateViewController {
 		case 7: return "1, quadruple size"
 		default: fatalError()
 		}
+	}
+	
+	private func formatBallEnabled(_ enabled: (Bool, Bool), delayed: Bool) -> NSAttributedString {
+		let formatted = (
+			enabled.0 ? "Yes" : "No",
+			enabled.1 ? "Yes" : "No")
+		
+		let string = NSMutableAttributedString(string: "\(formatted.0)  \(formatted.1)")
+		let range = delayed
+		? NSRange(location: 0, length: formatted.0.count)
+		: NSRange(location: formatted.0.count + 2, length: formatted.1.count)
+		
+		string.addAttribute(.foregroundColor, value: NSColor.disabledControlTextColor, range: range)
+		return string
 	}
 }
 
