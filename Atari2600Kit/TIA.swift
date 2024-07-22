@@ -43,6 +43,11 @@ public class TIA {
 	private(set) public var missile1Position: Int
 	private(set) public var missile1Motion: Int
 	
+	private(set) public var ballEnabled: Bool
+	private(set) public var ballPosition: Int
+	private(set) public var ballMotion: Int
+	private(set) public var ballDelay: Bool
+	
 	init(screen: Screen) {
 		self.screen = screen
 		self.screenClock = 0
@@ -81,6 +86,11 @@ public class TIA {
 		self.missile1Enabled = .random()
 		self.missile1Position = .random(in: 4...159)
 		self.missile1Motion = .random(in: -8...7)
+		
+		self.ballEnabled = .random()
+		self.ballPosition = .random(in: 4...159)
+		self.ballMotion = .random(in: -8...7)
+		self.ballDelay = .random()
 	}
 	
 	public func reset() {
@@ -143,6 +153,10 @@ extension TIA {
 	public var missile1Size: Int {
 		return 1 << ((self.numberSize1 >> 4) & 0x3)
 	}
+	
+	public var ballSize: Int {
+		return 1 << ((self.playfieldControl >> 4) & 0x3)
+	}
 }
 
 
@@ -161,6 +175,9 @@ extension TIA {
 		}
 		if self.player1(at: point) || self.missile1(at: point) {
 			return self.player1Color
+		}
+		if self.ball(at: point) {
+			return self.playfieldColor
 		}
 		if self.playfield(at: point) {
 			if self.playfieldScoreMode {
@@ -264,6 +281,18 @@ extension TIA {
 		return (0..<size)
 			.contains(counter)
 	}
+	
+	private func ball(at point: Int) -> Bool {
+		guard self.ballEnabled else {
+			return false
+		}
+		
+		let counter = point - self.ballPosition
+		let size = self.ballSize
+		
+		return (0..<size)
+			.contains(counter)
+	}
 }
 
 // MARK: -
@@ -348,12 +377,6 @@ extension TIA: Bus {
 		case 0x0c:
 			// MARK: REFP1
 			self.player1Reflected = data[3]
-		case 0x1d:
-			// MARK: ENAM0
-			self.missile0Enabled = data[1]
-		case 0x1e:
-			// MARK: ENAM1
-			self.missile1Enabled = data[1]
 		case 0x10:
 			// MARK: RESP0
 			// resetting player position takes additional 4 color clock to
@@ -374,6 +397,9 @@ extension TIA: Bus {
 			// resetting missile position takes additional 4 color clocks to
 			// decode
 			self.missile1Position = max(0, self.colorClock - 68) + 4
+		case 0x14:
+			// MARK: RESBL
+			self.ballPosition = max(0, self.colorClock - 68) + 4
 		case 0x1b:
 			// MARK: GRP0
 			self.player0Graphics.0 = data
@@ -382,6 +408,15 @@ extension TIA: Bus {
 			// MARK: GRP1
 			self.player1Graphics.0 = data
 			self.player0Graphics.1 = self.player0Graphics.0
+		case 0x1d:
+			// MARK: ENAM0
+			self.missile0Enabled = data[1]
+		case 0x1e:
+			// MARK: ENAM1
+			self.missile1Enabled = data[1]
+		case 0x1f:
+			// MARK: ENABL
+			self.ballEnabled = data[1]
 		case 0x20:
 			// MARK: HMP0
 			self.player0Motion = Int(signed: data >> 4, bits: 4)
@@ -394,22 +429,32 @@ extension TIA: Bus {
 		case 0x23:
 			// MARK: HMM1
 			self.missile1Motion = Int(signed: data >> 4, bits: 4)
+		case 0x24:
+			// MARK: HMBL
+			self.ballMotion = Int(signed: data >> 4, bits: 4)
 		case 0x25:
 			// MARK: VDELP0
 			self.player0Delay = data[0]
 		case 0x26:
 			// MARK: VDELP1
 			self.player1Delay = data[0]
+		case 0x27:
+			// MARK: VDELBL
+			self.ballDelay = data[0]
 		case 0x2a:
 			// MARK: HMOVE
 			self.player0Position -= self.player0Motion
 			self.player1Position -= self.player1Motion
 			self.missile0Position -= self.missile0Motion
 			self.missile1Position -= self.missile1Motion
+			self.ballPosition -= self.ballMotion
 		case 0x2b:
 			// MARK: HMCLR
+			self.player0Motion = 0
+			self.player1Motion = 0
 			self.missile0Motion = 0
 			self.missile1Motion = 0
+			self.ballMotion = 0
 			
 		default:
 			break
