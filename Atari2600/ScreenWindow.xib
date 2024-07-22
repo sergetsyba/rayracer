@@ -20,12 +20,15 @@
             <rect key="contentRect" x="398" y="444" width="384" height="320"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
             <view key="contentView" id="4UU-MD-Pkh">
-                <rect key="frame" x="0.0" y="0.0" width="384" height="320"/>
+                <rect key="frame" x="0.0" y="0.0" width="384" height="288"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="hW1-s8-FPT">
-                        <rect key="frame" x="0.0" y="0.0" width="384" height="320"/>
-                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" id="Idy-aq-JUa"/>
+                        <rect key="frame" x="0.0" y="0.0" width="384" height="288"/>
+                        <constraints>
+                            <constraint firstAttribute="width" secondItem="hW1-s8-FPT" secondAttribute="height" multiplier="4:3" id="ZPg-Qv-RM1"/>
+                        </constraints>
+                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="axesIndependently" id="Idy-aq-JUa"/>
                     </imageView>
                 </subviews>
                 <constraints>

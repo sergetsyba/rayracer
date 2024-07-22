@@ -87,7 +87,7 @@ private extension NSImage {
 		let image = rawImage?.cropping(to: CGRect(
 			origin: CGPoint(x: 68.0, y: 20.0),
 			size: CGSize(width: size.width - 68, height: size.height - 50.0)))
-									   
+		
 		self.init(cgImage: image!, size: size)
 	}
 }
