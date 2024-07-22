@@ -42,6 +42,8 @@ private extension SystemStateViewController {
 				switch $0 {
 				case .reset:
 					self.outlineView.reloadData()
+				default:
+					break
 				}
 			})
 		
@@ -50,7 +52,7 @@ private extension SystemStateViewController {
 				.receive(on: DispatchQueue.main)
 				.sink() {
 					switch $0 {
-					case .break, .step:
+					case .break:
 						self.outlineView.reloadData()
 					default:
 						break
@@ -234,14 +236,15 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		
 		switch item {
 		case .beamPosition:
-			let (scanLine, point) = self.console.tia.beamPosition
-			view?.stringValue = (item.rawValue, "\(scanLine):\(point)")
+			let scanLine = self.console.frameClock / self.console.width
+			let colorClock = self.console.frameClock % self.console.width
+			view?.stringValue = (item.rawValue, "\(scanLine), \(colorClock - 68)")
 		case .verticalSync:
 			view?.stringValue = (item.rawValue, self.formattedVerticalSync)
 		case .verticalBlank:
 			view?.boolValue = (item.rawValue, tia.verticalBlank)
 		case .waitForHorizontalSync:
-			view?.boolValue = (item.rawValue, tia.awaitingHorizontalSync)
+			view?.boolValue = (item.rawValue, tia.waitingHorizontalSync)
 		}
 		
 		return view
@@ -402,35 +405,34 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forBallDebugItem item: BallDebugItem) -> NSView? {
-		let ball = self.console.tia.ball
-		
-		switch item {
-		case .enabled:
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, ball.enabled)
-			return view
-			
-		case .graphics:
-			let formatted = self.formatMissileGraphics(width: ball.size)
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, formatted)
-			return view
-			
-		case .color:
-			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, ball.color)
-			return view
-			
-		case .position:
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.positionValue = (item.rawValue, ball.position.0, ball.position.1)
-			return view
-			
-		case .verticalDelay:
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, ball.verticalDelay)
-			return view
-		}
+		//		switch item {
+		//		case .enabled:
+		//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		//			view?.boolValue = (item.rawValue, ball.enabled)
+		//			return view
+		//
+		//		case .graphics:
+		//			let formatted = self.formatMissileGraphics(width: ball.size)
+		//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		//			view?.stringValue = (item.rawValue, formatted)
+		//			return view
+		//
+		//		case .color:
+		//			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
+		//			view?.colorValue = (item.rawValue, ball.color)
+		//			return view
+		//
+		//		case .position:
+		//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		//			view?.positionValue = (item.rawValue, ball.position.0, ball.position.1)
+		//			return view
+		//
+		//		case .verticalDelay:
+		//			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+		//			view?.boolValue = (item.rawValue, ball.verticalDelay)
+		//			return view
+		//		}
+		return nil
 	}
 }
 
@@ -460,9 +462,9 @@ private extension SystemStateViewController {
 	}
 	
 	private var formattedVerticalSync: String {
-		let (sync, cycles) = self.console.tia.verticalSync
+		let (sync, clocks) = self.console.tia.verticalSync
 		if sync {
-			return "Yes, \(cycles)/\(3*228)"
+			return "Yes, \(clocks)/\(3*228)"
 		} else {
 			return "No"
 		}

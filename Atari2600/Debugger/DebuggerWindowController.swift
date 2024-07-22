@@ -80,6 +80,8 @@ private extension DebuggerWindowController {
 					switch $0 {
 					case .reset:
 						self.updateToolbarItems()
+					default:
+						break
 					}
 				})
 		

@@ -5,22 +5,13 @@
 //  Created by Serge Tsyba on 29.6.2023.
 //
 
-import CoreGraphics
-import Combine
-import Cocoa
-
 public class TIA {
-	private(set) public var data = Data(count: 228*262)
-	private var eventSubject = PassthroughSubject<Event, Never>()
+	private var screen: Screen
+	private var screenClock: Int
+	private var verticalSyncClock: Int
 	
-	var cycle = 0
-	
-	// Vertical sync register.
-	var vsync: Int = -1
-	// Vertical blank register.
-	var vblank: Bool = false
-	// Wait for horizontal sync register.
-	var wsync: Bool = false
+	private(set) public var verticalBlank: Bool
+	private(set) public var waitingHorizontalSync: Bool
 	
 	private(set) public var backgroundColor: Int
 	private(set) public var playfield: Int
@@ -52,7 +43,14 @@ public class TIA {
 	private(set) public var missile1Position: Int
 	private(set) public var missile1Motion: Int
 	
-	init() {
+	init(screen: Screen) {
+		self.screen = screen
+		self.screenClock = 0
+		self.verticalSyncClock = -1
+		
+		self.verticalBlank = true
+		self.waitingHorizontalSync = false
+		
 		self.backgroundColor = .random(in: 0x00...0x7f)
 		
 		self.playfield = .random(in: 0x0...0xf0ffff)
@@ -85,39 +83,49 @@ public class TIA {
 		self.missile1Motion = .random(in: -8...7)
 	}
 	
-	func reset() {
-		self.data = Data(count: 228*262)
-		self.cycle = 0
-		self.eventSubject.send(.frame)
+	public func reset() {
+		self.screenClock = 0
+		self.verticalSyncClock = -1
 	}
 	
 	func advanceClock(cycles: Int) {
 		for _ in 0..<cycles {
-			self.drawPoint()
-			self.cycle += 1
+			self.screen.write(color: self.color)
+			self.screenClock += 1
 		}
 	}
 	
 	func advanceClockToHorizontalSync() {
-		let colorClock = self.cycle % 228
-		if colorClock > 0 {
-			self.advanceClock(cycles: 228 - colorClock)
+		if self.colorClock > 0 {
+			let cycles = self.screen.width - self.colorClock
+			self.advanceClock(cycles: cycles)
 		}
-		
-		self.wsync = false
-	}
-	
-	func emitFrame() {
-		self.eventSubject.send(.frame)
+		self.waitingHorizontalSync = false
 	}
 }
 
 
 // MARK: -
-// MARK: Conveniece registers
+// MARK: Convenience registers
 extension TIA {
+	public var colorClock: Int {
+		return self.screenClock % self.screen.width
+	}
+	
+	public var verticalSync: (Bool, Int) {
+		return (self.verticalSyncClock > -1, self.verticalSyncClock)
+	}
+	
+	public var horizontalBlank: Bool {
+		return self.colorClock < 68
+	}
+	
 	public var playfieldReflected: Bool {
 		return self.playfieldControl[0]
+	}
+	
+	public var playfieldScoreMode: Bool {
+		return self.playfieldControl[1]
 	}
 	
 	public var player0Copies: Int {
@@ -141,128 +149,120 @@ extension TIA {
 // MARK: -
 // MARK: Drawing
 extension TIA {
-	func drawPoint() {
-		let y = self.cycle / 228 - 30//(3+37)
-		let x = self.cycle % 228 - 68
-		
-		guard y >= 0 && y < 192
-				&& x >= 0 else {
-			return
+	private var color: Int {
+		guard self.verticalBlank == false,
+			  self.horizontalBlank == false else {
+			return 0
 		}
 		
-		// draw background
-		self.data[self.cycle] = UInt8(self.backgroundColor) >> 1
-		self.drawPlayfield(x: x, y: y)
-		self.drawMissile1(at: x)
-		self.drawPlayer1(at: x)
-		self.drawMissile0(at: x)
-		self.drawPlayer0(at: x)
+		let point = self.colorClock - 68
+		if self.player0(at: point) || self.missile0(at: point) {
+			return self.player0Color
+		}
+		if self.player1(at: point) || self.missile1(at: point) {
+			return self.player1Color
+		}
+		if self.playfield(at: point) {
+			if self.playfieldScoreMode {
+				return point < 80
+				? self.player0Color
+				: self.player1Color
+			} else {
+				return self.playfieldColor
+			}
+		}
+		return self.backgroundColor
 	}
 	
-	func drawPlayfield(x: Int, y: Int) {
-		if x < 160/2 {
+	private func playfield(at point: Int) -> Bool {
+		let bit = (point / 4) % 20
+		if point < 80 {
 			// left playfield side
-			if self.playfield[x/4] {
-				self.data[self.cycle] = self.playfieldControl[1]
-				? UInt8(self.player0Color) >> 1
-				: UInt8(self.playfieldColor) >> 1
-			}
+			return self.playfield[bit]
 		} else {
 			// right playfield side
-			var bit = x/4-20
-			if self.playfieldControl[0] {
-				// mirrorred right playfield side
-				bit = 20-bit
-			}
-			
-			if self.playfield[bit] {
-				self.data[self.cycle] = self.playfieldControl[1]
-				? UInt8(self.player1Color) >> 1
-				: UInt8(self.playfieldColor) >> 1
-			}
+			return self.playfieldReflected
+			? self.playfield[19 - bit]
+			: self.playfield[bit]
 		}
 	}
 	
-	func drawPlayer0(at point: Int) {
+	private func player0(at point: Int) -> Bool {
+		// ensure beam position is within possible player graphics
+		// positions range
 		let counter = point - self.player0Position
-		guard counter >= 0 else {
-			return
+		guard (0..<80).contains(counter) else {
+			return false
 		}
 		
-		let copies = self.numberSize0 & 0x3
-		switch (counter / 8, copies) {
-		case (0, _),
-			(2, 1), (2, 3),
-			(4, 2), (4, 3), (4, 6),
-			(8, 4), (8, 6):
-			
-			let graphics = self.player0Delay
-			? self.player0Graphics.1
-			: self.player0Graphics.0
-			
-			let bit = self.player0Reflected
-			? counter % 8
-			: 7 - (counter % 8)
-			
-			if graphics[bit] {
-				self.data[self.cycle] = UInt8(self.player0Color) >> 1
-			}
-			
-		default:
-			return
-		}
-	}
-	
-	func drawPlayer1(at point: Int) {
-		let counter = point - self.player1Position
-		guard counter >= 0 else {
-			return
+		// ensure player copy appears in the current 8-point section
+		guard sectionLookUp[self.player0Copies][counter / 8] else {
+			return false
 		}
 		
-		let copies = self.numberSize1 & 0x3
-		switch (counter / 8, copies) {
-		case (0, _),
-			(2, 1), (2, 3),
-			(4, 2), (4, 3), (4, 6),
-			(8, 4), (8, 6):
-			
-			let graphics = self.player1Delay
-			? self.player1Graphics.1
-			: self.player1Graphics.0
-			
-			let bit = self.player1Reflected
-			? counter % 8
-			: 7 - (counter % 8)
-			
-			if graphics[bit] {
-				self.data[self.cycle] = UInt8(self.player1Color) >> 1
-			}
-			
-		default:
-			return
+		let graphics = self.player0Delay
+		? self.player0Graphics.1
+		: self.player0Graphics.0
+		
+		// ensure player graphics enabled
+		guard graphics > 0 else {
+			return false
 		}
+		
+		return self.player0Reflected
+		? graphics[counter % 8]
+		: graphics[7 - counter % 8]
 	}
 	
-	func drawMissile0(at point: Int) {
+	private func missile0(at point: Int) -> Bool {
 		guard self.missile0Enabled else {
-			return
+			return false
 		}
 		
-		let point = point - self.missile0Position
-		if (0..<self.missile0Size).contains(point) {
-			self.data[self.cycle] = UInt8(self.player0Color) >> 1
-		}
+		let counter = point - self.missile0Position
+		let size = self.missile0Size
+		
+		return (0..<size)
+			.contains(counter)
 	}
 	
-	func drawMissile1(at point: Int) {
-		guard self.missile1Enabled else {
-			return
+	private func player1(at point: Int) -> Bool {
+		// ensure beam position is within possible player graphics
+		// positions range
+		let counter = point - self.player1Position
+		guard (0..<80).contains(counter) else {
+			return false
 		}
 		
-		let point = point - self.missile1Position
-		if (0..<self.missile1Size).contains(point) {
-			self.data[self.cycle] = UInt8(self.player1Color) >> 1
+		// ensure player copy appears in the current 8-point section
+		guard sectionLookUp[self.player1Copies][counter / 8] else {
+			return false
 		}
+		
+		let graphics = self.player1Delay
+		? self.player1Graphics.1
+		: self.player1Graphics.0
+		
+		// ensure player graphics enabled
+		guard graphics > 0 else {
+			return false
+		}
+		
+		return self.player1Reflected
+		? graphics[counter % 8]
+		: graphics[7 - counter % 8]
+	}
+	
+	private func missile1(at point: Int) -> Bool {
+		guard self.missile1Enabled else {
+			return false
+		}
+		
+		let counter = point - self.missile1Position
+		let size = self.missile1Size
+		
+		return (0..<size)
+			.contains(counter)
 	}
 }
 
@@ -276,29 +276,39 @@ extension TIA: Bus {
 	public func write(_ data: Int, at address: Address) {
 		switch address {
 		case 0x00:
+			// MARK: VSYNC
 			if data[1] {
-				self.vsync = self.cycle
+				// begin counting vertical sync time
+				self.verticalSyncClock = 0
 			} else {
-				if self.vsync > -1 {
-					let scanLines = (self.cycle - self.vsync) / 228
-					if scanLines >= 3 {
-						// TODO: Stella sets color clock to the beginning of store operation instead of it end
-						self.cycle = 9
-						self.eventSubject.send(.frame)
-					}
+				// ensure vertical sync is on
+				guard self.verticalSyncClock > -1 else {
+					return
 				}
 				
-				self.vsync = -1
+				// when vertical sync has been on for at least 3 scan lines,
+				// send composite sync signal to the screen and reset frame
+				// clock
+				let elapsedCycles = self.screenClock - self.verticalSyncClock
+				let scanLines = elapsedCycles / self.screen.width
+				if scanLines >= 3 {
+					self.screenClock = 0
+					self.screen.sync()
+				}
+				
+				// stop counting vertical sync time
+				self.verticalSyncClock = -1
 			}
-			
 		case 0x01:
-			self.vblank = data[1]
+			// MARK: VBLANK
+			self.verticalBlank = data[1]
 		case 0x02:
-			self.wsync = true
+			// MARK: WSYNC
+			self.waitingHorizontalSync = true
 		case 0x03:
+			// MARK: RSYNC
 			self.advanceClockToHorizontalSync()
-			self.cycle -= 3
-			
+			self.screenClock -= 3
 		case 0x04:
 			// MARK: NUSIZ0
 			self.numberSize0 = data
@@ -348,22 +358,22 @@ extension TIA: Bus {
 			// MARK: RESP0
 			// resetting player position takes additional 4 color clock to
 			// decode and 1 to latch
-			self.player0Position = max(0, self.cycle % 228 - 68) + 5
+			self.player0Position = max(0, self.colorClock - 68) + 5
 		case 0x11:
 			// MARK: RESP1
 			// resetting player position takes additional 4 color clock to
 			// decode and 1 to latch
-			self.player1Position = max(0, self.cycle % 228 - 68) + 5
+			self.player1Position = max(0, self.colorClock - 68) + 5
 		case 0x12:
 			// MARK: RESM0
 			// resetting missile position takes additional 4 color clocks to
 			// decode
-			self.missile0Position = max(0, self.cycle % 228 - 68) + 4
+			self.missile0Position = max(0, self.colorClock - 68) + 4
 		case 0x13:
 			// MARK: RESM1
 			// resetting missile position takes additional 4 color clocks to
 			// decode
-			self.missile1Position = max(0, self.cycle % 228 - 68) + 4
+			self.missile1Position = max(0, self.colorClock - 68) + 4
 		case 0x1b:
 			// MARK: GRP0
 			self.player0Graphics.0 = data
@@ -407,71 +417,25 @@ extension TIA: Bus {
 	}
 }
 
-// MARK: -
-// MARK: Debugging
-public extension TIA {
-	enum Event {
-		case frame
-	}
-	
-	var events: some Publisher<Event, Never> {
-		return self.eventSubject
-	}
-}
 
+// MARK: -
+// MARK: Convenience functionality
 public extension Int {
-	static let frameSize = 262 * 228
-	
 	init(reversingBits value: Int) {
 		self = 0
 		for bit in 0..<8 {
 			self[bit] = value[7-bit]
 		}
 	}
-	
-	init(bits: [Bool]) {
-		// TODO: re-implement with a look-up table
-		self = 0
-		for bit in bits {
-			self <<= 1
-			self &= bit ? 0x1 : 0x0
-		}
-	}
-	
-	subscript (range: any Collection<Int>) -> [Bool] {
-		return range.map({ self[$0] })
-	}
 }
 
-
-private extension CGRect {
-	static let ntsc = CGRect(x: 0.0, y: 0.0, width: 160.0, height: 192.0)
-}
-
-
-extension CGColor {
-	static var random: CGColor {
-		return CGColor(
-			red: .random(in: 0.0...1.0),
-			green: .random(in: 0.0...1.0),
-			blue: .random(in: 0.0...1.0),
-			alpha: 1.0)
-	}
-}
-
-private extension UInt32 {
-	subscript(bit: Int) -> Bool {
-		get {
-			let mask: UInt32 = 0x01 << bit
-			return self & mask == mask
-		}
-		set {
-			let mask: UInt32 = 0x01 << bit
-			if newValue {
-				self |= mask
-			} else {
-				self &= ~mask
-			}
-		}
-	}
-}
+private let sectionLookUp = [
+	0x001, // ●○○○○○○○○○
+	0x005, // ●○●○○○○○○○
+	0x011, // ●○○●○○○○○○
+	0x015, // ●○●○●○○○○○
+	0x101, // ●○○○○○○○●○
+	0x001, // ●●○○○○○○○○
+	0x111, // ●○○○●○○○●○
+	0x001  // ●●●●○○○○○○
+]
