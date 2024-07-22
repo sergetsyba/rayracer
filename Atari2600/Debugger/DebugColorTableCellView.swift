@@ -27,7 +27,7 @@ class DebugColorTableCellView: NSTableCellView {
 		super.awakeFromNib()
 		
 		self.colorView?.wantsLayer = true
-		self.colorView?.layer?.cornerRadius = 2.5
+		self.colorView?.layer?.cornerRadius = 1.5
 		self.textField?.font = .systemRegular
 	}
 }
