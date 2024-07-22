@@ -8,8 +8,8 @@
 public class TIA {
 	private var screen: Screen
 	private var screenClock: Int
+	private var verticalSyncClock: Int
 	
-	private(set) internal var verticalSyncClock: Int
 	private(set) public var verticalBlank: Bool
 	private(set) public var waitingHorizontalSync: Bool
 	
@@ -46,8 +46,8 @@ public class TIA {
 	init(screen: Screen) {
 		self.screen = screen
 		self.screenClock = 0
-		
 		self.verticalSyncClock = -1
+		
 		self.verticalBlank = true
 		self.waitingHorizontalSync = false
 		
@@ -116,6 +116,10 @@ extension TIA {
 		return (self.verticalSyncClock > -1, self.verticalSyncClock)
 	}
 	
+	public var horizontalBlank: Bool {
+		return self.colorClock < 68
+	}
+	
 	public var playfieldReflected: Bool {
 		return self.playfieldControl[0]
 	}
@@ -146,15 +150,12 @@ extension TIA {
 // MARK: Drawing
 extension TIA {
 	private var color: Int {
-		guard self.verticalBlank == false else {
+		guard self.verticalBlank == false,
+			  self.horizontalBlank == false else {
 			return 0
 		}
 		
 		let point = self.colorClock - 68
-		guard point >= 0 else {
-			return 0
-		}
-		
 		if self.player0(at: point) || self.missile0(at: point) {
 			return self.player0Color
 		}

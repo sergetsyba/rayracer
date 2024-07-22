@@ -71,7 +71,7 @@ private extension ScreenWindowController {
 private extension NSImage {
 	convenience init(ntscData data: Data, size: NSSize) {
 		let provider = CGDataProvider(data: data as CFData)
-		let image = CGImage(
+		let rawImage = CGImage(
 			width: Int(size.width),
 			height: Int(size.height),
 			bitsPerComponent: 8,
@@ -84,7 +84,10 @@ private extension NSImage {
 			shouldInterpolate: false,
 			intent: .defaultIntent)
 		
-		
+		let image = rawImage?.cropping(to: CGRect(
+			origin: CGPoint(x: 68.0, y: 20.0),
+			size: CGSize(width: size.width - 68, height: size.height - 50.0)))
+									   
 		self.init(cgImage: image!, size: size)
 	}
 }
