@@ -14,6 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
 	private var console: Atari2600 = .current
 	
+	private var defaults: UserDefaults = .standard
 	private var timer: DispatchSourceTimer?
 }
 
@@ -22,6 +23,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: Main menu actions
 extension AppDelegate {
 	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
+		let panel = NSOpenPanel()
+		panel.allowsMultipleSelection = false
+		panel.canChooseFiles = true
+		panel.canChooseDirectories = false
+		panel.canCreateDirectories = false
+		panel.directoryURL = self.defaults.openedFiles.first
+		
+		let response = panel.runModal()
+		guard let url = panel.url,
+			  response == .OK else {
+			return
+		}
+		
+		self.defaults.addOpenedFile(at: url)
+		
 		if self.console.cartridge == nil {
 			do {
 				let url = URL(gameNamed: "Fantastic Voyage")
@@ -83,6 +99,45 @@ extension AppDelegate: NSWindowDelegate {
 	func windowWillClose(_ notification: Notification) {
 		if let window = notification.object as? NSWindow {
 			self.windowControllers.remove(where: { $0.window == window })
+		}
+	}
+}
+
+
+// MARK: -
+// MARK: Preference management
+private extension String {
+	static let openedFileBookmarks = "OpenedFileBookmarks"
+}
+
+private extension UserDefaults {
+	var openedFiles: [URL] {
+		if let datas = self.value(forKey: .openedFileBookmarks) as? [Data] {
+			return datas.compactMap() {
+				var stale = false
+				return try? URL(
+					resolvingBookmarkData: $0,
+					options: [
+						.withSecurityScope,
+						.withoutUI
+					],
+					relativeTo: nil,
+					bookmarkDataIsStale: &stale)
+			}
+		}
+		return []
+	}
+	
+	func addOpenedFile(at url: URL) {
+		let data = try? url.bookmarkData(options: [
+			.withSecurityScope,
+			.securityScopeAllowOnlyReadAccess
+		])
+		
+		if let data = data {
+			var datas = self.array(forKey: .openedFileBookmarks) as? [Data] ?? []
+			datas.append(data)
+			self.setValue(datas, forKey: .openedFileBookmarks)
 		}
 	}
 }
