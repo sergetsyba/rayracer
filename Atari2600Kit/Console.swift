@@ -39,6 +39,10 @@ public class Atari2600: ObservableObject {
 	public func insertCartridge(fromFileAt url: URL) throws {
 		self.cartridge = try Data(contentsOf: url)
 	}
+	
+	public func insertCartridge(_ data: Data) {
+		self.cartridge = data
+	}
 }
 
 

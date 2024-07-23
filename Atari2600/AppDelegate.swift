@@ -28,7 +28,7 @@ extension AppDelegate {
 		panel.canChooseFiles = true
 		panel.canChooseDirectories = false
 		panel.canCreateDirectories = false
-		panel.directoryURL = self.defaults.openedFiles.first
+		panel.directoryURL = self.defaults.openedFiles.last
 		
 		let response = panel.runModal()
 		guard let url = panel.url,
@@ -36,22 +36,18 @@ extension AppDelegate {
 			return
 		}
 		
+		guard let data = try? Data(contentsOf: url) else {
+			// TODO: show error when opening cartridge data fails
+			fatalError()
+		}
+		
+		self.console.insertCartridge(data)
+		self.console.reset()
 		self.defaults.addOpenedFile(at: url)
 		
-		if self.console.cartridge == nil {
-			do {
-				let url = URL(gameNamed: "Fantastic Voyage")
-				try self.console.insertCartridge(fromFileAt: url)
-				self.console.reset()
-				
-				let controller = ScreenWindowController()
-				controller.window?.title = url.lastPathComponent
-				self.showWindow(of: controller)
-				//				self.resumeMenuItemSelected(self)
-			} catch {
-				print(error)
-			}
-		}
+		let controller = ScreenWindowController()
+		controller.window?.title = url.lastPathComponent
+		self.showWindow(of: controller)
 	}
 	
 	@IBAction func resetGameMenuItemSelected(_ sender: AnyObject) {
