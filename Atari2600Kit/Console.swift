@@ -35,11 +35,6 @@ public class Atari2600: ObservableObject {
 		self.eventSubject.send(.reset)
 	}
 	
-	// Loads cartridge data as ROM from a file at the specified URL.
-	public func insertCartridge(fromFileAt url: URL) throws {
-		self.cartridge = try Data(contentsOf: url)
-	}
-	
 	public func insertCartridge(_ data: Data) {
 		self.cartridge = data
 	}

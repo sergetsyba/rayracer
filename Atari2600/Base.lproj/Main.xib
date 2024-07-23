@@ -61,15 +61,26 @@
                 </menuItem>
                 <menuItem title="Console" id="Hva-v7-MDX">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="Console" autoenablesItems="NO" id="Grf-NX-OUb">
+                    <menu key="submenu" title="Console" id="Grf-NX-OUb">
                         <items>
                             <menuItem title="Insert Cartridge" keyEquivalent="o" id="G6B-pP-Kya">
                                 <connections>
                                     <action selector="insertCartridgeMenuItemSelected:" target="-1" id="jDR-sj-g3Q"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Insert Recent Cartridge" identifier="InsertRecentCartridgeMenuItem" id="82w-BQ-fYJ">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" autoenablesItems="NO" identifier="InsertRecentCartridgeMenu" id="01Z-xd-vS7">
+                                    <connections>
+                                        <outlet property="delegate" destination="Voe-Tx-rLC" id="4SJ-Iz-wU4"/>
+                                    </connections>
+                                </menu>
+                                <connections>
+                                    <action selector="insertCartridgeMenuItemSelected:" target="-1" id="uUr-aA-of7"/>
+                                </connections>
+                            </menuItem>
                             <menuItem isSeparatorItem="YES" id="kK0-KW-5of"/>
-                            <menuItem title="Game Reset" keyEquivalent="r" id="Pg0-pC-YRK">
+                            <menuItem title="Game Reset" keyEquivalent="r" identifier="GameResetMenuItem" id="Pg0-pC-YRK">
                                 <connections>
                                     <action selector="resetGameMenuItemSelected:" target="-1" id="ipa-h7-36o"/>
                                 </connections>

@@ -28,7 +28,7 @@ extension AppDelegate {
 		panel.canChooseFiles = true
 		panel.canChooseDirectories = false
 		panel.canCreateDirectories = false
-		panel.directoryURL = self.defaults.openedFiles.last
+		panel.directoryURL = self.defaults.openedFileURLs.first
 		
 		let response = panel.runModal()
 		guard let url = panel.url,
@@ -36,18 +36,17 @@ extension AppDelegate {
 			return
 		}
 		
-		guard let data = try? Data(contentsOf: url) else {
-			// TODO: show error when opening cartridge data fails
-			fatalError()
+		self.openFile(at: url)
+	}
+	
+	@IBAction func insertRecentCartridgeMenuItemSelected(_ sender: NSMenuItem) {
+		if let url = sender.representedObject as? URL {
+			self.openFile(at: url)
 		}
-		
-		self.console.insertCartridge(data)
-		self.console.reset()
-		self.defaults.addOpenedFile(at: url)
-		
-		let controller = ScreenWindowController()
-		controller.window?.title = url.lastPathComponent
-		self.showWindow(of: controller)
+	}
+	
+	@IBAction func clearInsertRecentCartridgeMenuItemSelected(_ sender: NSMenuItem) {
+		self.defaults.clearOpenedFileURLs()
 	}
 	
 	@IBAction func resetGameMenuItemSelected(_ sender: AnyObject) {
@@ -97,6 +96,80 @@ extension AppDelegate: NSWindowDelegate {
 			self.windowControllers.remove(where: { $0.window == window })
 		}
 	}
+	
+	func openFile(at url: URL) {
+		guard let data = try? Data(contentsOf: url) else {
+			// TODO: show error when opening cartridge data fails
+			fatalError()
+		}
+		
+		self.console.insertCartridge(data)
+		self.console.reset()
+		self.defaults.addOpenedFileURL(url)
+		
+		let controller = ScreenWindowController()
+		controller.window?.title = url.lastPathComponent
+		self.showWindow(of: controller)
+	}
+}
+
+
+// MARK: -
+// MARK: Menu management
+extension AppDelegate: NSMenuDelegate {
+	func menuNeedsUpdate(_ menu: NSMenu) {
+		if menu.identifier == .insertRecentCartridgeMenu {
+			menu.items = self.prepareInsertRecentCartridgeMenuItems()
+		}
+	}
+	
+	private func prepareInsertRecentCartridgeMenuItems() -> [NSMenuItem] {
+		var menuItems = self.defaults.openedFileURLs
+			.map() {
+				let menuItem = NSMenuItem()
+				menuItem.title = $0.lastPathComponent
+				menuItem.action = #selector(self.insertRecentCartridgeMenuItemSelected(_:))
+				menuItem.representedObject = $0
+				
+				return menuItem
+			}
+		
+		// when there's at least one recently opened file
+		if let menuItem = menuItems.first {
+			// add key shortcut for opening the most recently opened file
+			menuItem.keyEquivalentModifierMask = [.command, .option]
+			menuItem.keyEquivalent = "o"
+			
+			// add menu item for clearing the recently opened files menu
+			menuItems.append(.separator())
+			menuItems.append(NSMenuItem(
+				title: "Clear Menu",
+				action: #selector(self.clearInsertRecentCartridgeMenuItemSelected(_:)),
+				keyEquivalent: ""))
+		}
+		
+		return menuItems
+	}
+}
+
+extension AppDelegate: NSMenuItemValidation {
+	func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+		switch menuItem.identifier {
+		case .insertRecentCartridgeMenuItem:
+			return self.defaults.openedFileURLs.count > 0
+		case .gameResetMenuItem:
+			return self.console.cartridge != nil
+		default:
+			return true
+		}
+	}
+}
+
+private extension NSUserInterfaceItemIdentifier {
+	static let insertRecentCartridgeMenuItem = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenuItem")
+	static let gameResetMenuItem = NSUserInterfaceItemIdentifier("GameResetMenuItem")
+	
+	static let insertRecentCartridgeMenu = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenu")
 }
 
 
@@ -107,34 +180,58 @@ private extension String {
 }
 
 private extension UserDefaults {
-	var openedFiles: [URL] {
-		if let datas = self.value(forKey: .openedFileBookmarks) as? [Data] {
-			return datas.compactMap() {
-				var stale = false
-				return try? URL(
-					resolvingBookmarkData: $0,
-					options: [
-						.withSecurityScope,
-						.withoutUI
-					],
-					relativeTo: nil,
-					bookmarkDataIsStale: &stale)
+	private var openedFileBookmarks: [(URL, Data)] {
+		guard let data = self.value(forKey: .openedFileBookmarks) as? [Data] else {
+			return []
+		}
+		
+		var bookmarks: [(URL, Data)] = []
+		let options: URL.BookmarkResolutionOptions = [
+			.withSecurityScope,
+			.withoutUI
+		]
+		
+		// resolve file URLs from bookmark data and only keep unique ones
+		for data in data {
+			var stale = false
+			if let url = try? URL(resolvingBookmarkData: data, options: options, relativeTo: nil, bookmarkDataIsStale: &stale),
+			   bookmarks.contains(where: { $0.0 == url }) == false {
+				bookmarks.append((url, data))
 			}
 		}
-		return []
+		
+		return bookmarks
 	}
 	
-	func addOpenedFile(at url: URL) {
-		let data = try? url.bookmarkData(options: [
+	var openedFileURLs: [URL] {
+		// show up to 10 recently opened files
+		return self.openedFileBookmarks
+			.prefix(10)
+			.map({ $0.0 })
+	}
+	
+	func addOpenedFileURL(_ url: URL) {
+		guard let data = try? url.bookmarkData(options: [
 			.withSecurityScope,
 			.securityScopeAllowOnlyReadAccess
-		])
-		
-		if let data = data {
-			var datas = self.array(forKey: .openedFileBookmarks) as? [Data] ?? []
-			datas.append(data)
-			self.setValue(datas, forKey: .openedFileBookmarks)
+		]) else {
+			return
 		}
+		
+		// read bookmark data in user defaults, excluding bookmark data of
+		// the new URL
+		var defaultsData = self.openedFileBookmarks
+			.filter({ $0.0 != url })
+			.map({ $0.1 })
+		
+		// prepend bookmark data of the new URL at the beginning and write
+		// bookmark data to user defaults
+		defaultsData.insert(data, at: 0)
+		self.setValue(defaultsData, forKey: .openedFileBookmarks)
+	}
+	
+	func clearOpenedFileURLs() {
+		self.removeObject(forKey: .openedFileBookmarks)
 	}
 }
 
