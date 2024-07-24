@@ -1,6 +1,6 @@
 //
 //  DebugValueTableCellView.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 23.6.2024.
 //

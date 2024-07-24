@@ -1,6 +1,6 @@
 //
 //  NSFont+Constants.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 16.6.2023.
 //

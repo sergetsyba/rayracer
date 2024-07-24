@@ -1,6 +1,6 @@
 //
 //  String+Extensions.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 1.6.2024.
 //

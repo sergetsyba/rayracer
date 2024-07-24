@@ -1,6 +1,6 @@
 //
 //  AssemblyAddressCellView.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 14.6.2023.
 //

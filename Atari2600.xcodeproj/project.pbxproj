@@ -59,11 +59,11 @@
 		953D92A72A1AEB7400EC52AC /* BeamRacerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BeamRacerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		953D92AE2A1AEB8300EC52AC /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		953D92B02A1AEB9E00EC52AC /* MOS6507.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6507.swift; sourceTree = "<group>"; };
-		954A18642A1AEE5800EBC582 /* Atari2600.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atari2600.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		954A18642A1AEE5800EBC582 /* RayRacer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RayRacer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		954A18662A1AEE5800EBC582 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		954A18682A1AEE5A00EBC582 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		954A186B2A1AEE5A00EBC582 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/Main.xib; sourceTree = "<group>"; };
-		954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atari2600.entitlements; sourceTree = "<group>"; };
+		954A186D2A1AEE5A00EBC582 /* RayRacer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RayRacer.entitlements; sourceTree = "<group>"; };
 		954E3CCF2C283B3E009218CB /* DebugItemTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugItemTableCellView.swift; sourceTree = "<group>"; };
 		954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSectionTableCellView.swift; sourceTree = "<group>"; };
 		954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugValueTableCellView.swift; sourceTree = "<group>"; };
@@ -104,7 +104,7 @@
 		951E2F7A2A18B11900E6902F = {
 			isa = PBXGroup;
 			children = (
-				954A18652A1AEE5800EBC582 /* Atari2600 */,
+				954A18652A1AEE5800EBC582 /* RayRacer */,
 				953D92A82A1AEB7400EC52AC /* BeamRacerKit */,
 				95F563FD2A42E33E0028A90B /* Frameworks */,
 				951E2F842A18B11900E6902F /* Products */,
@@ -115,7 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				953D92A72A1AEB7400EC52AC /* BeamRacerKit.framework */,
-				954A18642A1AEE5800EBC582 /* Atari2600.app */,
+				954A18642A1AEE5800EBC582 /* RayRacer.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -134,18 +134,18 @@
 			path = BeamRacerKit;
 			sourceTree = "<group>";
 		};
-		954A18652A1AEE5800EBC582 /* Atari2600 */ = {
+		954A18652A1AEE5800EBC582 /* RayRacer */ = {
 			isa = PBXGroup;
 			children = (
 				95CE639C2A333365007BD72B /* Debugger */,
 				954A18662A1AEE5800EBC582 /* AppDelegate.swift */,
 				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
-				954A186D2A1AEE5A00EBC582 /* Atari2600.entitlements */,
+				954A186D2A1AEE5A00EBC582 /* RayRacer.entitlements */,
 				954A186A2A1AEE5A00EBC582 /* Main.xib */,
 				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
 				95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */,
 			);
-			path = Atari2600;
+			path = RayRacer;
 			sourceTree = "<group>";
 		};
 		95CE639C2A333365007BD72B /* Debugger */ = {
@@ -210,9 +210,9 @@
 			productReference = 953D92A72A1AEB7400EC52AC /* BeamRacerKit.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		954A18632A1AEE5800EBC582 /* Atari2600 */ = {
+		954A18632A1AEE5800EBC582 /* RayRacer */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 954A186E2A1AEE5A00EBC582 /* Build configuration list for PBXNativeTarget "Atari2600" */;
+			buildConfigurationList = 954A186E2A1AEE5A00EBC582 /* Build configuration list for PBXNativeTarget "RayRacer" */;
 			buildPhases = (
 				954A18602A1AEE5800EBC582 /* Sources */,
 				954A18612A1AEE5800EBC582 /* Frameworks */,
@@ -223,9 +223,9 @@
 			dependencies = (
 				95A2D0062C512C7600440622 /* PBXTargetDependency */,
 			);
-			name = Atari2600;
+			name = RayRacer;
 			productName = Atari2600;
-			productReference = 954A18642A1AEE5800EBC582 /* Atari2600.app */;
+			productReference = 954A18642A1AEE5800EBC582 /* RayRacer.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -260,7 +260,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				954A18632A1AEE5800EBC582 /* Atari2600 */,
+				954A18632A1AEE5800EBC582 /* RayRacer */,
 				953D92A62A1AEB7400EC52AC /* BeamRacerKit */,
 			);
 		};
@@ -546,7 +546,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Atari2600/Atari2600.entitlements;
+				CODE_SIGN_ENTITLEMENTS = RayRacer/RayRacer.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -554,6 +554,8 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = RayRacer;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -562,8 +564,9 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.tsyba.Atari2600;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -575,7 +578,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Atari2600/Atari2600.entitlements;
+				CODE_SIGN_ENTITLEMENTS = RayRacer/RayRacer.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -583,6 +586,8 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = RayRacer;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -591,8 +596,9 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.tsyba.Atari2600;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -620,7 +626,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		954A186E2A1AEE5A00EBC582 /* Build configuration list for PBXNativeTarget "Atari2600" */ = {
+		954A186E2A1AEE5A00EBC582 /* Build configuration list for PBXNativeTarget "RayRacer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				954A186F2A1AEE5A00EBC582 /* Debug */,

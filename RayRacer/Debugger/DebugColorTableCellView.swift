@@ -1,6 +1,6 @@
 //
 //  GraphicsColorCellView.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 19.6.2024.
 //

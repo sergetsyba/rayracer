@@ -1,6 +1,6 @@
 //
 //  SystemStateViewController.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 29.5.2024.
 //

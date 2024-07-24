@@ -1,6 +1,6 @@
 //
 //  UserDefaults+Preferences.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 25.6.2023.
 //

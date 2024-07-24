@@ -1,13 +1,13 @@
 //
 //  DebuggerWindow.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 27.5.2023.
 //
 
 import AppKit
 import Combine
-import Atari2600Kit
+import BeamRacerKit
 
 class DebuggerWindowController: NSWindowController {
 	@IBOutlet private var toolbar: NSToolbar!	

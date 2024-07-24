@@ -1,6 +1,6 @@
 //
 //  AppDelegate.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 22.5.2023.
 //
@@ -214,13 +214,8 @@ private extension UserDefaults {
 			return []
 		}
 		
-		var bookmarks: [(URL, Data)] = []
-		let options: URL.BookmarkResolutionOptions = [
-			.withSecurityScope,
-			.withoutUI
-		]
-		
 		// resolve file URLs from bookmark data and only keep unique ones
+		var bookmarks: [(URL, Data)] = []
 		for data in data {
 			var stale = false
 			

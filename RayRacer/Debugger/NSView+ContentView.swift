@@ -1,6 +1,6 @@
 //
 //  NSView+ContentView.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 18.6.2023.
 //

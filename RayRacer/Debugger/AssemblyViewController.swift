@@ -1,6 +1,6 @@
 //
 //  AssemblyViewController.swift
-//  Atari2600
+//  RayRacer
 //
 //  Created by Serge Tsyba on 5.6.2023.
 //
