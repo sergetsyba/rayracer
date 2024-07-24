@@ -1,10 +1,11 @@
 //
 //  Console.swift
-//  Atari2600Kit
+//  BeamRacerKit
 //
 //  Created by Serge Tsyba on 22.5.2023.
 //
 
+import Foundation
 import Combine
 
 public class Atari2600: ObservableObject {

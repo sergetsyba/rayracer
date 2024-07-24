@@ -1,9 +1,11 @@
 //
 //  MOS6532.swift
-//  Atari2600Kit
+//  BeamRacerKit
 //
 //  Created by Serge Tsyba on 1.7.2023.
 //
+
+import Foundation
 
 public class MOS6532 {
 	internal(set) public var memory: Data

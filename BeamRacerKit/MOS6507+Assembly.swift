@@ -1,9 +1,11 @@
 //
 //  MOS6507+Assembly.swift
-//  Atari2600Kit
+//  BeamRacerKit
 //
 //  Created by Serge Tsyba on 20.6.2023.
 //
+
+import Foundation
 
 public class MOS6507Assembly {
 	public enum Mnemonic {

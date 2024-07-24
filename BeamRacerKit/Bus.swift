@@ -1,6 +1,6 @@
 //
 //  Bus.swift
-//  Atari2600Kit
+//  BeamRacerKit
 //
 //  Created by Serge Tsyba on 20.7.2024.
 //

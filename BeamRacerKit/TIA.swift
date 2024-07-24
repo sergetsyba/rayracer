@@ -1,6 +1,6 @@
 //
 //  TIA.swift
-//  Atari2600Kit
+//  BeamRacerKit
 //
 //  Created by Serge Tsyba on 29.6.2023.
 //
