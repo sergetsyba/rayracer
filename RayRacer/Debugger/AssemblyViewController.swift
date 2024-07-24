@@ -7,7 +7,7 @@
 
 import Cocoa
 import Combine
-import Atari2600Kit
+import RayRacerKit
 
 typealias Program = [(Address, MOS6507Assembly.Instruction)]
 typealias Breakpoint = Address

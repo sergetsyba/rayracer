@@ -6,8 +6,7 @@
 //
 
 import Cocoa
-import Atari2600Kit
-
+import RayRacerKit
 
 class DebugColorTableCellView: NSTableCellView {
 	@IBOutlet var colorView: NSView?

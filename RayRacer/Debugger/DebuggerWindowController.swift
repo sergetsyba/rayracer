@@ -7,7 +7,7 @@
 
 import AppKit
 import Combine
-import BeamRacerKit
+import RayRacerKit
 
 class DebuggerWindowController: NSWindowController {
 	@IBOutlet private var toolbar: NSToolbar!	

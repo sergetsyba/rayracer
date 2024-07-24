@@ -7,7 +7,7 @@
 
 import Cocoa
 import CryptoKit
-import Atari2600Kit
+import RayRacerKit
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {

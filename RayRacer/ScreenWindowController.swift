@@ -7,7 +7,7 @@
 
 import Cocoa
 import Combine
-import Atari2600Kit
+import RayRacerKit
 
 class ScreenWindowController: NSWindowController {
 	@IBOutlet private var imageView: NSImageView!

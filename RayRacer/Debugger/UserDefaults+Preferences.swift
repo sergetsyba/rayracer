@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Atari2600Kit
+import RayRacerKit
 
 struct Preferences {
 	var games: [String: GamePreferences]
