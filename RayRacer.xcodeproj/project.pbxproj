@@ -247,7 +247,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 951E2F7E2A18B11900E6902F /* Build configuration list for PBXProject "Atari2600" */;
+			buildConfigurationList = 951E2F7E2A18B11900E6902F /* Build configuration list for PBXProject "RayRacer" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -564,7 +564,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -596,7 +596,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -608,7 +608,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		951E2F7E2A18B11900E6902F /* Build configuration list for PBXProject "Atari2600" */ = {
+		951E2F7E2A18B11900E6902F /* Build configuration list for PBXProject "RayRacer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				951E2F902A18B11A00E6902F /* Debug */,

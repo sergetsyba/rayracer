@@ -4,7 +4,8 @@
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
-      buildImplicitDependencies = "YES">
+      buildImplicitDependencies = "YES"
+      buildArchitectures = "Automatic">
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -14,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "954A18632A1AEE5800EBC582"
-               BuildableName = "RayRacer.app"
-               BlueprintName = "RayRacer"
-               ReferencedContainer = "container:Atari2600.xcodeproj">
+               BlueprintIdentifier = "953D92A62A1AEB7400EC52AC"
+               BuildableName = "RayRacerKit.framework"
+               BlueprintName = "RayRacerKit"
+               ReferencedContainer = "container:RayRacer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -28,6 +29,19 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9597B0092A46CBB80088822B"
+               BuildableName = "Atari2600KitTests.xctest"
+               BlueprintName = "Atari2600KitTests"
+               ReferencedContainer = "container:RayRacer.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -39,23 +53,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "954A18632A1AEE5800EBC582"
-            BuildableName = "RayRacer.app"
-            BlueprintName = "RayRacer"
-            ReferencedContainer = "container:Atari2600.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "IDEPreferLogStreaming"
-            value = "YES"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -63,16 +60,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "954A18632A1AEE5800EBC582"
-            BuildableName = "RayRacer.app"
-            BlueprintName = "RayRacer"
-            ReferencedContainer = "container:Atari2600.xcodeproj">
+            BlueprintIdentifier = "953D92A62A1AEB7400EC52AC"
+            BuildableName = "RayRacerKit.framework"
+            BlueprintName = "RayRacerKit"
+            ReferencedContainer = "container:RayRacer.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
