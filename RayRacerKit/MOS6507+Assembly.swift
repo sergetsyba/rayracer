@@ -1,6 +1,6 @@
 //
 //  MOS6507+Assembly.swift
-//  BeamRacerKit
+//  RayRacerKit
 //
 //  Created by Serge Tsyba on 20.6.2023.
 //

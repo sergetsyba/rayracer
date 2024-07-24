@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "953D92A62A1AEB7400EC52AC"
-               BuildableName = "BeamRacerKit.framework"
-               BlueprintName = "BeamRacerKit"
+               BuildableName = "RayRacerKit.framework"
+               BlueprintName = "RayRacerKit"
                ReferencedContainer = "container:Atari2600.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -64,8 +64,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "953D92A62A1AEB7400EC52AC"
-            BuildableName = "BeamRacerKit.framework"
-            BlueprintName = "BeamRacerKit"
+            BuildableName = "RayRacerKit.framework"
+            BlueprintName = "RayRacerKit"
             ReferencedContainer = "container:Atari2600.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

@@ -1,6 +1,6 @@
 //
 //  TIA.swift
-//  BeamRacerKit
+//  RayRacerKit
 //
 //  Created by Serge Tsyba on 29.6.2023.
 //

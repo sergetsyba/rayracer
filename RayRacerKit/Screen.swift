@@ -1,6 +1,6 @@
 //
 //  Screen.swift
-//  BeamRacerKit
+//  RayRacerKit
 //
 //  Created by Serge Tsyba on 20.7.2024.
 //

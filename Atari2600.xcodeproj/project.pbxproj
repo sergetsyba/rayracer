@@ -56,7 +56,7 @@
 		950A64A22C4BCD4F007D4362 /* Screen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Screen.swift; sourceTree = "<group>"; };
 		9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Preferences.swift"; sourceTree = "<group>"; };
 		951CC4FD2A58723300537CD1 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
-		953D92A72A1AEB7400EC52AC /* BeamRacerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BeamRacerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RayRacerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		953D92AE2A1AEB8300EC52AC /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		953D92B02A1AEB9E00EC52AC /* MOS6507.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6507.swift; sourceTree = "<group>"; };
 		954A18642A1AEE5800EBC582 /* RayRacer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RayRacer.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -105,7 +105,7 @@
 			isa = PBXGroup;
 			children = (
 				954A18652A1AEE5800EBC582 /* RayRacer */,
-				953D92A82A1AEB7400EC52AC /* BeamRacerKit */,
+				953D92A82A1AEB7400EC52AC /* RayRacerKit */,
 				95F563FD2A42E33E0028A90B /* Frameworks */,
 				951E2F842A18B11900E6902F /* Products */,
 			);
@@ -114,13 +114,13 @@
 		951E2F842A18B11900E6902F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				953D92A72A1AEB7400EC52AC /* BeamRacerKit.framework */,
+				953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */,
 				954A18642A1AEE5800EBC582 /* RayRacer.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		953D92A82A1AEB7400EC52AC /* BeamRacerKit */ = {
+		953D92A82A1AEB7400EC52AC /* RayRacerKit */ = {
 			isa = PBXGroup;
 			children = (
 				950A64A02C4BCD3C007D4362 /* Bus.swift */,
@@ -131,17 +131,17 @@
 				950A64A22C4BCD4F007D4362 /* Screen.swift */,
 				9595FE912A4E02FE00F6F857 /* TIA.swift */,
 			);
-			path = BeamRacerKit;
+			path = RayRacerKit;
 			sourceTree = "<group>";
 		};
 		954A18652A1AEE5800EBC582 /* RayRacer */ = {
 			isa = PBXGroup;
 			children = (
-				95CE639C2A333365007BD72B /* Debugger */,
 				954A18662A1AEE5800EBC582 /* AppDelegate.swift */,
 				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
-				954A186D2A1AEE5A00EBC582 /* RayRacer.entitlements */,
+				95CE639C2A333365007BD72B /* Debugger */,
 				954A186A2A1AEE5A00EBC582 /* Main.xib */,
+				954A186D2A1AEE5A00EBC582 /* RayRacer.entitlements */,
 				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
 				95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */,
 			);
@@ -192,9 +192,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		953D92A62A1AEB7400EC52AC /* BeamRacerKit */ = {
+		953D92A62A1AEB7400EC52AC /* RayRacerKit */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 953D92AB2A1AEB7400EC52AC /* Build configuration list for PBXNativeTarget "BeamRacerKit" */;
+			buildConfigurationList = 953D92AB2A1AEB7400EC52AC /* Build configuration list for PBXNativeTarget "RayRacerKit" */;
 			buildPhases = (
 				953D92A22A1AEB7400EC52AC /* Headers */,
 				953D92A32A1AEB7400EC52AC /* Sources */,
@@ -205,9 +205,9 @@
 			);
 			dependencies = (
 			);
-			name = BeamRacerKit;
+			name = RayRacerKit;
 			productName = Atari2600Kit;
-			productReference = 953D92A72A1AEB7400EC52AC /* BeamRacerKit.framework */;
+			productReference = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		954A18632A1AEE5800EBC582 /* RayRacer */ = {
@@ -261,7 +261,7 @@
 			projectRoot = "";
 			targets = (
 				954A18632A1AEE5800EBC582 /* RayRacer */,
-				953D92A62A1AEB7400EC52AC /* BeamRacerKit */,
+				953D92A62A1AEB7400EC52AC /* RayRacerKit */,
 			);
 		};
 /* End PBXProject section */
@@ -332,7 +332,7 @@
 /* Begin PBXTargetDependency section */
 		95A2D0062C512C7600440622 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 953D92A62A1AEB7400EC52AC /* BeamRacerKit */;
+			target = 953D92A62A1AEB7400EC52AC /* RayRacerKit */;
 			targetProxy = 95A2D0052C512C7600440622 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -493,7 +493,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
-				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.BeamRacerKit;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -531,7 +531,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
-				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.BeamRacerKit;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -617,7 +617,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		953D92AB2A1AEB7400EC52AC /* Build configuration list for PBXNativeTarget "BeamRacerKit" */ = {
+		953D92AB2A1AEB7400EC52AC /* Build configuration list for PBXNativeTarget "RayRacerKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				953D92AC2A1AEB7400EC52AC /* Debug */,
