@@ -85,14 +85,14 @@ private extension DebuggerWindowController {
 					}
 				})
 		
-		self.cancellables.insert(
-			// NOTE: delay lets toolbar item to get deselected
-			self.assemblyViewController.$breakpoints
-				.delay(for: 0.01, scheduler: RunLoop.current)
-				.sink() { [unowned self] in
-					self.updateBreakpointsToolbarItemMenu(breakpoints: $0)
-				}
-		)
+//		self.cancellables.insert(
+//			// NOTE: delay lets toolbar item to get deselected
+//			self.assemblyViewController.$breakpoints
+//				.delay(for: 0.01, scheduler: RunLoop.current)
+//				.sink() { [unowned self] in
+//					self.updateBreakpointsToolbarItemMenu(breakpoints: $0)
+//				}
+//		)
 	}
 	
 	func updateToolbarItems() {

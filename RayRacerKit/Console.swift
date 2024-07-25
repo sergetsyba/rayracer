@@ -38,6 +38,7 @@ public class Atari2600: ObservableObject {
 	
 	public func insertCartridge(_ data: Data) {
 		self.cartridge = data
+		self.reset()
 	}
 }
 

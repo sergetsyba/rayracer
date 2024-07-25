@@ -18,33 +18,10 @@ class AssemblyViewController: NSViewController {
 	@IBOutlet private var tableView: NSTableView!
 	
 	private let console: Atari2600 = .current
+	private let defaults: UserDefaults = .standard
 	private var cancellables: Set<AnyCancellable> = []
 	
-	private(set) var program: Program? {
-		didSet {
-			if let _ = self.program {
-				self.breakpoints = UserDefaults.standard
-					.breakpoints()
-			} else {
-				self.programAddress = nil
-				self.breakpoints = []
-			}
-			if self.isViewLoaded {
-				self.updateProgramView()
-				self.updateProgramAddressRow()
-			}
-		}
-	}
-	
-	private(set) var programAddress: Address? {
-		didSet {
-			if self.isViewLoaded {
-				self.updateProgramAddressRow()
-			}
-		}
-	}
-	
-	@Published
+	private(set) var program: Program?
 	private(set) var breakpoints: [Breakpoint] = []
 	
 	convenience init() {
@@ -56,7 +33,7 @@ class AssemblyViewController: NSViewController {
 		super.viewDidLoad()
 		
 		self.updateTableColumnWidths()
-		self.updateProgramView()
+		self.updateView()
 		self.setUpSinks()
 	}
 	
@@ -77,15 +54,8 @@ private extension AssemblyViewController {
 				.sink() { [unowned self] in
 					switch $0 {
 					case .reset:
-						if let data = self.console.cartridge {
-							self.program = MOS6507Assembly.disassemble(data)
-							self.programAddress = self.console.cpu.programCounter
-						} else {
-							self.program = nil
-							self.programAddress = nil
-						}
-					default:
-						break
+						self.updateView()
+					default: break
 					}
 				})
 		
@@ -95,9 +65,9 @@ private extension AssemblyViewController {
 				.sink() {
 					switch $0 {
 					case .break:
-						self.programAddress = self.console.cpu.programCounter
+						self.updateProgramAddressTableRow()
 					default:
-						self.programAddress = nil
+						break
 					}
 				})
 	}
@@ -116,24 +86,32 @@ private extension AssemblyViewController {
 			.forEach() { self.tableView.tableColumns[$0.0].width = $0.1.width }
 	}
 	
-	func updateProgramView() {
-		if let _ = self.program {
+	func updateView() {
+		if let data = self.console.cartridge {
+			self.program = MOS6507Assembly.disassemble(data)
+			self.breakpoints = self.defaults.breakpoints()
+			
 			// switch to program view
 			self.view.setContentView(self.programView, layout: .fill)
 			self.view.window?
 				.makeFirstResponder(self.tableView)
 		} else {
+			self.program = nil
+			self.breakpoints = []
+			
 			// switch to no program view
 			self.view.setContentView(self.noProgramView, layout: .center)
 			self.tableView.resignFirstResponder()
 		}
 		
 		self.tableView.reloadData()
+		self.updateProgramAddressTableRow()
 	}
 	
-	func updateProgramAddressRow() {
-		if let program = self.program,
-		   let row = program.firstIndex(where: { $0.0 == self.programAddress }) {
+	func updateProgramAddressTableRow() {
+		if let row = self.program?
+			.firstIndex(where: { $0.0 == self.console.cpu.programCounter }) {
+			
 			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
 			self.tableView.ensureRowVisible(row)
 			
@@ -257,7 +235,7 @@ private extension AssemblyViewController {
 			// for instructions with indexed addressing, return formatted
 			// operand address target only when program is currently at
 			// that instruction
-			if self.program?[row].0 == self.programAddress,
+			if self.program?[row].0 == self.console.cpu.programCounter,
 			   let address = self.console.cpu.nextOperandAddress {
 				let address = self.console.unmirror(address)
 				return self.formatTarget(at: address)
