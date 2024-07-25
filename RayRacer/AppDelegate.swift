@@ -48,10 +48,6 @@ extension AppDelegate {
 		self.defaults.clearOpenedFileURLs()
 	}
 	
-	@IBAction func resetGameMenuItemSelected(_ sender: AnyObject) {
-		self.console.reset()
-	}
-	
 	@IBAction func resumeMenuItemSelected(_ sender: AnyObject) {
 		let queue = DispatchQueue.global(qos: .background)
 		
@@ -73,6 +69,10 @@ extension AppDelegate {
 	
 	@IBAction func stepFrameMenuItemSelected(_ sender: AnyObject) {
 		self.console.stepFrame()
+	}
+	
+	@IBAction func resetGameMenuItemSelected(_ sender: AnyObject) {
+		self.console.reset()
 	}
 	
 	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {
@@ -114,7 +114,7 @@ extension AppDelegate: NSWindowDelegate {
 
 
 // MARK: -
-// MARK: Menu management
+// MARK: Main menu management
 extension AppDelegate: NSMenuDelegate {
 	func menuNeedsUpdate(_ menu: NSMenu) {
 		if menu.identifier == .insertRecentCartridgeMenu {
@@ -170,6 +170,34 @@ private extension NSUserInterfaceItemIdentifier {
 	static let gameResetMenuItem = NSUserInterfaceItemIdentifier("GameResetMenuItem")
 	static let insertRecentCartridgeMenu = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenu")
 }
+
+
+// MARK: -
+// MARK: Toolbar item management
+extension AppDelegate: NSToolbarItemValidation {
+	func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+		switch item.itemIdentifier {
+		case .resumeToolbarItem,
+				.stepProgramToolbarItem,
+				.stepScanLineToolbarItem,
+				.stepFrameToolbarItem,
+				.gameResetToolbarItem:
+			return self.console.cartridge != nil
+		default:
+			return false
+		}
+	}
+}
+
+
+private extension NSToolbarItem.Identifier {
+	static let resumeToolbarItem = NSToolbarItem.Identifier("ResumeToolbarItem")
+	static let stepProgramToolbarItem = NSToolbarItem.Identifier("StepProgramToolbarItem")
+	static let stepScanLineToolbarItem = NSToolbarItem.Identifier("StepScanLineToolbarItem")
+	static let stepFrameToolbarItem = NSToolbarItem.Identifier("StepFrameToolbarItem")
+	static let gameResetToolbarItem = NSToolbarItem.Identifier("GameResetToolbarItem")
+}
+
 
 
 // MARK: -
@@ -278,9 +306,13 @@ private extension Set {
 extension Atari2600 {
 	static let current = Atari2600()
 	
-	var gameIdentifier: String {
+	var gameIdentifier: String? {
+		guard let data = self.cartridge else {
+			return nil
+		}
+		
 		return Insecure.MD5
-			.hash(data: self.cartridge!)
+			.hash(data: data)
 			.map() { String(format: "%02x", $0) }
 			.joined()
 	}

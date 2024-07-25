@@ -6,7 +6,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="DebuggerWindowController" customModule="Atari2600" customModuleProvider="target">
+        <customObject id="-2" userLabel="File's Owner" customClass="DebuggerWindowController" customModule="RayRacer" customModuleProvider="target">
             <connections>
                 <outlet property="assemblyViewBox" destination="skw-07-vdS" id="SFb-zx-Vif"/>
                 <outlet property="systemStateViewBox" destination="tPf-EC-MbN" id="vVN-VR-8Zj"/>
@@ -59,28 +59,28 @@
             <toolbar key="toolbar" implicitIdentifier="1042316F-9260-480B-AC8B-55DC96BF8C6E" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="LSb-J4-Z97">
                 <allowedToolbarItems>
                     <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="t5g-MI-3EV"/>
-                    <toolbarItem implicitItemIdentifier="AC7480E9-C555-43FF-932E-01D195016076" explicitItemIdentifier="ResumeToolbarItem" label="Resume" paletteLabel="Resume" tag="-1" image="play" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="hES-oj-yEd">
+                    <toolbarItem implicitItemIdentifier="AC7480E9-C555-43FF-932E-01D195016076" explicitItemIdentifier="ResumeToolbarItem" label="Resume" paletteLabel="Resume" tag="-1" image="play" catalog="system" bordered="YES" sizingBehavior="auto" id="hES-oj-yEd">
                         <connections>
-                            <action selector="resumeProgramMenuItemSelected:" target="-1" id="IO5-xt-7VH"/>
+                            <action selector="resumeMenuItemSelected:" target="-1" id="fFU-ic-rzS"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="47624D7F-560E-48A5-8388-78924C654B1A" explicitItemIdentifier="StepProgramToolbarItem" label="Step program" paletteLabel="Step program" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="a8G-Mj-SRq">
+                    <toolbarItem implicitItemIdentifier="47624D7F-560E-48A5-8388-78924C654B1A" explicitItemIdentifier="StepProgramToolbarItem" label="Step program" paletteLabel="Step program" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" id="a8G-Mj-SRq">
                         <connections>
                             <action selector="stepProgramMenuItemSelected:" target="-1" id="lw4-OP-t4f"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="E132270C-48D9-4F46-BC1B-C4F72045B454" explicitItemIdentifier="StepScanLineToolbarItem" label="Step scan line" paletteLabel="Step scan line" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="Aa8-QI-KVy">
+                    <toolbarItem implicitItemIdentifier="E132270C-48D9-4F46-BC1B-C4F72045B454" explicitItemIdentifier="StepScanLineToolbarItem" label="Step scan line" paletteLabel="Step scan line" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" id="Aa8-QI-KVy">
                         <connections>
                             <action selector="stepScanLineMenuItemSelected:" target="-1" id="tWr-cs-Bh9"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="295F8941-6FBB-4E40-85F9-5F67E52DCDB0" explicitItemIdentifier="StepFrameToolbarItem" label="Step frame" paletteLabel="Step frame" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="T0T-jK-rXU">
+                    <toolbarItem implicitItemIdentifier="295F8941-6FBB-4E40-85F9-5F67E52DCDB0" explicitItemIdentifier="StepFrameToolbarItem" label="Step frame" paletteLabel="Step frame" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" id="T0T-jK-rXU">
                         <connections>
                             <action selector="stepFrameMenuItemSelected:" target="-1" id="XpE-ZW-JMc"/>
                         </connections>
                     </toolbarItem>
                     <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="3dM-6U-NvA"/>
-                    <toolbarItem implicitItemIdentifier="77641F15-AA2A-494F-B390-F1951124CACE" explicitItemIdentifier="GameResetToolbarItem" label="Game reset" paletteLabel="Game reset" tag="-1" image="restart.circle" catalog="system" bordered="YES" sizingBehavior="auto" autovalidates="NO" id="w7k-DC-Qam">
+                    <toolbarItem implicitItemIdentifier="77641F15-AA2A-494F-B390-F1951124CACE" explicitItemIdentifier="GameResetToolbarItem" label="Game reset" paletteLabel="Game reset" tag="-1" image="restart.circle" catalog="system" bordered="YES" sizingBehavior="auto" id="w7k-DC-Qam">
                         <connections>
                             <action selector="resetGameMenuItemSelected:" target="-1" id="zwZ-fv-TQp"/>
                         </connections>
@@ -96,7 +96,7 @@
                     <toolbarItem reference="w7k-DC-Qam"/>
                 </defaultToolbarItems>
                 <connections>
-                    <outlet property="delegate" destination="-2" id="ntx-RV-MXm"/>
+                    <outlet property="delegate" destination="-2" id="dOJ-hB-bmq"/>
                 </connections>
             </toolbar>
             <point key="canvasLocation" x="22" y="141"/>

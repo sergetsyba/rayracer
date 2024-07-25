@@ -20,20 +20,9 @@ class AssemblyAddressCellView: NSTableCellView {
 	
 	override var backgroundStyle: NSView.BackgroundStyle {
 		didSet {
-			self.toggle.textColor = self.textColor(for: self.backgroundStyle)
-		}
-	}
-}
-
-
-// MARK: -
-private extension AssemblyAddressCellView {
-	private func textColor(for style: NSView.BackgroundStyle) -> NSColor {
-		switch style {
-		case .emphasized:
-			return .alternateSelectedControlTextColor
-		default:
-			return .controlTextColor
+			self.toggle.textColor = self.backgroundStyle == .emphasized
+			? .alternateSelectedControlTextColor
+			: .controlTextColor
 		}
 	}
 }
