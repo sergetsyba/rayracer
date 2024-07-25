@@ -18,11 +18,10 @@ class AssemblyViewController: NSViewController {
 	@IBOutlet private var tableView: NSTableView!
 	
 	private let console: Atari2600 = .current
-	private let defaults: UserDefaults = .standard
-	private var cancellables: Set<AnyCancellable> = []
+	private var program: Program?
 	
-	private(set) var program: Program?
-	private(set) var breakpoints: [Breakpoint] = []
+	private var cancellables: Set<AnyCancellable> = []
+	private let defaults: UserDefaults = .standard
 	
 	convenience init() {
 		self.init(nibName: "AssemblyView", bundle: .main)
@@ -89,7 +88,6 @@ private extension AssemblyViewController {
 	func updateView() {
 		if let data = self.console.cartridge {
 			self.program = MOS6507Assembly.disassemble(data)
-			self.breakpoints = self.defaults.breakpoints()
 			
 			// switch to program view
 			self.view.setContentView(self.programView, layout: .fill)
@@ -97,7 +95,6 @@ private extension AssemblyViewController {
 				.makeFirstResponder(self.tableView)
 		} else {
 			self.program = nil
-			self.breakpoints = []
 			
 			// switch to no program view
 			self.view.setContentView(self.noProgramView, layout: .center)
@@ -129,30 +126,23 @@ private extension AssemblyViewController {
 // MARK: Breakpoint management
 extension AssemblyViewController {
 	@objc func breakpointToggled(_ sender: BreakpointToggle) {
+		var breakpoints = self.defaults.breakpoints()
 		if sender.state == .on {
-			self.breakpoints.append(sender.tag)
+			breakpoints.append(sender.tag)
 		} else {
-			if let index = self.breakpoints.firstIndex(of: sender.tag) {
-				self.breakpoints.remove(at: index)
-			}
+			breakpoints.removeAll(where: { $0 == sender.tag })
 		}
 		
-		// update user defaults
-		UserDefaults.standard
-			.setBreakpoints(self.breakpoints)
+		self.defaults.setBreakpoints(breakpoints)
 	}
 	
 	func clearBreakpoints() {
-		let rows = self.breakpoints
+		let rows = self.defaults.breakpoints()
 			.compactMap() { breakpoint in self.program?
 				.firstIndex(where: { $0.0 == breakpoint} )}
 		
-		self.breakpoints = []
 		self.tableView.reloadData(in: rows)
-		
-		// update user defaults
-		UserDefaults.standard
-			.setBreakpoints(self.breakpoints)
+		self.defaults.setBreakpoints([])
 	}
 	
 	func showBreakpoint(_ breakpoint: Address) {
@@ -186,7 +176,8 @@ extension AssemblyViewController: NSTableViewDelegate {
 		case tableView.tableColumns[0]:
 			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
 			view.toggle.stringValue = String(format: "$%04x", address)
-			view.toggle.state = self.breakpoints.contains(address) ? .on : .off
+			view.toggle.state = self.defaults.breakpoints()
+				.contains(address) ? .on : .off
 			
 			view.toggle.tag = address
 			view.toggle.target = self
@@ -282,7 +273,7 @@ private extension NSTableView {
 		}
 	}
 	
-	func isRowVisible(_ row: Int) -> Bool {
+	private func isRowVisible(_ row: Int) -> Bool {
 		let scrollView = self.enclosingScrollView!
 		let rowRect = self.rect(ofRow: row)
 		

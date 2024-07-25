@@ -58,14 +58,6 @@ private extension DebuggerWindowController {
 	@IBAction func breakpointMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.showBreakpoint(sender.tag)
 	}
-	
-	@IBAction func resumeProgramMenuItemSelected(_ sender: AnyObject) {
-		let breakpoints = self.assemblyViewController.breakpoints
-		let queue = DispatchQueue.global(qos: .background)
-		queue.async() {
-			self.console.resumeProgram(until: breakpoints)
-		}
-	}
 }
 
 
