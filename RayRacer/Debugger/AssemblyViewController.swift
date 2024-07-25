@@ -19,9 +19,16 @@ class AssemblyViewController: NSViewController {
 	
 	private let console: Atari2600 = .current
 	private var program: Program?
-	
 	private var cancellables: Set<AnyCancellable> = []
-	private let defaults: UserDefaults = .standard
+	
+	@Published
+	private(set) var breakpoints: [Address] = [] {
+		didSet {
+			UserDefaults.standard.setBreakpoints(
+				self.breakpoints,
+				forGameIdentifier: self.console.gameIdentifier!)
+		}
+	}
 	
 	convenience init() {
 		self.init(nibName: "AssemblyView", bundle: .main)
@@ -125,24 +132,21 @@ private extension AssemblyViewController {
 // MARK: -
 // MARK: Breakpoint management
 extension AssemblyViewController {
-	@objc func breakpointToggled(_ sender: BreakpointToggle) {
-		var breakpoints = self.defaults.breakpoints()
+	@IBAction func breakpointToggled(_ sender: BreakpointToggle) {
 		if sender.state == .on {
-			breakpoints.append(sender.tag)
+			self.breakpoints.append(sender.tag)
 		} else {
-			breakpoints.removeAll(where: { $0 == sender.tag })
+			self.breakpoints.removeAll(where: { $0 == sender.tag })
 		}
-		
-		self.defaults.setBreakpoints(breakpoints)
 	}
 	
 	func clearBreakpoints() {
-		let rows = self.defaults.breakpoints()
-			.compactMap() { breakpoint in self.program?
-				.firstIndex(where: { $0.0 == breakpoint} )}
+		let rows = self.breakpoints.compactMap() { breakpoint in
+			self.program?
+			.firstIndex(where: { $0.0 == breakpoint} )}
 		
+		self.breakpoints = []
 		self.tableView.reloadData(in: rows)
-		self.defaults.setBreakpoints([])
 	}
 	
 	func showBreakpoint(_ breakpoint: Address) {
@@ -176,8 +180,7 @@ extension AssemblyViewController: NSTableViewDelegate {
 		case tableView.tableColumns[0]:
 			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
 			view.toggle.stringValue = String(format: "$%04x", address)
-			view.toggle.state = self.defaults.breakpoints()
-				.contains(address) ? .on : .off
+			view.toggle.state = self.breakpoints.contains(address) ? .on : .off
 			
 			view.toggle.tag = address
 			view.toggle.target = self

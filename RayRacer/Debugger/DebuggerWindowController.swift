@@ -10,7 +10,7 @@ import Combine
 import RayRacerKit
 
 class DebuggerWindowController: NSWindowController {
-	@IBOutlet private var toolbar: NSToolbar!	
+	@IBOutlet private var toolbar: NSToolbar!
 	@IBOutlet private var assemblyViewBox: NSBox!
 	@IBOutlet private var systemStateViewBox: NSBox!
 	
@@ -34,6 +34,7 @@ class DebuggerWindowController: NSWindowController {
 	
 	override func windowDidLoad() {
 		super.windowDidLoad()
+		self.toolbar.insertItem(withItemIdentifier: .breakpointsToolbarItem, at: 0)
 		
 		self.assemblyViewBox.contentView = self.assemblyViewController.view
 		self.assemblyViewBox.contentView?
@@ -44,6 +45,7 @@ class DebuggerWindowController: NSWindowController {
 			.maskLayerToBounds(cornerRadius: NSBox.defaultCornerRaius)
 		
 		self.setUpSinks()
+		self.window?.becomeKey()
 	}
 }
 
@@ -51,12 +53,12 @@ class DebuggerWindowController: NSWindowController {
 // MARK: -
 // MARK: Target actions
 private extension DebuggerWindowController {
-	@IBAction func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
-		self.assemblyViewController.clearBreakpoints()
-	}
-	
 	@IBAction func breakpointMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.showBreakpoint(sender.tag)
+	}
+	
+	@IBAction func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
+		self.assemblyViewController.clearBreakpoints()
 	}
 }
 
@@ -66,58 +68,41 @@ private extension DebuggerWindowController {
 private extension DebuggerWindowController {
 	func setUpSinks() {
 		self.cancellables.insert(
-			self.console.events
-				.receive(on: DispatchQueue.main)
+			// NOTE: delay lets toolbar item to get deselected
+			self.assemblyViewController.$breakpoints
+				.delay(for: 0.01, scheduler: RunLoop.current)
 				.sink() { [unowned self] in
-					switch $0 {
-					case .reset:
-						self.updateToolbarItems()
-					default:
-						break
-					}
+					self.updateBreakpointsToolbarItemMenu($0)
 				})
+	}
+	
+	func updateBreakpointsToolbarItemMenu(_ breakpoints: [Address]) {
+		let menu = NSMenu()
+		menu.items = self.createBreakpointMenuItems(breakpoints)
 		
-//		self.cancellables.insert(
-//			// NOTE: delay lets toolbar item to get deselected
-//			self.assemblyViewController.$breakpoints
-//				.delay(for: 0.01, scheduler: RunLoop.current)
-//				.sink() { [unowned self] in
-//					self.updateBreakpointsToolbarItemMenu(breakpoints: $0)
-//				}
-//		)
+		let toolbarItem = self.toolbar[.breakpointsToolbarItem] as? NSMenuToolbarItem
+		toolbarItem?.menu = menu
+		toolbarItem?.isEnabled = menu.items.count > 0
 	}
 	
-	func updateToolbarItems() {
-		let cartridgeInserted = self.console.cartridge != nil
-		self.toolbar[.stepProgramItem]?.isEnabled = cartridgeInserted
-		self.toolbar[.stepScanLineItem]?.isEnabled = cartridgeInserted
-		self.toolbar[.stepFrameItem]?.isEnabled = cartridgeInserted
-		self.toolbar[.resumeItem]?.isEnabled = cartridgeInserted
-		self.toolbar[.gameResetItem]?.isEnabled = cartridgeInserted
-	}
-	
-	func updateBreakpointsToolbarItemMenu(breakpoints: [Address]) {
-		let removeAllMenuItem = NSMenuItem(
+	private func createBreakpointMenuItems(_ breakpoints: [Address]) -> [NSMenuItem] {
+		guard breakpoints.count > 0 else {
+			return []
+		}
+		
+		var menuItems = breakpoints.sorted()
+			.map({ self.createBreakpointMenuItem($0) })
+		
+		menuItems.append(.separator())
+		menuItems.append(NSMenuItem(
 			title: "Remove All",
 			action: #selector(self.removeAllBreakpointsMenuItemSelected(_:)),
-			keyEquivalent: "")
+			keyEquivalent: ""))
 		
-		let menu = NSMenu()
-		menu.items = [
-			removeAllMenuItem,
-			.separator()
-		]
-		
-		breakpoints.map() { self.createBreakpointMenuItem(breakpoint: $0) }
-			.sorted(by: { $0.tag < $1.tag })
-			.forEach(menu.addItem(_:))
-		
-		let toolbarItem = self.toolbar[.breakpointsItem] as? NSMenuToolbarItem
-		toolbarItem?.menu = menu
-		toolbarItem?.isEnabled = breakpoints.count > 0
+		return menuItems
 	}
 	
-	func createBreakpointMenuItem(breakpoint: Address) -> NSMenuItem {
+	private func createBreakpointMenuItem(_ breakpoint: Address) -> NSMenuItem {
 		let menuItem = NSMenuItem()
 		menuItem.tag = breakpoint
 		menuItem.attributedTitle = NSAttributedString(
@@ -137,12 +122,11 @@ private extension DebuggerWindowController {
 extension DebuggerWindowController: NSToolbarDelegate {
 	func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
 		switch itemIdentifier {
-		case .breakpointsItem:
+		case .breakpointsToolbarItem:
 			// NOTE: NSMenuToolbarItem is not supported in Interface Builder
 			let toolbarItem = NSMenuToolbarItem(itemIdentifier: itemIdentifier)
 			toolbarItem.image = NSImage(symbolName: "Breakpoint", variableValue: 1.0)
 			toolbarItem.label = "Breakpoints"
-			toolbarItem.isEnabled = false
 			
 			return toolbarItem
 			
@@ -151,41 +135,10 @@ extension DebuggerWindowController: NSToolbarDelegate {
 			return nil
 		}
 	}
-	
-	func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-		return [
-			.breakpointsItem,
-			.resumeItem,
-			.stepProgramItem,
-			.stepScanLineItem,
-			.stepFrameItem,
-			.gameResetItem,
-			.space,
-			.flexibleSpace
-		]
-	}
-	
-	func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-		return [
-			.breakpointsItem,
-			.space,
-			.resumeItem,
-			.stepProgramItem,
-			.stepScanLineItem,
-			.stepFrameItem,
-			.flexibleSpace,
-			.gameResetItem
-		]
-	}
 }
 
 private extension NSToolbarItem.Identifier {
-	static let breakpointsItem = NSToolbarItem.Identifier("BreakpointsToolbarItem")
-	static let resumeItem = NSToolbarItem.Identifier("ResumeToolbarItem")
-	static let stepProgramItem = NSToolbarItem.Identifier("StepProgramToolbarItem")
-	static let stepScanLineItem = NSToolbarItem.Identifier("StepScanLineToolbarItem")
-	static let stepFrameItem = NSToolbarItem.Identifier("StepFrameToolbarItem")
-	static let gameResetItem = NSToolbarItem.Identifier("GameResetToolbarItem")
+	static let breakpointsToolbarItem = NSToolbarItem.Identifier("BreakpointsToolbarItem")
 }
 
 
