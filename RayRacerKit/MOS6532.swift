@@ -10,11 +10,21 @@ import Foundation
 public class MOS6532 {
 	internal(set) public var memory: Data
 	
+	private(set) public var portA: any Port
+	private(set) public var directionA: Bool
+	private(set) public var portB: any Port
+	private(set) public var directionB: Bool
+	
 	private(set) public var timerClock: Int
 	private(set) public var timerInterval: Int
 	
-	public init() {
+	public init(ports: (any Port, any Port)) {
 		self.memory = Data(randomOfCount: 128)
+		
+		self.portA = ports.0
+		self.directionA = .random()
+		self.portB = ports.1
+		self.directionB = .random()
 		
 		self.timerClock = .random(in: 0x00...0xff)
 		self.timerInterval = .random(of: [1, 8, 64, 1024])
@@ -38,11 +48,15 @@ public class MOS6532 {
 
 // MARK: -
 // MARK: Bus integration
-extension MOS6532: Bus {
-	public func read(at address: Address) -> Int {
+extension MOS6532: Addressable {
+	public func read(at address: Int) -> Int {
 		switch address % 0x08 {
+		case 0x00:
+			// MARK: SWCHA
+			return self.portA.read()
 		case 0x02:
-			return 0x3f
+			// MARK: SWCHB
+			return self.portB.read()
 		case 0x04:
 			// MARK: INTIM
 			return  self.timerClock < 0
@@ -54,23 +68,32 @@ extension MOS6532: Bus {
 		}
 	}
 	
-	public func write(_ data: Int, at address: Address) {
+	public func write(_ data: Int, at address: Int) {
 		switch address {
+		case 0x00:
+			// MARK: SWCHA
+			self.portA.write(data)
+		case 0x01:
+			// MARK: SWACNT
+			self.directionA = data == 0x1
+		case 0x02:
+			// MARK: SWCHB
+			self.portB.write(data)
+		case 0x03:
+			// MARK: SWBCNT
+			self.directionB = data == 0x1
 		case 0x14:
 			// MARK: TIM1T
 			self.timerInterval = 1
 			self.timerClock = data
-			
 		case 0x15:
 			// MARK: TIM8T
 			self.timerInterval = 8
 			self.timerClock = self.timerInterval * data
-			
 		case 0x16:
 			// MARK: TIM64T
 			self.timerInterval = 64
 			self.timerClock = self.timerInterval * data
-			
 		case 0x17:
 			// MARK: T1024T
 			self.timerInterval = 1024
@@ -105,4 +128,9 @@ extension Data {
 			self[index] = .random
 		}
 	}
+}
+
+public protocol Port {
+	func read() -> Int
+	mutating func write(_ data: Int)
 }

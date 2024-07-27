@@ -12,6 +12,8 @@ public class Atari2600: ObservableObject {
 	private var eventSubject = PassthroughSubject<Event, Never>()
 	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
 	
+	private(set) public var switches = Switches()
+	
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
@@ -22,7 +24,7 @@ public class Atari2600: ObservableObject {
 	
 	public init() {
 		self.cpu = MOS6507(bus: self)
-		self.riot = MOS6532()
+		self.riot = MOS6532(ports: (self.switches, Switches()))
 		self.tia = TIA(screen: self)
 	}
 	
@@ -115,7 +117,7 @@ public extension Atari2600 {
 		self.debugEventSubject.send(.break)
 	}
 	
-	func resumeProgram(until breakpoints: [Address]) {
+	func resumeProgram(until breakpoints: [Int]) {
 		repeat {
 			self.stepProgram()
 		} while breakpoints.contains(self.cpu.programCounter) == false
@@ -133,8 +135,8 @@ public extension Atari2600 {
 
 
 // MARK: -
-extension Atari2600: Bus {
-	public func unmirror(_ address: Address) -> Address {
+extension Atari2600: Addressable {
+	public func unmirror(_ address: Int) -> Int {
 		if (0x0040..<0x0080).contains(address) {
 			return address - 0x40
 		}
@@ -144,7 +146,7 @@ extension Atari2600: Bus {
 		return address
 	}
 	
-	public func read(at address: Address) -> Int {
+	public func read(at address: Int) -> Int {
 		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
 			return self.tia.read(at: address)
@@ -163,7 +165,7 @@ extension Atari2600: Bus {
 		return Int(data)
 	}
 	
-	public func write(_ data: Int, at address: Address) {
+	public func write(_ data: Int, at address: Int) {
 		let address = self.unmirror(address)
 		if (0x0000..<0x0040).contains(address) {
 			return self.tia.write(data, at: address)
@@ -179,6 +181,36 @@ extension Atari2600: Bus {
 		
 		let message = String(format: "Ignoring write at address $%04x", address)
 		print(message)
+	}
+}
+
+
+// MARK: - Console switches
+extension Atari2600 {
+	public struct Switches: OptionSet {
+		static let reset = Switches(rawValue: 1 << 0)
+		static let select = Switches(rawValue: 1 << 1)
+		static let color = Switches(rawValue: 1 << 3)
+		static let difficulty0 = Switches(rawValue: 1 << 6)
+		static let difficulty1 = Switches(rawValue: 1 << 7)
+		
+		public var rawValue: Int
+		
+		public init(rawValue: Int) {
+			self.rawValue = rawValue
+		}
+	}
+}
+
+extension Atari2600.Switches: Port {
+	public func read() -> Int {
+		return self.rawValue
+	}
+	
+	public mutating func write(_ data: Int) {
+		// port B is supposed to be read-only, but can be written to
+		// nonetheless; writing sets the 3 unassigned bits
+		self.rawValue |= data & 0x34
 	}
 }
 
