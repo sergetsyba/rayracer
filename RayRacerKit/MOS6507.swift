@@ -11,12 +11,12 @@ public class MOS6507 {
 	private(set) public var y: Int
 	private(set) public var status: Status
 	private(set) public var stackPointer: Int
-	private(set) public var programCounter: Address
+	private(set) public var programCounter: Int
 	
-	private var bus: Bus
-	private var decoded: (() -> Void, Int, Address?)? = nil
+	private var bus: any Addressable<Int>
+	private var decoded: (() -> Void, Int, Int?)? = nil
 	
-	public init(bus: any Bus) {
+	public init(bus: any Addressable<Int>) {
 		self.accumulator = .randomWord
 		self.x = .randomWord
 		self.y = .randomWord
@@ -31,13 +31,13 @@ public class MOS6507 {
 	public func reset() {
 		self.status.interruptDisabled = true
 		
-		self.programCounter = Address(
+		self.programCounter = Int(
 			low: self.bus.read(at: 0xfffe),
 			high: self.bus.read(at: 0xfffd))
 	}
 	
 	/// Executes program instructions until it reaches one at any of the sepcified addresses.
-	public func resume(until breakpoints: [Address]) {
+	public func resume(until breakpoints: [Int]) {
 		while !breakpoints.contains(self.programCounter) {
 			self.executeNextInstruction()
 		}
@@ -55,7 +55,7 @@ public extension MOS6507 {
 		return self.decoded!.1
 	}
 	
-	var nextOperandAddress: Address? {
+	var nextOperandAddress: Int? {
 		if self.decoded == nil {
 			self.decoded = self.decodeNextOperation()
 		}
@@ -73,7 +73,7 @@ public extension MOS6507 {
 	}
 	
 	/// Returns the next operation in the program and the amount of CPU cycles it will take to execute.
-	private func decodeNextOperation() -> (() -> Void, Int, Address?) {
+	private func decodeNextOperation() -> (() -> Void, Int, Int?) {
 		let opcode = self.bus.read(at: self.programCounter)
 		switch opcode {
 			// MARK: ADC
@@ -501,14 +501,14 @@ public extension MOS6507 {
 // MARK: -
 // MARK: Memory addressing
 private extension MOS6507 {
-	func withImpliedAddressing(_ operation: @escaping () -> Void, cycles: Int = 2) -> (() -> Void, Int, Address?) {
+	func withImpliedAddressing(_ operation: @escaping () -> Void, cycles: Int = 2) -> (() -> Void, Int, Int?) {
 		return ({ [unowned self] in
 			self.programCounter += 1
 			operation()
 		}, cycles, nil)
 	}
 	
-	func withImmediateAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 2) -> (() -> Void, Int, Address?) {
+	func withImmediateAddressing(_ operation: @escaping (Int) -> Void, cycles: Int = 2) -> (() -> Void, Int, Int?) {
 		let address = self.programCounter + 1
 		
 		return ({ [unowned self] in
@@ -517,9 +517,9 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func with0PageAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
+	func with0PageAddressing(_ operation: @escaping (Int) -> Void, cycles: Int) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 1
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: 0x00)
 		
@@ -529,9 +529,9 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func with0PageXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
+	func with0PageXIndexedAddressing(_ operation: @escaping (Int) -> Void, cycles: Int) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 1
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: 0x00)
 		
@@ -543,9 +543,9 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func with0PageYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
+	func with0PageYIndexedAddressing(_ operation: @escaping (Int) -> Void, cycles: Int) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 1
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: 0x00)
 		
@@ -557,9 +557,9 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func withAbsoluteAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
+	func withAbsoluteAddressing(_ operation: @escaping (Int) -> Void, cycles: Int) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 1
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: self.bus.read(at: address + 1))
 		
@@ -569,9 +569,9 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func withAbsoluteXIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
+	func withAbsoluteXIndexedAddressing(_ operation: @escaping (Int) -> Void, cycles: Int) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 1
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: self.bus.read(at: address + 1))
 		
@@ -592,9 +592,9 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func withAbsoluteYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
+	func withAbsoluteYIndexedAddressing(_ operation: @escaping (Int) -> Void, cycles: Int) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 1
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: self.bus.read(at: address + 1))
 		
@@ -615,13 +615,13 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func withIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 5) -> (() -> Void, Int, Address?) {
+	func withIndirectAddressing(_ operation: @escaping (Int) -> Void, cycles: Int = 5) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 1
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: self.bus.read(at: address + 1))
 		
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: self.bus.read(at: address + 1))
 		
@@ -631,14 +631,14 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func withXIndexedIndirectAddressing(_ operation: @escaping (Address) -> Void, cycles: Int = 6) -> (() -> Void, Int, Address?) {
+	func withXIndexedIndirectAddressing(_ operation: @escaping (Int) -> Void, cycles: Int = 6) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 1
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: 0x00)
 		
 		address.low += self.x
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: self.bus.read(at: address + 1))
 		
@@ -648,13 +648,13 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func withIndirectYIndexedAddressing(_ operation: @escaping (Address) -> Void, cycles: Int) -> (() -> Void, Int, Address?) {
+	func withIndirectYIndexedAddressing(_ operation: @escaping (Int) -> Void, cycles: Int) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 1
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: 0x00)
 		
-		address = Address(
+		address = Int(
 			low: self.bus.read(at: address),
 			high: self.bus.read(at: address + 1))
 		
@@ -675,7 +675,7 @@ private extension MOS6507 {
 		}, cycles, address)
 	}
 	
-	func withRelativeAddressing(on condition: () -> Bool) -> (() -> Void, Int, Address?) {
+	func withRelativeAddressing(on condition: () -> Bool) -> (() -> Void, Int, Int?) {
 		var address = self.programCounter + 2
 		var cycles = 2
 		
@@ -699,7 +699,7 @@ private extension MOS6507 {
 // MARK: -
 // MARK: Operations
 private extension MOS6507 {
-	func addToAccumulator(valueAt address: Address) {
+	func addToAccumulator(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let carry = self.status.carry ? 0x01 : 0x00
 		var result = 0x00
@@ -734,7 +734,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func subtractFromAccumulator(valueAt address: Address) {
+	func subtractFromAccumulator(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let carry = self.status.carry ? 0x01: 0x00
 		var result = 0x00
@@ -770,7 +770,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func conjunctAccumulator(withValueAt address: Address) {
+	func conjunctAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.accumulator & operand
 		
@@ -779,7 +779,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func disjunctAccumulator(withValueAt address: Address) {
+	func disjunctAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.accumulator | operand
 		
@@ -788,7 +788,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func exclusiveDisjunctAccumulator(withValueAt address: Address) {
+	func exclusiveDisjunctAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.accumulator ^ operand
 		
@@ -797,7 +797,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func bitTestAccumulator(withValueAt address: Address) {
+	func bitTestAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.accumulator & operand
 		
@@ -815,7 +815,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func bitShiftLeft(valueAt address: Address) {
+	func bitShiftLeft(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = operand << 1
 		
@@ -835,7 +835,7 @@ private extension MOS6507 {
 		self.status.negative = false
 	}
 	
-	func bitShiftRight(valueAt address: Address) {
+	func bitShiftRight(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = operand >> 1
 		
@@ -856,7 +856,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func bitRotateLeft(valueAt address: Address) {
+	func bitRotateLeft(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		var result = operand << 1
 		result[0] = self.status.carry
@@ -878,7 +878,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func bitRotateRight(valueAt address: Address) {
+	func bitRotateRight(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		var result = operand >> 1
 		result[7] = self.status.carry
@@ -889,7 +889,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func compareAccumulator(withValueAt address: Address) {
+	func compareAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.accumulator - operand
 		
@@ -898,7 +898,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func compareX(withValueAt address: Address) {
+	func compareX(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.x - operand
 		
@@ -907,7 +907,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func compareY(withValueAt address: Address) {
+	func compareY(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.y - operand
 		
@@ -916,7 +916,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func increment(valueAt address: Address) {
+	func increment(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		var result = operand + 0x01
 		if result > 0xff {
@@ -928,7 +928,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func decrement(valueAt address: Address) {
+	func decrement(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		var result = operand - 0x01
 		if result < 0x00 {
@@ -984,7 +984,7 @@ private extension MOS6507 {
 		self.status.negative = result[7]
 	}
 	
-	func loadAccumulator(withValueAt address: Address) {
+	func loadAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		
 		self.accumulator = operand
@@ -992,11 +992,11 @@ private extension MOS6507 {
 		self.status.negative = operand[7]
 	}
 	
-	func storeAccumulator(at address: Address) {
+	func storeAccumulator(at address: Int) {
 		self.bus.write(self.accumulator, at: address)
 	}
 	
-	func loadX(withValueAt address: Address) {
+	func loadX(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		
 		self.x = operand
@@ -1004,11 +1004,11 @@ private extension MOS6507 {
 		self.status.negative = operand[7]
 	}
 	
-	func storeX(at address: Address) {
+	func storeX(at address: Int) {
 		self.bus.write(self.x, at: address)
 	}
 	
-	func loadY(withValueAt address: Address) {
+	func loadY(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		
 		self.y = operand
@@ -1016,7 +1016,7 @@ private extension MOS6507 {
 		self.status.negative = operand[7]
 	}
 	
-	func storeY(at address: Address) {
+	func storeY(at address: Int) {
 		self.bus.write(self.y, at: address)
 	}
 	
@@ -1073,26 +1073,26 @@ private extension MOS6507 {
 		self.pushStack(self.programCounter.low)
 		self.pushStack(self.status.rawValue)
 		
-		self.programCounter = Address(
+		self.programCounter = Int(
 			low: self.bus.read(at: 0xfffe),
 			high: self.bus.read(at: 0xffff))
 	}
 	
 	func returnFromInterrupt() {
 		self.status = Status(rawValue: self.pullStack())!
-		self.programCounter = Address(
+		self.programCounter = Int(
 			low: self.pullStack(),
 			high: self.pullStack())
 	}
 	
-	func jumpToSubroutine(at address: Address) {
+	func jumpToSubroutine(at address: Int) {
 		self.pushStack(self.programCounter.high)
 		self.pushStack(self.programCounter.low)
 		self.programCounter = address
 	}
 	
 	func returnFromSubroutine() {
-		self.programCounter = Address(
+		self.programCounter = Int(
 			low: self.pullStack(),
 			high: self.pullStack())
 	}
@@ -1153,7 +1153,7 @@ public extension MOS6507 {
 
 // MARK: -
 // MARK: Convenience functionality
-private extension Address {
+private extension Int {
 	init(low: Int, high: Int) {
 		self = Self(high) * 0x100 + Self(low)
 	}

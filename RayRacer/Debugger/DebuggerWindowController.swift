@@ -76,7 +76,7 @@ private extension DebuggerWindowController {
 				})
 	}
 	
-	func updateBreakpointsToolbarItemMenu(_ breakpoints: [Address]) {
+	func updateBreakpointsToolbarItemMenu(_ breakpoints: [Int]) {
 		let menu = NSMenu()
 		menu.items = self.createBreakpointMenuItems(breakpoints)
 		
@@ -85,7 +85,7 @@ private extension DebuggerWindowController {
 		toolbarItem?.isEnabled = menu.items.count > 0
 	}
 	
-	private func createBreakpointMenuItems(_ breakpoints: [Address]) -> [NSMenuItem] {
+	private func createBreakpointMenuItems(_ breakpoints: [Int]) -> [NSMenuItem] {
 		guard breakpoints.count > 0 else {
 			return []
 		}
@@ -102,7 +102,7 @@ private extension DebuggerWindowController {
 		return menuItems
 	}
 	
-	private func createBreakpointMenuItem(_ breakpoint: Address) -> NSMenuItem {
+	private func createBreakpointMenuItem(_ breakpoint: Int) -> NSMenuItem {
 		let menuItem = NSMenuItem()
 		menuItem.tag = breakpoint
 		menuItem.attributedTitle = NSAttributedString(

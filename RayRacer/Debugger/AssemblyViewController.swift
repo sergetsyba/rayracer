@@ -9,8 +9,8 @@ import Cocoa
 import Combine
 import RayRacerKit
 
-typealias Program = [(Address, MOS6507Assembly.Instruction)]
-typealias Breakpoint = Address
+typealias Program = [(Int, MOS6507Assembly.Instruction)]
+typealias Breakpoint = Int
 
 class AssemblyViewController: NSViewController {
 	@IBOutlet private var noProgramView: NSView!
@@ -22,7 +22,7 @@ class AssemblyViewController: NSViewController {
 	private var cancellables: Set<AnyCancellable> = []
 	
 	@Published
-	private(set) var breakpoints: [Address] = [] {
+	private(set) var breakpoints: [Int] = [] {
 		didSet {
 			UserDefaults.standard.setBreakpoints(
 				self.breakpoints,
@@ -149,7 +149,7 @@ extension AssemblyViewController {
 		self.tableView.reloadData(in: rows)
 	}
 	
-	func showBreakpoint(_ breakpoint: Address) {
+	func showBreakpoint(_ breakpoint: Int) {
 		if let row = self.program?.firstIndex(where: { $0.0 == breakpoint }) {
 			self.tableView.scrollToRow(row)
 		}
