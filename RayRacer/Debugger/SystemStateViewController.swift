@@ -470,6 +470,10 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			return view
 		}
 	}
+	
+	private func makeView(_ outlineView: NSOutlineView, forCollisionDebugItem item: CollisionDebugItem) -> NSView? {
+		return nil
+	}
 }
 
 private extension NSUserInterfaceItemIdentifier {
@@ -484,11 +488,11 @@ private extension NSUserInterfaceItemIdentifier {
 // MARK: Data formatting
 private extension SystemStateViewController {
 	private var formattedCPUStatus: NSAttributedString {
-		let string = NSMutableAttributedString(string: "N V   B D I Z C")
-		let status = self.console.cpu.status
+		let string = NSMutableAttributedString(string: "N V B D I Z C")
+		let values = MOS6507.Status.allValues
 		
-		for (index, value) in status.enumerated() {
-			if !value {
+		for (index, value) in values.enumerated() {
+			if self.console.cpu.status.contains(value) == false {
 				let range = NSRange(location: index * 2, length: 1)
 				string.addAttribute(.foregroundColor, value: NSColor.disabledControlTextColor, range: range)
 			}
@@ -711,6 +715,15 @@ private extension SystemStateViewController {
 	enum BackgroundDebugItem: String, CaseIterable {
 		case color = "Color"
 	}
+	
+	enum CollisionDebugItem: String, CaseIterable {
+		case player0 = "Player 0"
+		case missile0 = "Missile 0"
+		case player1 = "Player 1"
+		case missile1 = "Missile 1"
+		case ball = "Ball"
+		case playField = "Play field"
+	}
 }
 
 
@@ -738,19 +751,16 @@ private extension Range where Index == Int {
 	}
 }
 
-extension MOS6507.Status: Sequence {
-	public func makeIterator() -> some IteratorProtocol<Bool> {
-		return [
-			self.negative,
-			self.overflow,
-			false,
-			self.break,
-			self.decimalMode,
-			self.interruptDisabled,
-			self.zero,
-			self.carry
-		].makeIterator()
-	}
+extension MOS6507.Status {
+	public static let allValues: [Self] = [
+		.negative,
+		.overflow,
+		.break,
+		.decimalMode,
+		.interruptDisabled,
+		.zero,
+		.carry
+	]
 }
 
 private extension Int {
