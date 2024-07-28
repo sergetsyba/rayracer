@@ -295,12 +295,12 @@ extension TIA {
 
 // MARK: -
 // MARK: Bus integration
-extension TIA: Bus {
-	public func read(at address: Address) -> Int {
+extension TIA: Addressable {
+	public func read(at address: Int) -> Int {
 		return 0x00
 	}
 	
-	public func write(_ data: Int, at address: Address) {
+	public func write(_ data: Int, at address: Int) {
 		switch address {
 		case 0x00:
 			// MARK: VSYNC

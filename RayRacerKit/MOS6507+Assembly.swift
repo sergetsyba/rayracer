@@ -157,8 +157,8 @@ public enum MOS6507AssemblyError: Error {
 // MARK: -
 // MARK: Disassembling
 extension MOS6507Assembly {
-	public static func disassemble(_ data: Data) -> [(Address, Instruction)] {
-		var program: [(Address, Instruction)] = []
+	public static func disassemble(_ data: Data) -> [(Int, Instruction)] {
+		var program: [(Int, Instruction)] = []
 		var index = data.startIndex
 		
 		while index < data.endIndex - 1 {

@@ -20,9 +20,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 
 // MARK: -
-// MARK: Main menu actions
+// MARK: Target actions
 extension AppDelegate {
-	@IBAction func insertCartridgeMenuItemSelected(_ sender: Any) {
+	@IBAction func didSelectInsertCartridgeMenuItem(_ sender: AnyObject) {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
 		panel.canChooseFiles = true
@@ -39,16 +39,38 @@ extension AppDelegate {
 		self.openFile(at: url)
 	}
 	
-	@IBAction func insertRecentCartridgeMenuItemSelected(_ sender: NSMenuItem) {
+	@IBAction func didSelectInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
 		let url = sender.representedObject as! URL
 		self.openFile(at: url)
 	}
 	
-	@IBAction func clearInsertRecentCartridgeMenuItemSelected(_ sender: NSMenuItem) {
+	@IBAction func didSelectClearInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
 		self.defaults.clearOpenedFileURLs()
 	}
 	
-	@IBAction func resumeMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectLeftDifficultyMenuItem(_ sender: NSMenuItem) {
+		self.didSelectConsoleSwitchesMenuItem(sender, for: .difficulty0)
+	}
+	
+	@IBAction func didSelectRightDifficultyMenuItem(_ sender: NSMenuItem) {
+		self.didSelectConsoleSwitchesMenuItem(sender, for: .difficulty1)
+	}
+	
+	@IBAction func didSelectTVTypeMenuItem(_ sender: NSMenuItem) {
+		self.didSelectConsoleSwitchesMenuItem(sender, for: .color)
+	}
+	
+	@IBAction func didSelectGameSelectMenuItem(_ sender: NSMenuItem) {
+		
+	}
+	
+	@IBAction func didSelectGameResetMenuItem(_ sender: AnyObject) {
+		self.console.reset()
+	}
+}
+
+extension AppDelegate {
+	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
 		let queue = DispatchQueue.global(qos: .background)
 		
 		let timer = DispatchSource.makeTimerSource(queue: queue)
@@ -59,23 +81,19 @@ extension AppDelegate {
 		self.timer?.resume()
 	}
 	
-	@IBAction func stepProgramMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectStepProgramMenuItem(_ sender: AnyObject) {
 		self.console.stepProgram()
 	}
 	
-	@IBAction func stepScanLineMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
 		self.console.stepScanLine()
 	}
 	
-	@IBAction func stepFrameMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectStepFrameMenuItem(_ sender: AnyObject) {
 		self.console.stepFrame()
 	}
 	
-	@IBAction func resetGameMenuItemSelected(_ sender: AnyObject) {
-		self.console.reset()
-	}
-	
-	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
 		let windowController = DebuggerWindowController()
 		self.showWindow(of: windowController)
 	}
@@ -83,6 +101,7 @@ extension AppDelegate {
 
 
 // MARK: -
+// MARK: Window management
 extension AppDelegate: NSWindowDelegate {
 	func showWindow(of windowController: NSWindowController) {
 		windowController.window?.delegate = self
@@ -117,17 +136,27 @@ extension AppDelegate: NSWindowDelegate {
 // MARK: Main menu management
 extension AppDelegate: NSMenuDelegate {
 	func menuNeedsUpdate(_ menu: NSMenu) {
-		if menu.identifier == .insertRecentCartridgeMenu {
-			menu.items = self.prepareInsertRecentCartridgeMenuItems()
+		switch menu.identifier {
+		case .insertRecentCartridgeMenu:
+			self.prepareInsertRecentCartridgeMenuItems(in: menu)
+		case .leftDifficultyMenu:
+			self.prepareConsoleSwitchesMenuItems(in: menu, for: .difficulty0)
+		case .rightDifficultyMenu:
+			self.prepareConsoleSwitchesMenuItems(in: menu, for: .difficulty1)
+		case .tvTypeMenu:
+			self.prepareConsoleSwitchesMenuItems(in: menu, for: .color)
+			
+		default:
+			break
 		}
 	}
 	
-	private func prepareInsertRecentCartridgeMenuItems() -> [NSMenuItem] {
+	private func prepareInsertRecentCartridgeMenuItems(in menu: NSMenu) {
 		var menuItems = self.defaults.openedFileURLs
 			.map() {
 				let menuItem = NSMenuItem()
 				menuItem.title = $0.lastPathComponent
-				menuItem.action = #selector(self.insertRecentCartridgeMenuItemSelected(_:))
+				menuItem.action = #selector(self.didSelectInsertRecentCartridgeMenuItem(_:))
 				menuItem.representedObject = $0
 				
 				return menuItem
@@ -144,11 +173,29 @@ extension AppDelegate: NSMenuDelegate {
 			menuItems.append(.separator())
 			menuItems.append(NSMenuItem(
 				title: "Clear Menu",
-				action: #selector(self.clearInsertRecentCartridgeMenuItemSelected(_:)),
+				action: #selector(self.didSelectClearInsertRecentCartridgeMenuItem(_:)),
 				keyEquivalent: ""))
 		}
 		
-		return menuItems
+		menu.items = menuItems
+	}
+	
+	private func prepareConsoleSwitchesMenuItems(in menu: NSMenu, for value: Atari2600.Switches) {
+		let index = self.defaults.consoleSwitches
+			.contains(value) ? 0 : 1
+		
+		menu.items.enumerated()
+			.forEach({ $0.1.state = $0.0 == index ? .on : .off })
+	}
+	
+	private func didSelectConsoleSwitchesMenuItem(_ menuItem: NSMenuItem, for value: Atari2600.Switches) {
+		let index = menuItem.menu?.index(of: menuItem)
+		if index == 0 {
+			self.console.switches.insert(value)
+		} else {
+			self.console.switches.remove(value)
+		}
+		self.defaults.consoleSwitches = self.console.switches
 	}
 }
 
@@ -157,8 +204,6 @@ extension AppDelegate: NSMenuItemValidation {
 		switch menuItem.identifier {
 		case .insertRecentCartridgeMenuItem:
 			return self.defaults.openedFileURLs.count > 0
-		case .gameResetMenuItem:
-			return self.console.cartridge != nil
 		default:
 			return true
 		}
@@ -169,6 +214,10 @@ private extension NSUserInterfaceItemIdentifier {
 	static let insertRecentCartridgeMenuItem = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenuItem")
 	static let gameResetMenuItem = NSUserInterfaceItemIdentifier("GameResetMenuItem")
 	static let insertRecentCartridgeMenu = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenu")
+	
+	static let leftDifficultyMenu = NSUserInterfaceItemIdentifier("LeftDifficultyMenu")
+	static let rightDifficultyMenu = NSUserInterfaceItemIdentifier("RightDifficultyMenu")
+	static let tvTypeMenu = NSUserInterfaceItemIdentifier("TVTypeMenu")
 }
 
 
@@ -203,10 +252,21 @@ private extension NSToolbarItem.Identifier {
 // MARK: -
 // MARK: Preference management
 private extension String {
+	static let consoleSwitches = "ConsoleSwitches"
 	static let openedFileBookmarks = "OpenedFileBookmarks"
 }
 
 private extension UserDefaults {
+	var consoleSwitches: Atari2600.Switches {
+		get {
+			let value = self.integer(forKey: .consoleSwitches)
+			return Atari2600.Switches(rawValue: value)
+		}
+		set {
+			self.setValue(newValue.rawValue, forKey: .consoleSwitches)
+		}
+	}
+	
 	var openedFileURLs: [URL] {
 		// show up to 10 recently opened files
 		return self.openedFileBookmarks

@@ -10,77 +10,94 @@ import Foundation
 public class MOS6532 {
 	internal(set) public var memory: Data
 	
-	private(set) public var remainingTimerCycles: Int
-	private(set) public var intervalIncrement: Int
-	private(set) public var isTimerOn: Bool
+	private(set) public var portA: any Port
+	private(set) public var portADirection: Bool
+	private(set) public var portB: any Port
+	private(set) public var portBDirection: Bool
 	
-	public init() {
+	private(set) public var timerClock: Int
+	private(set) public var timerInterval: Int
+	
+	public init(ports: (any Port, any Port)) {
 		self.memory = Data(randomOfCount: 128)
 		
-		self.remainingTimerCycles = .randomWord
-		self.intervalIncrement = .random(of: [1, 8, 64, 1024])
-		self.isTimerOn = false
+		self.portA = ports.0
+		self.portADirection = .random()
+		self.portB = ports.1
+		self.portBDirection = .random()
+		
+		self.timerClock = .random(in: 0x00...0xff)
+		self.timerInterval = .random(of: [1, 8, 64, 1024])
 	}
 	
 	// Resets internal state.
 	func reset() {
-		self.isTimerOn = false
+		// TODO: reset MOS6532
 	}
 	
 	/// Advances clock 1 cycle.
 	func advanceClock(cycles: Int = 1) {
-		// count timer cycles only when interval timer is on
-		if self.isTimerOn {
-			self.remainingTimerCycles -= cycles
-			
-			// stop timer when it reaches limit
-			if self.remainingTimerCycles < -255 {
-				self.remainingTimerCycles = .randomWord
-				self.isTimerOn = false
-			}
+		// stop timer when it reaches limit
+		guard self.timerClock > -255 else {
+			return
 		}
+		self.timerClock -= cycles
 	}
 }
 
 
 // MARK: -
 // MARK: Bus integration
-extension MOS6532: Bus {
-	public func read(at address: Address) -> Int {
+extension MOS6532: Addressable {
+	public func read(at address: Int) -> Int {
 		switch address % 0x08 {
+		case 0x00:
+			// MARK: SWCHA
+			return self.portA.read()
 		case 0x02:
-			return 0x3f
+			// MARK: SWCHB
+			return self.portB.read()
 		case 0x04:
-			return  self.remainingTimerCycles < 0
-			? self.remainingTimerCycles
-			: self.remainingTimerCycles / self.intervalIncrement
+			// MARK: INTIM
+			return  self.timerClock < 0
+			? self.timerClock
+			: self.timerClock / self.timerInterval
 			
 		default:
 			return 0x00
 		}
 	}
 	
-	public func write(_ data: Int, at address: Address) {
+	public func write(_ data: Int, at address: Int) {
 		switch address {
+		case 0x00:
+			// MARK: SWCHA
+			self.portA.write(data)
+		case 0x01:
+			// MARK: SWACNT
+			self.portADirection = data == 0x1
+		case 0x02:
+			// MARK: SWCHB
+			self.portB.write(data)
+		case 0x03:
+			// MARK: SWBCNT
+			self.portBDirection = data == 0x1
 		case 0x14:
-			self.remainingTimerCycles = data
-			self.intervalIncrement = 1
-			self.isTimerOn = true
-			
+			// MARK: TIM1T
+			self.timerInterval = 1
+			self.timerClock = data
 		case 0x15:
-			self.remainingTimerCycles = data * 8
-			self.intervalIncrement = 8
-			self.isTimerOn = true
-			
+			// MARK: TIM8T
+			self.timerInterval = 8
+			self.timerClock = self.timerInterval * data
 		case 0x16:
-			self.remainingTimerCycles = data * 64
-			self.intervalIncrement = 64
-			self.isTimerOn = true
-			
+			// MARK: TIM64T
+			self.timerInterval = 64
+			self.timerClock = self.timerInterval * data
 		case 0x17:
-			self.remainingTimerCycles = data * 1024
-			self.intervalIncrement = 1024
-			self.isTimerOn = true
+			// MARK: T1024T
+			self.timerInterval = 1024
+			self.timerClock = self.timerInterval * data
 			
 		default:
 			break
@@ -111,4 +128,9 @@ extension Data {
 			self[index] = .random
 		}
 	}
+}
+
+public protocol Port {
+	func read() -> Int
+	mutating func write(_ data: Int)
 }
