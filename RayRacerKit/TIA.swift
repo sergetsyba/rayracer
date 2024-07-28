@@ -48,6 +48,15 @@ public class TIA {
 	private(set) public var ballMotion: Int
 	private(set) public var ballDelay: Bool
 	
+	private(set) public var missile0PlayerCollision: Bool
+	private(set) public var missile1PlayerCollision: Bool
+	private(set) public var player0PlayfieldBallCollision: Bool
+	private(set) public var player1PlayfieldBallCollision: Bool
+	private(set) public var missile0PlayfieldBallCollistion: Bool
+	private(set) public var missile1PlayfieldBallCollistion: Bool
+	private(set) public var ballPlayfieldCollision: Bool
+	private(set) public var playerMissileCollision: Bool
+	
 	init(screen: Screen) {
 		self.screen = screen
 		self.screenClock = 0
@@ -91,6 +100,15 @@ public class TIA {
 		self.ballPosition = .random(in: 4...159)
 		self.ballMotion = .random(in: -8...7)
 		self.ballDelay = .random()
+		
+		self.missile0PlayerCollision = .random()
+		self.missile1PlayerCollision = .random()
+		self.player0PlayfieldBallCollision = .random()
+		self.player1PlayfieldBallCollision = .random()
+		self.missile0PlayfieldBallCollistion = .random()
+		self.missile1PlayfieldBallCollistion = .random()
+		self.ballPlayfieldCollision = .random()
+		self.playerMissileCollision = .random()
 	}
 	
 	public func reset() {
@@ -297,7 +315,34 @@ extension TIA {
 // MARK: Bus integration
 extension TIA: Addressable {
 	public func read(at address: Int) -> Int {
-		return 0x00
+		switch address % 0x10 {
+		case 0x00:
+			// MARK: CXM0P
+			return self.missile0PlayerCollision ? 0x00 : 0xc0
+		case 0x01:
+			// MARK: CXM1P
+			return self.missile1PlayerCollision ? 0x00 : 0xc0
+		case 0x02:
+			// MARK: CXP0FB
+			return self.player0PlayfieldBallCollision ? 0x00 : 0xc0
+		case 0x03:
+			// MARK: CXP1FB
+			return self.player1PlayfieldBallCollision ? 0x00 : 0xc0
+		case 0x04:
+			// MARK: CXM0FB
+			return self.missile0PlayfieldBallCollistion ? 0x00 : 0xc0
+		case 0x05:
+			// MARK: CXM1FB
+			return self.missile1PlayfieldBallCollistion ? 0x00 : 0xc0
+		case 0x06:
+			// MARK: CXBLPF
+			return self.ballPlayfieldCollision ? 0x00 : 0xc0
+		case 0x07:
+			// MARK: CXPPMM
+			return self.playerMissileCollision ? 0x00 : 0xc0
+		default:
+			return .random(in: 0x00..<0x100)
+		}
 	}
 	
 	public func write(_ data: Int, at address: Int) {
@@ -454,6 +499,16 @@ extension TIA: Addressable {
 			self.missile0Motion = 0
 			self.missile1Motion = 0
 			self.ballMotion = 0
+		case 0x2c:
+			// MARK: CXCLR
+			self.missile0PlayerCollision = false
+			self.missile1PlayerCollision = false
+			self.player0PlayfieldBallCollision = false
+			self.player1PlayfieldBallCollision = false
+			self.missile0PlayfieldBallCollistion = false
+			self.missile1PlayfieldBallCollistion = false
+			self.ballPlayfieldCollision = false
+			self.playerMissileCollision = false
 			
 		default:
 			break
