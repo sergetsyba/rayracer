@@ -70,7 +70,7 @@ extension AppDelegate {
 }
 
 extension AppDelegate {
-	@IBAction func resumeMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
 		let queue = DispatchQueue.global(qos: .background)
 		
 		let timer = DispatchSource.makeTimerSource(queue: queue)
@@ -81,19 +81,19 @@ extension AppDelegate {
 		self.timer?.resume()
 	}
 	
-	@IBAction func stepProgramMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectStepProgramMenuItem(_ sender: AnyObject) {
 		self.console.stepProgram()
 	}
 	
-	@IBAction func stepScanLineMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
 		self.console.stepScanLine()
 	}
 	
-	@IBAction func stepFrameMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectStepFrameMenuItem(_ sender: AnyObject) {
 		self.console.stepFrame()
 	}
 	
-	@IBAction func debuggerMenuItemSelected(_ sender: AnyObject) {
+	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
 		let windowController = DebuggerWindowController()
 		self.showWindow(of: windowController)
 	}
