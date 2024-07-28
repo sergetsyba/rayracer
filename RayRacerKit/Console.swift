@@ -12,7 +12,7 @@ public class Atari2600: ObservableObject {
 	private var eventSubject = PassthroughSubject<Event, Never>()
 	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
 	
-	private(set) public var switches = Switches()
+	public var switches = Switches()
 	
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
@@ -188,11 +188,11 @@ extension Atari2600: Addressable {
 // MARK: - Console switches
 extension Atari2600 {
 	public struct Switches: OptionSet {
-		static let reset = Switches(rawValue: 1 << 0)
-		static let select = Switches(rawValue: 1 << 1)
-		static let color = Switches(rawValue: 1 << 3)
-		static let difficulty0 = Switches(rawValue: 1 << 6)
-		static let difficulty1 = Switches(rawValue: 1 << 7)
+		public static let reset = Switches(rawValue: 1 << 0)
+		public static let select = Switches(rawValue: 1 << 1)
+		public static let color = Switches(rawValue: 1 << 3)
+		public static let difficulty0 = Switches(rawValue: 1 << 6)
+		public static let difficulty1 = Switches(rawValue: 1 << 7)
 		
 		public var rawValue: Int
 		

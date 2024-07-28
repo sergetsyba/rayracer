@@ -11,9 +11,9 @@ public class MOS6532 {
 	internal(set) public var memory: Data
 	
 	private(set) public var portA: any Port
-	private(set) public var directionA: Bool
+	private(set) public var portADirection: Bool
 	private(set) public var portB: any Port
-	private(set) public var directionB: Bool
+	private(set) public var portBDirection: Bool
 	
 	private(set) public var timerClock: Int
 	private(set) public var timerInterval: Int
@@ -22,9 +22,9 @@ public class MOS6532 {
 		self.memory = Data(randomOfCount: 128)
 		
 		self.portA = ports.0
-		self.directionA = .random()
+		self.portADirection = .random()
 		self.portB = ports.1
-		self.directionB = .random()
+		self.portBDirection = .random()
 		
 		self.timerClock = .random(in: 0x00...0xff)
 		self.timerInterval = .random(of: [1, 8, 64, 1024])
@@ -75,13 +75,13 @@ extension MOS6532: Addressable {
 			self.portA.write(data)
 		case 0x01:
 			// MARK: SWACNT
-			self.directionA = data == 0x1
+			self.portADirection = data == 0x1
 		case 0x02:
 			// MARK: SWCHB
 			self.portB.write(data)
 		case 0x03:
 			// MARK: SWBCNT
-			self.directionB = data == 0x1
+			self.portBDirection = data == 0x1
 		case 0x14:
 			// MARK: TIM1T
 			self.timerInterval = 1
