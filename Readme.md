@@ -4,11 +4,12 @@ Ray Racer is an Atari 2600 emulator and debugger for macOS.
 
 ## Project status
 Ray Racer is under development and offers only partial emulation at present.
+
 It does not emulate
 
 * double- and quad-sized player graphics
 * movable object collisions
-* console switches
+* ~~console switches~~ (in `main`, relased next)
 * controller input
 * audio
 * cartridges over 4KB with bank-switching
