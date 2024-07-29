@@ -11,7 +11,7 @@ public class TIA {
 	private var verticalSyncClock: Int
 	
 	private(set) public var verticalBlank: Bool
-	private(set) public var waitingHorizontalSync: Bool
+	internal(set) public var waitingHorizontalSync: Bool
 	
 	private(set) public var backgroundColor: Int
 	private(set) public var playfield: Int
@@ -48,14 +48,7 @@ public class TIA {
 	private(set) public var ballMotion: Int
 	private(set) public var ballDelay: Bool
 	
-	private(set) public var missile0PlayerCollision: Bool
-	private(set) public var missile1PlayerCollision: Bool
-	private(set) public var player0PlayfieldBallCollision: Bool
-	private(set) public var player1PlayfieldBallCollision: Bool
-	private(set) public var missile0PlayfieldBallCollistion: Bool
-	private(set) public var missile1PlayfieldBallCollistion: Bool
-	private(set) public var ballPlayfieldCollision: Bool
-	private(set) public var playerMissileCollision: Bool
+	private(set) public var collistions: [GraphicsObject: Set<GraphicsObject>] = [:]
 	
 	init(screen: Screen) {
 		self.screen = screen
@@ -100,15 +93,6 @@ public class TIA {
 		self.ballPosition = .random(in: 4...159)
 		self.ballMotion = .random(in: -8...7)
 		self.ballDelay = .random()
-		
-		self.missile0PlayerCollision = .random()
-		self.missile1PlayerCollision = .random()
-		self.player0PlayfieldBallCollision = .random()
-		self.player1PlayfieldBallCollision = .random()
-		self.missile0PlayfieldBallCollistion = .random()
-		self.missile1PlayfieldBallCollistion = .random()
-		self.ballPlayfieldCollision = .random()
-		self.playerMissileCollision = .random()
 	}
 	
 	public func reset() {
@@ -123,12 +107,18 @@ public class TIA {
 		}
 	}
 	
-	func advanceClockToHorizontalSync() {
-		if self.colorClock > 0 {
-			let cycles = self.screen.width - self.colorClock
-			self.advanceClock(cycles: cycles)
+	func advanceClockToHorizontalSync() -> Int {
+		// do not advance to the next scan line when color clock is at 0
+		guard self.colorClock > 0 else {
+			self.waitingHorizontalSync = false
+			return 0
 		}
+		
+		let cycles = self.screen.width - self.colorClock
+		self.advanceClock(cycles: cycles)
 		self.waitingHorizontalSync = false
+		
+		return 0
 	}
 }
 
@@ -188,6 +178,26 @@ extension TIA {
 		}
 		
 		let point = self.colorClock - 68
+		//		let points = [
+		//			self.player0(at: point),
+		//			self.player1(at: point),
+		//			self.missile0(at: point),
+		//			self.missile1(at: point),
+		//			self.ball(at: point),
+		//			self.playfield(at: point)
+		//		]
+		//
+		//		for (index1, object) in GraphicsObject.allCases.enumerated() {
+		//			var collisions = self.collistions[object] ?? []
+		//			for index2 in points.indices {
+		//				if points[index1] && points[index2] && index1 != index2 {
+		//					collisions.insert(GraphicsObject.allCases[index2])
+		//				}
+		//			}
+		//			self.collistions[object] = collisions
+		//		}
+		//
+		
 		if self.player0(at: point) || self.missile0(at: point) {
 			return self.player0Color
 		}
@@ -318,28 +328,35 @@ extension TIA: Addressable {
 		switch address % 0x10 {
 		case 0x00:
 			// MARK: CXM0P
-			return self.missile0PlayerCollision ? 0x00 : 0xc0
+			return self.collided(.missile0, with: .player0)
+			|| self.collided(.missile0, with: .player1) ? 0x00 : 0xc0
 		case 0x01:
 			// MARK: CXM1P
-			return self.missile1PlayerCollision ? 0x00 : 0xc0
+			return self.collided(.missile1, with: .player0)
+			|| self.collided(.missile1, with: .player1) ? 0x00 : 0xc0
 		case 0x02:
 			// MARK: CXP0FB
-			return self.player0PlayfieldBallCollision ? 0x00 : 0xc0
+			return self.collided(.player0, with: .playfield)
+			|| self.collided(.player0, with: .ball) ? 0x00 : 0xc0
 		case 0x03:
 			// MARK: CXP1FB
-			return self.player1PlayfieldBallCollision ? 0x00 : 0xc0
+			return self.collided(.player1, with: .playfield)
+			|| self.collided(.player1, with: .ball) ? 0x00 : 0xc0
 		case 0x04:
 			// MARK: CXM0FB
-			return self.missile0PlayfieldBallCollistion ? 0x00 : 0xc0
+			return self.collided(.missile0, with: .playfield)
+			|| self.collided(.player0, with: .ball) ? 0x00 : 0xc0
 		case 0x05:
 			// MARK: CXM1FB
-			return self.missile1PlayfieldBallCollistion ? 0x00 : 0xc0
+			return self.collided(.missile1, with: .playfield)
+			|| self.collided(.player0, with: .ball) ? 0x00 : 0xc0
 		case 0x06:
 			// MARK: CXBLPF
-			return self.ballPlayfieldCollision ? 0x00 : 0xc0
+			return self.collided(.ball, with: .playfield) ? 0x00 : 0xc0
 		case 0x07:
 			// MARK: CXPPMM
-			return self.playerMissileCollision ? 0x00 : 0xc0
+			return self.collided(.player0, with: .player1)
+			|| self.collided(.missile0, with: .missile1) ? 0x00 : 0xc0
 		default:
 			return .random(in: 0x00..<0x100)
 		}
@@ -501,14 +518,7 @@ extension TIA: Addressable {
 			self.ballMotion = 0
 		case 0x2c:
 			// MARK: CXCLR
-			self.missile0PlayerCollision = false
-			self.missile1PlayerCollision = false
-			self.player0PlayfieldBallCollision = false
-			self.player1PlayfieldBallCollision = false
-			self.missile0PlayfieldBallCollistion = false
-			self.missile1PlayfieldBallCollistion = false
-			self.ballPlayfieldCollision = false
-			self.playerMissileCollision = false
+			self.collistions = [:]
 			
 		default:
 			break
@@ -538,3 +548,19 @@ private let sectionLookUp = [
 	0x111, // ●○○○●○○○●○
 	0x001  // ●●●●○○○○○○
 ]
+
+extension TIA {
+	public enum GraphicsObject: CaseIterable {
+		case player0
+		case player1
+		case missile0
+		case missile1
+		case ball
+		case playfield
+	}
+	
+	private func collided(_ object1: GraphicsObject, with object2: GraphicsObject) -> Bool {
+		return self.collistions[object1]?
+			.contains(object2) ?? false
+	}
+}

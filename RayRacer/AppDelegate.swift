@@ -71,14 +71,17 @@ extension AppDelegate {
 
 extension AppDelegate {
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		let queue = DispatchQueue.global(qos: .background)
-		
-		let timer = DispatchSource.makeTimerSource(queue: queue)
-		timer.schedule(deadline: .now(), repeating: .microseconds(2))
-		timer.setEventHandler() { [unowned self] in self.console.stepProgram() }
-		
-		self.timer = timer
-		self.timer?.resume()
+//		let queue = DispatchQueue.global(qos: .background)
+//		
+//		let timer = DispatchSource.makeTimerSource(queue: queue)
+//		timer.schedule(deadline: .now(), repeating: .microseconds(2))
+//		timer.setEventHandler() { [unowned self] in self.console.stepProgram() }
+//		
+//		self.timer = timer
+//		self.timer?.resume()
+		let identifier = self.console.gameIdentifier!
+		let breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
+		self.console.resumeProgram(until: breakpoints)
 	}
 	
 	@IBAction func didSelectStepProgramMenuItem(_ sender: AnyObject) {
