@@ -12,8 +12,6 @@ public class Atari2600: ObservableObject {
 	private var eventSubject = PassthroughSubject<Event, Never>()
 	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
 	
-	public var switches = Switches()
-	
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
@@ -22,9 +20,12 @@ public class Atari2600: ObservableObject {
 	private(set) public var frame = Data(count: 262 * 228)
 	private(set) public var frameClock = 0
 	
+	public var switches: Switches = .random()
+	public var joystic = Joystick()
+	
 	public init() {
 		self.cpu = MOS6507(bus: self)
-		self.riot = MOS6532(ports: (self.switches, Switches()))
+		self.riot = MOS6532(ports: (self.joystic, self))
 		self.tia = TIA(screen: self)
 	}
 	
@@ -36,6 +37,14 @@ public class Atari2600: ObservableObject {
 		
 		self.frameClock = 0
 		self.eventSubject.send(.reset)
+	}
+	
+	public func setSwitch(_ switch: Switches, on: Bool) {
+		if on {
+			self.switches.insert(`switch`)
+		} else {
+			self.switches.remove(`switch`)
+		}
 	}
 	
 	public func insertCartridge(_ data: Data) {
@@ -199,21 +208,42 @@ extension Atari2600 {
 		
 		public var rawValue: Int
 		
+		public static func random() -> Switches {
+			let value: Int = .random(in: 0x00...0xff)
+			return Switches(rawValue: value)
+		}
+		
 		public init(rawValue: Int) {
 			self.rawValue = rawValue
 		}
 	}
 }
 
-extension Atari2600.Switches: Port {
+extension Atari2600: Port {
 	public func read() -> Int {
-		return self.rawValue
+		return self.switches.rawValue
+	}
+	
+	public func write(_ data: Int) {
+		// port B is supposed to be read-only, but can be written to
+		// nonetheless; writing sets the 3 unassigned bits
+		self.switches.rawValue |= data & 0x34
+	}
+}
+
+
+// MARK: - Joystick
+extension Atari2600 {
+	public struct Joystick {
+	}
+}
+
+extension Atari2600.Joystick: Port {
+	public func read() -> Int {
+		return 0
 	}
 	
 	public mutating func write(_ data: Int) {
-		// port B is supposed to be read-only, but can be written to
-		// nonetheless; writing sets the 3 unassigned bits
-		self.rawValue |= data & 0x34
 	}
 }
 
