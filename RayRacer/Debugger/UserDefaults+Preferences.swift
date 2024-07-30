@@ -8,14 +8,6 @@
 import Foundation
 import RayRacerKit
 
-struct Preferences {
-	var games: [String: GamePreferences]
-}
-
-struct GamePreferences {
-	var breakpoints: [Breakpoint]
-}
-
 extension UserDefaults {
 	func preferences(forGameIdentifier identifier: String) -> [String: Any] {
 		let preferences = self.dictionary(forKey: "Games")
@@ -27,23 +19,5 @@ extension UserDefaults {
 		preferences[identifier] = gamePreferences
 		
 		self.setValue(preferences, forKey: "Games")
-	}
-	
-	func breakpoints(forGameIdentifier identifier: String) -> [Breakpoint] {
-		let preferences = self.preferences(forGameIdentifier: identifier)
-		let breakpoints = preferences["Breakpoints"] as? [String]
-		
-		return breakpoints?
-			.map() { $0.dropFirst() }
-			.compactMap() { Int($0, radix: 16) }
-		?? []
-	}
-	
-	func setBreakpoints(_ breakpoints: [Breakpoint], forGameIdentifier identifier: String) {
-		var preferences = self.preferences(forGameIdentifier: identifier)
-		preferences["Breakpoints"] = breakpoints
-			.map() { String(format: "$%04x", $0) }
-		
-		self.setPreferences(preferences, forGameIdentifier: identifier)
 	}
 }

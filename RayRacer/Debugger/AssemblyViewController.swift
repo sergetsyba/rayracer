@@ -19,14 +19,15 @@ class AssemblyViewController: NSViewController {
 	
 	private let console: Atari2600 = .current
 	private var program: Program?
+	private let defaults: UserDefaults = .standard
 	private var cancellables: Set<AnyCancellable> = []
 	
 	@Published
 	private(set) var breakpoints: [Int] = [] {
 		didSet {
-			UserDefaults.standard.setBreakpoints(
-				self.breakpoints,
-				forGameIdentifier: self.console.gameIdentifier!)
+			if let identifier = self.console.gameIdentifier {
+				self.defaults.setBreakpoints(self.breakpoints, forGameIdentifier: identifier)
+			}
 		}
 	}
 	
@@ -95,6 +96,8 @@ private extension AssemblyViewController {
 	func updateView() {
 		if let data = self.console.cartridge {
 			self.program = MOS6507Assembly.disassemble(data)
+			self.breakpoints = self.defaults.breakpoints(
+				forGameIdentifier: self.console.gameIdentifier!)
 			
 			// switch to program view
 			self.view.setContentView(self.programView, layout: .fill)
@@ -102,6 +105,7 @@ private extension AssemblyViewController {
 				.makeFirstResponder(self.tableView)
 		} else {
 			self.program = nil
+			self.breakpoints = []
 			
 			// switch to no program view
 			self.view.setContentView(self.noProgramView, layout: .center)
@@ -251,6 +255,32 @@ private extension AssemblyViewController {
 		} else {
 			return nil
 		}
+	}
+}
+
+
+// MARK: -
+// MARK: User defaults integration
+private extension String {
+	static let breakpoints = "Breakpoints"
+}
+
+extension UserDefaults {
+	func breakpoints(forGameIdentifier identifier: String) -> [Breakpoint] {
+		let preferences = self.preferences(forGameIdentifier: identifier)
+		let breakpoints = preferences[.breakpoints] as? [String] ?? []
+		
+		return breakpoints
+			.map() { $0.dropFirst() }
+			.compactMap() { Int($0, radix: 16) }
+	}
+	
+	func setBreakpoints(_ breakpoints: [Breakpoint], forGameIdentifier identifier: String) {
+		var preferences = self.preferences(forGameIdentifier: identifier)
+		preferences[.breakpoints] = breakpoints
+			.map() { String(format: "$%04x", $0) }
+		
+		self.setPreferences(preferences, forGameIdentifier: identifier)
 	}
 }
 
