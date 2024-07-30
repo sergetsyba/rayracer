@@ -15,8 +15,7 @@ public class MOS6532 {
 	private(set) public var portB: any Port
 	private(set) public var portBDirection: Bool
 	
-	private(set) public var timerClock: Int
-	private(set) public var timerInterval: Int
+	private(set) public var timer: Timer
 	
 	public init(ports: (any Port, any Port)) {
 		self.memory = Data(randomOfCount: 128)
@@ -26,19 +25,47 @@ public class MOS6532 {
 		self.portB = ports.1
 		self.portBDirection = .random()
 		
-		self.timerClock = .random(in: 0x00...0xff)
-		self.timerInterval = .random(of: [1, 8, 64, 1024])
+		self.timer = .random()
 	}
 	
-	// Resets internal state.
+	/// Resets internal state.
 	func reset() {
-		// TODO: reset MOS6532
+		self.memory = Data(randomOfCount: 128)
+		self.timer = .random()
 	}
 	
-	/// Advances clock 1 cycle.
+	/// Advances clock by the speciied number of cycles.
 	func advanceClock(cycles: Int) {
-		// stop timer when it reaches limit
-		self.timerClock = max(-255, self.timerClock - cycles)
+		self.timer.advanceClock(cycles: cycles)
+	}
+}
+
+extension MOS6532 {
+	public struct Timer {
+		private(set) public var clock: Int
+		private(set) public var interval: Int
+		
+		public init(value: Int, interval: Int) {
+			self.clock = value * interval
+			self.interval = interval
+		}
+		
+		public static func random() -> Self {
+			return Timer(
+				value: .random(in: 0x00...0xff),
+				interval: .random(of: [1, 8, 64, 1024]))
+		}
+		
+		public var value: Int {
+			return self.clock < 0
+			? Int(signed: 0xff - self.clock, bits: 8)
+			: self.clock / self.interval
+		}
+		
+		public mutating func advanceClock(cycles: Int) {
+			// stop timer when it reaches limit
+			self.clock = max(-0xff, self.clock - cycles)
+		}
 	}
 }
 
@@ -56,10 +83,7 @@ extension MOS6532: Addressable {
 			return self.portB.read()
 		case 0x04:
 			// MARK: INTIM
-			return  self.timerClock < 0
-			? Int(signed: self.timerClock, bits: 8)
-			: self.timerClock / self.timerInterval
-			
+			return  self.timer.value
 		default:
 			return 0x00
 		}
@@ -81,20 +105,16 @@ extension MOS6532: Addressable {
 			self.portBDirection = data == 0x1
 		case 0x14:
 			// MARK: TIM1T
-			self.timerInterval = 1
-			self.timerClock = data
+			self.timer = Timer(value: data, interval: 1)
 		case 0x15:
 			// MARK: TIM8T
-			self.timerInterval = 8
-			self.timerClock = self.timerInterval * data
+			self.timer = Timer(value: data, interval: 8)
 		case 0x16:
 			// MARK: TIM64T
-			self.timerInterval = 64
-			self.timerClock = self.timerInterval * data
+			self.timer = Timer(value: data, interval: 64)
 		case 0x17:
 			// MARK: T1024T
-			self.timerInterval = 1024
-			self.timerClock = self.timerInterval * data
+			self.timer = Timer(value: data, interval: 1-24)
 			
 		default:
 			break

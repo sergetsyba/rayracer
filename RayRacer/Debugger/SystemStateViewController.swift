@@ -222,9 +222,9 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		
 		switch item {
 		case .value:
-			view?.stringValue = (item.rawValue, "\(riot.timerClock)")
+			view?.stringValue = (item.rawValue, "\(riot.timer.clock)")
 		case .interval:
-			view?.stringValue = (item.rawValue, "\(riot.timerInterval)")
+			view?.stringValue = (item.rawValue, "\(riot.timer.interval)")
 		}
 		
 		return view
