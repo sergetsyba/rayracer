@@ -218,7 +218,9 @@ extension Atari2600 {
 
 extension Atari2600: Port {
 	public func read() -> Int {
-		return self.switches.rawValue
+		// when switches for `select` and `reset` are on, corresponding
+		// bit values are set to 0
+		return self.switches.rawValue ^ 0x03
 	}
 	
 	public func write(_ data: Int) {

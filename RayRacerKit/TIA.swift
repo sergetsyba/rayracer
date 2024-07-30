@@ -107,6 +107,7 @@ public class TIA {
 		}
 	}
 	
+	@discardableResult
 	func advanceClockToHorizontalSync() -> Int {
 		// do not advance to the next scan line when color clock is at 0
 		guard self.colorClock > 0 else {
@@ -178,25 +179,26 @@ extension TIA {
 		}
 		
 		let point = self.colorClock - 68
-		//		let points = [
-		//			self.player0(at: point),
-		//			self.player1(at: point),
-		//			self.missile0(at: point),
-		//			self.missile1(at: point),
-		//			self.ball(at: point),
-		//			self.playfield(at: point)
-		//		]
-		//
-		//		for (index1, object) in GraphicsObject.allCases.enumerated() {
-		//			var collisions = self.collistions[object] ?? []
-		//			for index2 in points.indices {
-		//				if points[index1] && points[index2] && index1 != index2 {
-		//					collisions.insert(GraphicsObject.allCases[index2])
-		//				}
-		//			}
-		//			self.collistions[object] = collisions
-		//		}
-		//
+		let points = [
+			self.player0(at: point),
+			self.player1(at: point),
+			self.missile0(at: point),
+			self.missile1(at: point),
+			self.ball(at: point),
+			self.playfield(at: point)
+		]
+		
+		for (index1, object) in GraphicsObject.allCases.enumerated() {
+			var collisions = self.collistions[object] ?? []
+			for index2 in points.indices {
+				if points[index1] && points[index2] && index1 != index2 {
+					collisions.insert(GraphicsObject.allCases[index2])
+				}
+			}
+			
+			self.collistions[object] = collisions
+		}
+		
 		
 		if self.player0(at: point) || self.missile0(at: point) {
 			return self.player0Color
