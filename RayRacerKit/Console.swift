@@ -16,9 +16,7 @@ public class Atari2600: ObservableObject {
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
 	private(set) public var cartridge: Data? = nil
-	
 	private(set) public var frame = Data(count: 262 * 228)
-	private(set) public var frameClock = 0
 	
 	public var switches: Switches = .random()
 	public var joystic = Joystick()
@@ -35,7 +33,6 @@ public class Atari2600: ObservableObject {
 		self.riot.reset()
 		self.tia.reset()
 		
-		self.frameClock = 0
 		self.eventSubject.send(.reset)
 	}
 	
@@ -111,8 +108,8 @@ public extension Atari2600 {
 	}
 	
 	func stepFrame() {
-		var clock1 = self.frameClock
-		var clock2 = self.frameClock
+		var clock1 = self.tia.screenClock
+		var clock2 = self.tia.screenClock
 		
 		// keep executing CPU instructions until frame clock decreases
 		repeat {
@@ -123,7 +120,7 @@ public extension Atari2600 {
 			}
 			
 			self.executeNextCPUInstruction()
-			clock2 = self.frameClock
+			clock2 = self.tia.screenClock
 		} while clock1 < clock2
 		
 		self.debugEventSubject.send(.break)
@@ -259,18 +256,21 @@ extension Atari2600: Screen {
 	}
 	
 	private var scanLine: Int {
-		return self.frameClock / self.width
+		return self.tia.screenClock / self.width
 	}
 	
 	public func sync() {
 		self.eventSubject.send(.frame)
-		self.frameClock = 0
 	}
 	
 	public func write(color: Int) {
-		if self.frameClock < self.frame.count {
-			self.frame[self.frameClock] = UInt8(color) >> 1
+		if self.tia.screenClock < self.frame.count {
+			self.frame[self.tia.screenClock] = UInt8(color) >> 1
 		}
-		self.frameClock += 1
+	}
+	
+	// FIXME: remove
+	public var frameClock: Int {
+		return self.tia.screenClock
 	}
 }

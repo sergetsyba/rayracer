@@ -7,7 +7,7 @@
 
 public class TIA {
 	private var screen: Screen
-	private var screenClock: Int
+	var screenClock: Int
 	private var verticalSyncClock: Int
 	
 	private(set) public var verticalBlank: Bool
@@ -118,7 +118,7 @@ public class TIA {
 		self.advanceClock(cycles: cycles)
 		self.waitingHorizontalSync = false
 		
-		return 0
+		return cycles
 	}
 }
 
@@ -329,34 +329,34 @@ extension TIA: Addressable {
 		case 0x00:
 			// MARK: CXM0P
 			return self.collided(.missile0, with: .player0)
-			|| self.collided(.missile0, with: .player1) ? 0x00 : 0xc0
+			|| self.collided(.missile0, with: .player1) ? 0xc0 : 0x30
 		case 0x01:
 			// MARK: CXM1P
 			return self.collided(.missile1, with: .player0)
-			|| self.collided(.missile1, with: .player1) ? 0x00 : 0xc0
+			|| self.collided(.missile1, with: .player1) ? 0xc0 : 0x31
 		case 0x02:
 			// MARK: CXP0FB
 			return self.collided(.player0, with: .playfield)
-			|| self.collided(.player0, with: .ball) ? 0x00 : 0xc0
+			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x32
 		case 0x03:
 			// MARK: CXP1FB
 			return self.collided(.player1, with: .playfield)
-			|| self.collided(.player1, with: .ball) ? 0x00 : 0xc0
+			|| self.collided(.player1, with: .ball) ? 0xc0 : 0x33
 		case 0x04:
 			// MARK: CXM0FB
 			return self.collided(.missile0, with: .playfield)
-			|| self.collided(.player0, with: .ball) ? 0x00 : 0xc0
+			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x34
 		case 0x05:
 			// MARK: CXM1FB
 			return self.collided(.missile1, with: .playfield)
-			|| self.collided(.player0, with: .ball) ? 0x00 : 0xc0
+			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x35
 		case 0x06:
 			// MARK: CXBLPF
-			return self.collided(.ball, with: .playfield) ? 0x00 : 0xc0
+			return self.collided(.ball, with: .playfield) ? 0xc0 : 0x36
 		case 0x07:
 			// MARK: CXPPMM
 			return self.collided(.player0, with: .player1)
-			|| self.collided(.missile0, with: .missile1) ? 0x00 : 0xc0
+			|| self.collided(.missile0, with: .missile1) ? 0xc0 : 0x37
 		default:
 			return .random(in: 0x00..<0x100)
 		}
@@ -381,7 +381,8 @@ extension TIA: Addressable {
 				let elapsedCycles = self.screenClock - self.verticalSyncClock
 				let scanLines = elapsedCycles / self.screen.width
 				if scanLines >= 3 {
-					self.screenClock = 0
+					// FIXME: Stella resets color clock to 9 after VSYNC
+					self.screenClock = 9
 					self.screen.sync()
 				}
 				
