@@ -283,6 +283,12 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.boolValue = (item.rawValue, self.console.tia.player0Delay)
 			return view
+			
+		case .collisions:
+			let formatted = self.formatCollisions(of: .player0)
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, formatted)
+			return view
 		}
 	}
 	
@@ -307,6 +313,12 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		case .position:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.positionValue = (item.rawValue, self.console.tia.missile0Position, self.console.tia.missile0Motion)
+			return view
+			
+		case .collisions:
+			let formatted = self.formatCollisions(of: .missile0)
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, formatted)
 			return view
 		}
 	}
@@ -344,6 +356,12 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.boolValue = (item.rawValue, self.console.tia.player1Delay)
 			return view
+			
+		case .collisions:
+			let formatted = self.formatCollisions(of: .player1)
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, formatted)
+			return view
 		}
 	}
 	
@@ -368,6 +386,12 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		case .position:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.positionValue = (item.rawValue, self.console.tia.missile1Position, self.console.tia.missile1Motion)
+			return view
+			
+		case .collisions:
+			let formatted = self.formatCollisions(of: .missile1)
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, formatted)
 			return view
 		}
 	}
@@ -400,6 +424,12 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.boolValue = (item.rawValue, self.console.tia.ballDelay)
 			return view
+			
+		case .collisions:
+			let formatted = self.formatCollisions(of: .ball)
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, formatted)
+			return view
 		}
 	}
 	
@@ -420,6 +450,12 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
 			view?.colorValue = (item.rawValue, self.console.tia.playfieldColor)
+			return view
+			
+		case .collisions:
+			let formatted = self.formatCollisions(of: .playfield)
+			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
+			view?.stringValue = (item.rawValue, formatted)
 			return view
 		}
 	}
@@ -549,6 +585,28 @@ private extension SystemStateViewController {
 		string.addAttribute(.foregroundColor, value: NSColor.disabledControlTextColor, range: range)
 		return string
 	}
+	
+	private func formatCollisions(of object: TIA.GraphicsObject) -> String {
+		if let objects = self.console.tia.collistions[object] {
+			return objects.map({ "\($0)" })
+				.joined(separator: ", ")
+		} else {
+			return "None"
+		}
+	}
+}
+
+extension TIA.GraphicsObject: CustomStringConvertible {
+	public var description: String {
+		switch self {
+		case .player0: return "Player 0"
+		case .player1: return "Player 1"
+		case .missile0: return "Missile 0"
+		case .missile1: return "Missile 1"
+		case .ball: return "Ball"
+		case .playfield: return "Playfield"
+		}
+	}
 }
 
 
@@ -605,6 +663,7 @@ private extension SystemStateViewController {
 		case color = "Color"
 		case position = "Position"
 		case delay = "Delay"
+		case collisions = "Collisions"
 	}
 	
 	enum Missile0DebugItem: String, CaseIterable {
@@ -612,6 +671,7 @@ private extension SystemStateViewController {
 		case graphics = "Graphics"
 		case color = "Color"
 		case position = "Position"
+		case collisions = "Collisions"
 	}
 	
 	enum Player1DebugItem: String, CaseIterable {
@@ -621,6 +681,7 @@ private extension SystemStateViewController {
 		case color = "Color"
 		case position = "Position"
 		case delay = "Delay"
+		case collisions = "Collisions"
 	}
 	
 	enum Missile1DebugItem: String, CaseIterable {
@@ -628,6 +689,7 @@ private extension SystemStateViewController {
 		case graphics = "Graphics"
 		case color = "Color"
 		case position = "Position"
+		case collisions = "Collisions"
 	}
 	
 	enum BallDebugItem: String, CaseIterable {
@@ -636,12 +698,14 @@ private extension SystemStateViewController {
 		case color = "Color"
 		case position = "Position"
 		case verticalDelay = "Vertical delay"
+		case collisions = "Collisions"
 	}
 	
 	enum PlayfieldDebugItem: String, CaseIterable {
 		case graphics = "Graphics"
 		case secondHalf = "Second half"
 		case color = "Color"
+		case collisions = "Collisions"
 	}
 	
 	enum BackgroundDebugItem: String, CaseIterable {

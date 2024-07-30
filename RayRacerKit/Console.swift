@@ -12,19 +12,18 @@ public class Atari2600: ObservableObject {
 	private var eventSubject = PassthroughSubject<Event, Never>()
 	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
 	
-	public var switches = Switches()
-	
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
 	private(set) public var cartridge: Data? = nil
-	
 	private(set) public var frame = Data(count: 262 * 228)
-	private(set) public var frameClock = 0
+	
+	public var switches: Switches = .random()
+	public var joystic = Joystick()
 	
 	public init() {
 		self.cpu = MOS6507(bus: self)
-		self.riot = MOS6532(ports: (self.switches, Switches()))
+		self.riot = MOS6532(ports: (self.joystic, self))
 		self.tia = TIA(screen: self)
 	}
 	
@@ -34,8 +33,15 @@ public class Atari2600: ObservableObject {
 		self.riot.reset()
 		self.tia.reset()
 		
-		self.frameClock = 0
 		self.eventSubject.send(.reset)
+	}
+	
+	public func setSwitch(_ switch: Switches, on: Bool) {
+		if on {
+			self.switches.insert(`switch`)
+		} else {
+			self.switches.remove(`switch`)
+		}
 	}
 	
 	public func insertCartridge(_ data: Data) {
@@ -75,9 +81,10 @@ public extension Atari2600 {
 public extension Atari2600 {
 	func stepProgram() {
 		// when stepping a CPU instruction and WSYNC is on, advance TIA to
-		// horizontal sync with CPU instruction
+		// horizontal sync and execute the next CPU instruction
 		if self.tia.waitingHorizontalSync {
-			self.tia.advanceClockToHorizontalSync()
+			let cycles = self.tia.advanceClockToHorizontalSync()
+			self.riot.advanceClock(cycles: cycles / 3)
 		}
 		
 		self.executeNextCPUInstruction()
@@ -88,9 +95,10 @@ public extension Atari2600 {
 		let scanLine = self.scanLine
 		repeat {
 			// when stepping a scan line and WSYNC is on, advance TIA to
-			// horizontal sync but break before CPU instruction
+			// horizontal sync but break before the next CPU instruction
 			if self.tia.waitingHorizontalSync {
-				self.tia.advanceClockToHorizontalSync()
+				let cycles = self.tia.advanceClockToHorizontalSync()
+				self.riot.advanceClock(cycles: cycles / 3)
 			} else {
 				self.executeNextCPUInstruction()
 			}
@@ -100,18 +108,19 @@ public extension Atari2600 {
 	}
 	
 	func stepFrame() {
-		var clock1 = self.frameClock
-		var clock2 = self.frameClock
+		var clock1 = self.tia.screenClock
+		var clock2 = self.tia.screenClock
 		
 		// keep executing CPU instructions until frame clock decreases
 		repeat {
 			clock1 = clock2
 			if self.tia.waitingHorizontalSync {
-				self.tia.advanceClockToHorizontalSync()
+				let cycles = self.tia.advanceClockToHorizontalSync()
+				self.riot.advanceClock(cycles: cycles / 3)
 			}
 			
 			self.executeNextCPUInstruction()
-			clock2 = self.frameClock
+			clock2 = self.tia.screenClock
 		} while clock1 < clock2
 		
 		self.debugEventSubject.send(.break)
@@ -196,21 +205,44 @@ extension Atari2600 {
 		
 		public var rawValue: Int
 		
+		public static func random() -> Switches {
+			let value: Int = .random(in: 0x00...0xff)
+			return Switches(rawValue: value)
+		}
+		
 		public init(rawValue: Int) {
 			self.rawValue = rawValue
 		}
 	}
 }
 
-extension Atari2600.Switches: Port {
+extension Atari2600: Port {
 	public func read() -> Int {
-		return self.rawValue
+		// when switches for `select` and `reset` are on, corresponding
+		// bit values are set to 0
+		return self.switches.rawValue ^ 0x03
+	}
+	
+	public func write(_ data: Int) {
+		// port B is supposed to be read-only, but can be written to
+		// nonetheless; writing sets the 3 unassigned bits
+		self.switches.rawValue |= data & 0x34
+	}
+}
+
+
+// MARK: - Joystick
+extension Atari2600 {
+	public struct Joystick {
+	}
+}
+
+extension Atari2600.Joystick: Port {
+	public func read() -> Int {
+		return 0
 	}
 	
 	public mutating func write(_ data: Int) {
-		// port B is supposed to be read-only, but can be written to
-		// nonetheless; writing sets the 3 unassigned bits
-		self.rawValue |= data & 0x34
 	}
 }
 
@@ -226,18 +258,21 @@ extension Atari2600: Screen {
 	}
 	
 	private var scanLine: Int {
-		return self.frameClock / self.width
+		return self.tia.screenClock / self.width
 	}
 	
 	public func sync() {
 		self.eventSubject.send(.frame)
-		self.frameClock = 0
 	}
 	
 	public func write(color: Int) {
-		if self.frameClock < self.frame.count {
-			self.frame[self.frameClock] = UInt8(color) >> 1
+		if self.tia.screenClock < self.frame.count {
+			self.frame[self.tia.screenClock] = UInt8(color) >> 1
 		}
-		self.frameClock += 1
+	}
+	
+	// FIXME: remove
+	public var frameClock: Int {
+		return self.tia.screenClock
 	}
 }

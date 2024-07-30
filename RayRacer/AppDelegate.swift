@@ -16,6 +16,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	
 	private var defaults: UserDefaults = .standard
 	private var timer: DispatchSourceTimer?
+	
+	func applicationDidFinishLaunching(_ notification: Notification) {
+		self.console.switches = self.defaults.consoleSwitches
+	}
 }
 
 
@@ -67,18 +71,30 @@ extension AppDelegate {
 	@IBAction func didSelectGameResetMenuItem(_ sender: AnyObject) {
 		self.console.reset()
 	}
+	
+	private func didSelectConsoleSwitchesMenuItem(_ menuItem: NSMenuItem, for switch: Atari2600.Switches) {
+		// menu items for `on` switch values appear at the top of the menu
+		let on = menuItem.menu?
+			.index(of: menuItem) == 0
+		
+		self.console.setSwitch(`switch`, on: on)
+		self.defaults.consoleSwitches = self.console.switches
+	}
 }
 
 extension AppDelegate {
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		let queue = DispatchQueue.global(qos: .background)
-		
-		let timer = DispatchSource.makeTimerSource(queue: queue)
-		timer.schedule(deadline: .now(), repeating: .microseconds(2))
-		timer.setEventHandler() { [unowned self] in self.console.stepProgram() }
-		
-		self.timer = timer
-		self.timer?.resume()
+		//		let queue = DispatchQueue.global(qos: .background)
+		//
+		//		let timer = DispatchSource.makeTimerSource(queue: queue)
+		//		timer.schedule(deadline: .now(), repeating: .microseconds(2))
+		//		timer.setEventHandler() { [unowned self] in self.console.stepProgram() }
+		//
+		//		self.timer = timer
+		//		self.timer?.resume()
+		let identifier = self.console.gameIdentifier!
+		let breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
+		self.console.resumeProgram(until: breakpoints)
 	}
 	
 	@IBAction func didSelectStepProgramMenuItem(_ sender: AnyObject) {
@@ -181,21 +197,13 @@ extension AppDelegate: NSMenuDelegate {
 	}
 	
 	private func prepareConsoleSwitchesMenuItems(in menu: NSMenu, for value: Atari2600.Switches) {
-		let index = self.defaults.consoleSwitches
+		// menu items for `on` switch values are at the top of the menu
+		let selectedIndex = self.defaults.consoleSwitches
 			.contains(value) ? 0 : 1
 		
-		menu.items.enumerated()
-			.forEach({ $0.1.state = $0.0 == index ? .on : .off })
-	}
-	
-	private func didSelectConsoleSwitchesMenuItem(_ menuItem: NSMenuItem, for value: Atari2600.Switches) {
-		let index = menuItem.menu?.index(of: menuItem)
-		if index == 0 {
-			self.console.switches.insert(value)
-		} else {
-			self.console.switches.remove(value)
+		for (index, menuItem) in menu.items.enumerated() {
+			menuItem.state = index == selectedIndex ? .on : .off
 		}
-		self.defaults.consoleSwitches = self.console.switches
 	}
 }
 
@@ -259,7 +267,9 @@ private extension String {
 private extension UserDefaults {
 	var consoleSwitches: Atari2600.Switches {
 		get {
-			let value = self.integer(forKey: .consoleSwitches)
+			// by default, TV type is set to `color` and both difficulties
+			// to `advanced`
+			let value = self.object(forKey: .consoleSwitches) as? Int ?? 0xc8
 			return Atari2600.Switches(rawValue: value)
 		}
 		set {

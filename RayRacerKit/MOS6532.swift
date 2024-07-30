@@ -36,12 +36,9 @@ public class MOS6532 {
 	}
 	
 	/// Advances clock 1 cycle.
-	func advanceClock(cycles: Int = 1) {
+	func advanceClock(cycles: Int) {
 		// stop timer when it reaches limit
-		guard self.timerClock > -255 else {
-			return
-		}
-		self.timerClock -= cycles
+		self.timerClock = max(-255, self.timerClock - cycles)
 	}
 }
 
@@ -60,7 +57,7 @@ extension MOS6532: Addressable {
 		case 0x04:
 			// MARK: INTIM
 			return  self.timerClock < 0
-			? self.timerClock
+			? Int(signed: self.timerClock, bits: 8)
 			: self.timerClock / self.timerInterval
 			
 		default:

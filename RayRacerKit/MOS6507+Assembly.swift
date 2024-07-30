@@ -447,6 +447,10 @@ public extension MOS6507Assembly {
 		0x02: "swchb",
 		0x03: "swbcnt",
 		0x04: "intim",
-		0x06: "intim"
+		0x06: "intim",
+		0x14: "tim1t",
+		0x15: "tim8t",
+		0x16: "tim64t",
+		0x17: "t1024t"
 	]
 }
