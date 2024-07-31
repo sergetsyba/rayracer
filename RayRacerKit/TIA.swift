@@ -22,14 +22,7 @@ public class TIA {
 	private(set) public var numberSize1: Int
 	
 	private(set) public var players: (Player, Player) = (.random(), .random())
-	
-	private(set) public var missile0Enabled: Bool
-	private(set) public var missile0Position: Int
-	private(set) public var missile0Motion: Int
-	
-	private(set) public var missile1Enabled: Bool
-	private(set) public var missile1Position: Int
-	private(set) public var missile1Motion: Int
+	private(set) public var missiles: (Missile, Missile) = (.random(), .random())
 	
 	private(set) public var ballEnabled: (Bool, Bool)
 	private(set) public var ballPosition: Int
@@ -54,14 +47,6 @@ public class TIA {
 		
 		self.numberSize0 = .random(in: 0x00...0xff)
 		self.numberSize1 = .random(in: 0x00...0xff)
-		
-		self.missile0Enabled = .random()
-		self.missile0Position = .random(in: 4...159)
-		self.missile0Motion = .random(in: -8...7)
-		
-		self.missile1Enabled = .random()
-		self.missile1Position = .random(in: 4...159)
-		self.missile1Motion = .random(in: -8...7)
 		
 		self.ballEnabled = (.random(), .random())
 		self.ballPosition = .random(in: 4...159)
@@ -124,13 +109,13 @@ extension TIA {
 				reflected: .random(),
 				color: .random(in: 0x00...0xff),
 				position: .random(in: 5...160),
-				motion: .random(in: -7...8),
+				motion: .random(in: -8...7),
 				delayed: .random())
 		}
 	}
 }
 
-extension TIA.Player {
+private extension TIA.Player {
 	func draws(at point: Int, copies: Int) -> Bool {
 		// ensure beam position is within possible player graphics
 		// positions range
@@ -151,6 +136,45 @@ extension TIA.Player {
 		return self.reflected
 		? graphics[counter % 8]
 		: graphics[7 - counter % 8]
+	}
+}
+
+
+// MARK: -
+// MARK: Missile
+extension TIA {
+	public struct Missile {
+		public var enabled: Bool
+		public var size: Int
+		public var position: Int
+		public var motion: Int
+		
+		init(enabled: Bool, size: Int, position: Int, motion: Int) {
+			self.enabled = enabled
+			self.size = size
+			self.position = position
+			self.motion = motion
+		}
+		
+		static func random() -> Missile {
+			return Missile(
+				enabled: .random(),
+				size: .random(in: 1...8),
+				position: .random(in: 4...160),
+				motion: .random(in: -8...7))
+		}
+	}
+}
+
+private extension TIA.Missile {
+	func draws(at point: Int) -> Bool {
+		guard self.enabled else {
+			return false
+		}
+		
+		let counter = point - self.position
+		return (0..<self.size)
+			.contains(counter)
 	}
 }
 
@@ -213,8 +237,8 @@ extension TIA {
 		let points = [
 			self.players.0.draws(at: point, copies: self.player0Copies),
 			self.players.1.draws(at: point, copies: self.player1Copies),
-			self.missile0(at: point),
-			self.missile1(at: point),
+			self.missiles.0.draws(at: point),
+			self.missiles.0.draws(at: point),
 			self.ball(at: point),
 			self.playfield(at: point)
 		]
@@ -231,10 +255,10 @@ extension TIA {
 		}
 		
 		
-		if self.players.0.draws(at: point, copies: self.player0Copies) || self.missile0(at: point) {
+		if self.players.0.draws(at: point, copies: self.player0Copies) || self.missiles.0.draws(at: point) {
 			return self.players.0.color
 		}
-		if self.players.1.draws(at: point, copies: self.player1Copies) || self.missile1(at: point) {
+		if self.players.1.draws(at: point, copies: self.player1Copies) || self.missiles.1.draws(at: point) {
 			return self.players.1.color
 		}
 		if self.ball(at: point) {
@@ -263,26 +287,6 @@ extension TIA {
 			? self.playfield[19 - bit]
 			: self.playfield[bit]
 		}
-	}
-	
-	private func missile0(at point: Int) -> Bool {
-		guard self.missile0Enabled else {
-			return false
-		}
-		
-		let counter = point - self.missile0Position
-		return (0..<self.missile0Size)
-			.contains(counter)
-	}
-	
-	private func missile1(at point: Int) -> Bool {
-		guard self.missile1Enabled else {
-			return false
-		}
-		
-		let counter = point - self.missile1Position
-		return (0..<self.missile1Size)
-			.contains(counter)
 	}
 	
 	private func ball(at point: Int) -> Bool {
@@ -431,12 +435,12 @@ extension TIA: Addressable {
 			// MARK: RESM0
 			// resetting missile position takes additional 4 color clocks to
 			// decode
-			self.missile0Position = max(0, self.colorClock - 68) + 4
+			self.missiles.0.position = max(0, self.colorClock - 68) + 4
 		case 0x13:
 			// MARK: RESM1
 			// resetting missile position takes additional 4 color clocks to
 			// decode
-			self.missile1Position = max(0, self.colorClock - 68) + 4
+			self.missiles.1.position = max(0, self.colorClock - 68) + 4
 		case 0x14:
 			// MARK: RESBL
 			self.ballPosition = max(0, self.colorClock - 68) + 4
@@ -451,10 +455,10 @@ extension TIA: Addressable {
 			self.ballEnabled.1 = self.ballEnabled.0
 		case 0x1d:
 			// MARK: ENAM0
-			self.missile0Enabled = data[1]
+			self.missiles.0.enabled = data[1]
 		case 0x1e:
 			// MARK: ENAM1
-			self.missile1Enabled = data[1]
+			self.missiles.1.enabled = data[1]
 		case 0x1f:
 			// MARK: ENABL
 			self.ballEnabled.0 = data[1]
@@ -466,10 +470,10 @@ extension TIA: Addressable {
 			self.players.1.motion = Int(signed: data >> 4, bits: 4)
 		case 0x22:
 			// MARK: HMM0
-			self.missile0Motion = Int(signed: data >> 4, bits: 4)
+			self.missiles.0.motion = Int(signed: data >> 4, bits: 4)
 		case 0x23:
 			// MARK: HMM1
-			self.missile1Motion = Int(signed: data >> 4, bits: 4)
+			self.missiles.1.motion = Int(signed: data >> 4, bits: 4)
 		case 0x24:
 			// MARK: HMBL
 			self.ballMotion = Int(signed: data >> 4, bits: 4)
@@ -486,15 +490,15 @@ extension TIA: Addressable {
 			// MARK: HMOVE
 			self.players.0.position -= self.players.0.motion
 			self.players.1.position -= self.players.1.motion
-			self.missile0Position -= self.missile0Motion
-			self.missile1Position -= self.missile1Motion
+			self.missiles.0.position -= self.missiles.0.motion
+			self.missiles.1.position -= self.missiles.1.motion
 			self.ballPosition -= self.ballMotion
 		case 0x2b:
 			// MARK: HMCLR
 			self.players.0.motion = 0
 			self.players.1.motion = 0
-			self.missile0Motion = 0
-			self.missile1Motion = 0
+			self.missiles.0.motion = 0
+			self.missiles.1.motion = 0
 			self.ballMotion = 0
 		case 0x2c:
 			// MARK: CXCLR
