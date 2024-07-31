@@ -23,11 +23,7 @@ public class TIA {
 	
 	private(set) public var players: (Player, Player) = (.random(), .random())
 	private(set) public var missiles: (Missile, Missile) = (.random(), .random())
-	
-	private(set) public var ballEnabled: (Bool, Bool)
-	private(set) public var ballPosition: Int
-	private(set) public var ballMotion: Int
-	private(set) public var ballDelay: Bool
+	private(set) public var ball: Ball = .random()
 	
 	private(set) public var collistions: [GraphicsObject: Set<GraphicsObject>] = [:]
 	
@@ -47,11 +43,6 @@ public class TIA {
 		
 		self.numberSize0 = .random(in: 0x00...0xff)
 		self.numberSize1 = .random(in: 0x00...0xff)
-		
-		self.ballEnabled = (.random(), .random())
-		self.ballPosition = .random(in: 4...159)
-		self.ballMotion = .random(in: -8...7)
-		self.ballDelay = .random()
 	}
 	
 	public func reset() {
@@ -94,15 +85,6 @@ extension TIA {
 		public var motion: Int
 		public var delayed: Bool
 		
-		init(graphics: (Int, Int), reflected: Bool, color: Int, position: Int, motion: Int, delayed: Bool) {
-			self.graphics = graphics
-			self.reflected = reflected
-			self.color = color
-			self.position = position
-			self.motion = motion
-			self.delayed = delayed
-		}
-		
 		static func random() -> Player {
 			return Player(
 				graphics: (.random(in: 0x00...0xff), .random(in: 0x00...0xff)),
@@ -130,8 +112,8 @@ private extension TIA.Player {
 		}
 		
 		let graphics = self.delayed
-		? self.graphics.0
-		: self.graphics.1
+		? self.graphics.1
+		: self.graphics.0
 		
 		return self.reflected
 		? graphics[counter % 8]
@@ -149,13 +131,6 @@ extension TIA {
 		public var position: Int
 		public var motion: Int
 		
-		init(enabled: Bool, size: Int, position: Int, motion: Int) {
-			self.enabled = enabled
-			self.size = size
-			self.position = position
-			self.motion = motion
-		}
-		
 		static func random() -> Missile {
 			return Missile(
 				enabled: .random(),
@@ -169,6 +144,44 @@ extension TIA {
 private extension TIA.Missile {
 	func draws(at point: Int) -> Bool {
 		guard self.enabled else {
+			return false
+		}
+		
+		let counter = point - self.position
+		return (0..<self.size)
+			.contains(counter)
+	}
+}
+
+
+// MARK: -
+// MARK: Ball
+extension TIA {
+	public struct Ball {
+		public var enabled: (Bool, Bool)
+		public var size: Int
+		public var position: Int
+		public var motion: Int
+		public var delayed: Bool
+		
+		static func random() -> Ball {
+			return Ball(
+				enabled: (.random(), .random()),
+				size: .random(in: 1...8),
+				position: .random(in: 0...160),
+				motion: .random(in: -8...7),
+				delayed: .random())
+		}
+	}
+}
+
+extension TIA.Ball {
+	func draws(at point: Int) -> Bool {
+		let enabled = self.delayed
+		? self.enabled.1
+		: self.enabled.0
+		
+		guard enabled else {
 			return false
 		}
 		
@@ -239,7 +252,7 @@ extension TIA {
 			self.players.1.draws(at: point, copies: self.player1Copies),
 			self.missiles.0.draws(at: point),
 			self.missiles.0.draws(at: point),
-			self.ball(at: point),
+			self.ball.draws(at: point),
 			self.playfield(at: point)
 		]
 		
@@ -261,7 +274,7 @@ extension TIA {
 		if self.players.1.draws(at: point, copies: self.player1Copies) || self.missiles.1.draws(at: point) {
 			return self.players.1.color
 		}
-		if self.ball(at: point) {
+		if self.ball.draws(at: point) {
 			return self.playfieldColor
 		}
 		if self.playfield(at: point) {
@@ -287,20 +300,6 @@ extension TIA {
 			? self.playfield[19 - bit]
 			: self.playfield[bit]
 		}
-	}
-	
-	private func ball(at point: Int) -> Bool {
-		let enabled = self.ballDelay
-		? self.ballEnabled.1
-		: self.ballEnabled.0
-		
-		guard enabled else {
-			return false
-		}
-		
-		let counter = point - self.ballPosition
-		return (0..<self.ballSize)
-			.contains(counter)
 	}
 }
 
@@ -443,7 +442,7 @@ extension TIA: Addressable {
 			self.missiles.1.position = max(0, self.colorClock - 68) + 4
 		case 0x14:
 			// MARK: RESBL
-			self.ballPosition = max(0, self.colorClock - 68) + 4
+			self.ball.position = max(0, self.colorClock - 68) + 4
 		case 0x1b:
 			// MARK: GRP0
 			self.players.0.graphics.0 = data
@@ -452,7 +451,7 @@ extension TIA: Addressable {
 			// MARK: GRP1
 			self.players.1.graphics.0 = data
 			self.players.0.graphics.1 = self.players.0.graphics.0
-			self.ballEnabled.1 = self.ballEnabled.0
+			self.ball.enabled.1 = self.ball.enabled.0
 		case 0x1d:
 			// MARK: ENAM0
 			self.missiles.0.enabled = data[1]
@@ -461,7 +460,7 @@ extension TIA: Addressable {
 			self.missiles.1.enabled = data[1]
 		case 0x1f:
 			// MARK: ENABL
-			self.ballEnabled.0 = data[1]
+			self.ball.enabled.0 = data[1]
 		case 0x20:
 			// MARK: HMP0
 			self.players.0.motion = Int(signed: data >> 4, bits: 4)
@@ -476,7 +475,7 @@ extension TIA: Addressable {
 			self.missiles.1.motion = Int(signed: data >> 4, bits: 4)
 		case 0x24:
 			// MARK: HMBL
-			self.ballMotion = Int(signed: data >> 4, bits: 4)
+			self.ball.motion = Int(signed: data >> 4, bits: 4)
 		case 0x25:
 			// MARK: VDELP0
 			self.players.0.delayed = data[0]
@@ -485,21 +484,21 @@ extension TIA: Addressable {
 			self.players.1.delayed = data[0]
 		case 0x27:
 			// MARK: VDELBL
-			self.ballDelay = data[0]
+			self.ball.delayed = data[0]
 		case 0x2a:
 			// MARK: HMOVE
 			self.players.0.position -= self.players.0.motion
 			self.players.1.position -= self.players.1.motion
 			self.missiles.0.position -= self.missiles.0.motion
 			self.missiles.1.position -= self.missiles.1.motion
-			self.ballPosition -= self.ballMotion
+			self.ball.position -= self.ball.motion
 		case 0x2b:
 			// MARK: HMCLR
 			self.players.0.motion = 0
 			self.players.1.motion = 0
 			self.missiles.0.motion = 0
 			self.missiles.1.motion = 0
-			self.ballMotion = 0
+			self.ball.motion = 0
 		case 0x2c:
 			// MARK: CXCLR
 			self.collistions = [:]

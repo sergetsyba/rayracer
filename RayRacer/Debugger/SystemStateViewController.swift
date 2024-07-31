@@ -320,15 +320,17 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forBallDebugItem item: BallDebugItem) -> NSView? {
+		let ball = self.console.tia.ball
+		
 		switch item {
 		case .enabled:
-			let formatted = self.formatBallEnabled(self.console.tia.ballEnabled, delayed: self.console.tia.ballDelay)
+			let formatted = self.formatBallEnabled(ball.enabled, delayed: ball.delayed)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.attributedStringValue = (item.rawValue, formatted)
 			return view
 			
 		case .graphics:
-			let formatted = self.formatGraphics(width: self.console.tia.ballSize)
+			let formatted = self.formatGraphics(width: ball.size)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.stringValue = (item.rawValue, formatted)
 			return view
@@ -340,12 +342,12 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .position:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.positionValue = (item.rawValue, self.console.tia.ballPosition, self.console.tia.ballMotion)
+			view?.positionValue = (item.rawValue, ball.position, ball.motion)
 			return view
 			
 		case .verticalDelay:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, self.console.tia.ballDelay)
+			view?.boolValue = (item.rawValue, ball.delayed)
 			return view
 			
 		case .collisions:
