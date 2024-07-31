@@ -26,9 +26,7 @@ class SystemStateViewController: NSViewController {
 	
 	override func viewWillAppear() {
 		super.viewWillAppear()
-		
 		self.outlineView.expandItem(nil, expandChildren: true)
-		self.outlineView.reloadData()
 	}
 }
 
@@ -87,10 +85,8 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 				return BackgroundDebugItem.allCases.count
 			case .playField:
 				return PlayfieldDebugItem.allCases.count
-			case .player0:
-				return Player0DebugItem.allCases.count
-			case .player1:
-				return Player1DebugItem.allCases.count
+			case .player0, .player1:
+				return PlayerDebugItem.allCases.count
 			case .missile0:
 				return Missile0DebugItem.allCases.count
 			case .missile1:
@@ -125,10 +121,8 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 				return BackgroundDebugItem.allCases[index]
 			case .playField:
 				return PlayfieldDebugItem.allCases[index]
-			case .player0:
-				return Player0DebugItem.allCases[index]
-			case .player1:
-				return Player1DebugItem.allCases[index]
+			case .player0, .player1:
+				return PlayerDebugItem.allCases[index]
 			case .missile0:
 				return Missile0DebugItem.allCases[index]
 			case .missile1:
@@ -160,10 +154,8 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			return self.makeView(outlineView, forSectionItem: section)
 		} else if let item = item as? ScreenDebugItem {
 			return self.makeView(outlineView, forScreenDebugItem: item)
-		} else if let item = item as? Player0DebugItem {
-			return self.makeView(outlineView, forPlayer0DebugItem: item)
-		} else if let item = item as? Player1DebugItem {
-			return self.makeView(outlineView, forPlayer1DebugItem: item)
+		} else if let item = item as? PlayerDebugItem {
+			return self.makeView(outlineView, forPlayerDebugItem: item)
 		} else if let item = item as? Missile1DebugItem {
 			return self.makeView(outlineView, forMissile1DebugItem: item)
 		} else if let item = item as? Missile0DebugItem {
@@ -250,42 +242,47 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		return view
 	}
 	
-	private func makeView(_ outlineView: NSOutlineView, forPlayer0DebugItem item: Player0DebugItem) -> NSView? {
+	private func makeView(_ outlineView: NSOutlineView, forPlayerDebugItem item: PlayerDebugItem) -> NSView? {
+		let parent = outlineView.parent(forItem: item) as? GraphicsDebugSection
+		let player = parent == .player0
+		? self.console.tia.players.0
+		: self.console.tia.players.1
+		
 		switch item {
 		case .graphics:
-			let formatted = self.formatPlayerGraphics(self.console.tia.player0Graphics, reflected: self.console.tia.player0Reflected, delayed: self.console.tia.player0Delay)
+			let formatted = self.formatPlayerGraphics(player)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.attributedStringValue = (item.rawValue, formatted)
 			return view
 			
 		case .reflect:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, self.console.tia.player0Reflected)
+			view?.boolValue = (item.rawValue, player.reflected)
 			return view
 			
 		case .copies:
-			let formatted = self.formatPlayerCopies(self.console.tia.player0Copies)
+			let formatted = self.formatPlayerCopies(self.console.tia.player1Copies)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.stringValue = (item.rawValue, formatted)
 			return view
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, self.console.tia.player0Color)
+			view?.colorValue = (item.rawValue, player.color)
 			return view
 			
 		case .position:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.positionValue = (item.rawValue, self.console.tia.player0Position, self.console.tia.player0Motion)
+			view?.positionValue = (item.rawValue, player.position, player.motion)
 			return view
 			
 		case .delay:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, self.console.tia.player0Delay)
+			view?.boolValue = (item.rawValue, player.delayed)
 			return view
 			
 		case .collisions:
-			let formatted = self.formatCollisions(of: .player0)
+			let formatted = self.formatCollisions(of: .player1)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.stringValue = (item.rawValue, formatted)
 			return view
@@ -307,7 +304,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, self.console.tia.player0Color)
+			view?.colorValue = (item.rawValue, self.console.tia.players.0.color)
 			return view
 			
 		case .position:
@@ -317,48 +314,6 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let formatted = self.formatCollisions(of: .missile0)
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, formatted)
-			return view
-		}
-	}
-	
-	private func makeView(_ outlineView: NSOutlineView, forPlayer1DebugItem item: Player1DebugItem) -> NSView? {
-		switch item {
-		case .graphics:
-			let formatted = self.formatPlayerGraphics(self.console.tia.player1Graphics, reflected: self.console.tia.player1Reflected, delayed: self.console.tia.player1Delay)
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.attributedStringValue = (item.rawValue, formatted)
-			return view
-			
-		case .reflect:
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, self.console.tia.player1Reflected)
-			return view
-			
-		case .copies:
-			let formatted = self.formatPlayerCopies(self.console.tia.player1Copies)
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, formatted)
-			return view
-			
-		case .color:
-			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, self.console.tia.player1Color)
-			return view
-			
-		case .position:
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.positionValue = (item.rawValue, self.console.tia.player1Position, self.console.tia.player1Motion)
-			return view
-			
-		case .delay:
-			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, self.console.tia.player1Delay)
-			return view
-			
-		case .collisions:
-			let formatted = self.formatCollisions(of: .player1)
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.stringValue = (item.rawValue, formatted)
 			return view
@@ -380,7 +335,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, self.console.tia.player1Color)
+			view?.colorValue = (item.rawValue, self.console.tia.players.1.color)
 			return view
 			
 		case .position:
@@ -529,13 +484,13 @@ private extension SystemStateViewController {
 		return "\(values) \(pattern.suffix(20))"
 	}
 	
-	private func formatPlayerGraphics(_ graphics: (Int, Int), reflected: Bool, delayed: Bool) -> NSAttributedString {
+	private func formatPlayerGraphics(_ player: TIA.Player) -> NSAttributedString {
 		let formatted = (
-			self.formatPlayerGraphics(graphics.0, reflected: reflected),
-			self.formatPlayerGraphics(graphics.1, reflected: reflected))
+			self.formatPlayerGraphics(player.graphics.0, reflected: player.reflected),
+			self.formatPlayerGraphics(player.graphics.1, reflected: player.reflected))
 		
 		let string = NSMutableAttributedString(string: formatted.0 + "  " + formatted.1)
-		let range = delayed
+		let range = player.delayed
 		? NSRange(location: 0, length: formatted.0.count)
 		: NSRange(location: formatted.0.count + 2, length: formatted.1.count)
 		
@@ -660,7 +615,7 @@ private extension SystemStateViewController {
 		case background = "Background"
 	}
 	
-	enum Player0DebugItem: String, CaseIterable {
+	enum PlayerDebugItem: String, CaseIterable {
 		case graphics = "Graphics"
 		case reflect = "Reflect"
 		case copies = "Copies"
@@ -675,16 +630,6 @@ private extension SystemStateViewController {
 		case graphics = "Graphics"
 		case color = "Color"
 		case position = "Position"
-		case collisions = "Collisions"
-	}
-	
-	enum Player1DebugItem: String, CaseIterable {
-		case graphics = "Graphics"
-		case reflect = "Reflect"
-		case copies = "Copies"
-		case color = "Color"
-		case position = "Position"
-		case delay = "Delay"
 		case collisions = "Collisions"
 	}
 	
