@@ -65,10 +65,12 @@ extension AppDelegate {
 	}
 	
 	@IBAction func didSelectGameSelectMenuItem(_ sender: NSMenuItem) {
-		
 	}
 	
 	@IBAction func didSelectGameResetMenuItem(_ sender: AnyObject) {
+	}
+	
+	@IBAction func didSelectResetMenuItem(_ sender: AnyObject) {
 		self.console.reset()
 	}
 	
