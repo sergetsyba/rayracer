@@ -216,7 +216,7 @@ extension Atari2600 {
 	}
 }
 
-extension Atari2600: Port {
+extension Atari2600: MOS6532.Port {
 	public func read() -> Int {
 		// when switches for `select` and `reset` are on, corresponding
 		// bit values are set to 0
@@ -237,7 +237,7 @@ extension Atari2600 {
 	}
 }
 
-extension Atari2600.Joystick: Port {
+extension Atari2600.Joystick: MOS6532.Port {
 	public func read() -> Int {
 		return 0
 	}

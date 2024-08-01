@@ -9,22 +9,12 @@ import Foundation
 
 public class MOS6532 {
 	internal(set) public var memory: Data
-	
-	private(set) public var portA: any Port
-	private(set) public var portADirection: Bool
-	private(set) public var portB: any Port
-	private(set) public var portBDirection: Bool
-	
+	private(set) public var ports: (a: (Port, direction: DataDirection), b: (Port, direction: DataDirection))
 	private(set) public var timer: Timer
 	
-	public init(ports: (any Port, any Port)) {
+	public init(ports: (Port, Port)) {
 		self.memory = Data(randomOfCount: 128)
-		
-		self.portA = ports.0
-		self.portADirection = .random()
-		self.portB = ports.1
-		self.portBDirection = .random()
-		
+		self.ports = ((ports.0, .read), (ports.1, .read))
 		self.timer = .random()
 	}
 	
@@ -40,6 +30,8 @@ public class MOS6532 {
 	}
 }
 
+
+// MARK: -
 extension MOS6532 {
 	public struct Timer {
 		private(set) public var clock: Int
@@ -67,6 +59,16 @@ extension MOS6532 {
 			self.clock = max(-0xff, self.clock - cycles)
 		}
 	}
+	
+	public protocol Port {
+		func read() -> Int
+		mutating func write(_ data: Int)
+	}
+	
+	public enum DataDirection {
+		case read
+		case write
+	}
 }
 
 
@@ -77,10 +79,10 @@ extension MOS6532: Addressable {
 		switch address % 0x08 {
 		case 0x00:
 			// MARK: SWCHA
-			return self.portA.read()
+			return self.ports.a.0.read()
 		case 0x02:
 			// MARK: SWCHB
-			return self.portB.read()
+			return self.ports.a.0.read()
 		case 0x04:
 			// MARK: INTIM
 			return  self.timer.value
@@ -93,16 +95,16 @@ extension MOS6532: Addressable {
 		switch address {
 		case 0x00:
 			// MARK: SWCHA
-			self.portA.write(data)
+			self.ports.a.0.write(data)
 		case 0x01:
 			// MARK: SWACNT
-			self.portADirection = data == 0x1
+			self.ports.a.direction = data == 0x1 ? .write : .read
 		case 0x02:
 			// MARK: SWCHB
-			self.portB.write(data)
+			self.ports.b.0.write(data)
 		case 0x03:
 			// MARK: SWBCNT
-			self.portBDirection = data == 0x1
+			self.ports.b.direction = data == 0x1 ? .write : .read
 		case 0x14:
 			// MARK: TIM1T
 			self.timer = Timer(value: data, interval: 1)
@@ -145,9 +147,4 @@ extension Data {
 			self[index] = .random
 		}
 	}
-}
-
-public protocol Port {
-	func read() -> Int
-	mutating func write(_ data: Int)
 }

@@ -92,6 +92,7 @@ extension TIA {
 	public struct Missile {
 		public var enabled: Bool
 		public var size: Int
+		public var color: Int
 		public var position: Int
 		public var motion: Int
 		
@@ -99,6 +100,7 @@ extension TIA {
 			return Missile(
 				enabled: .random(),
 				size: .random(in: 1...8),
+				color: .random(in: 0x00...0xff),
 				position: .random(in: 4...160),
 				motion: .random(in: -8...7))
 		}
@@ -123,7 +125,7 @@ extension TIA {
 	
 	public struct Playfield {
 		public var graphics: Int
-		public var control: Control
+		public var control: PlayfieldControl
 		public var color: Int
 		
 		static func random() -> Playfield {
@@ -132,21 +134,21 @@ extension TIA {
 				control: .random(),
 				color: .random(in: 0x00...0xff))
 		}
+	}
+	
+	public struct PlayfieldControl: OptionSet {
+		public static let reflected = PlayfieldControl(rawValue: 1 << 0)
+		public static let scoreMode = PlayfieldControl(rawValue: 1 << 1)
+		public static let priority = PlayfieldControl(rawValue: 1 << 2)
 		
-		public struct Control: OptionSet {
-			public static let reflected = Control(rawValue: 1 << 0)
-			public static let scoreMode = Control(rawValue: 1 << 1)
-			public static let priority = Control(rawValue: 1 << 2)
-			
-			public var rawValue: Int
-			
-			static func random() -> Control {
-				return Control(rawValue: .random(in: 0x00...0xff))
-			}
-			
-			public init(rawValue: Int) {
-				self.rawValue = rawValue
-			}
+		public var rawValue: Int
+		
+		static func random() -> PlayfieldControl {
+			return PlayfieldControl(rawValue: .random(in: 0x00...0xff))
+		}
+		
+		public init(rawValue: Int) {
+			self.rawValue = rawValue
 		}
 	}
 }
@@ -255,16 +257,16 @@ extension TIA {
 			self.playfield.draws(at: point)
 		]
 		
-		for (index1, object) in GraphicsObject.allCases.enumerated() {
-			var collisions = self.collistions[object] ?? []
-			for index2 in points.indices {
-				if points[index1] && points[index2] && index1 != index2 {
-					collisions.insert(GraphicsObject.allCases[index2])
-				}
-			}
-			
-			self.collistions[object] = collisions
-		}
+		//		for (index1, object) in GraphicsObject.allCases.enumerated() {
+		//			var collisions = self.collistions[object] ?? []
+		//			for index2 in points.indices {
+		//				if points[index1] && points[index2] && index1 != index2 {
+		//					collisions.insert(GraphicsObject.allCases[index2])
+		//				}
+		//			}
+		//			
+		//			self.collistions[object] = collisions
+		//		}
 		
 		
 		if self.players.0.draws(at: point)
@@ -380,9 +382,11 @@ extension TIA: Addressable {
 		case 0x06:
 			// MARK: COLUP0
 			self.players.0.color = data
+			self.missiles.0.color = data
 		case 0x07:
 			// MARK: COLUP1
 			self.players.1.color = data
+			self.missiles.1.color = data
 		case 0x08:
 			// MARK: COLUPF
 			self.playfield.color = data
