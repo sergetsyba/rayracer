@@ -65,7 +65,7 @@
                         <items>
                             <menuItem title="Insert Cartridge" keyEquivalent="o" id="G6B-pP-Kya">
                                 <connections>
-                                    <action selector="didSelectInsertCartridgeMenuItem:" target="-1" id="OaC-f6-5QO"/>
+                                    <action selector="didSelectInsertCartridgeMenuItem:" target="Voe-Tx-rLC" id="CvU-4o-sqv"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Insert Recent Cartridge" identifier="InsertRecentCartridgeMenuItem" id="82w-BQ-fYJ">
@@ -84,13 +84,13 @@
                                         <menuItem title="Advanced" id="sqI-4l-jbT">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="didSelectLeftDifficultyMenuItem:" target="-1" id="RqX-tr-kMf"/>
+                                                <action selector="didSelectLeftDifficultyMenuItem:" target="Voe-Tx-rLC" id="7Tb-0t-fO4"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Beginner" id="ZsC-Ai-7bF">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="didSelectLeftDifficultyMenuItem:" target="-1" id="Vfj-Lp-T56"/>
+                                                <action selector="didSelectLeftDifficultyMenuItem:" target="Voe-Tx-rLC" id="giR-Us-1zD"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -106,13 +106,13 @@
                                         <menuItem title="Advanced" id="lML-lA-Y31">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="didSelectRightDifficultyMenuItem:" target="-1" id="gbO-qy-cDf"/>
+                                                <action selector="didSelectRightDifficultyMenuItem:" target="Voe-Tx-rLC" id="Bj7-aB-d4c"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Beginner" id="s19-Qg-dJZ">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="didSelectRightDifficultyMenuItem:" target="-1" id="lmI-It-pAX"/>
+                                                <action selector="didSelectRightDifficultyMenuItem:" target="Voe-Tx-rLC" id="DPI-j4-Aq6"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -128,13 +128,13 @@
                                         <menuItem title="Color" id="Nbz-iy-v04">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="didSelectTVTypeMenuItem:" target="-1" id="08O-t2-8QE"/>
+                                                <action selector="didSelectTVTypeMenuItem:" target="Voe-Tx-rLC" id="4g9-DF-WlV"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Black•White" id="cVR-DK-yLh">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="didSelectTVTypeMenuItem:" target="-1" id="XDV-YS-qak"/>
+                                                <action selector="didSelectTVTypeMenuItem:" target="Voe-Tx-rLC" id="SNl-UL-ZBh"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -147,12 +147,18 @@
                             <menuItem title="Game Select" id="Pg0-pC-YRK">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="didSelectGameSelectMenuItem:" target="-1" id="AwO-4M-4F7"/>
+                                    <action selector="didSelectGameSelectMenuItem:" target="Voe-Tx-rLC" id="Z4a-Pk-zOe"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Game Reset" keyEquivalent="r" identifier="GameResetMenuItem" id="Qfz-Kq-MTK">
                                 <connections>
-                                    <action selector="didSelectGameResetMenuItem:" target="-1" id="c24-Yx-8bm"/>
+                                    <action selector="didSelectGameResetMenuItem:" target="Voe-Tx-rLC" id="Yy6-h9-9PV"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Reset" alternate="YES" keyEquivalent="r" identifier="ResetMenuItem" id="S33-bq-fEN">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                <connections>
+                                    <action selector="didSelectResetMenuItem:" target="Voe-Tx-rLC" id="HYm-lf-Vdm"/>
                                 </connections>
                             </menuItem>
                         </items>

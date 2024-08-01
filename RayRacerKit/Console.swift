@@ -170,7 +170,9 @@ extension Atari2600: Addressable {
 			return self.riot.read(at: address)
 		}
 		
-		let data = self.cartridge![address - 0xf000]
+		let data = self.cartridge?[address - 0xf000]
+		?? .random(in: 0x00...0xff)
+		
 		return Int(data)
 	}
 	
