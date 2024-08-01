@@ -329,6 +329,9 @@ extension TIA: Addressable {
 			// MARK: CXPPMM
 			return self.collided(.player0, with: .player1)
 			|| self.collided(.missile0, with: .missile1) ? 0xc0 : 0x37
+		case 0x0c:
+			// MARK: INPT4
+			return 0x80
 		default:
 			return .random(in: 0x00..<0x100)
 		}

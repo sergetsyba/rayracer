@@ -82,7 +82,7 @@ extension MOS6532: Addressable {
 			return self.ports.a.0.read()
 		case 0x02:
 			// MARK: SWCHB
-			return self.ports.a.0.read()
+			return self.ports.b.0.read()
 		case 0x04:
 			// MARK: INTIM
 			return  self.timer.value
