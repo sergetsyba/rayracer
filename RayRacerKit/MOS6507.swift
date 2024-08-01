@@ -14,7 +14,7 @@ public class MOS6507 {
 	private(set) public var programCounter: Int
 	
 	private var bus: any Addressable<Int>
-	private var decoded: (() -> Void, Int, Int?)? = nil
+	private var decoded: (() -> Void, Int, Int?)?
 	
 	public init(bus: any Addressable<Int>) {
 		self.accumulator = .random(in: 0x00...0xff)
@@ -22,18 +22,28 @@ public class MOS6507 {
 		self.y = .random(in: 0x00...0xff)
 		self.status = .random()
 		
-		self.stackPointer = .random(in: 0x00...0xff)
-		self.programCounter = .random(in: 0x0000...0xffff)
+		self.stackPointer = 0xfd
+		self.programCounter = Int(
+			low: bus.read(at: 0xfffc),
+			high: bus.read(at: 0xfffd))
+		
 		self.bus = bus
+		self.decoded = nil
 	}
 	
 	/// Resets this CPU.
 	public func reset() {
-		self.status.insert(.interruptDisabled)
+		self.accumulator = .random(in: 0x00...0xff)
+		self.x = .random(in: 0x00...0xff)
+		self.y = .random(in: 0x00...0xff)
+		self.status = .random()
 		
+		self.stackPointer = 0xfd
 		self.programCounter = Int(
-			low: self.bus.read(at: 0xfffe),
+			low: self.bus.read(at: 0xfffc),
 			high: self.bus.read(at: 0xfffd))
+		
+		self.decoded = nil
 	}
 	
 	/// Executes program instructions until it reaches one at any of the sepcified addresses.

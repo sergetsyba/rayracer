@@ -39,6 +39,14 @@ public class TIA {
 	public func reset() {
 		self.screenClock = 0
 		self.verticalSyncClock = -1
+		self.verticalBlank = true
+		self.waitingHorizontalSync = false
+		
+		self.players = (.random(), .random())
+		self.missiles = (.random(), .random())
+		self.ball = .random()
+		self.playfield = .random()
+		self.backgroundColor = .random(in: 0x00...0x7f)
 	}
 	
 	func advanceClock(cycles: Int) {
