@@ -17,19 +17,19 @@ public class MOS6507 {
 	private var decoded: (() -> Void, Int, Int?)? = nil
 	
 	public init(bus: any Addressable<Int>) {
-		self.accumulator = .randomWord
-		self.x = .randomWord
-		self.y = .randomWord
-		self.status = .random
+		self.accumulator = .random(in: 0x00...0xff)
+		self.x = .random(in: 0x00...0xff)
+		self.y = .random(in: 0x00...0xff)
+		self.status = .random()
 		
-		self.stackPointer = .randomWord
-		self.programCounter = .randomAddress
+		self.stackPointer = .random(in: 0x00...0xff)
+		self.programCounter = .random(in: 0x0000...0xffff)
 		self.bus = bus
 	}
 	
 	/// Resets this CPU.
 	public func reset() {
-		self.status.interruptDisabled = true
+		self.status.insert(.interruptDisabled)
 		
 		self.programCounter = Int(
 			low: self.bus.read(at: 0xfffe),
@@ -127,13 +127,13 @@ public extension MOS6507 {
 			
 			// MARK: BCC
 		case 0x90: return self.withRelativeAddressing(
-			on: { self.status.carry == false })
+			on: { self.status.contains(.carry) == false })
 			// MARK: BCS
 		case 0xb0: return self.withRelativeAddressing(
-			on: { self.status.carry })
+			on: { self.status.contains(.carry) })
 			// MARK: BEQ
 		case 0xf0: return self.withRelativeAddressing(
-			on: { self.status.zero })
+			on: { self.status.contains(.zero) })
 			
 			// MARK: BIT
 		case 0x24: return self.with0PageAddressing(
@@ -143,13 +143,13 @@ public extension MOS6507 {
 			
 			// MARK: BMI
 		case 0x30: return self.withRelativeAddressing(
-			on: { self.status.negative })
+			on: { self.status.contains(.negative) })
 			// MARK: BNE
 		case 0xd0: return self.withRelativeAddressing(
-			on: { self.status.zero == false })
+			on: { self.status.contains(.zero) == false })
 			// MARK: BPL
 		case 0x10: return self.withRelativeAddressing(
-			on: { self.status.negative == false })
+			on: { self.status.contains(.negative) == false })
 			
 			// MARK: BRK
 		case 0x00: return self.withImpliedAddressing(
@@ -157,23 +157,23 @@ public extension MOS6507 {
 			
 			// MARK: BVC
 		case 0x50: return self.withRelativeAddressing(
-			on: { self.status.overflow == false })
+			on: { self.status.contains(.overflow) == false })
 			// MARK: BVS
 		case 0x70: return self.withRelativeAddressing(
-			on: { self.status.overflow })
+			on: { self.status.contains(.overflow) })
 			
 			// MARK: CLC
 		case 0x18: return self.withImpliedAddressing(
-			{ self.status.carry = false })
+			{ self.status.remove(.carry) })
 			// MARK: CLD
 		case 0xd8: return self.withImpliedAddressing(
-			{ self.status.decimalMode = false })
+			{ self.status.remove(.decimalMode) })
 			// MARK: CLI
 		case 0x58: return self.withImpliedAddressing(
-			{ self.status.interruptDisabled = false })
+			{ self.status.remove(.interruptDisabled) })
 			// MARK: CLV
 		case 0xb8: return self.withImpliedAddressing(
-			{ self.status.overflow = false })
+			{ self.status.remove(.overflow) })
 			
 			// MARK: CMP
 		case 0xc9: return self.withImmediateAddressing(
@@ -359,7 +359,7 @@ public extension MOS6507 {
 			{ self.accumulator = self.pullStack() }, cycles: 4)
 			// MARK: PLP
 		case 0x28: return self.withImpliedAddressing(
-			{ self.status = Status(rawValue: self.pullStack())! }, cycles: 4)
+			{ self.status = Status(rawValue: self.pullStack()) }, cycles: 4)
 			
 			// MARK: ROL (accumulator)
 		case 0x2a: return self.withImpliedAddressing(
@@ -414,13 +414,13 @@ public extension MOS6507 {
 			
 			// MARK: SEC
 		case 0x38: return self.withImpliedAddressing(
-			{ self.status.carry = true })
+			{ self.status.insert(.carry) })
 			// MARK: SED
 		case 0xf8: return self.withImpliedAddressing(
-			{ self.status.decimalMode = true })
+			{ self.status.insert(.decimalMode) })
 			// MARK: SEI
 		case 0x78: return self.withImpliedAddressing(
-			{ self.status.interruptDisabled = true })
+			{ self.status.insert(.interruptDisabled) })
 			
 			// MARK: STA
 		case 0x85: return self.with0PageAddressing(
@@ -701,10 +701,10 @@ private extension MOS6507 {
 private extension MOS6507 {
 	func addToAccumulator(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		let carry = self.status.carry ? 0x01 : 0x00
+		let carry = self.status.contains(.carry) ? 0x01 : 0x00
 		var result = 0x00
 		
-		if self.status.decimalMode {
+		if self.status.contains(.decimalMode) {
 			var high = (self.accumulator / 0x10) + (operand / 0x10)
 			var low = (self.accumulator % 0x10) + (operand % 0x10) + carry
 			
@@ -715,13 +715,13 @@ private extension MOS6507 {
 			
 			var result = high * 0x10 + low
 			if result > 0x99 {
-				self.status.carry = true
+				self.status.insert(.carry)
 				result -= 0xa0
 			}
 		} else {
 			result = self.accumulator + operand + carry
 			if result > 0xff {
-				self.status.carry = true
+				self.status.insert(.carry)
 				result -= 0x100
 			}
 		}
@@ -729,17 +729,17 @@ private extension MOS6507 {
 		let overflow = (self.accumulator ^ result) & (operand ^ result)
 		
 		self.accumulator = result
-		self.status.overflow = overflow[7]
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.overflow, overflow[7])
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func subtractFromAccumulator(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		let carry = self.status.carry ? 0x01: 0x00
+		let carry = self.status.contains(.carry) ? 0x01: 0x00
 		var result = 0x00
 		
-		if self.status.decimalMode {
+		if self.status.contains(.decimalMode) {
 			var high = (self.accumulator / 0x10) - (operand / 0x10)
 			var low = (self.accumulator % 0x10) - (operand % 0x10) - carry
 			
@@ -750,13 +750,13 @@ private extension MOS6507 {
 			
 			result = high * 0x10 + low
 			if result < 0x00 {
-				self.status.carry = true
+				self.status.insert(.carry)
 				result += 0xa0
 			}
 		} else {
 			result = self.accumulator - operand// - carry
 			if result < 0x00 {
-				self.status.carry = true
+				self.status.insert(.carry)
 				result += 0x100
 			}
 		}
@@ -764,10 +764,10 @@ private extension MOS6507 {
 		let overflow = (self.accumulator ^ result) & (operand ^ result)
 		
 		self.accumulator = result
-		self.status.overflow = overflow[7]
-		self.status.carry = result >= 0x00
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.overflow, overflow[7])
+		self.status.set(.carry, result >= 0x00)
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func conjunctAccumulator(withValueAt address: Int) {
@@ -775,8 +775,8 @@ private extension MOS6507 {
 		let result = self.accumulator & operand
 		
 		self.accumulator = result
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func disjunctAccumulator(withValueAt address: Int) {
@@ -784,8 +784,8 @@ private extension MOS6507 {
 		let result = self.accumulator | operand
 		
 		self.accumulator = result
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func exclusiveDisjunctAccumulator(withValueAt address: Int) {
@@ -793,26 +793,26 @@ private extension MOS6507 {
 		let result = self.accumulator ^ operand
 		
 		self.accumulator = result
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func bitTestAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.accumulator & operand
 		
-		self.status.overflow = operand[6]
-		self.status.zero = result == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.overflow, operand[6])
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func bitShiftLeftAccumulator() {
 		let result = self.accumulator << 1
 		
 		self.accumulator = result & 0xff
-		self.status.carry = result[8]
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.carry, result[8])
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func bitShiftLeft(valueAt address: Int) {
@@ -820,9 +820,9 @@ private extension MOS6507 {
 		let result = operand << 1
 		
 		self.bus.write(result & 0xff, at: address)
-		self.status.carry = result[8]
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.carry, result[8])
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func bitShiftRightAccumulator() {
@@ -830,9 +830,9 @@ private extension MOS6507 {
 		let result = self.accumulator >> 1
 		
 		self.accumulator = result
-		self.status.carry = carry
-		self.status.zero = result == 0x00
-		self.status.negative = false
+		self.status.set(.carry, carry)
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, false)
 	}
 	
 	func bitShiftRight(valueAt address: Int) {
@@ -840,80 +840,80 @@ private extension MOS6507 {
 		let result = operand >> 1
 		
 		self.bus.write(result, at: address)
-		self.status.carry = operand[0]
-		self.status.zero = result == 0x00
-		self.status.negative = false
+		self.status.set(.carry, operand[0])
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, false)
 	}
 	
 	func bitRotateLeftAccumulator() {
 		let operand = self.accumulator
 		var result = operand << 1
-		result[0] = self.status.carry
+		result[0] = self.status.contains(.carry)
 		
 		self.accumulator = result & 0xff
-		self.status.carry = operand[7]
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.carry, operand[7])
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func bitRotateLeft(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		var result = operand << 1
-		result[0] = self.status.carry
+		result[0] = self.status.contains(.carry)
 		
 		self.bus.write(result & 0xff, at: address)
-		self.status.carry = operand[7]
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.carry, operand[7])
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func bitRotateRightAccumulator() {
 		let operand = self.accumulator
 		var result = operand >> 1
-		result[7] = self.status.carry
+		result[7] = self.status.contains(.carry)
 		
 		self.accumulator = result
-		self.status.carry = operand[0]
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.carry, operand[0])
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func bitRotateRight(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		var result = operand >> 1
-		result[7] = self.status.carry
+		result[7] = self.status.contains(.carry)
 		
 		self.bus.write(result, at: address)
-		self.status.carry = operand[0]
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.carry, operand[0])
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func compareAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.accumulator - operand
 		
-		self.status.carry = result >= 0x00
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.carry, result >= 0x00)
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func compareX(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.x - operand
 		
-		self.status.carry = result >= 0x00
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.carry, result >= 0x00)
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func compareY(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.y - operand
 		
-		self.status.carry = result >= 0x00
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.carry, result >= 0x00)
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func increment(valueAt address: Int) {
@@ -924,8 +924,8 @@ private extension MOS6507 {
 		}
 		
 		self.bus.write(result, at: address)
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func decrement(valueAt address: Int) {
@@ -936,8 +936,8 @@ private extension MOS6507 {
 		}
 		
 		self.bus.write(result, at: address)
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func incrementX() {
@@ -947,8 +947,8 @@ private extension MOS6507 {
 		}
 		
 		self.x = result
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func decrementX() {
@@ -958,8 +958,8 @@ private extension MOS6507 {
 		}
 		
 		self.x = result
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func incrementY() {
@@ -969,8 +969,8 @@ private extension MOS6507 {
 		}
 		
 		self.y = result
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func decrementY() {
@@ -980,16 +980,16 @@ private extension MOS6507 {
 		}
 		
 		self.y = result
-		self.status.zero = result == 0x00
-		self.status.negative = result[7]
+		self.status.set(.zero, result == 0x00)
+		self.status.set(.negative, result[7])
 	}
 	
 	func loadAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		
 		self.accumulator = operand
-		self.status.zero = operand == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.zero, operand == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func storeAccumulator(at address: Int) {
@@ -1000,8 +1000,8 @@ private extension MOS6507 {
 		let operand = self.bus.read(at: address)
 		
 		self.x = operand
-		self.status.zero = operand == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.zero, operand == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func storeX(at address: Int) {
@@ -1012,8 +1012,8 @@ private extension MOS6507 {
 		let operand = self.bus.read(at: address)
 		
 		self.y = operand
-		self.status.zero = operand == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.zero, operand == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func storeY(at address: Int) {
@@ -1024,48 +1024,48 @@ private extension MOS6507 {
 		let operand = self.accumulator
 		
 		self.x = operand
-		self.status.zero = operand == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.zero, operand == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func transferAccumulatorToY() {
 		let operand = self.accumulator
 		
 		self.y = operand
-		self.status.zero = operand == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.zero, operand == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func transferXToAccumulator() {
 		let operand = self.x
 		
 		self.accumulator = operand
-		self.status.zero = operand == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.zero, operand == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func transferYToAccumulator() {
 		let operand = self.y
 		
 		self.accumulator = operand
-		self.status.zero = operand == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.zero, operand == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func transferStackPointerToX() {
 		let operand = self.stackPointer
 		
 		self.x = operand
-		self.status.zero = operand == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.zero, operand == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func transferXToStackPointer() {
 		let operand = self.x
 		
 		self.stackPointer = operand
-		self.status.zero = operand == 0x00
-		self.status.negative = operand[7]
+		self.status.set(.zero, operand == 0x00)
+		self.status.set(.negative, operand[7])
 	}
 	
 	func forceBreak() {
@@ -1079,7 +1079,7 @@ private extension MOS6507 {
 	}
 	
 	func returnFromInterrupt() {
-		self.status = Status(rawValue: self.pullStack())!
+		self.status = Status(rawValue: self.pullStack())
 		self.programCounter = Int(
 			low: self.pullStack(),
 			high: self.pullStack())
@@ -1102,50 +1102,32 @@ private extension MOS6507 {
 // MARK: -
 // MARK: Type definitions
 public extension MOS6507 {
-	class Status: RawRepresentable {
-		public var carry: Bool
-		public var zero: Bool
-		public var interruptDisabled: Bool
-		public var decimalMode: Bool
-		public var `break`: Bool
-		public var overflow: Bool
-		public var negative: Bool
+	struct Status: OptionSet {
+		public static let carry = Status(rawValue: 1 << 0)
+		public static let zero = Status(rawValue: 1 << 1)
+		public static let interruptDisabled = Status(rawValue: 1 << 2)
+		public static let decimalMode = Status(rawValue: 1 << 3)
+		public static let `break` = Status(rawValue: 1 << 4)
+		public static let overflow = Status(rawValue: 1 << 6)
+		public static let negative = Status(rawValue: 1 << 7)
 		
-		required init() {
-			self.carry = false
-			self.zero = false
-			self.interruptDisabled = false
-			self.decimalMode = false
-			self.break = false
-			self.overflow = false
-			self.negative = false
+		public static func random() -> Self {
+			let value: Self.RawValue = .random(in: 0x00...0xff)
+			return Status(rawValue: value)
 		}
 		
-		public required init?(rawValue: Int) {
-			self.carry = rawValue[0]
-			self.zero = rawValue[1]
-			self.interruptDisabled = rawValue[2]
-			self.decimalMode = rawValue[3]
-			self.break = rawValue[4]
-			self.overflow = rawValue[6]
-			self.negative = rawValue[7]
+		public var rawValue: Int
+		
+		public init(rawValue: Int) {
+			self.rawValue = rawValue
 		}
 		
-		public var rawValue: Int {
-			var value = 0x00
-			value[0] = self.carry
-			value[1] = self.zero
-			value[2] = self.interruptDisabled
-			value[3] = self.decimalMode
-			value[4] = self.break
-			value[6] = self.overflow
-			value[7] = self.negative
-			
-			return value
-		}
-		
-		static var random: Self {
-			return .init(rawValue: .randomWord)!
+		internal mutating func set(_ option: Self, _ value: Bool) {
+			if value {
+				self.insert(option)
+			} else {
+				self.remove(option)
+			}
 		}
 	}
 }
@@ -1178,14 +1160,6 @@ private extension Int {
 }
 
 extension Int {
-	static var randomWord: Self {
-		return Self.random(in: 0x00...0xff)
-	}
-	
-	static var randomAddress: Self {
-		return Self.random(in: 0x0000...0xffff)
-	}
-	
 	subscript(bit: Int) -> Bool {
 		get {
 			let mask = 0x01 << bit
