@@ -6,7 +6,7 @@
 //
 
 public class TIA {
-	private var screen: Screen
+	public var screen: Screen
 	var screenClock: Int
 	private var verticalSyncClock: Int
 	

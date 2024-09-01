@@ -30,8 +30,9 @@ vertex screen_vertex make_vertex(uint vid [[vertex_id]]) {
 
 fragment float4 shade_fragment(screen_vertex in [[stage_in]], texture2d<uint> texture [[texture(0)]]) {
 	constexpr sampler noSampler;
-	const auto index = texture.sample(noSampler, in.texture_position);
-	const auto color = float3(ntsc_palette[index.x]);
+	const auto color_index = texture.sample(noSampler, in.texture_position);
 	
+	// TIA color values are in the 7 most significant bits
+	const auto color = float3(ntsc_palette[color_index.x / 2]);
 	return float4(color / 255.0, 1.0);
 }
