@@ -8,13 +8,13 @@
 #ifndef ntsc_palette_h
 #define ntsc_palette_h
 
-// import palette in Metal
+// expose palette to Metal
 #ifdef __METAL_VERSION__
 #include <metal_stdlib>
 using namespace metal;
 constant uint3 ntsc_palette[] = {
 
-// import palette in Swift
+// expose palette to Swift
 #else
 #include <simd/simd.h>
 const simd_uint3 ntsc_palette[] = {
