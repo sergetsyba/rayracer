@@ -26,6 +26,7 @@
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
 		957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957AADDA2C0B22BB00692B3F /* String+Extensions.swift */; };
 		958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958691B12A4FF61D00C727C0 /* MOS6532.swift */; };
+		9593159E2C72175000DC50A9 /* Screen.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9593159D2C72175000DC50A9 /* Screen.metal */; };
 		9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9595FE912A4E02FE00F6F857 /* TIA.swift */; };
 		959E104F2C2314AE00E02CE6 /* DebugColorTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959E104E2C2314AE00E02CE6 /* DebugColorTableCellView.swift */; };
 		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
@@ -71,6 +72,7 @@
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
 		957AADDA2C0B22BB00692B3F /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		958691B12A4FF61D00C727C0 /* MOS6532.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6532.swift; sourceTree = "<group>"; };
+		9593159D2C72175000DC50A9 /* Screen.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Screen.metal; sourceTree = "<group>"; };
 		9595FE912A4E02FE00F6F857 /* TIA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TIA.swift; sourceTree = "<group>"; };
 		959E104E2C2314AE00E02CE6 /* DebugColorTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugColorTableCellView.swift; sourceTree = "<group>"; };
 		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
@@ -81,6 +83,8 @@
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 		95C918E82C07810000B431C4 /* SystemStateView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SystemStateView.xib; sourceTree = "<group>"; };
 		95C918EA2C07810900B431C4 /* SystemStateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStateViewController.swift; sourceTree = "<group>"; };
+		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
+		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -138,12 +142,11 @@
 			isa = PBXGroup;
 			children = (
 				954A18662A1AEE5800EBC582 /* AppDelegate.swift */,
-				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
 				95CE639C2A333365007BD72B /* Debugger */,
+				95F23A682C8455D70074E4DF /* Screen */,
+				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
 				954A186A2A1AEE5A00EBC582 /* Main.xib */,
 				954A186D2A1AEE5A00EBC582 /* RayRacer.entitlements */,
-				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
-				95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */,
 			);
 			path = RayRacer;
 			sourceTree = "<group>";
@@ -170,6 +173,18 @@
 				9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */,
 			);
 			path = Debugger;
+			sourceTree = "<group>";
+		};
+		95F23A682C8455D70074E4DF /* Screen */ = {
+			isa = PBXGroup;
+			children = (
+				95F23A692C84561A0074E4DF /* ntsc_palette.h */,
+				95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */,
+				9593159D2C72175000DC50A9 /* Screen.metal */,
+				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
+				95B429D82A4EFDB100EB6A5D /* ScreenWindowController.swift */,
+			);
+			path = Screen;
 			sourceTree = "<group>";
 		};
 		95F563FD2A42E33E0028A90B /* Frameworks */ = {
@@ -322,6 +337,7 @@
 				959E104F2C2314AE00E02CE6 /* DebugColorTableCellView.swift in Sources */,
 				95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */,
 				9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */,
+				9593159E2C72175000DC50A9 /* Screen.metal in Sources */,
 				95B429D92A4EFDB100EB6A5D /* ScreenWindowController.swift in Sources */,
 				95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */,
 			);
@@ -569,6 +585,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/RayRacer/Screen/RayRacer-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -601,6 +618,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/RayRacer/Screen/RayRacer-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
