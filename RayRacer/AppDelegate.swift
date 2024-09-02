@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import Metal
 import CryptoKit
 import RayRacerKit
 
@@ -14,8 +15,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
 	private var console: Atari2600? = .current
 	
+	private var commandQueue: MTLCommandQueue!
+	private var pipelineState: MTLRenderPipelineState!
+	
 	private var defaults: UserDefaults = .standard
 	private var timer: DispatchSourceTimer?
+	
+	func applicationDidFinishLaunching(_ notification: Notification) {
+		guard let device = MTLCreateSystemDefaultDevice(),
+			  let commandQueue = device.makeCommandQueue(),
+			  let library = device.makeDefaultLibrary() else {
+			fatalError("Failed to initialize Metal.")
+		}
+		
+		let descriptor = self.makeRenderPipelineDescriptor(library: library)
+		guard let pipelineState = try? device.makeRenderPipelineState(descriptor: descriptor) else {
+			fatalError("Failed to initialize Metal.")
+		}
+		
+		self.commandQueue = commandQueue
+		self.pipelineState = pipelineState
+	}
+	
+	private func makeRenderPipelineDescriptor(library: MTLLibrary) -> MTLRenderPipelineDescriptor {
+		let descirptor = MTLRenderPipelineDescriptor()
+		descirptor.vertexFunction = library.makeFunction(name: "make_vertex")
+		descirptor.fragmentFunction = library.makeFunction(name: "shade_fragment")
+		descirptor.colorAttachments[0]
+			.pixelFormat = .bgra8Unorm
+		
+		return descirptor
+	}
 }
 
 
@@ -77,7 +107,7 @@ extension AppDelegate {
 		
 		self.console?.setSwitch(`switch`, on: on)
 		// TODO: -
-//		self.defaults.consoleSwitches = self.console?.switches
+		//		self.defaults.consoleSwitches = self.console?.switches
 	}
 }
 
@@ -130,17 +160,23 @@ extension AppDelegate: NSWindowDelegate {
 			fatalError()
 		}
 		
-		let controller = ScreenWindowController()
-		controller.window?.title = url.lastPathComponent
+		let viewController = ScreenViewController(
+			commandQueue: self.commandQueue,
+			pipelineState: self.pipelineState)
+		
+		let windowController = NSWindowController(windowNibName: "ScreenWindow")
+		windowController.contentViewController = viewController
+		windowController.window?
+			.title = url.lastPathComponent
 		
 		let console = Atari2600()
-		console.tia.screen = controller
+		console.tia.output = viewController
 		console.switches = self.defaults.consoleSwitches
 		console.insertCartridge(data)
 		console.reset()
 		
 		self.console = console
-		self.showWindow(of: controller)
+		self.showWindow(of: windowController)
 		self.defaults.addOpenedFileURL(url)
 	}
 }
