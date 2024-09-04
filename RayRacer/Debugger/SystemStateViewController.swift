@@ -234,8 +234,8 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		
 		switch item {
 		case .beamPosition:
-			let scanLine = self.console.frameClock / self.console.width
-			let colorClock = self.console.frameClock % self.console.width
+			let scanLine = 0//self.console.frameClock / self.console.width
+			let colorClock = 0//self.console.frameClock % self.console.width
 			view?.stringValue = (item.rawValue, "\(scanLine), \(colorClock - 68)")
 		case .verticalSync:
 			view?.stringValue = (item.rawValue, self.formattedVerticalSync)

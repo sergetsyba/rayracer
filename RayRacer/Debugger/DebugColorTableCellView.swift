@@ -30,3 +30,24 @@ class DebugColorTableCellView: NSTableCellView {
 		self.textField?.font = .systemRegular
 	}
 }
+
+
+// MARK: -
+// MARK: Convenience functionality
+private extension NSColor {
+	convenience init(ntscColor color: Int) {
+		let color1 = withUnsafePointer(to: ntsc_palette) {
+			let pointer = $0.pointer(to: \.0)
+			let index = color / 2 * 3
+			
+			return pointer![index]
+		}
+		
+		let color2 = simd_float3(color1) / 255.0
+		self.init(
+			red: CGFloat(color2.x),
+			green: CGFloat(color2.y),
+			blue: CGFloat(color2.z),
+			alpha: 1.0)
+	}
+}

@@ -6,7 +6,7 @@
 //
 
 public class TIA {
-	private var screen: Screen
+	public var output: Output
 	var screenClock: Int
 	private var verticalSyncClock: Int
 	
@@ -21,8 +21,8 @@ public class TIA {
 	
 	private(set) public var collistions: [GraphicsObject: Set<GraphicsObject>] = [:]
 	
-	init(screen: Screen) {
-		self.screen = screen
+	init(output: Output) {
+		self.output = output
 		self.screenClock = 0
 		self.verticalSyncClock = -1
 		
@@ -51,7 +51,7 @@ public class TIA {
 	
 	func advanceClock(cycles: Int) {
 		for _ in 0..<cycles {
-			self.screen.write(color: self.color)
+			self.output.write(color: self.color)
 			self.screenClock += 1
 		}
 	}
@@ -64,7 +64,7 @@ public class TIA {
 			return 0
 		}
 		
-		let cycles = self.screen.width - self.colorClock
+		let cycles = 228 - self.colorClock
 		self.advanceClock(cycles: cycles)
 		self.waitingHorizontalSync = false
 		
@@ -166,7 +166,7 @@ extension TIA {
 // MARK: Convenience registers
 extension TIA {
 	public var colorClock: Int {
-		return self.screenClock % self.screen.width
+		return self.screenClock % 228
 	}
 	
 	public var verticalSync: (Bool, Int) {
@@ -175,6 +175,10 @@ extension TIA {
 	
 	public var horizontalBlank: Bool {
 		return self.colorClock < 68
+	}
+	
+	public var overscan: Bool {
+		return self.screenClock >= 232 * 228
 	}
 }
 
@@ -272,7 +276,7 @@ extension TIA {
 		//					collisions.insert(GraphicsObject.allCases[index2])
 		//				}
 		//			}
-		//			
+		//
 		//			self.collistions[object] = collisions
 		//		}
 		
@@ -362,11 +366,10 @@ extension TIA: Addressable {
 				// send composite sync signal to the screen and reset frame
 				// clock
 				let elapsedCycles = self.screenClock - self.verticalSyncClock
-				let scanLines = elapsedCycles / self.screen.width
+				let scanLines = elapsedCycles / 228
 				if scanLines >= 3 {
-					// FIXME: Stella resets color clock to 9 after VSYNC
-					self.screenClock = 9
-					self.screen.sync()
+					self.screenClock = 0
+					self.output.sync()
 				}
 				
 				// stop counting vertical sync time

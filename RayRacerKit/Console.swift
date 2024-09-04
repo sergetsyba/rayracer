@@ -24,7 +24,7 @@ public class Atari2600: ObservableObject {
 	public init() {
 		self.cpu = MOS6507(bus: self)
 		self.riot = MOS6532(ports: (self.joystic, self))
-		self.tia = TIA(screen: self)
+		self.tia = TIA(output: self)
 	}
 	
 	// Resets internal state.
@@ -92,7 +92,7 @@ public extension Atari2600 {
 	}
 	
 	func stepScanLine() {
-		let scanLine = self.scanLine
+		let scanLine = 0//self.scanLine
 		repeat {
 			// when stepping a scan line and WSYNC is on, advance TIA to
 			// horizontal sync but break before the next CPU instruction
@@ -102,7 +102,7 @@ public extension Atari2600 {
 			} else {
 				self.executeNextCPUInstruction()
 			}
-		} while self.scanLine == scanLine
+		} while true //self.scanLine == scanLine
 		
 		self.debugEventSubject.send(.break)
 	}
@@ -248,33 +248,12 @@ extension Atari2600.Joystick: MOS6532.Port {
 	}
 }
 
-
-// MARK: -
-extension Atari2600: Screen {
-	public var height: Int {
-		return 262
-	}
-	
-	public var width: Int {
-		return 228
-	}
-	
-	private var scanLine: Int {
-		return self.tia.screenClock / self.width
-	}
-	
+extension Atari2600: TIA.Output {
 	public func sync() {
-		self.eventSubject.send(.frame)
+		// does nothing
 	}
 	
 	public func write(color: Int) {
-		if self.tia.screenClock < self.frame.count {
-			self.frame[self.tia.screenClock] = UInt8(color) >> 1
-		}
-	}
-	
-	// FIXME: remove
-	public var frameClock: Int {
-		return self.tia.screenClock
+		// does nothing
 	}
 }
