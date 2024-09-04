@@ -51,11 +51,7 @@ public class TIA {
 	
 	func advanceClock(cycles: Int) {
 		for _ in 0..<cycles {
-			if self.verticalBlank == false &&
-				self.horizontalBlank == false {
-				self.output.write(color: self.color)
-			}
-			
+			self.output.write(color: self.color)
 			self.screenClock += 1
 		}
 	}
@@ -372,8 +368,7 @@ extension TIA: Addressable {
 				let elapsedCycles = self.screenClock - self.verticalSyncClock
 				let scanLines = elapsedCycles / 228
 				if scanLines >= 3 {
-					// FIXME: Stella resets color clock to 9 after VSYNC
-					self.screenClock = 9
+					self.screenClock = 0
 					self.output.sync()
 				}
 				
