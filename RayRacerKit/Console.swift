@@ -248,7 +248,7 @@ extension Atari2600.Joystick: MOS6532.Port {
 	}
 }
 
-extension Atari2600: TIA.Output {
+extension Atari2600: TIA.GraphicsOutput {
 	public func sync() {
 		// does nothing
 	}

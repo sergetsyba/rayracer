@@ -6,7 +6,7 @@
 //
 
 public class TIA {
-	public var output: Output
+	public var output: GraphicsOutput
 	var screenClock: Int
 	private var verticalSyncClock: Int
 	
@@ -21,7 +21,7 @@ public class TIA {
 	
 	private(set) public var collistions: [GraphicsObject: Set<GraphicsObject>] = [:]
 	
-	init(output: Output) {
+	init(output: GraphicsOutput) {
 		self.output = output
 		self.screenClock = 0
 		self.verticalSyncClock = -1

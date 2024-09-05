@@ -109,7 +109,7 @@ extension ScreenViewController: MTKViewDelegate {
 
 
 // MARK: -
-extension ScreenViewController: TIA.Output {
+extension ScreenViewController: TIA.GraphicsOutput {
 	private var currentScanLine: Int {
 		return self.screenIndex / self.screenSize.width
 	}
