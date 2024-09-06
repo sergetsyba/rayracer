@@ -13,13 +13,12 @@ import RayRacerKit
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
-	private var console: Atari2600? = .current
+	private var defaults: UserDefaults = .standard
 	
 	private var commandQueue: MTLCommandQueue!
 	private var pipelineState: MTLRenderPipelineState!
 	
-	private var defaults: UserDefaults = .standard
-	private var timer: DispatchSourceTimer?
+	var console = Atari2600()
 	
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		guard let device = MTLCreateSystemDefaultDevice(),
@@ -97,7 +96,7 @@ extension AppDelegate {
 	}
 	
 	@IBAction func didSelectResetMenuItem(_ sender: AnyObject) {
-		self.console?.reset()
+		self.console.reset()
 	}
 	
 	private func didSelectConsoleSwitchesMenuItem(_ menuItem: NSMenuItem, for switch: Atari2600.Switches) {
@@ -105,7 +104,7 @@ extension AppDelegate {
 		let on = menuItem.menu?
 			.index(of: menuItem) == 0
 		
-		self.console?.setSwitch(`switch`, on: on)
+		self.console.setSwitch(`switch`, on: on)
 		// TODO: -
 		//		self.defaults.consoleSwitches = self.console?.switches
 	}
@@ -113,23 +112,22 @@ extension AppDelegate {
 
 extension AppDelegate {
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		if let console = self.console {
-			let identifier = console.gameIdentifier!
+		if let identifier = self.console.gameIdentifier {
 			let breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
 			console.resumeProgram(until: breakpoints)
 		}
 	}
 	
 	@IBAction func didSelectStepProgramMenuItem(_ sender: AnyObject) {
-		self.console?.stepProgram()
+		self.console.stepProgram()
 	}
 	
 	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
-		self.console?.stepScanLine()
+		self.console.stepScanLine()
 	}
 	
 	@IBAction func didSelectStepFrameMenuItem(_ sender: AnyObject) {
-		self.console?.stepFrame()
+		self.console.stepFrame()
 	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
@@ -169,13 +167,11 @@ extension AppDelegate: NSWindowDelegate {
 		windowController.window?
 			.title = url.lastPathComponent
 		
-		let console = Atari2600()
-		console.tia.output = viewController
-		console.switches = self.defaults.consoleSwitches
-		console.insertCartridge(data)
-		console.reset()
+		self.console.tia.output = viewController
+		self.console.switches = self.defaults.consoleSwitches
+		self.console.insertCartridge(data)
+		self.console.reset()
 		
-		self.console = console
 		self.showWindow(of: windowController)
 		self.defaults.addOpenedFileURL(url)
 	}
@@ -273,8 +269,7 @@ extension AppDelegate: NSToolbarItemValidation {
 				.stepScanLineToolbarItem,
 				.stepFrameToolbarItem,
 				.gameResetToolbarItem:
-			return self.console?
-				.cartridge != nil
+			return self.console.cartridge != nil
 		default:
 			return false
 		}
@@ -409,8 +404,6 @@ private extension Set {
 }
 
 extension Atari2600 {
-	static let current = Atari2600()
-	
 	var gameIdentifier: String? {
 		guard let data = self.cartridge else {
 			return nil

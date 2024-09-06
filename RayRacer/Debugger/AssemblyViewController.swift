@@ -17,10 +17,14 @@ class AssemblyViewController: NSViewController {
 	@IBOutlet private var programView: NSView!
 	@IBOutlet private var tableView: NSTableView!
 	
-	private let console: Atari2600 = .current
 	private var program: Program?
 	private let defaults: UserDefaults = .standard
 	private var cancellables: Set<AnyCancellable> = []
+	
+	private var console: Atari2600 {
+		let delegate = NSApplication.shared.delegate as! AppDelegate
+		return delegate.console
+	}
 	
 	@Published
 	private(set) var breakpoints: [Int] = [] {

@@ -6,7 +6,7 @@
 //
 
 public class TIA {
-	public var output: GraphicsOutput
+	public var output: GraphicsOutput?
 	var screenClock: Int
 	private var verticalSyncClock: Int
 	
@@ -21,24 +21,10 @@ public class TIA {
 	
 	//	private(set) public var collistions: [GraphicsObject: Set<GraphicsObject>] = [:]
 	
-	init(output: GraphicsOutput) {
-		self.output = output
+	init() {
 		self.screenClock = 0
 		self.verticalSyncClock = -1
 		
-		self.verticalBlank = true
-		self.waitingHorizontalSync = false
-		
-		self.players = (.random(), .random())
-		self.missiles = (.random(), .random())
-		self.ball = .random()
-		self.playfield = .random()
-		self.backgroundColor = .random(in: 0x00...0x7f)
-	}
-	
-	public func reset() {
-		self.screenClock = 0
-		self.verticalSyncClock = -1
 		self.verticalBlank = true
 		self.waitingHorizontalSync = false
 		
@@ -51,7 +37,7 @@ public class TIA {
 	
 	func advanceClock(cycles: Int) {
 		for _ in 0..<cycles {
-			self.output.write(color: self.color)
+			self.output?.write(color: self.color)
 			self.screenClock += 1
 		}
 	}
@@ -253,7 +239,7 @@ extension TIA: Addressable {
 				let scanLines = elapsedCycles / 228
 				if scanLines >= 3 {
 					self.screenClock = 0
-					self.output.sync()
+					self.output?.sync()
 				}
 				
 				// stop counting vertical sync time

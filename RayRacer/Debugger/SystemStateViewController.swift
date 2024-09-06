@@ -12,8 +12,12 @@ import RayRacerKit
 class SystemStateViewController: NSViewController {
 	@IBOutlet private var outlineView: NSOutlineView!
 	
-	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
+	
+	var console: Atari2600 {
+		let delegate = NSApplication.shared.delegate as! AppDelegate
+		return delegate.console
+	}
 	
 	convenience init() {
 		self.init(nibName: "SystemStateView", bundle: .main)
@@ -284,7 +288,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
 			return view
 		}
 	}
@@ -325,7 +329,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
 			return view
 		}
 	}
@@ -356,7 +360,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
 			return view
 		}
 	}
@@ -387,7 +391,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
 			return view
 		}
 	}
@@ -423,7 +427,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .ball))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .ball))
 			return view
 		}
 	}
@@ -450,7 +454,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .playfield))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .playfield))
 			return view
 		}
 	}
@@ -584,14 +588,14 @@ private extension SystemStateViewController {
 		return "\(values) \(pattern.suffix(20))"
 	}
 	
-//	private func formatCollisions(of object: TIA.GraphicsObject) -> String {
-//		if let objects = self.console.tia.collistions[object] {
-//			return objects.map({ "\($0)" })
-//				.joined(separator: ", ")
-//		} else {
-//			return "None"
-//		}
-//	}
+	//	private func formatCollisions(of object: TIA.GraphicsObject) -> String {
+	//		if let objects = self.console.tia.collistions[object] {
+	//			return objects.map({ "\($0)" })
+	//				.joined(separator: ", ")
+	//		} else {
+	//			return "None"
+	//		}
+	//	}
 }
 
 //extension TIA.GraphicsObject: CustomStringConvertible {

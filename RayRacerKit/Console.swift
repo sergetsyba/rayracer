@@ -24,15 +24,13 @@ public class Atari2600: ObservableObject {
 	public init() {
 		self.cpu = MOS6507(bus: self)
 		self.riot = MOS6532(ports: (self.joystic, self))
-		self.tia = TIA(output: self)
+		self.tia = TIA()
 	}
 	
 	// Resets internal state.
 	public func reset() {
 		self.cpu.reset()
-		self.riot.reset()
-		self.tia.reset()
-		
+		self.riot.reset()		
 		self.eventSubject.send(.reset)
 	}
 	
@@ -245,15 +243,5 @@ extension Atari2600.Joystick: MOS6532.Port {
 	}
 	
 	public mutating func write(_ data: Int) {
-	}
-}
-
-extension Atari2600: TIA.GraphicsOutput {
-	public func sync() {
-		// does nothing
-	}
-	
-	public func write(color: Int) {
-		// does nothing
 	}
 }
