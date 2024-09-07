@@ -238,7 +238,7 @@ private extension AssemblyViewController {
 			// operand address target only when program is currently at
 			// that instruction
 			if self.program?[row].0 == self.console.cpu.programCounter,
-			   let address = self.console.cpu.nextOperandAddress {
+			   let address = self.console.cpu.operandAddress {
 				let address = self.console.unmirror(address)
 				return self.formatTarget(at: address)
 			} else {

@@ -10,80 +10,71 @@ public class MOS6507 {
 	private(set) public var x: Int
 	private(set) public var y: Int
 	private(set) public var status: Status
+	
 	private(set) public var stackPointer: Int
 	private(set) public var programCounter: Int
 	
-	private var bus: any Addressable<Int>
-	private var decoded: (() -> Void, Int, Int?)?
+	private var decoded: (() -> Void, Int, Int?) = ({}, 0, 0)
+	private var elapsedCycles: Int = 0
+	private var bus: Addressable
 	
-	public init(bus: any Addressable<Int>) {
+	public init(bus: Addressable) {
 		self.accumulator = .random(in: 0x00...0xff)
 		self.x = .random(in: 0x00...0xff)
 		self.y = .random(in: 0x00...0xff)
 		self.status = .random()
 		
-		self.stackPointer = 0xfd
-		self.programCounter = Int(
-			low: bus.read(at: 0xfffc),
-			high: bus.read(at: 0xfffd))
+		self.stackPointer = .random(in: 0x00...0xff)
+		self.programCounter = .random(in: 0x0000...0xffff)
 		
 		self.bus = bus
-		self.decoded = nil
+		self.reset()
+	}
+	
+	/// Returns `true` when this CPU is in the first operation cycle; returns `false` otherwise.
+	public var sync: Bool {
+		return self.elapsedCycles == 0
 	}
 	
 	/// Resets this CPU.
 	public func reset() {
-		self.accumulator = .random(in: 0x00...0xff)
-		self.x = .random(in: 0x00...0xff)
-		self.y = .random(in: 0x00...0xff)
-		self.status = .random()
-		
 		self.stackPointer = 0xfd
 		self.programCounter = Int(
 			low: self.bus.read(at: 0xfffc),
 			high: self.bus.read(at: 0xfffd))
 		
-		self.decoded = nil
+		self.decoded = self.decodeOperation(at: self.programCounter)
+		self.elapsedCycles = 0
 	}
 	
-	/// Executes program instructions until it reaches one at any of the sepcified addresses.
-	public func resume(until breakpoints: [Int]) {
-		while !breakpoints.contains(self.programCounter) {
-			self.executeNextInstruction()
+	/// Advances CPU clock by 1 unit.
+	public func advanceClock() {
+		self.elapsedCycles += 1
+		
+		if self.elapsedCycles == self.decoded.1 {
+			self.decoded.0()
+			self.decoded = self.decodeOperation(at: self.programCounter)
+			self.elapsedCycles = 0
 		}
 	}
 }
 
 
 // MARK: -
-public extension MOS6507 {
-	/// Returns the number of CPU cycles it will take to execute the next instruction in the program.
-	var nextInstructionDuration: Int {
-		if self.decoded == nil {
-			self.decoded = self.decodeNextOperation()
-		}
-		return self.decoded!.1
+// MARK: Operation decoding
+extension MOS6507 {
+	/// Returns the number of CPU cycles it takes to execute the current instruction in the program.
+	public var operationDuration: Int {
+		return self.decoded.1
 	}
 	
-	var nextOperandAddress: Int? {
-		if self.decoded == nil {
-			self.decoded = self.decodeNextOperation()
-		}
-		return self.decoded!.2
-	}
-	
-	/// Executes the next instruction in the program.
-	func executeNextInstruction() {
-		if self.decoded == nil {
-			self.decoded = self.decodeNextOperation()
-		}
-		
-		self.decoded!.0()
-		self.decoded = self.decodeNextOperation()
+	/// Returns the dereferenced operand address of the current instruction in the program.
+	public var operandAddress: Int? {
+		return self.decoded.2
 	}
 	
 	/// Returns the next operation in the program and the amount of CPU cycles it will take to execute.
-	private func decodeNextOperation() -> (() -> Void, Int, Int?) {
+	private func decodeOperation(at address: Int) -> (() -> Void, Int, Int?) {
 		let opcode = self.bus.read(at: self.programCounter)
 		switch opcode {
 			// MARK: ADC

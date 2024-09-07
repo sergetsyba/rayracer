@@ -35,7 +35,7 @@ public class TIA {
 		self.backgroundColor = .random(in: 0x00...0x7f)
 	}
 	
-	func advanceClock(cycles: Int) {
+	func advanceClock(cycles: Int = 1) {
 		for _ in 0..<cycles {
 			self.output?.write(color: self.color)
 			self.screenClock += 1

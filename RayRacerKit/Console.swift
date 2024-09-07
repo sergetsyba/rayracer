@@ -30,7 +30,7 @@ public class Atari2600: ObservableObject {
 	// Resets internal state.
 	public func reset() {
 		self.cpu.reset()
-		self.riot.reset()		
+		self.riot.reset()
 		self.eventSubject.send(.reset)
 	}
 	
@@ -78,6 +78,21 @@ public extension Atari2600 {
 // MARK: Debugging
 public extension Atari2600 {
 	func stepProgram() {
+		repeat {
+			self.tia.advanceClock()
+			self.tia.advanceClock()
+			self.tia.advanceClock()
+			
+			if !self.tia.waitingHorizontalSync {
+				self.cpu.advanceClock()
+			}
+			self.riot.advanceClock()
+		} while !self.cpu.sync
+		
+		self.debugEventSubject.send(.break)
+	}
+	
+	func stepProgram0() {
 		// when stepping a CPU instruction and WSYNC is on, advance TIA to
 		// horizontal sync and execute the next CPU instruction
 		if self.tia.waitingHorizontalSync {
@@ -133,10 +148,10 @@ public extension Atari2600 {
 	}
 	
 	private func executeNextCPUInstruction() {
-		let cycles = self.cpu.nextInstructionDuration
+		let cycles = 0//self.cpu.nextInstructionDuration
 		self.tia.advanceClock(cycles: cycles * 3)
 		self.riot.advanceClock(cycles: cycles)
-		self.cpu.executeNextInstruction()
+		//		self.cpu.executeNextInstruction()
 	}
 }
 
@@ -169,7 +184,7 @@ extension Atari2600: Addressable {
 		}
 		
 		let data = self.cartridge?[address - 0xf000]
-		?? .random(in: 0x00...0xff)
+		?? 0xea//.random(in: 0x00...0xff)
 		
 		return Int(data)
 	}
