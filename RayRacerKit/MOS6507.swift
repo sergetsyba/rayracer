@@ -579,7 +579,7 @@ private extension MOS6507 {
 		let page = address.high
 		address += self.x
 		
-		// only read-only operations take 5 cycles, unless indexing crosses
+		// read-only operations take 5 cycles, unless indexing crosses
 		// page boundary
 		var cycles = cycles
 		if cycles == 4
@@ -602,7 +602,7 @@ private extension MOS6507 {
 		let page = address.high
 		address += self.y
 		
-		// only read-only operations take 4 cycles, unless indexing crosses
+		// read-only operations take 4 cycles, unless indexing crosses
 		// page boundary
 		var cycles = cycles
 		if cycles == 4
@@ -1101,62 +1101,36 @@ private extension MOS6507 {
 
 
 // MARK: -
-// MARK: Type definitions
-public extension MOS6507 {
-	struct Status: OptionSet {
-		public static let carry = Status(rawValue: 1 << 0)
-		public static let zero = Status(rawValue: 1 << 1)
-		public static let interruptDisabled = Status(rawValue: 1 << 2)
-		public static let decimalMode = Status(rawValue: 1 << 3)
-		public static let `break` = Status(rawValue: 1 << 4)
-		public static let overflow = Status(rawValue: 1 << 6)
-		public static let negative = Status(rawValue: 1 << 7)
-		
-		public static func random() -> Self {
-			let value: Self.RawValue = .random(in: 0x00...0xff)
-			return Status(rawValue: value)
-		}
-		
-		public var rawValue: Int
-		
-		public init(rawValue: Int) {
-			self.rawValue = rawValue
-		}
-		
-		internal mutating func set(_ option: Self, _ value: Bool) {
-			if value {
-				self.insert(option)
-			} else {
-				self.remove(option)
-			}
+// MARK: Convenience functionality
+private extension MOS6507.Status {
+	static func random() -> Self {
+		return MOS6507.Status(rawValue: .random(in: 0x00...0xff))
+	}
+}
+
+private extension OptionSet {
+	mutating func set(_ option: Self.Element, _ value: Bool) {
+		if value {
+			self.insert(option)
+		} else {
+			self.remove(option)
 		}
 	}
 }
 
-
-// MARK: -
-// MARK: Convenience functionality
 private extension Int {
 	init(low: Int, high: Int) {
 		self = Self(high) * 0x100 + Self(low)
 	}
 	
 	var low: Int {
-		get {
-			return self % 0x100
-		}
-		set {
-			self = self.high * 0x100 + newValue
-		}
+		get { self % 0x100 }
+		set { self = self.high * 0x100 + newValue }
 	}
 	
 	var high: Int {
-		get {
-			return self / 0x100
-		}
-		set {
-			self = newValue * 0x100 + self.low
-		}
+		get { self / 0x100 }
+		set { self = newValue * 0x100 + self.low }
 	}
 }
 
