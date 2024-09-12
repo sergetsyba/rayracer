@@ -112,14 +112,14 @@ extension AppDelegate {
 
 extension AppDelegate {
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		if let identifier = self.console.gameIdentifier {
-			let breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
-			console.resumeProgram(until: breakpoints)
-		}
+//		if let identifier = self.console.gameIdentifier {
+//			let breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
+//			console.resumeProgram(until: breakpoints)
+//		}
 	}
 	
 	@IBAction func didSelectStepProgramMenuItem(_ sender: AnyObject) {
-		self.console.stepProgram()
+		self.console.stepInstruction()
 	}
 	
 	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
@@ -127,7 +127,7 @@ extension AppDelegate {
 	}
 	
 	@IBAction func didSelectStepFrameMenuItem(_ sender: AnyObject) {
-		self.console.stepFrame()
+		self.console.stepField()
 	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {

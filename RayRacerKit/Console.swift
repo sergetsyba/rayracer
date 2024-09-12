@@ -76,72 +76,65 @@ public extension Atari2600 {
 
 // MARK: -
 // MARK: Debugging
-public extension Atari2600 {
-	func stepProgram() {
-		repeat {
-			self.tia.advanceClock()
-			self.tia.advanceClock()
-			self.tia.advanceClock()
-			
-			if !self.tia.waitingHorizontalSync {
-				self.cpu.advanceClock()
-			}
-			self.riot.advanceClock()
-		} while !self.cpu.sync
-		
-		self.debugEventSubject.send(.break)
-	}
-	
-	func stepProgram0() {
-		// when stepping a CPU instruction and WSYNC is on, advance TIA to
-		// horizontal sync and execute the next CPU instruction
-		if self.tia.waitingHorizontalSync {
-			let cycles = self.tia.advanceClockToHorizontalSync()
-			self.riot.advanceClock(cycles: cycles / 3)
+extension Atari2600 {
+	/// Advances console state to the beginning of the first program instruction in the next TV field.
+	public func stepField() {
+		self.advanceClock()
+		while self.tia.screenClock > 0 {
+			self.advanceClock()
 		}
 		
-		self.executeNextCPUInstruction()
+		// finish current instruction when new field begins in
+		// the middle of executing one
+		while !self.cpu.sync {
+			self.advanceClock()
+		}
 		self.debugEventSubject.send(.break)
 	}
 	
-	func stepScanLine() {
-		let scanLine = 0//self.scanLine
-		repeat {
-			// when stepping a scan line and WSYNC is on, advance TIA to
-			// horizontal sync but break before the next CPU instruction
-			if self.tia.waitingHorizontalSync {
-				let cycles = self.tia.advanceClockToHorizontalSync()
-				self.riot.advanceClock(cycles: cycles / 3)
-			} else {
-				self.executeNextCPUInstruction()
-			}
-		} while true //self.scanLine == scanLine
+	/// Advances console state to the beginning of the first program instruction in the next scan line.
+	public func stepScanLine() {
+		self.advanceClock()
+		while self.tia.colorClock > 0 {
+			self.advanceClock()
+		}
 		
+		// finish current instruction when new scan line begins in
+		// the middle of executing one
+		while !self.cpu.sync {
+			self.advanceClock()
+		}
 		self.debugEventSubject.send(.break)
 	}
 	
-	func stepFrame() {
-		var clock1 = self.tia.screenClock
-		var clock2 = self.tia.screenClock
+	/// Advances console state to the beginning of the next program instruction.
+	public func stepInstruction() {
+		// advance TIA to horizontal sync when WSYNC is on
+		while self.tia.waitingHorizontalSync {
+			self.advanceClock()
+		}
 		
-		// keep executing CPU instructions until frame clock decreases
-		repeat {
-			clock1 = clock2
-			if self.tia.waitingHorizontalSync {
-				let cycles = self.tia.advanceClockToHorizontalSync()
-				self.riot.advanceClock(cycles: cycles / 3)
-			}
-			
-			self.executeNextCPUInstruction()
-			clock2 = self.tia.screenClock
-		} while clock1 < clock2
-		
+		self.advanceClock()
+		while !self.cpu.sync {
+			self.advanceClock()
+		}
 		self.debugEventSubject.send(.break)
+	}
+	
+	private func advanceClock() {
+		self.tia.advanceClock()
+		self.tia.advanceClock()
+		self.tia.advanceClock()
+		
+		if !self.tia.waitingHorizontalSync {
+			self.cpu.advanceClock()
+		}
+		self.riot.advanceClock()
 	}
 	
 	func resumeProgram(until breakpoints: [Int]) {
 		repeat {
-			self.stepProgram()
+			self.stepInstruction()
 		} while breakpoints.contains(self.cpu.programCounter) == false
 		
 		self.debugEventSubject.send(.break)

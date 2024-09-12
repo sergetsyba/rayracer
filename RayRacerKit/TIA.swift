@@ -7,7 +7,7 @@
 
 public class TIA {
 	public var output: GraphicsOutput?
-	var screenClock: Int
+	private(set) public var screenClock: Int
 	private var verticalSyncClock: Int
 	
 	private(set) public var verticalBlank: Bool
@@ -36,9 +36,11 @@ public class TIA {
 	}
 	
 	func advanceClock(cycles: Int = 1) {
-		for _ in 0..<cycles {
-			self.output?.write(color: self.color)
-			self.screenClock += 1
+		self.output?.write(color: self.color)
+		self.screenClock += 1
+		
+		if self.screenClock % 228 == 0 {
+			self.waitingHorizontalSync = false
 		}
 	}
 	
