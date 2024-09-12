@@ -118,7 +118,7 @@ extension AppDelegate {
 //		}
 	}
 	
-	@IBAction func didSelectStepProgramMenuItem(_ sender: AnyObject) {
+	@IBAction func didSelectStepInstructionMenuItem(_ sender: AnyObject) {
 		self.console.stepInstruction()
 	}
 	
@@ -126,7 +126,7 @@ extension AppDelegate {
 		self.console.stepScanLine()
 	}
 	
-	@IBAction func didSelectStepFrameMenuItem(_ sender: AnyObject) {
+	@IBAction func didSelectStepFieldMenuItem(_ sender: AnyObject) {
 		self.console.stepField()
 	}
 	
