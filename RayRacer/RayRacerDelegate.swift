@@ -1,5 +1,5 @@
 //
-//  AppDelegate.swift
+//  RayRacerDelegate.swift
 //  RayRacer
 //
 //  Created by Serge Tsyba on 22.5.2023.
@@ -11,7 +11,7 @@ import CryptoKit
 import RayRacerKit
 
 @main
-class AppDelegate: NSObject, NSApplicationDelegate {
+class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
 	private var defaults: UserDefaults = .standard
 	
@@ -50,7 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 // MARK: -
 // MARK: Target actions
-extension AppDelegate {
+extension RayRacerDelegate {
 	@IBAction func didSelectInsertCartridgeMenuItem(_ sender: AnyObject) {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
@@ -110,7 +110,7 @@ extension AppDelegate {
 	}
 }
 
-extension AppDelegate {
+extension RayRacerDelegate {
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
 //		if let identifier = self.console.gameIdentifier {
 //			let breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
@@ -139,7 +139,7 @@ extension AppDelegate {
 
 // MARK: -
 // MARK: Window management
-extension AppDelegate: NSWindowDelegate {
+extension RayRacerDelegate: NSWindowDelegate {
 	func showWindow(of windowController: NSWindowController) {
 		windowController.window?.delegate = self
 		windowController.showWindow(self)
@@ -180,7 +180,7 @@ extension AppDelegate: NSWindowDelegate {
 
 // MARK: -
 // MARK: Main menu management
-extension AppDelegate: NSMenuDelegate {
+extension RayRacerDelegate: NSMenuDelegate {
 	func menuNeedsUpdate(_ menu: NSMenu) {
 		switch menu.identifier {
 		case .insertRecentCartridgeMenu:
@@ -237,7 +237,7 @@ extension AppDelegate: NSMenuDelegate {
 	}
 }
 
-extension AppDelegate: NSMenuItemValidation {
+extension RayRacerDelegate: NSMenuItemValidation {
 	func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		switch menuItem.identifier {
 		case .insertRecentCartridgeMenuItem:
@@ -261,7 +261,7 @@ private extension NSUserInterfaceItemIdentifier {
 
 // MARK: -
 // MARK: Toolbar item management
-extension AppDelegate: NSToolbarItemValidation {
+extension RayRacerDelegate: NSToolbarItemValidation {
 	func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
 		switch item.itemIdentifier {
 		case .resumeToolbarItem,

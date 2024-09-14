@@ -22,7 +22,7 @@ class AssemblyViewController: NSViewController {
 	private var cancellables: Set<AnyCancellable> = []
 	
 	private var console: Atari2600 {
-		let delegate = NSApplication.shared.delegate as! AppDelegate
+		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
 		return delegate.console
 	}
 	

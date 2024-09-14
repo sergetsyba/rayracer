@@ -18,7 +18,7 @@ final class Atari2600PerformanceTests: XCTestCase {
 		
 		measure {
 			for _ in 0..<1_000_000 {
-				console.stepProgram()
+				console.stepInstruction()
 			}
 		}
 	}

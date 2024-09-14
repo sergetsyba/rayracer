@@ -12,7 +12,7 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="RayRacer" customModuleProvider="target"/>
+        <customObject id="Voe-Tx-rLC" customClass="RayRacerDelegate" customModule="RayRacer" customModuleProvider="target"/>
         <menu title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
             <items>
                 <menuItem title="RayRacer" id="1Xt-HY-uBw">
@@ -65,7 +65,7 @@
                         <items>
                             <menuItem title="Insert Cartridge" keyEquivalent="o" id="G6B-pP-Kya">
                                 <connections>
-                                    <action selector="didSelectInsertCartridgeMenuItem:" target="Voe-Tx-rLC" id="CvU-4o-sqv"/>
+                                    <action selector="didSelectInsertCartridgeMenuItem:" target="-1" id="iAQ-3t-6lV"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Insert Recent Cartridge" identifier="InsertRecentCartridgeMenuItem" id="82w-BQ-fYJ">
@@ -95,7 +95,7 @@
                                         </menuItem>
                                     </items>
                                     <connections>
-                                        <outlet property="delegate" destination="Voe-Tx-rLC" id="HIB-DD-RAk"/>
+                                        <outlet property="delegate" destination="Voe-Tx-rLC" id="152-3K-vgv"/>
                                     </connections>
                                 </menu>
                             </menuItem>
@@ -147,18 +147,18 @@
                             <menuItem title="Game Select" id="Pg0-pC-YRK">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="didSelectGameSelectMenuItem:" target="Voe-Tx-rLC" id="Z4a-Pk-zOe"/>
+                                    <action selector="didSelectGameSelectMenuItem:" target="-1" id="ynQ-kv-hCQ"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Game Reset" keyEquivalent="r" identifier="GameResetMenuItem" id="Qfz-Kq-MTK">
                                 <connections>
-                                    <action selector="didSelectGameResetMenuItem:" target="Voe-Tx-rLC" id="Yy6-h9-9PV"/>
+                                    <action selector="didSelectGameResumeMenuItem:" target="-1" id="d3B-ZI-7Yf"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Reset" alternate="YES" keyEquivalent="r" identifier="ResetMenuItem" id="S33-bq-fEN">
                                 <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                 <connections>
-                                    <action selector="didSelectResetMenuItem:" target="Voe-Tx-rLC" id="HYm-lf-Vdm"/>
+                                    <action selector="didSelectResetMenuItem:" target="-1" id="kB4-qh-B8p"/>
                                 </connections>
                             </menuItem>
                         </items>
