@@ -21,6 +21,7 @@
 		954A18672A1AEE5800EBC582 /* RayRacerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */; };
 		954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 954A18682A1AEE5A00EBC582 /* Assets.xcassets */; };
 		954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = 954A186A2A1AEE5A00EBC582 /* Main.xib */; };
+		954C4F702C9586E20063B170 /* RayRacer+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954C4F6F2C9586E20063B170 /* RayRacer+Preferences.swift */; };
 		954E3CD02C283B3E009218CB /* DebugItemTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CCF2C283B3E009218CB /* DebugItemTableCellView.swift */; };
 		954E3CD22C285184009218CB /* DebugSectionTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */; };
 		954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */; };
@@ -80,6 +81,7 @@
 		954A18682A1AEE5A00EBC582 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		954A186B2A1AEE5A00EBC582 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/Main.xib; sourceTree = "<group>"; };
 		954A186D2A1AEE5A00EBC582 /* RayRacer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RayRacer.entitlements; sourceTree = "<group>"; };
+		954C4F6F2C9586E20063B170 /* RayRacer+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RayRacer+Preferences.swift"; sourceTree = "<group>"; };
 		954E3CCF2C283B3E009218CB /* DebugItemTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugItemTableCellView.swift; sourceTree = "<group>"; };
 		954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSectionTableCellView.swift; sourceTree = "<group>"; };
 		954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugValueTableCellView.swift; sourceTree = "<group>"; };
@@ -183,11 +185,12 @@
 			isa = PBXGroup;
 			children = (
 				954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */,
+				954C4F6F2C9586E20063B170 /* RayRacer+Preferences.swift */,
+				954A186A2A1AEE5A00EBC582 /* Main.xib */,
 				95CE639C2A333365007BD72B /* Debugger */,
 				95F23A682C8455D70074E4DF /* Screen */,
-				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
-				954A186A2A1AEE5A00EBC582 /* Main.xib */,
 				954A186D2A1AEE5A00EBC582 /* RayRacer.entitlements */,
+				954A18682A1AEE5A00EBC582 /* Assets.xcassets */,
 			);
 			path = RayRacer;
 			sourceTree = "<group>";
@@ -410,6 +413,7 @@
 				951CC4FE2A58723300537CD1 /* FormView.swift in Sources */,
 				954E3CD02C283B3E009218CB /* DebugItemTableCellView.swift in Sources */,
 				957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */,
+				954C4F702C9586E20063B170 /* RayRacer+Preferences.swift in Sources */,
 				957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */,
 				950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */,
 				954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */,
