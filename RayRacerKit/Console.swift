@@ -6,12 +6,8 @@
 //
 
 import Foundation
-import Combine
 
 public class Atari2600: ObservableObject {
-	private var eventSubject = PassthroughSubject<Event, Never>()
-	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
-	
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
@@ -31,7 +27,6 @@ public class Atari2600: ObservableObject {
 	public func reset() {
 		self.cpu.reset()
 		self.riot.reset()
-		self.eventSubject.send(.reset)
 	}
 	
 	public func setSwitch(_ switch: Switches, on: Bool) {
@@ -45,31 +40,6 @@ public class Atari2600: ObservableObject {
 	public func insertCartridge(_ data: Data) {
 		self.cartridge = data
 		self.reset()
-	}
-}
-
-
-// MARK: -
-// MARK: Events
-public extension Atari2600 {
-	enum Event {
-		case reset
-		case frame
-	}
-	
-	var events: some Publisher<Event, Never> {
-		return self.eventSubject
-	}
-}
-
-public extension Atari2600 {
-	enum DebugEvent {
-		case `break`
-		case resume
-	}
-	
-	var debugEvents: some Publisher<DebugEvent, Never> {
-		return self.debugEventSubject
 	}
 }
 
@@ -89,7 +59,6 @@ extension Atari2600 {
 		while !self.cpu.sync {
 			self.advanceClock()
 		}
-		self.debugEventSubject.send(.break)
 	}
 	
 	/// Advances console state to the beginning of the first program instruction in the next scan line.
@@ -104,7 +73,6 @@ extension Atari2600 {
 		while !self.cpu.sync {
 			self.advanceClock()
 		}
-		self.debugEventSubject.send(.break)
 	}
 	
 	/// Advances console state to the beginning of the next program instruction.
@@ -118,7 +86,6 @@ extension Atari2600 {
 		while !self.cpu.sync {
 			self.advanceClock()
 		}
-		self.debugEventSubject.send(.break)
 	}
 	
 	private func advanceClock() {
@@ -136,8 +103,6 @@ extension Atari2600 {
 		repeat {
 			self.stepInstruction()
 		} while breakpoints.contains(self.cpu.programCounter) == false
-		
-		self.debugEventSubject.send(.break)
 	}
 	
 	private func executeNextCPUInstruction() {

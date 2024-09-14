@@ -14,6 +14,7 @@ import RayRacerKit
 class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
 	private var defaults: UserDefaults = .standard
+	private var notifications: NotificationCenter = .default
 	
 	private var commandQueue: MTLCommandQueue!
 	private var pipelineState: MTLRenderPipelineState!
@@ -95,6 +96,7 @@ extension RayRacerDelegate {
 	
 	@IBAction func didSelectResetMenuItem(_ sender: AnyObject) {
 		self.console.reset()
+		self.postNotification(.reset)
 	}
 	
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
@@ -103,20 +105,35 @@ extension RayRacerDelegate {
 	
 	@IBAction func didSelectStepInstructionMenuItem(_ sender: AnyObject) {
 		self.console.stepInstruction()
+		self.postNotification(.break)
 	}
 	
 	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
 		self.console.stepScanLine()
+		self.postNotification(.break)
 	}
 	
 	@IBAction func didSelectStepFieldMenuItem(_ sender: AnyObject) {
 		self.console.stepField()
+		self.postNotification(.break)
 	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
 		let windowController = DebuggerWindowController()
 		self.showWindow(of: windowController)
 	}
+}
+
+private extension RayRacerDelegate {
+	func postNotification(_ name: Notification.Name) {
+		NotificationCenter.default
+			.post(name: name, object: self)
+	}
+}
+
+extension Notification.Name {
+	static let reset = Notification.Name("Break")
+	static let `break` = Notification.Name("Break")
 }
 
 
@@ -282,6 +299,7 @@ private extension RayRacerDelegate {
 		self.console.switches = self.defaults.consoleSwitches
 		self.console.insertCartridge(data)
 		self.console.reset()
+		self.postNotification(.reset)
 		
 		self.showWindow(of: windowController)
 		self.defaults.addOpenedFileURL(url)

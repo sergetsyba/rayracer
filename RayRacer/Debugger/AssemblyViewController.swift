@@ -6,7 +6,6 @@
 //
 
 import Cocoa
-import Combine
 import RayRacerKit
 
 typealias Program = [(Int, MOS6507Assembly.Instruction)]
@@ -18,8 +17,6 @@ class AssemblyViewController: NSViewController {
 	@IBOutlet private var tableView: NSTableView!
 	
 	private var program: Program?
-	private let defaults: UserDefaults = .standard
-	private var cancellables: Set<AnyCancellable> = []
 	
 	private var console: Atari2600 {
 		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
@@ -30,7 +27,8 @@ class AssemblyViewController: NSViewController {
 	private(set) var breakpoints: [Int] = [] {
 		didSet {
 			if let identifier = self.console.gameIdentifier {
-				self.defaults.setBreakpoints(self.breakpoints, forGameIdentifier: identifier)
+				UserDefaults.standard
+					.setBreakpoints(self.breakpoints, forGameIdentifier: identifier)
 			}
 		}
 	}
@@ -40,12 +38,17 @@ class AssemblyViewController: NSViewController {
 		self.title = "Program Assembly"
 	}
 	
+	deinit {
+		NotificationCenter.default
+			.removeObserver(self)
+	}
+	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
 		self.updateTableColumnWidths()
 		self.updateView()
-		self.setUpSinks()
+		self.setUpNotifications()
 	}
 	
 	override func viewDidAppear() {
@@ -57,30 +60,14 @@ class AssemblyViewController: NSViewController {
 
 // MARK: -
 private extension AssemblyViewController {
-	func setUpSinks() {
-		self.cancellables.insert(
-			self.console.events
-				.delay(for: 0.1, scheduler: RunLoop.main)
-				.receive(on: DispatchQueue.main)
-				.sink() { [unowned self] in
-					switch $0 {
-					case .reset:
-						self.updateView()
-					default: break
-					}
-				})
-		
-		self.cancellables.insert(
-			self.console.debugEvents
-				.receive(on: DispatchQueue.main)
-				.sink() {
-					switch $0 {
-					case .break:
-						self.updateProgramAddressTableRow()
-					default:
-						break
-					}
-				})
+	func setUpNotifications() {
+		let center: NotificationCenter = .default
+		center.addObserver(forName: .break, object: nil, queue: .main) { _ in
+			self.updateProgramAddressTableRow()
+		}
+		center.addObserver(forName: .reset, object: nil, queue: .main) { _ in
+			self.updateView()
+		}
 	}
 }
 
@@ -100,8 +87,8 @@ private extension AssemblyViewController {
 	func updateView() {
 		if let data = self.console.cartridge {
 			self.program = MOS6507Assembly.disassemble(data)
-			self.breakpoints = self.defaults.breakpoints(
-				forGameIdentifier: self.console.gameIdentifier!)
+			self.breakpoints = UserDefaults.standard
+				.breakpoints(forGameIdentifier: self.console.gameIdentifier!)
 			
 			// switch to program view
 			self.view.setContentView(self.programView, layout: .fill)

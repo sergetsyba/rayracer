@@ -6,13 +6,10 @@
 //
 
 import Cocoa
-import Combine
 import RayRacerKit
 
 class SystemStateViewController: NSViewController {
 	@IBOutlet private var outlineView: NSOutlineView!
-	
-	private var cancellables: Set<AnyCancellable> = []
 	
 	var console: Atari2600 {
 		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
@@ -25,7 +22,7 @@ class SystemStateViewController: NSViewController {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		self.setUpSyncs()
+		self.setUpNotifications()
 	}
 	
 	override func viewWillAppear() {
@@ -37,29 +34,14 @@ class SystemStateViewController: NSViewController {
 
 // MARK: -
 private extension SystemStateViewController {
-	func setUpSyncs() {
-		self.cancellables.insert(self.console.events
-			.receive(on: DispatchQueue.main)
-			.sink() {
-				switch $0 {
-				case .reset:
-					self.outlineView.reloadData()
-				default:
-					break
-				}
-			})
-		
-		self.cancellables.insert(
-			self.console.debugEvents
-				.receive(on: DispatchQueue.main)
-				.sink() {
-					switch $0 {
-					case .break:
-						self.outlineView.reloadData()
-					default:
-						break
-					}
-				})
+	func setUpNotifications() {
+		let center: NotificationCenter = .default
+		center.addObserver(forName: .reset, object: nil, queue: .main) { _ in
+			self.outlineView.reloadData()
+		}
+		center.addObserver(forName: .break, object: nil, queue: .main) { _ in
+			self.outlineView.reloadData()
+		}
 	}
 }
 

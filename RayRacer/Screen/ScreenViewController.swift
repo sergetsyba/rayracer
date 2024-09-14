@@ -8,7 +8,6 @@
 import Cocoa
 import MetalKit
 import RayRacerKit
-import Combine
 
 class ScreenViewController: NSViewController {
 	private let commandQueue: MTLCommandQueue
