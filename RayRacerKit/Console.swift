@@ -47,6 +47,12 @@ public class Atari2600: ObservableObject {
 // MARK: -
 // MARK: Debugging
 extension Atari2600 {
+	public func resume(until breakpoints: any Sequence<Int>) {
+		repeat {
+			self.stepInstruction()
+		} while breakpoints.contains(self.cpu.programCounter) == false
+	}
+	
 	/// Advances console state to the beginning of the first program instruction in the next TV field.
 	public func stepField() {
 		self.advanceClock()
@@ -55,7 +61,7 @@ extension Atari2600 {
 		}
 		
 		// finish current instruction when new field begins in
-		// the middle of executing one
+		// the middle of executing it
 		while !self.cpu.sync {
 			self.advanceClock()
 		}
@@ -69,7 +75,7 @@ extension Atari2600 {
 		}
 		
 		// finish current instruction when new scan line begins in
-		// the middle of executing one
+		// the middle of executing it
 		while !self.cpu.sync {
 			self.advanceClock()
 		}
@@ -97,19 +103,6 @@ extension Atari2600 {
 			self.cpu.advanceClock()
 		}
 		self.riot.advanceClock()
-	}
-	
-	func resumeProgram(until breakpoints: [Int]) {
-		repeat {
-			self.stepInstruction()
-		} while breakpoints.contains(self.cpu.programCounter) == false
-	}
-	
-	private func executeNextCPUInstruction() {
-		let cycles = 0//self.cpu.nextInstructionDuration
-		self.tia.advanceClock(cycles: cycles * 3)
-		self.riot.advanceClock(cycles: cycles)
-		//		self.cpu.executeNextInstruction()
 	}
 }
 

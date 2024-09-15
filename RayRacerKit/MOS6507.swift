@@ -833,12 +833,12 @@ private extension MOS6507 {
 	
 	func subtractFromAccumulator(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		let carry = self.status[.carry] ? 0x1: 0x0
+		let borrow = self.status[.carry] ? 0x0: 0x1
 		var result = 0x0
 		
 		if self.status[.decimalMode] {
 			var high = (self.accumulator / 0x10) - (operand / 0x10)
-			var low = (self.accumulator % 0x10) - (operand % 0x10) - carry
+			var low = (self.accumulator % 0x10) - (operand % 0x10) - borrow
 			
 			if low < 0x0 {
 				high -= 0x1
@@ -847,11 +847,11 @@ private extension MOS6507 {
 			
 			result = high * 0x10 + low
 			if result < 0x0 {
-				self.status[.carry]
+				self.status[.carry] = true
 				result += 0xa0
 			}
 		} else {
-			result = self.accumulator - operand - carry
+			result = self.accumulator - operand - borrow
 			if result < 0x0 {
 				self.status[.carry] = true
 				result += 0x100

@@ -100,7 +100,12 @@ extension RayRacerDelegate {
 	}
 	
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		// TODO: resume game
+		var breakpoints: [Int] = []
+		if let identifier = self.console.gameIdentifier {
+			breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
+		}
+		
+		self.console.resume(until: breakpoints)
 	}
 	
 	@IBAction func didSelectStepInstructionMenuItem(_ sender: AnyObject) {
