@@ -6,8 +6,8 @@
 //
 
 public class TIA {
-	public var output: Output
-	var screenClock: Int
+	public var output: GraphicsOutput?
+	private(set) public var screenClock: Int
 	private var verticalSyncClock: Int
 	
 	private(set) public var verticalBlank: Bool
@@ -19,10 +19,9 @@ public class TIA {
 	private(set) public var playfield: Playfield
 	private(set) public var backgroundColor: Int
 	
-	private(set) public var collistions: [GraphicsObject: Set<GraphicsObject>] = [:]
+	//	private(set) public var collistions: [GraphicsObject: Set<GraphicsObject>] = [:]
 	
-	init(output: Output) {
-		self.output = output
+	init() {
 		self.screenClock = 0
 		self.verticalSyncClock = -1
 		
@@ -36,23 +35,12 @@ public class TIA {
 		self.backgroundColor = .random(in: 0x00...0x7f)
 	}
 	
-	public func reset() {
-		self.screenClock = 0
-		self.verticalSyncClock = -1
-		self.verticalBlank = true
-		self.waitingHorizontalSync = false
+	func advanceClock(cycles: Int = 1) {
+		self.output?.write(color: self.color)
+		self.screenClock += 1
 		
-		self.players = (.random(), .random())
-		self.missiles = (.random(), .random())
-		self.ball = .random()
-		self.playfield = .random()
-		self.backgroundColor = .random(in: 0x00...0x7f)
-	}
-	
-	func advanceClock(cycles: Int) {
-		for _ in 0..<cycles {
-			self.output.write(color: self.color)
-			self.screenClock += 1
+		if self.screenClock % 228 == 0 {
+			self.waitingHorizontalSync = false
 		}
 	}
 	
@@ -72,95 +60,24 @@ public class TIA {
 	}
 }
 
-
-// MARK: -
-// MARK: Graphics objects
 extension TIA {
-	public struct Player {
-		public var graphics: (Int, Int)
-		public var reflected: Bool
-		public var copies: Int
-		public var color: Int = 0
-		public var position: Int
-		public var motion: Int
-		public var delayed: Bool
-		
-		static func random() -> Player {
-			return Player(
-				graphics: (.random(in: 0x00...0xff), .random(in: 0x00...0xff)),
-				reflected: .random(),
-				copies: .random(in: 1...3),
-				color: .random(in: 0x00...0xff),
-				position: .random(in: 5...160),
-				motion: .random(in: -8...7),
-				delayed: .random())
-		}
+	/// TIA outputs color signals in a raster scan for at most 262 scanlines, with 160 signals in each.
+	/// The number of scanlines with actual graphics in them is controlled by a program via
+	/// the VBLANK register.
+	public protocol GraphicsOutput {
+		/// Signals the start of a new field.
+		mutating func sync()
+		/// Signals the next color value.
+		mutating func write(color: Int)
 	}
 	
-	public struct Missile {
-		public var enabled: Bool
-		public var size: Int
-		public var color: Int
-		public var position: Int
-		public var motion: Int
-		
-		static func random() -> Missile {
-			return Missile(
-				enabled: .random(),
-				size: .random(in: 1...8),
-				color: .random(in: 0x00...0xff),
-				position: .random(in: 4...160),
-				motion: .random(in: -8...7))
-		}
-	}
-	
-	public struct Ball {
-		public var enabled: (Bool, Bool)
-		public var size: Int
-		public var position: Int
-		public var motion: Int
-		public var delayed: Bool
-		
-		static func random() -> Ball {
-			return Ball(
-				enabled: (.random(), .random()),
-				size: .random(in: 1...8),
-				position: .random(in: 0...160),
-				motion: .random(in: -8...7),
-				delayed: .random())
-		}
-	}
-	
-	public struct Playfield {
-		public var graphics: Int
-		public var control: PlayfieldControl
-		public var color: Int
-		
-		static func random() -> Playfield {
-			return Playfield(
-				graphics: .random(in: 0x000000...0xffffff),
-				control: .random(),
-				color: .random(in: 0x00...0xff))
-		}
-	}
-	
-	public struct PlayfieldControl: OptionSet {
-		public static let reflected = PlayfieldControl(rawValue: 1 << 0)
-		public static let scoreMode = PlayfieldControl(rawValue: 1 << 1)
-		public static let priority = PlayfieldControl(rawValue: 1 << 2)
-		
-		public var rawValue: Int
-		
-		static func random() -> PlayfieldControl {
-			return PlayfieldControl(rawValue: .random(in: 0x00...0xff))
-		}
-		
-		public init(rawValue: Int) {
-			self.rawValue = rawValue
-		}
+	/// One of six objects TIA draws on screen.
+	public protocol GraphicsObject {
+		/// Returns `true` when this object should be drawn at the specified position in the scan
+		/// line; returns `false` otherwise.
+		func draws(at position: Int) -> Bool
 	}
 }
-
 
 // MARK: -
 // MARK: Convenience registers
@@ -179,76 +96,6 @@ extension TIA {
 	
 	public var overscan: Bool {
 		return self.screenClock >= 232 * 228
-	}
-}
-
-
-// MARK: -
-// MARK: Drawing
-private extension TIA.Player {
-	func draws(at point: Int) -> Bool {
-		// ensure beam position is within possible player graphics
-		// positions range
-		let counter = point - self.self.position
-		guard (0..<80).contains(counter) else {
-			return false
-		}
-		
-		// ensure player copy appears in the current 8-point section
-		guard sectionLookUp[self.copies][counter / 8] else {
-			return false
-		}
-		
-		let graphics = self.delayed
-		? self.graphics.1
-		: self.graphics.0
-		
-		return self.reflected
-		? graphics[counter % 8]
-		: graphics[7 - counter % 8]
-	}
-}
-
-private extension TIA.Missile {
-	func draws(at point: Int) -> Bool {
-		guard self.enabled else {
-			return false
-		}
-		
-		let counter = point - self.position
-		return (0..<self.size)
-			.contains(counter)
-	}
-}
-
-private extension TIA.Ball {
-	func draws(at point: Int) -> Bool {
-		let enabled = self.delayed
-		? self.enabled.1
-		: self.enabled.0
-		
-		guard enabled else {
-			return false
-		}
-		
-		let counter = point - self.position
-		return (0..<self.size)
-			.contains(counter)
-	}
-}
-
-private extension TIA.Playfield {
-	func draws(at point: Int) -> Bool {
-		let bit = (point / 4) % 20
-		if point < 80 {
-			// left playfield side
-			return self.graphics[bit]
-		} else {
-			// right playfield side
-			return self.control.contains(.reflected)
-			? self.graphics[19 - bit]
-			: self.graphics[bit]
-		}
 	}
 }
 
@@ -312,35 +159,60 @@ extension TIA: Addressable {
 		switch address % 0x10 {
 		case 0x00:
 			// MARK: CXM0P
-			return self.collided(.missile0, with: .player0)
-			|| self.collided(.missile0, with: .player1) ? 0xc0 : 0x30
+			return 0x30
 		case 0x01:
 			// MARK: CXM1P
-			return self.collided(.missile1, with: .player0)
-			|| self.collided(.missile1, with: .player1) ? 0xc0 : 0x31
+			return 0x31
 		case 0x02:
 			// MARK: CXP0FB
-			return self.collided(.player0, with: .playfield)
-			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x32
+			return 0x32
 		case 0x03:
 			// MARK: CXP1FB
-			return self.collided(.player1, with: .playfield)
-			|| self.collided(.player1, with: .ball) ? 0xc0 : 0x33
+			return 0x33
 		case 0x04:
 			// MARK: CXM0FB
-			return self.collided(.missile0, with: .playfield)
-			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x34
+			return 0x34
 		case 0x05:
 			// MARK: CXM1FB
-			return self.collided(.missile1, with: .playfield)
-			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x35
+			return 0x35
 		case 0x06:
 			// MARK: CXBLPF
-			return self.collided(.ball, with: .playfield) ? 0xc0 : 0x36
+			return 0x36
 		case 0x07:
 			// MARK: CXPPMM
-			return self.collided(.player0, with: .player1)
-			|| self.collided(.missile0, with: .missile1) ? 0xc0 : 0x37
+			return 0x37
+			
+			//		case 0x00:
+			//			// MARK: CXM0P
+			//			return self.collided(.missile0, with: .player0)
+			//			|| self.collided(.missile0, with: .player1) ? 0xc0 : 0x30
+			//		case 0x01:
+			//			// MARK: CXM1P
+			//			return self.collided(.missile1, with: .player0)
+			//			|| self.collided(.missile1, with: .player1) ? 0xc0 : 0x31
+			//		case 0x02:
+			//			// MARK: CXP0FB
+			//			return self.collided(.player0, with: .playfield)
+			//			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x32
+			//		case 0x03:
+			//			// MARK: CXP1FB
+			//			return self.collided(.player1, with: .playfield)
+			//			|| self.collided(.player1, with: .ball) ? 0xc0 : 0x33
+			//		case 0x04:
+			//			// MARK: CXM0FB
+			//			return self.collided(.missile0, with: .playfield)
+			//			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x34
+			//		case 0x05:
+			//			// MARK: CXM1FB
+			//			return self.collided(.missile1, with: .playfield)
+			//			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x35
+			//		case 0x06:
+			//			// MARK: CXBLPF
+			//			return self.collided(.ball, with: .playfield) ? 0xc0 : 0x36
+			//		case 0x07:
+			//			// MARK: CXPPMM
+			//			return self.collided(.player0, with: .player1)
+			//			|| self.collided(.missile0, with: .missile1) ? 0xc0 : 0x37
 		case 0x0c:
 			// MARK: INPT4
 			return 0x80
@@ -369,7 +241,7 @@ extension TIA: Addressable {
 				let scanLines = elapsedCycles / 228
 				if scanLines >= 3 {
 					self.screenClock = 0
-					self.output.sync()
+					self.output?.sync()
 				}
 				
 				// stop counting vertical sync time
@@ -517,9 +389,9 @@ extension TIA: Addressable {
 			self.missiles.0.motion = 0
 			self.missiles.1.motion = 0
 			self.ball.motion = 0
-		case 0x2c:
+			//		case 0x2c:
 			// MARK: CXCLR
-			self.collistions = [:]
+			//			self.collistions = [:]
 			
 		default:
 			break
@@ -539,29 +411,52 @@ public extension Int {
 	}
 }
 
-private let sectionLookUp = [
-	0x001, // ●○○○○○○○○○
-	0x005, // ●○●○○○○○○○
-	0x011, // ●○○●○○○○○○
-	0x015, // ●○●○●○○○○○
-	0x101, // ●○○○○○○○●○
-	0x001, // ●●○○○○○○○○
-	0x111, // ●○○○●○○○●○
-	0x001  // ●●●●○○○○○○
-]
-
-extension TIA {
-	public enum GraphicsObject: CaseIterable {
-		case player0
-		case player1
-		case missile0
-		case missile1
-		case ball
-		case playfield
+extension TIA.Player {
+	static func random() -> Self {
+		return TIA.Player(
+			graphics: (.random(in: 0x00...0xff), .random(in: 0x00...0xff)),
+			reflected: .random(),
+			copies: .random(in: 1...3),
+			color: .random(in: 0x00...0xff),
+			position: .random(in: 5...160),
+			motion: .random(in: -8...7),
+			delayed: .random())
 	}
-	
-	private func collided(_ object1: GraphicsObject, with object2: GraphicsObject) -> Bool {
-		return self.collistions[object1]?
-			.contains(object2) ?? false
+}
+
+public extension TIA.Missile {
+	static func random() -> Self {
+		return TIA.Missile(
+			enabled: .random(),
+			size: .random(in: 1...8),
+			color: .random(in: 0x00...0xff),
+			position: .random(in: 4...160),
+			motion: .random(in: -8...7))
+	}
+}
+
+public extension TIA.Ball {
+	static func random() -> Self {
+		return TIA.Ball(
+			enabled: (.random(), .random()),
+			size: .random(in: 1...8),
+			position: .random(in: 0...160),
+			motion: .random(in: -8...7),
+			delayed: .random())
+	}
+}
+
+public extension TIA.Playfield {
+	static func random() -> Self {
+		return TIA.Playfield(
+			graphics: .random(in: 0x000000...0xffffff),
+			control: .random(),
+			color: .random(in: 0x00...0xff))
+	}
+}
+
+public extension TIA.PlayfieldControl {
+	static func random() -> Self {
+		return TIA.PlayfieldControl(rawValue: .random(in: 0x00...0xff))
 	}
 }

@@ -8,7 +8,6 @@
 import Cocoa
 import MetalKit
 import RayRacerKit
-import Combine
 
 class ScreenViewController: NSViewController {
 	private let commandQueue: MTLCommandQueue
@@ -109,7 +108,7 @@ extension ScreenViewController: MTKViewDelegate {
 
 
 // MARK: -
-extension ScreenViewController: TIA.Output {
+extension ScreenViewController: TIA.GraphicsOutput {
 	private var currentScanLine: Int {
 		return self.screenIndex / self.screenSize.width
 	}

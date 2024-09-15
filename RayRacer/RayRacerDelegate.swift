@@ -1,5 +1,5 @@
 //
-//  AppDelegate.swift
+//  RayRacerDelegate.swift
 //  RayRacer
 //
 //  Created by Serge Tsyba on 22.5.2023.
@@ -11,15 +11,15 @@ import CryptoKit
 import RayRacerKit
 
 @main
-class AppDelegate: NSObject, NSApplicationDelegate {
+class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
-	private var console: Atari2600? = .current
+	private var defaults: UserDefaults = .standard
+	private var notifications: NotificationCenter = .default
 	
 	private var commandQueue: MTLCommandQueue!
 	private var pipelineState: MTLRenderPipelineState!
 	
-	private var defaults: UserDefaults = .standard
-	private var timer: DispatchSourceTimer?
+	private(set) var console = Atari2600()
 	
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		guard let device = MTLCreateSystemDefaultDevice(),
@@ -51,22 +51,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 // MARK: -
 // MARK: Target actions
-extension AppDelegate {
+extension RayRacerDelegate {
 	@IBAction func didSelectInsertCartridgeMenuItem(_ sender: AnyObject) {
-		let panel = NSOpenPanel()
-		panel.allowsMultipleSelection = false
-		panel.canChooseFiles = true
-		panel.canChooseDirectories = false
-		panel.canCreateDirectories = false
-		panel.directoryURL = self.defaults.openedFileURLs.first
-		
-		let response = panel.runModal()
-		guard let url = panel.url,
-			  response == .OK else {
-			return
-		}
-		
-		self.openFile(at: url)
+		self.withModalFileOpenPanel({
+			self.openFile(at: $0)
+		})
 	}
 	
 	@IBAction func didSelectInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
@@ -96,40 +85,42 @@ extension AppDelegate {
 	@IBAction func didSelectGameResetMenuItem(_ sender: AnyObject) {
 	}
 	
-	@IBAction func didSelectResetMenuItem(_ sender: AnyObject) {
-		self.console?.reset()
-	}
-	
 	private func didSelectConsoleSwitchesMenuItem(_ menuItem: NSMenuItem, for switch: Atari2600.Switches) {
 		// menu items for `on` switch values appear at the top of the menu
 		let on = menuItem.menu?
 			.index(of: menuItem) == 0
 		
-		self.console?.setSwitch(`switch`, on: on)
-		// TODO: -
-		//		self.defaults.consoleSwitches = self.console?.switches
-	}
-}
-
-extension AppDelegate {
-	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		if let console = self.console {
-			let identifier = console.gameIdentifier!
-			let breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
-			console.resumeProgram(until: breakpoints)
-		}
+		self.console.setSwitch(`switch`, on: on)
+		self.defaults.consoleSwitches = self.console.switches
 	}
 	
-	@IBAction func didSelectStepProgramMenuItem(_ sender: AnyObject) {
-		self.console?.stepProgram()
+	@IBAction func didSelectResetMenuItem(_ sender: AnyObject) {
+		self.console.reset()
+		self.postNotification(.reset)
+	}
+	
+	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
+		var breakpoints: [Int] = []
+		if let identifier = self.console.gameIdentifier {
+			breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
+		}
+		
+		self.console.resume(until: breakpoints)
+	}
+	
+	@IBAction func didSelectStepInstructionMenuItem(_ sender: AnyObject) {
+		self.console.stepInstruction()
+		self.postNotification(.break)
 	}
 	
 	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
-		self.console?.stepScanLine()
+		self.console.stepScanLine()
+		self.postNotification(.break)
 	}
 	
-	@IBAction func didSelectStepFrameMenuItem(_ sender: AnyObject) {
-		self.console?.stepFrame()
+	@IBAction func didSelectStepFieldMenuItem(_ sender: AnyObject) {
+		self.console.stepField()
+		self.postNotification(.break)
 	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
@@ -138,10 +129,22 @@ extension AppDelegate {
 	}
 }
 
+private extension RayRacerDelegate {
+	func postNotification(_ name: Notification.Name) {
+		NotificationCenter.default
+			.post(name: name, object: self)
+	}
+}
+
+extension Notification.Name {
+	static let reset = Notification.Name("Break")
+	static let `break` = Notification.Name("Break")
+}
+
 
 // MARK: -
 // MARK: Window management
-extension AppDelegate: NSWindowDelegate {
+extension RayRacerDelegate: NSWindowDelegate {
 	func showWindow(of windowController: NSWindowController) {
 		windowController.window?.delegate = self
 		windowController.showWindow(self)
@@ -153,38 +156,12 @@ extension AppDelegate: NSWindowDelegate {
 			self.windowControllers.remove(where: { $0.window == window })
 		}
 	}
-	
-	func openFile(at url: URL) {
-		guard let data = try? Data(contentsOfSecurityScopedResourceAt: url) else {
-			// TODO: show error when opening cartridge data fails
-			fatalError()
-		}
-		
-		let viewController = ScreenViewController(
-			commandQueue: self.commandQueue,
-			pipelineState: self.pipelineState)
-		
-		let windowController = NSWindowController(windowNibName: "ScreenWindow")
-		windowController.contentViewController = viewController
-		windowController.window?
-			.title = url.lastPathComponent
-		
-		let console = Atari2600()
-		console.tia.output = viewController
-		console.switches = self.defaults.consoleSwitches
-		console.insertCartridge(data)
-		console.reset()
-		
-		self.console = console
-		self.showWindow(of: windowController)
-		self.defaults.addOpenedFileURL(url)
-	}
 }
 
 
 // MARK: -
 // MARK: Main menu management
-extension AppDelegate: NSMenuDelegate {
+extension RayRacerDelegate: NSMenuDelegate {
 	func menuNeedsUpdate(_ menu: NSMenu) {
 		switch menu.identifier {
 		case .insertRecentCartridgeMenu:
@@ -241,7 +218,7 @@ extension AppDelegate: NSMenuDelegate {
 	}
 }
 
-extension AppDelegate: NSMenuItemValidation {
+extension RayRacerDelegate: NSMenuItemValidation {
 	func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		switch menuItem.identifier {
 		case .insertRecentCartridgeMenuItem:
@@ -265,7 +242,7 @@ private extension NSUserInterfaceItemIdentifier {
 
 // MARK: -
 // MARK: Toolbar item management
-extension AppDelegate: NSToolbarItemValidation {
+extension RayRacerDelegate: NSToolbarItemValidation {
 	func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
 		switch item.itemIdentifier {
 		case .resumeToolbarItem,
@@ -273,8 +250,7 @@ extension AppDelegate: NSToolbarItemValidation {
 				.stepScanLineToolbarItem,
 				.stepFrameToolbarItem,
 				.gameResetToolbarItem:
-			return self.console?
-				.cartridge != nil
+			return self.console.cartridge != nil
 		default:
 			return false
 		}
@@ -291,94 +267,48 @@ private extension NSToolbarItem.Identifier {
 }
 
 
-
 // MARK: -
-// MARK: Preference management
-private extension String {
-	static let consoleSwitches = "ConsoleSwitches"
-	static let openedFileBookmarks = "OpenedFileBookmarks"
-}
-
-private extension UserDefaults {
-	var consoleSwitches: Atari2600.Switches {
-		get {
-			// by default, TV type is set to `color` and both difficulties
-			// to `advanced`
-			let value = self.object(forKey: .consoleSwitches) as? Int ?? 0xc8
-			return Atari2600.Switches(rawValue: value)
-		}
-		set {
-			self.setValue(newValue.rawValue, forKey: .consoleSwitches)
+// MARK: Custom functionality
+private extension RayRacerDelegate {
+	func withModalFileOpenPanel(_ perform: (URL) -> Void) {
+		let panel = NSOpenPanel()
+		panel.allowsMultipleSelection = false
+		panel.canChooseFiles = true
+		panel.canChooseDirectories = false
+		panel.canCreateDirectories = false
+		panel.directoryURL = self.defaults.openedFileURLs.first
+		
+		let response = panel.runModal()
+		if let url = panel.url,
+		   response == .OK {
+			perform(url)
 		}
 	}
 	
-	var openedFileURLs: [URL] {
-		// show up to 10 recently opened files
-		return self.openedFileBookmarks
-			.prefix(10)
-			.map({ $0.0 })
-	}
-	
-	func addOpenedFileURL(_ url: URL) {
-		guard let data = try? url.bookmarkData(options: .readOnlySecurityScope) else {
-			return
+	func openFile(at url: URL) {
+		guard let data = try? Data(contentsOfSecurityScopedResourceAt: url) else {
+			// TODO: show error when opening cartridge data fails
+			fatalError()
 		}
 		
-		// read bookmark data in user defaults, excluding bookmark data of
-		// the new URL; read bookmark data of 9 recently opened files to
-		// limit the result to 10, once the new data is added
-		var defaultsData = self.openedFileBookmarks
-			.filter({ $0.0 != url })
-			.prefix(9)
-			.map({ $0.1 })
+		let viewController = ScreenViewController(
+			commandQueue: self.commandQueue,
+			pipelineState: self.pipelineState)
 		
-		// prepend bookmark data of the new URL at the beginning and write
-		// bookmark data to user defaults
-		defaultsData.insert(data, at: 0)
-		self.setValue(defaultsData, forKey: .openedFileBookmarks)
-	}
-	
-	func clearOpenedFileURLs() {
-		self.removeObject(forKey: .openedFileBookmarks)
-	}
-	
-	private var openedFileBookmarks: [(URL, Data)] {
-		guard let data = self.value(forKey: .openedFileBookmarks) as? [Data] else {
-			return []
-		}
+		let windowController = NSWindowController(windowNibName: "ScreenWindow")
+		windowController.contentViewController = viewController
+		windowController.window?
+			.title = url.lastPathComponent
 		
-		// resolve file URLs from bookmark data and only keep unique ones
-		var bookmarks: [(URL, Data)] = []
-		for data in data {
-			var stale = false
-			
-			// resolve file URLs from bookmark data and only keep unique ones
-			if let url = try? URL(resolvingBookmarkData: data, options: .securityScope, relativeTo: nil, bookmarkDataIsStale: &stale),
-			   bookmarks.contains(where: { $0.0 == url }) == false {
-				bookmarks.append((url, data))
-			}
-			
-			if stale {
-				// TODO: update opened file URL stale bookmark
-			}
-		}
+		self.console.tia.output = viewController
+		self.console.switches = self.defaults.consoleSwitches
+		self.console.insertCartridge(data)
+		self.console.reset()
+		self.postNotification(.reset)
 		
-		return bookmarks
+		self.showWindow(of: windowController)
+		self.defaults.addOpenedFileURL(url)
 	}
-}
-
-private extension URL.BookmarkCreationOptions {
-	static let readOnlySecurityScope: Self = [
-		.withSecurityScope,
-		.securityScopeAllowOnlyReadAccess
-	]
-}
-
-private extension URL.BookmarkResolutionOptions {
-	static let securityScope: Self = [
-		.withSecurityScope,
-		.withoutUI
-	]
 }
 
 
@@ -409,8 +339,6 @@ private extension Set {
 }
 
 extension Atari2600 {
-	static let current = Atari2600()
-	
 	var gameIdentifier: String? {
 		guard let data = self.cartridge else {
 			return nil

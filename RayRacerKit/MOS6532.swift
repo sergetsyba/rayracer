@@ -25,7 +25,7 @@ public class MOS6532 {
 	}
 	
 	/// Advances clock by the speciied number of cycles.
-	func advanceClock(cycles: Int) {
+	func advanceClock(cycles: Int = 1) {
 		self.timer.advanceClock(cycles: cycles)
 	}
 }

@@ -6,14 +6,15 @@
 //
 
 import Cocoa
-import Combine
 import RayRacerKit
 
 class SystemStateViewController: NSViewController {
 	@IBOutlet private var outlineView: NSOutlineView!
 	
-	private let console: Atari2600 = .current
-	private var cancellables: Set<AnyCancellable> = []
+	var console: Atari2600 {
+		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
+		return delegate.console
+	}
 	
 	convenience init() {
 		self.init(nibName: "SystemStateView", bundle: .main)
@@ -21,7 +22,7 @@ class SystemStateViewController: NSViewController {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		self.setUpSyncs()
+		self.setUpNotifications()
 	}
 	
 	override func viewWillAppear() {
@@ -33,29 +34,14 @@ class SystemStateViewController: NSViewController {
 
 // MARK: -
 private extension SystemStateViewController {
-	func setUpSyncs() {
-		self.cancellables.insert(self.console.events
-			.receive(on: DispatchQueue.main)
-			.sink() {
-				switch $0 {
-				case .reset:
-					self.outlineView.reloadData()
-				default:
-					break
-				}
-			})
-		
-		self.cancellables.insert(
-			self.console.debugEvents
-				.receive(on: DispatchQueue.main)
-				.sink() {
-					switch $0 {
-					case .break:
-						self.outlineView.reloadData()
-					default:
-						break
-					}
-				})
+	func setUpNotifications() {
+		let center: NotificationCenter = .default
+		center.addObserver(forName: .reset, object: nil, queue: .main) { _ in
+			self.outlineView.reloadData()
+		}
+		center.addObserver(forName: .break, object: nil, queue: .main) { _ in
+			self.outlineView.reloadData()
+		}
 	}
 }
 
@@ -234,8 +220,8 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		
 		switch item {
 		case .beamPosition:
-			let scanLine = 0//self.console.frameClock / self.console.width
-			let colorClock = 0//self.console.frameClock % self.console.width
+			let scanLine = self.console.tia.screenClock / 228
+			let colorClock = self.console.tia.screenClock % 228
 			view?.stringValue = (item.rawValue, "\(scanLine), \(colorClock - 68)")
 		case .verticalSync:
 			view?.stringValue = (item.rawValue, self.formattedVerticalSync)
@@ -284,7 +270,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
 			return view
 		}
 	}
@@ -325,7 +311,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
 			return view
 		}
 	}
@@ -356,7 +342,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
 			return view
 		}
 	}
@@ -387,7 +373,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
 			return view
 		}
 	}
@@ -423,7 +409,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatCollisions(of: .ball))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .ball))
 			return view
 		}
 	}
@@ -450,7 +436,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatCollisions(of: .playfield))
+			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .playfield))
 			return view
 		}
 	}
@@ -584,28 +570,28 @@ private extension SystemStateViewController {
 		return "\(values) \(pattern.suffix(20))"
 	}
 	
-	private func formatCollisions(of object: TIA.GraphicsObject) -> String {
-		if let objects = self.console.tia.collistions[object] {
-			return objects.map({ "\($0)" })
-				.joined(separator: ", ")
-		} else {
-			return "None"
-		}
-	}
+	//	private func formatCollisions(of object: TIA.GraphicsObject) -> String {
+	//		if let objects = self.console.tia.collistions[object] {
+	//			return objects.map({ "\($0)" })
+	//				.joined(separator: ", ")
+	//		} else {
+	//			return "None"
+	//		}
+	//	}
 }
 
-extension TIA.GraphicsObject: CustomStringConvertible {
-	public var description: String {
-		switch self {
-		case .player0: return "Player 0"
-		case .player1: return "Player 1"
-		case .missile0: return "Missile 0"
-		case .missile1: return "Missile 1"
-		case .ball: return "Ball"
-		case .playfield: return "Playfield"
-		}
-	}
-}
+//extension TIA.GraphicsObject: CustomStringConvertible {
+//	public var description: String {
+//		switch self {
+//		case .player0: return "Player 0"
+//		case .player1: return "Player 1"
+//		case .missile0: return "Missile 0"
+//		case .missile1: return "Missile 1"
+//		case .ball: return "Ball"
+//		case .playfield: return "Playfield"
+//		}
+//	}
+//}
 
 
 // MARK: -

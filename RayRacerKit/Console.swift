@@ -6,12 +6,8 @@
 //
 
 import Foundation
-import Combine
 
 public class Atari2600: ObservableObject {
-	private var eventSubject = PassthroughSubject<Event, Never>()
-	private var debugEventSubject = PassthroughSubject<DebugEvent, Never>()
-	
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
@@ -24,16 +20,13 @@ public class Atari2600: ObservableObject {
 	public init() {
 		self.cpu = MOS6507(bus: self)
 		self.riot = MOS6532(ports: (self.joystic, self))
-		self.tia = TIA(output: self)
+		self.tia = TIA()
 	}
 	
 	// Resets internal state.
 	public func reset() {
 		self.cpu.reset()
 		self.riot.reset()
-		self.tia.reset()
-		
-		self.eventSubject.send(.reset)
 	}
 	
 	public func setSwitch(_ switch: Switches, on: Bool) {
@@ -52,93 +45,64 @@ public class Atari2600: ObservableObject {
 
 
 // MARK: -
-// MARK: Events
-public extension Atari2600 {
-	enum Event {
-		case reset
-		case frame
-	}
-	
-	var events: some Publisher<Event, Never> {
-		return self.eventSubject
-	}
-}
-
-public extension Atari2600 {
-	enum DebugEvent {
-		case `break`
-		case resume
-	}
-	
-	var debugEvents: some Publisher<DebugEvent, Never> {
-		return self.debugEventSubject
-	}
-}
-
-
-// MARK: -
 // MARK: Debugging
-public extension Atari2600 {
-	func stepProgram() {
-		// when stepping a CPU instruction and WSYNC is on, advance TIA to
-		// horizontal sync and execute the next CPU instruction
-		if self.tia.waitingHorizontalSync {
-			let cycles = self.tia.advanceClockToHorizontalSync()
-			self.riot.advanceClock(cycles: cycles / 3)
+extension Atari2600 {
+	public func resume(until breakpoints: any Sequence<Int>) {
+		repeat {
+			self.stepInstruction()
+		} while breakpoints.contains(self.cpu.programCounter) == false
+	}
+	
+	/// Advances console state to the beginning of the first program instruction in the next TV field.
+	public func stepField() {
+		self.advanceClock()
+		while self.tia.screenClock > 0 {
+			self.advanceClock()
 		}
 		
-		self.executeNextCPUInstruction()
-		self.debugEventSubject.send(.break)
+		// finish current instruction when new field begins in
+		// the middle of executing it
+		while !self.cpu.sync {
+			self.advanceClock()
+		}
 	}
 	
-	func stepScanLine() {
-		let scanLine = 0//self.scanLine
-		repeat {
-			// when stepping a scan line and WSYNC is on, advance TIA to
-			// horizontal sync but break before the next CPU instruction
-			if self.tia.waitingHorizontalSync {
-				let cycles = self.tia.advanceClockToHorizontalSync()
-				self.riot.advanceClock(cycles: cycles / 3)
-			} else {
-				self.executeNextCPUInstruction()
-			}
-		} while true //self.scanLine == scanLine
+	/// Advances console state to the beginning of the first program instruction in the next scan line.
+	public func stepScanLine() {
+		self.advanceClock()
+		while self.tia.colorClock > 0 {
+			self.advanceClock()
+		}
 		
-		self.debugEventSubject.send(.break)
+		// finish current instruction when new scan line begins in
+		// the middle of executing it
+		while !self.cpu.sync {
+			self.advanceClock()
+		}
 	}
 	
-	func stepFrame() {
-		var clock1 = self.tia.screenClock
-		var clock2 = self.tia.screenClock
+	/// Advances console state to the beginning of the next program instruction.
+	public func stepInstruction() {
+		// advance TIA to horizontal sync when WSYNC is on
+		while self.tia.waitingHorizontalSync {
+			self.advanceClock()
+		}
 		
-		// keep executing CPU instructions until frame clock decreases
-		repeat {
-			clock1 = clock2
-			if self.tia.waitingHorizontalSync {
-				let cycles = self.tia.advanceClockToHorizontalSync()
-				self.riot.advanceClock(cycles: cycles / 3)
-			}
-			
-			self.executeNextCPUInstruction()
-			clock2 = self.tia.screenClock
-		} while clock1 < clock2
-		
-		self.debugEventSubject.send(.break)
+		self.advanceClock()
+		while !self.cpu.sync {
+			self.advanceClock()
+		}
 	}
 	
-	func resumeProgram(until breakpoints: [Int]) {
-		repeat {
-			self.stepProgram()
-		} while breakpoints.contains(self.cpu.programCounter) == false
+	private func advanceClock() {
+		self.tia.advanceClock()
+		self.tia.advanceClock()
+		self.tia.advanceClock()
 		
-		self.debugEventSubject.send(.break)
-	}
-	
-	private func executeNextCPUInstruction() {
-		let cycles = self.cpu.nextInstructionDuration
-		self.tia.advanceClock(cycles: cycles * 3)
-		self.riot.advanceClock(cycles: cycles)
-		self.cpu.executeNextInstruction()
+		if !self.tia.waitingHorizontalSync {
+			self.cpu.advanceClock()
+		}
+		self.riot.advanceClock()
 	}
 }
 
@@ -171,7 +135,7 @@ extension Atari2600: Addressable {
 		}
 		
 		let data = self.cartridge?[address - 0xf000]
-		?? .random(in: 0x00...0xff)
+		?? 0xea//.random(in: 0x00...0xff)
 		
 		return Int(data)
 	}
@@ -245,15 +209,5 @@ extension Atari2600.Joystick: MOS6532.Port {
 	}
 	
 	public mutating func write(_ data: Int) {
-	}
-}
-
-extension Atari2600: TIA.Output {
-	public func sync() {
-		// does nothing
-	}
-	
-	public func write(color: Int) {
-		// does nothing
 	}
 }

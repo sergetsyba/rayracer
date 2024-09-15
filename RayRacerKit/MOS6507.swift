@@ -6,85 +6,95 @@
 //
 
 public class MOS6507 {
-	private(set) public var accumulator: Int
-	private(set) public var x: Int
-	private(set) public var y: Int
+	private(set) public var accumulator: Int {
+		didSet {
+			self.status[.zero] = self.accumulator == 0x0
+			self.status[.negative] = self.accumulator[7]
+		}
+	}
+	private(set) public var x: Int {
+		didSet {
+			self.status[.zero] = self.x == 0x0
+			self.status[.negative] = self.x[7]
+		}
+	}
+	private(set) public var y: Int {
+		didSet {
+			self.status[.zero] = self.y == 0x0
+			self.status[.negative] = self.y[7]
+		}
+	}
+	
 	private(set) public var status: Status
 	private(set) public var stackPointer: Int
 	private(set) public var programCounter: Int
 	
-	private var bus: any Addressable<Int>
-	private var decoded: (() -> Void, Int, Int?)?
+	private var decoded: (() -> Void, Int, Int?) = ({}, 0, 0)
+	private var elapsedCycles: Int = 0
+	private var bus: Addressable
 	
-	public init(bus: any Addressable<Int>) {
+	public init(bus: Addressable) {
 		self.accumulator = .random(in: 0x00...0xff)
 		self.x = .random(in: 0x00...0xff)
 		self.y = .random(in: 0x00...0xff)
 		self.status = .random()
 		
-		self.stackPointer = 0xfd
-		self.programCounter = Int(
-			low: bus.read(at: 0xfffc),
-			high: bus.read(at: 0xfffd))
+		self.stackPointer = .random(in: 0x00...0xff)
+		self.programCounter = .random(in: 0x0000...0xffff)
 		
 		self.bus = bus
-		self.decoded = nil
+		self.reset()
+	}
+	
+	/// Returns `true` when this CPU is in the first operation cycle; returns `false` otherwise.
+	public var sync: Bool {
+		return self.elapsedCycles == 0
 	}
 	
 	/// Resets this CPU.
 	public func reset() {
-		self.accumulator = .random(in: 0x00...0xff)
-		self.x = .random(in: 0x00...0xff)
-		self.y = .random(in: 0x00...0xff)
-		self.status = .random()
-		
 		self.stackPointer = 0xfd
 		self.programCounter = Int(
 			low: self.bus.read(at: 0xfffc),
 			high: self.bus.read(at: 0xfffd))
 		
-		self.decoded = nil
+		self.decoded = self.decodeOperation(at: self.programCounter)
+		self.elapsedCycles = 0
 	}
 	
-	/// Executes program instructions until it reaches one at any of the sepcified addresses.
-	public func resume(until breakpoints: [Int]) {
-		while !breakpoints.contains(self.programCounter) {
-			self.executeNextInstruction()
+	/// Advances CPU clock by 1 unit.
+	public func advanceClock() {
+		self.elapsedCycles += 1
+		
+		if self.elapsedCycles == self.decoded.1 {
+			self.decoded.0()
+			self.decoded = self.decodeOperation(at: self.programCounter)
+			self.elapsedCycles = 0
 		}
 	}
 }
 
 
 // MARK: -
-public extension MOS6507 {
-	/// Returns the number of CPU cycles it will take to execute the next instruction in the program.
-	var nextInstructionDuration: Int {
-		if self.decoded == nil {
-			self.decoded = self.decodeNextOperation()
-		}
-		return self.decoded!.1
+// MARK: Operation decoding
+extension MOS6507 {
+	/// Returns the number of CPU cycles it takes to execute the current instruction in the program.
+	public var operationDuration: Int {
+		return self.decoded.1
 	}
 	
-	var nextOperandAddress: Int? {
-		if self.decoded == nil {
-			self.decoded = self.decodeNextOperation()
-		}
-		return self.decoded!.2
-	}
-	
-	/// Executes the next instruction in the program.
-	func executeNextInstruction() {
-		if self.decoded == nil {
-			self.decoded = self.decodeNextOperation()
-		}
-		
-		self.decoded!.0()
-		self.decoded = self.decodeNextOperation()
+	/// Returns the dereferenced operand address of the current instruction in the program.
+	public var operandAddress: Int? {
+		return self.decoded.2
 	}
 	
 	/// Returns the next operation in the program and the amount of CPU cycles it will take to execute.
-	private func decodeNextOperation() -> (() -> Void, Int, Int?) {
+	private func decodeOperation(at address: Int) -> (() -> Void, Int, Int?) {
 		let opcode = self.bus.read(at: self.programCounter)
+		
+		// NOTE: performance benchmarks showed that replacing this switch
+		// statement with a function array results in no performance
+		// improvements
 		switch opcode {
 			// MARK: ADC
 		case 0x69: return self.withImmediateAddressing(
@@ -105,22 +115,30 @@ public extension MOS6507 {
 			self.addToAccumulator(valueAt:), cycles: 5)
 			
 			// MARK: AND
-		case 0x29: return self.withImmediateAddressing(
-			self.conjunctAccumulator(withValueAt:))
-		case 0x25: return self.with0PageAddressing(
-			self.conjunctAccumulator(withValueAt:), cycles: 3)
-		case 0x35: return self.with0PageXIndexedAddressing(
-			self.conjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x2D: return self.withAbsoluteAddressing(
-			self.conjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x3D: return self.withAbsoluteXIndexedAddressing(
-			self.conjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x39: return self.withAbsoluteYIndexedAddressing(
-			self.conjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x21: return self.withXIndexedIndirectAddressing(
-			self.conjunctAccumulator(withValueAt:), cycles: 6)
-		case 0x31: return self.withIndirectYIndexedAddressing(
-			self.conjunctAccumulator(withValueAt:), cycles: 5)
+		case 0x29: return self.withImmediateAddressing({
+			self.accumulator &= self.bus.read(at: $0)
+		})
+		case 0x25: return self.with0PageAddressing({
+			self.accumulator &= self.bus.read(at: $0)
+		}, cycles: 3)
+		case 0x35: return self.with0PageXIndexedAddressing({
+			self.accumulator &= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x2D: return self.withAbsoluteAddressing({
+			self.accumulator &= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x3D: return self.withAbsoluteXIndexedAddressing({
+			self.accumulator &= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x39: return self.withAbsoluteYIndexedAddressing({
+			self.accumulator &= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x21: return self.withXIndexedIndirectAddressing({
+			self.accumulator &= self.bus.read(at: $0)
+		}, cycles: 6)
+		case 0x31: return self.withIndirectYIndexedAddressing({
+			self.accumulator &= self.bus.read(at: $0)
+		}, cycles: 5)
 			
 			// MARK: ASL (accumulator)
 		case 0x0a: return self.withImpliedAddressing(
@@ -137,13 +155,13 @@ public extension MOS6507 {
 			
 			// MARK: BCC
 		case 0x90: return self.withRelativeAddressing(
-			on: { self.status.contains(.carry) == false })
+			on: { self.status[.carry] == false })
 			// MARK: BCS
 		case 0xb0: return self.withRelativeAddressing(
-			on: { self.status.contains(.carry) })
+			on: { self.status[.carry] })
 			// MARK: BEQ
 		case 0xf0: return self.withRelativeAddressing(
-			on: { self.status.contains(.zero) })
+			on: { self.status[.zero] })
 			
 			// MARK: BIT
 		case 0x24: return self.with0PageAddressing(
@@ -153,13 +171,13 @@ public extension MOS6507 {
 			
 			// MARK: BMI
 		case 0x30: return self.withRelativeAddressing(
-			on: { self.status.contains(.negative) })
+			on: { self.status[.negative] })
 			// MARK: BNE
 		case 0xd0: return self.withRelativeAddressing(
-			on: { self.status.contains(.zero) == false })
+			on: { self.status[.zero] == false })
 			// MARK: BPL
 		case 0x10: return self.withRelativeAddressing(
-			on: { self.status.contains(.negative) == false })
+			on: { self.status[.negative] == false })
 			
 			// MARK: BRK
 		case 0x00: return self.withImpliedAddressing(
@@ -167,57 +185,71 @@ public extension MOS6507 {
 			
 			// MARK: BVC
 		case 0x50: return self.withRelativeAddressing(
-			on: { self.status.contains(.overflow) == false })
+			on: { self.status[.overflow] == false })
 			// MARK: BVS
 		case 0x70: return self.withRelativeAddressing(
-			on: { self.status.contains(.overflow) })
+			on: { self.status[.overflow] })
 			
 			// MARK: CLC
 		case 0x18: return self.withImpliedAddressing(
-			{ self.status.remove(.carry) })
+			{ self.status[.carry] = false })
 			// MARK: CLD
 		case 0xd8: return self.withImpliedAddressing(
-			{ self.status.remove(.decimalMode) })
+			{ self.status[.decimalMode] = false })
 			// MARK: CLI
 		case 0x58: return self.withImpliedAddressing(
-			{ self.status.remove(.interruptDisabled) })
+			{ self.status[.interruptDisabled] = false })
 			// MARK: CLV
 		case 0xb8: return self.withImpliedAddressing(
-			{ self.status.remove(.overflow) })
+			{ self.status[.overflow] = false })
 			
 			// MARK: CMP
-		case 0xc9: return self.withImmediateAddressing(
-			self.compareAccumulator(withValueAt:))
-		case 0xc5: return self.with0PageAddressing(
-			self.compareAccumulator(withValueAt:), cycles: 3)
-		case 0xd5: return self.with0PageXIndexedAddressing(
-			self.compareAccumulator(withValueAt:), cycles: 4)
-		case 0xcd: return self.withAbsoluteAddressing(
-			self.compareAccumulator(withValueAt:), cycles: 4)
-		case 0xdd: return self.withAbsoluteXIndexedAddressing(
-			self.compareAccumulator(withValueAt:), cycles: 4)
-		case 0xd9: return self.withAbsoluteYIndexedAddressing(
-			self.compareAccumulator(withValueAt:), cycles: 4)
-		case 0xc1: return self.withXIndexedIndirectAddressing(
-			self.compareAccumulator(withValueAt:), cycles: 6)
-		case 0xd1: return self.withIndirectYIndexedAddressing(
-			self.compareAccumulator(withValueAt:), cycles: 5)
+		case 0xc9: return self.withImmediateAddressing({
+			self.compare(self.accumulator, withValueAt: $0)
+		})
+		case 0xc5: return self.with0PageAddressing({
+			self.compare(self.accumulator, withValueAt: $0)
+		}, cycles: 3)
+		case 0xd5: return self.with0PageXIndexedAddressing({
+			self.compare(self.accumulator, withValueAt: $0)
+		}, cycles: 4)
+		case 0xcd: return self.withAbsoluteAddressing({
+			self.compare(self.accumulator, withValueAt: $0)
+		}, cycles: 4)
+		case 0xdd: return self.withAbsoluteXIndexedAddressing({
+			self.compare(self.accumulator, withValueAt: $0)
+		}, cycles: 4)
+		case 0xd9: return self.withAbsoluteYIndexedAddressing({
+			self.compare(self.accumulator, withValueAt: $0)
+		}, cycles: 4)
+		case 0xc1: return self.withXIndexedIndirectAddressing({
+			self.compare(self.accumulator, withValueAt: $0)
+		}, cycles: 6)
+		case 0xd1: return self.withIndirectYIndexedAddressing({
+			self.compare(self.accumulator, withValueAt: $0)
+		}, cycles: 5)
 			
 			// MARK: CPX
-		case 0xe0: return self.withImmediateAddressing(
-			self.compareX(withValueAt:))
-		case 0xe4: return self.with0PageAddressing(
-			self.compareX(withValueAt:), cycles: 3)
-		case 0xec: return self.withAbsoluteAddressing(
-			self.compareX(withValueAt:), cycles: 4)
+		case 0xe0: return self.withImmediateAddressing({
+			self.compare(self.x, withValueAt: $0)
+		})
+		case 0xe4: return self.with0PageAddressing({
+			self.compare(self.x, withValueAt: $0)
+		}, cycles: 3)
+		case 0xec: return self.withAbsoluteAddressing({
+			self.compare(self.x, withValueAt: $0)
+		}, cycles: 4)
 			
 			// MARK: CPY
-		case 0xc0: return self.withImmediateAddressing(
-			self.compareY(withValueAt:))
-		case 0xc4: return self.with0PageAddressing(
-			self.compareY(withValueAt:), cycles: 3)
-		case 0xcc: return self.withAbsoluteAddressing(
-			self.compareY(withValueAt:), cycles: 4)
+		case 0xc0: return self.withImmediateAddressing({
+			self.compare(self.y, withValueAt: $0)
+		})
+		case 0xc4: return self.with0PageAddressing({
+			self.compare(self.y, withValueAt: $0)
+		}, cycles: 3)
+		case 0xcc: return self.withAbsoluteAddressing({
+			self.compare(self.y, withValueAt: $0)
+		}, cycles: 4)
 			
 			// MARK: DEC
 		case 0xc6: return self.with0PageAddressing(
@@ -230,29 +262,39 @@ public extension MOS6507 {
 			self.decrement(valueAt:), cycles: 7)
 			
 			// MARK: DEX
-		case 0xca: return self.withImpliedAddressing(
-			self.decrementX)
+		case 0xca: return self.withImpliedAddressing({
+			self.x = (self.x - 0x1) & 0xff
+		})
 			// MARK: DEY
-		case 0x88: return self.withImpliedAddressing(
-			self.decrementY)
+		case 0x88: return self.withImpliedAddressing({
+			self.y = (self.y - 0x1) & 0xff
+		})
 			
 			// MARK: EOR
-		case 0x49: return self.withImmediateAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:))
-		case 0x45: return self.with0PageAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 3)
-		case 0x55: return self.with0PageXIndexedAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x4d: return self.withAbsoluteAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x5d: return self.withAbsoluteXIndexedAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x59: return self.withAbsoluteYIndexedAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x41: return self.withXIndexedIndirectAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 6)
-		case 0x51: return self.withIndirectYIndexedAddressing(
-			self.exclusiveDisjunctAccumulator(withValueAt:), cycles: 5)
+		case 0x49: return self.withImmediateAddressing({
+			self.accumulator ^= self.bus.read(at: $0)
+		})
+		case 0x45: return self.with0PageAddressing({
+			self.accumulator ^= self.bus.read(at: $0)
+		}, cycles: 3)
+		case 0x55: return self.with0PageXIndexedAddressing({
+			self.accumulator ^= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x4d: return self.withAbsoluteAddressing({
+			self.accumulator ^= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x5d: return self.withAbsoluteXIndexedAddressing({
+			self.accumulator ^= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x59: return self.withAbsoluteYIndexedAddressing({
+			self.accumulator ^= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x41: return self.withXIndexedIndirectAddressing({
+			self.accumulator ^= self.bus.read(at: $0)
+		}, cycles: 6)
+		case 0x51: return self.withIndirectYIndexedAddressing({
+			self.accumulator ^= self.bus.read(at: $0)
+		}, cycles: 5)
 			
 			// MARK: INC
 		case 0xe6: return self.with0PageAddressing(
@@ -265,11 +307,13 @@ public extension MOS6507 {
 			self.increment(valueAt:), cycles: 7)
 			
 			// MARK: INX
-		case 0xe8: return self.withImpliedAddressing(
-			self.incrementX)
+		case 0xe8: return self.withImpliedAddressing({
+			self.x = (self.x + 0x1) & 0xff
+		})
 			// MARK: INY
-		case 0xc8: return self.withImpliedAddressing(
-			self.incrementY)
+		case 0xc8: return self.withImpliedAddressing({
+			self.y = (self.y + 0x1) & 0xff
+		})
 			
 			// MARK: JMP
 		case 0x4c: return self.withAbsoluteAddressing(
@@ -282,46 +326,64 @@ public extension MOS6507 {
 			self.jumpToSubroutine(at:), cycles: 6)
 			
 			// MARK: LDA
-		case 0xa9: return self.withImmediateAddressing(
-			self.loadAccumulator(withValueAt:))
-		case 0xa5: return self.with0PageAddressing(
-			self.loadAccumulator(withValueAt:), cycles: 3)
-		case 0xb5: return self.with0PageXIndexedAddressing(
-			self.loadAccumulator(withValueAt:), cycles: 4)
-		case 0xad: return self.withAbsoluteAddressing(
-			self.loadAccumulator(withValueAt:), cycles: 4)
-		case 0xbd: return self.withAbsoluteXIndexedAddressing(
-			self.loadAccumulator(withValueAt:), cycles: 4)
-		case 0xb9: return self.withAbsoluteYIndexedAddressing(
-			self.loadAccumulator(withValueAt:), cycles: 4)
-		case 0xa1: return self.withXIndexedIndirectAddressing(
-			self.loadAccumulator(withValueAt:), cycles: 6)
-		case 0xb1: return self.withIndirectYIndexedAddressing(
-			self.loadAccumulator(withValueAt:), cycles: 5)
+		case 0xa9: return self.withImmediateAddressing({
+			self.accumulator = self.bus.read(at: $0)
+		})
+		case 0xa5: return self.with0PageAddressing({
+			self.accumulator = self.bus.read(at: $0)
+		}, cycles: 3)
+		case 0xb5: return self.with0PageXIndexedAddressing({
+			self.accumulator = self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0xad: return self.withAbsoluteAddressing({
+			self.accumulator = self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0xbd: return self.withAbsoluteXIndexedAddressing({
+			self.accumulator = self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0xb9: return self.withAbsoluteYIndexedAddressing({
+			self.accumulator = self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0xa1: return self.withXIndexedIndirectAddressing({
+			self.accumulator = self.bus.read(at: $0)
+		}, cycles: 6)
+		case 0xb1: return self.withIndirectYIndexedAddressing({
+			self.accumulator = self.bus.read(at: $0)
+		}, cycles: 5)
 			
 			// MARK: LDX
-		case 0xa2: return self.withImmediateAddressing(
-			self.loadX(withValueAt:))
-		case 0xa6: return self.with0PageAddressing(
-			self.loadX(withValueAt:), cycles: 3)
-		case 0xb6: return self.with0PageYIndexedAddressing(
-			self.loadX(withValueAt:), cycles: 4)
-		case 0xae: return self.withAbsoluteAddressing(
-			self.loadX(withValueAt:), cycles: 4)
-		case 0xbe: return self.withAbsoluteYIndexedAddressing(
-			self.loadX(withValueAt:), cycles: 4)
+		case 0xa2: return self.withImmediateAddressing({
+			self.x = self.bus.read(at: $0)
+		})
+		case 0xa6: return self.with0PageAddressing({
+			self.x = self.bus.read(at: $0)
+		}, cycles: 3)
+		case 0xb6: return self.with0PageYIndexedAddressing({
+			self.x = self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0xae: return self.withAbsoluteAddressing({
+			self.x = self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0xbe: return self.withAbsoluteYIndexedAddressing({
+			self.x = self.bus.read(at: $0)
+		}, cycles: 4)
 			
 			// MARK: LDY
-		case 0xa0: return self.withImmediateAddressing(
-			self.loadY(withValueAt:))
-		case 0xa4: return self.with0PageAddressing(
-			self.loadY(withValueAt:), cycles: 3)
-		case 0xb4: return self.with0PageXIndexedAddressing(
-			self.loadY(withValueAt:), cycles: 4)
-		case 0xac: return self.withAbsoluteAddressing(
-			self.loadY(withValueAt:), cycles: 4)
-		case 0xbc: return self.withAbsoluteXIndexedAddressing(
-			self.loadY(withValueAt:), cycles: 4)
+		case 0xa0: return self.withImmediateAddressing({
+			self.y = self.bus.read(at: $0)
+		})
+		case 0xa4: return self.with0PageAddressing({
+			self.y = self.bus.read(at: $0)
+		}, cycles: 3)
+		case 0xb4: return self.with0PageXIndexedAddressing({
+			self.y = self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0xac: return self.withAbsoluteAddressing({
+			self.y = self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0xbc: return self.withAbsoluteXIndexedAddressing({
+			self.y = self.bus.read(at: $0)
+		}, cycles: 4)
 			
 			// MARK: LSR (accumulator)
 		case 0x4a: return self.withImpliedAddressing(
@@ -341,22 +403,30 @@ public extension MOS6507 {
 			{})
 			
 			// MARK: ORA
-		case 0x09: return self.withImmediateAddressing(
-			self.disjunctAccumulator(withValueAt:))
-		case 0x05: return self.with0PageAddressing(
-			self.disjunctAccumulator(withValueAt:), cycles: 3)
-		case 0x15: return self.with0PageXIndexedAddressing(
-			self.disjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x0d: return self.withAbsoluteAddressing(
-			self.disjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x1d: return self.withAbsoluteXIndexedAddressing(
-			self.disjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x19: return self.withAbsoluteYIndexedAddressing(
-			self.disjunctAccumulator(withValueAt:), cycles: 4)
-		case 0x01: return self.withXIndexedIndirectAddressing(
-			self.disjunctAccumulator(withValueAt:), cycles: 6)
-		case 0x11: return self.withIndirectYIndexedAddressing(
-			self.disjunctAccumulator(withValueAt:), cycles: 5)
+		case 0x09: return self.withImmediateAddressing({
+			self.accumulator |= self.bus.read(at: $0)
+		})
+		case 0x05: return self.with0PageAddressing({
+			self.accumulator |= self.bus.read(at: $0)
+		}, cycles: 3)
+		case 0x15: return self.with0PageXIndexedAddressing({
+			self.accumulator |= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x0d: return self.withAbsoluteAddressing({
+			self.accumulator |= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x1d: return self.withAbsoluteXIndexedAddressing({
+			self.accumulator |= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x19: return self.withAbsoluteYIndexedAddressing({
+			self.accumulator |= self.bus.read(at: $0)
+		}, cycles: 4)
+		case 0x01: return self.withXIndexedIndirectAddressing({
+			self.accumulator |= self.bus.read(at: $0)
+		}, cycles: 6)
+		case 0x11: return self.withIndirectYIndexedAddressing({
+			self.accumulator |= self.bus.read(at: $0)
+		}, cycles: 5)
 			
 			// MARK: PHA
 		case 0x48: return self.withImpliedAddressing(
@@ -424,64 +494,83 @@ public extension MOS6507 {
 			
 			// MARK: SEC
 		case 0x38: return self.withImpliedAddressing(
-			{ self.status.insert(.carry) })
+			{ self.status[.carry] = true })
 			// MARK: SED
 		case 0xf8: return self.withImpliedAddressing(
-			{ self.status.insert(.decimalMode) })
+			{ self.status[.decimalMode] = true })
 			// MARK: SEI
 		case 0x78: return self.withImpliedAddressing(
-			{ self.status.insert(.interruptDisabled) })
+			{ self.status[.interruptDisabled] = true })
 			
 			// MARK: STA
-		case 0x85: return self.with0PageAddressing(
-			self.storeAccumulator(at:), cycles: 3)
-		case 0x95: return self.with0PageXIndexedAddressing(
-			self.storeAccumulator(at:), cycles: 4)
-		case 0x8d: return self.withAbsoluteAddressing(
-			self.storeAccumulator(at:), cycles: 4)
-		case 0x9d: return self.withAbsoluteXIndexedAddressing(
-			self.storeAccumulator(at:), cycles: 5)
-		case 0x99: return self.withAbsoluteYIndexedAddressing(
-			self.storeAccumulator(at:), cycles: 5)
-		case 0x81: return self.withXIndexedIndirectAddressing(
-			self.storeAccumulator(at:), cycles: 6)
-		case 0x91: return self.withIndirectYIndexedAddressing(
-			self.storeAccumulator(at:), cycles: 6)
+		case 0x85: return self.with0PageAddressing({
+			self.bus.write(self.accumulator, at: $0)
+		}, cycles: 3)
+		case 0x95: return self.with0PageXIndexedAddressing({
+			self.bus.write(self.accumulator, at: $0)
+		}, cycles: 4)
+		case 0x8d: return self.withAbsoluteAddressing({
+			self.bus.write(self.accumulator, at: $0)
+		}, cycles: 4)
+		case 0x9d: return self.withAbsoluteXIndexedAddressing({
+			self.bus.write(self.accumulator, at: $0)
+		}, cycles: 5)
+		case 0x99: return self.withAbsoluteYIndexedAddressing({
+			self.bus.write(self.accumulator, at: $0)
+		}, cycles: 5)
+		case 0x81: return self.withXIndexedIndirectAddressing({
+			self.bus.write(self.accumulator, at: $0)
+		}, cycles: 6)
+		case 0x91: return self.withIndirectYIndexedAddressing({
+			self.bus.write(self.accumulator, at: $0)
+		}, cycles: 6)
 			
 			// MARK: STX
-		case 0x86: return self.with0PageAddressing(
-			self.storeX(at:), cycles: 3)
-		case 0x96: return self.with0PageYIndexedAddressing(
-			self.storeX(at:), cycles: 4)
-		case 0x8e: return self.withAbsoluteAddressing(
-			self.storeX(at:), cycles: 4)
+		case 0x86: return self.with0PageAddressing({
+			self.bus.write(self.x, at: $0)
+		}, cycles: 3)
+		case 0x96: return self.with0PageYIndexedAddressing({
+			self.bus.write(self.x, at: $0)
+		}, cycles: 4)
+		case 0x8e: return self.withAbsoluteAddressing({
+			self.bus.write(self.x, at: $0)
+		}, cycles: 4)
 			
 			// MARK: STY
-		case 0x84: return self.with0PageAddressing(
-			self.storeY(at:), cycles: 3)
-		case 0x94: return self.with0PageXIndexedAddressing(
-			self.storeY(at:), cycles: 4)
-		case 0x8c: return self.withAbsoluteAddressing(
-			self.storeY(at:), cycles: 4)
+		case 0x84: return self.with0PageAddressing({
+			self.bus.write(self.y, at: $0)
+		}, cycles: 3)
+		case 0x94: return self.with0PageXIndexedAddressing({
+			self.bus.write(self.y, at: $0)
+		}, cycles: 4)
+		case 0x8c: return self.withAbsoluteAddressing({
+			self.bus.write(self.y, at: $0)
+		}, cycles: 4)
 			
 			// MARK: TAX
-		case 0xaa: return self.withImpliedAddressing(
-			self.transferAccumulatorToX)
+		case 0xaa: return self.withImpliedAddressing({
+			self.x = self.accumulator
+		})
 			// MARK: TAY
-		case 0xa8: return self.withImpliedAddressing(
-			self.transferAccumulatorToY)
+		case 0xa8: return self.withImpliedAddressing({
+			self.y = self.accumulator
+		})
 			// MARK: TSX
-		case 0xba: return self.withImpliedAddressing(
-			self.transferStackPointerToX)
+		case 0xba: return self.withImpliedAddressing({
+			self.x = self.stackPointer
+		})
 			// MARK: TXA
-		case 0x8a: return self.withImpliedAddressing(
-			self.transferXToAccumulator)
+		case 0x8a: return self.withImpliedAddressing({
+			self.accumulator = self.x
+		})
 			// MARK: TXS
-		case 0x9a: return self.withImpliedAddressing(
-			self.transferXToStackPointer)
+		case 0x9a: return self.withImpliedAddressing({
+			self.stackPointer = self.x
+		})
 			// MARK: TYA
-		case 0x98: return self.withImpliedAddressing(
-			self.transferYToAccumulator)
+		case 0x98: return self.withImpliedAddressing({
+			self.accumulator = self.y
+		})
 			
 		default:
 			fatalError("Unknown operation code: \(opcode)")
@@ -588,7 +677,7 @@ private extension MOS6507 {
 		let page = address.high
 		address += self.x
 		
-		// only read-only operations take 5 cycles, unless indexing crosses
+		// read-only operations take 5 cycles, unless indexing crosses
 		// page boundary
 		var cycles = cycles
 		if cycles == 4
@@ -611,7 +700,7 @@ private extension MOS6507 {
 		let page = address.high
 		address += self.y
 		
-		// only read-only operations take 4 cycles, unless indexing crosses
+		// read-only operations take 4 cycles, unless indexing crosses
 		// page boundary
 		var cycles = cycles
 		if cycles == 4
@@ -671,7 +760,7 @@ private extension MOS6507 {
 		let page = address.high
 		address += self.y
 		
-		// only read-only operations take 5 cycles, unless indexing crosses
+		// read-only operations take 5 cycles, unless indexing crosses
 		// page boundary
 		var cycles = cycles
 		if cycles == 5
@@ -711,27 +800,27 @@ private extension MOS6507 {
 private extension MOS6507 {
 	func addToAccumulator(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		let carry = self.status.contains(.carry) ? 0x01 : 0x00
-		var result = 0x00
+		let carry = self.status[.carry] ? 0x1 : 0x0
+		var result = 0x0
 		
-		if self.status.contains(.decimalMode) {
+		if self.status[.decimalMode] {
 			var high = (self.accumulator / 0x10) + (operand / 0x10)
 			var low = (self.accumulator % 0x10) + (operand % 0x10) + carry
 			
-			if low > 0x09 {
-				high += 0x01
-				low -= 0x0a
+			if low > 0x9 {
+				high += 0x1
+				low -= 0xa
 			}
 			
 			var result = high * 0x10 + low
 			if result > 0x99 {
-				self.status.insert(.carry)
+				self.status[.carry] = true
 				result -= 0xa0
 			}
 		} else {
 			result = self.accumulator + operand + carry
 			if result > 0xff {
-				self.status.insert(.carry)
+				self.status[.carry] = true
 				result -= 0x100
 			}
 		}
@@ -739,34 +828,32 @@ private extension MOS6507 {
 		let overflow = (self.accumulator ^ result) & (operand ^ result)
 		
 		self.accumulator = result
-		self.status.set(.overflow, overflow[7])
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
+		self.status[.overflow] = overflow[7]
 	}
 	
 	func subtractFromAccumulator(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		let carry = self.status.contains(.carry) ? 0x01: 0x00
-		var result = 0x00
+		let borrow = self.status[.carry] ? 0x0: 0x1
+		var result = 0x0
 		
-		if self.status.contains(.decimalMode) {
+		if self.status[.decimalMode] {
 			var high = (self.accumulator / 0x10) - (operand / 0x10)
-			var low = (self.accumulator % 0x10) - (operand % 0x10) - carry
+			var low = (self.accumulator % 0x10) - (operand % 0x10) - borrow
 			
-			if low < 0x00 {
-				high -= 0x01
-				low += 0x0a
+			if low < 0x0 {
+				high -= 0x1
+				low += 0xa
 			}
 			
 			result = high * 0x10 + low
-			if result < 0x00 {
-				self.status.insert(.carry)
+			if result < 0x0 {
+				self.status[.carry] = true
 				result += 0xa0
 			}
 		} else {
-			result = self.accumulator - operand// - carry
-			if result < 0x00 {
-				self.status.insert(.carry)
+			result = self.accumulator - operand - borrow
+			if result < 0x0 {
+				self.status[.carry] = true
 				result += 0x100
 			}
 		}
@@ -774,55 +861,49 @@ private extension MOS6507 {
 		let overflow = (self.accumulator ^ result) & (operand ^ result)
 		
 		self.accumulator = result
-		self.status.set(.overflow, overflow[7])
-		self.status.set(.carry, result >= 0x00)
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func conjunctAccumulator(withValueAt address: Int) {
-		let operand = self.bus.read(at: address)
-		let result = self.accumulator & operand
-		
-		self.accumulator = result
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func disjunctAccumulator(withValueAt address: Int) {
-		let operand = self.bus.read(at: address)
-		let result = self.accumulator | operand
-		
-		self.accumulator = result
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func exclusiveDisjunctAccumulator(withValueAt address: Int) {
-		let operand = self.bus.read(at: address)
-		let result = self.accumulator ^ operand
-		
-		self.accumulator = result
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
+		self.status[.overflow] = overflow[7]
+		self.status[.carry] = result >= 0x0
 	}
 	
 	func bitTestAccumulator(withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		let result = self.accumulator & operand
 		
-		self.status.set(.overflow, operand[6])
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, operand[7])
+		self.status[.overflow] = operand[6]
+		self.status[.zero] = result == 0x0
+		self.status[.negative] = operand[7]
 	}
 	
 	func bitShiftLeftAccumulator() {
-		let result = self.accumulator << 1
+		let carry = self.accumulator[7]
+		
+		self.accumulator = (self.accumulator << 1) & 0xff
+		self.status[.carry] = carry
+	}
+	
+	func bitShiftRightAccumulator() {
+		let carry = self.accumulator[0]
+		
+		self.accumulator >>= 1
+		self.status[.carry] = carry
+	}
+	
+	func bitRotateLeftAccumulator() {
+		let carry = self.accumulator[7]
+		var result = self.accumulator << 1
+		result[0] = self.status[.carry]
 		
 		self.accumulator = result & 0xff
-		self.status.set(.carry, result[8])
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
+		self.status[.carry] = carry
+	}
+	
+	func bitRotateRightAccumulator() {
+		let carry = self.accumulator[0]
+		var result = self.accumulator >> 1
+		result[7] = self.status[.carry]
+		
+		self.accumulator = result
+		self.status[.carry] = carry
 	}
 	
 	func bitShiftLeft(valueAt address: Int) {
@@ -830,19 +911,9 @@ private extension MOS6507 {
 		let result = operand << 1
 		
 		self.bus.write(result & 0xff, at: address)
-		self.status.set(.carry, result[8])
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func bitShiftRightAccumulator() {
-		let carry = self.accumulator[0]
-		let result = self.accumulator >> 1
-		
-		self.accumulator = result
-		self.status.set(.carry, carry)
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, false)
+		self.status[.carry] = result[8]
+		self.status[.zero] = result == 0x0
+		self.status[.negative] = result[7]
 	}
 	
 	func bitShiftRight(valueAt address: Int) {
@@ -850,232 +921,58 @@ private extension MOS6507 {
 		let result = operand >> 1
 		
 		self.bus.write(result, at: address)
-		self.status.set(.carry, operand[0])
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, false)
-	}
-	
-	func bitRotateLeftAccumulator() {
-		let operand = self.accumulator
-		var result = operand << 1
-		result[0] = self.status.contains(.carry)
-		
-		self.accumulator = result & 0xff
-		self.status.set(.carry, operand[7])
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
+		self.status[.carry] = operand[0]
+		self.status[.zero] = result == 0x0
+		self.status[.negative] = result[7]
 	}
 	
 	func bitRotateLeft(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		var result = operand << 1
-		result[0] = self.status.contains(.carry)
+		result[0] = self.status[.carry]
 		
 		self.bus.write(result & 0xff, at: address)
-		self.status.set(.carry, operand[7])
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func bitRotateRightAccumulator() {
-		let operand = self.accumulator
-		var result = operand >> 1
-		result[7] = self.status.contains(.carry)
-		
-		self.accumulator = result
-		self.status.set(.carry, operand[0])
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
+		self.status[.carry] = operand[7]
+		self.status[.zero] = result == 0x0
+		self.status[.negative] = result[7]
 	}
 	
 	func bitRotateRight(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
 		var result = operand >> 1
-		result[7] = self.status.contains(.carry)
+		result[7] = self.status[.carry]
 		
 		self.bus.write(result, at: address)
-		self.status.set(.carry, operand[0])
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
+		self.status[.carry] = operand[0]
+		self.status[.zero] = result == 0x0
+		self.status[.negative] = result[7]
 	}
 	
-	func compareAccumulator(withValueAt address: Int) {
+	func compare(_ value: Int, withValueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		let result = self.accumulator - operand
+		let result = value - operand
 		
-		self.status.set(.carry, result >= 0x00)
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func compareX(withValueAt address: Int) {
-		let operand = self.bus.read(at: address)
-		let result = self.x - operand
-		
-		self.status.set(.carry, result >= 0x00)
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func compareY(withValueAt address: Int) {
-		let operand = self.bus.read(at: address)
-		let result = self.y - operand
-		
-		self.status.set(.carry, result >= 0x00)
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
+		self.status[.carry] = result >= 0x0
+		self.status[.zero] = result == 0x0
+		self.status[.negative] = result[7]
 	}
 	
 	func increment(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		var result = operand + 0x01
-		if result > 0xff {
-			result = 0x00
-		}
+		var result = (operand + 0x1) & 0xff
 		
 		self.bus.write(result, at: address)
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
+		self.status[.zero] = result == 0x0
+		self.status[.negative] = result[7]
 	}
 	
 	func decrement(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		var result = operand - 0x01
-		if result < 0x00 {
-			result = 0xff
-		}
+		var result = (operand - 0x1) & 0xff
 		
 		self.bus.write(result, at: address)
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func incrementX() {
-		var result = self.x + 0x01
-		if result > 0xff {
-			result = 0x00
-		}
-		
-		self.x = result
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func decrementX() {
-		var result = self.x - 0x01
-		if result < 0x00 {
-			result = 0xff
-		}
-		
-		self.x = result
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func incrementY() {
-		var result = self.y + 0x01
-		if result > 0xff {
-			result = 0x00
-		}
-		
-		self.y = result
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func decrementY() {
-		var result = self.y - 0x01
-		if result < 0x00 {
-			result = 0xff
-		}
-		
-		self.y = result
-		self.status.set(.zero, result == 0x00)
-		self.status.set(.negative, result[7])
-	}
-	
-	func loadAccumulator(withValueAt address: Int) {
-		let operand = self.bus.read(at: address)
-		
-		self.accumulator = operand
-		self.status.set(.zero, operand == 0x00)
-		self.status.set(.negative, operand[7])
-	}
-	
-	func storeAccumulator(at address: Int) {
-		self.bus.write(self.accumulator, at: address)
-	}
-	
-	func loadX(withValueAt address: Int) {
-		let operand = self.bus.read(at: address)
-		
-		self.x = operand
-		self.status.set(.zero, operand == 0x00)
-		self.status.set(.negative, operand[7])
-	}
-	
-	func storeX(at address: Int) {
-		self.bus.write(self.x, at: address)
-	}
-	
-	func loadY(withValueAt address: Int) {
-		let operand = self.bus.read(at: address)
-		
-		self.y = operand
-		self.status.set(.zero, operand == 0x00)
-		self.status.set(.negative, operand[7])
-	}
-	
-	func storeY(at address: Int) {
-		self.bus.write(self.y, at: address)
-	}
-	
-	func transferAccumulatorToX() {
-		let operand = self.accumulator
-		
-		self.x = operand
-		self.status.set(.zero, operand == 0x00)
-		self.status.set(.negative, operand[7])
-	}
-	
-	func transferAccumulatorToY() {
-		let operand = self.accumulator
-		
-		self.y = operand
-		self.status.set(.zero, operand == 0x00)
-		self.status.set(.negative, operand[7])
-	}
-	
-	func transferXToAccumulator() {
-		let operand = self.x
-		
-		self.accumulator = operand
-		self.status.set(.zero, operand == 0x00)
-		self.status.set(.negative, operand[7])
-	}
-	
-	func transferYToAccumulator() {
-		let operand = self.y
-		
-		self.accumulator = operand
-		self.status.set(.zero, operand == 0x00)
-		self.status.set(.negative, operand[7])
-	}
-	
-	func transferStackPointerToX() {
-		let operand = self.stackPointer
-		
-		self.x = operand
-		self.status.set(.zero, operand == 0x00)
-		self.status.set(.negative, operand[7])
-	}
-	
-	func transferXToStackPointer() {
-		let operand = self.x
-		
-		self.stackPointer = operand
-		self.status.set(.zero, operand == 0x00)
-		self.status.set(.negative, operand[7])
+		self.status[.zero] = result == 0x0
+		self.status[.negative] = result[7]
 	}
 	
 	func forceBreak() {
@@ -1110,30 +1007,20 @@ private extension MOS6507 {
 
 
 // MARK: -
-// MARK: Type definitions
-public extension MOS6507 {
-	struct Status: OptionSet {
-		public static let carry = Status(rawValue: 1 << 0)
-		public static let zero = Status(rawValue: 1 << 1)
-		public static let interruptDisabled = Status(rawValue: 1 << 2)
-		public static let decimalMode = Status(rawValue: 1 << 3)
-		public static let `break` = Status(rawValue: 1 << 4)
-		public static let overflow = Status(rawValue: 1 << 6)
-		public static let negative = Status(rawValue: 1 << 7)
-		
-		public static func random() -> Self {
-			let value: Self.RawValue = .random(in: 0x00...0xff)
-			return Status(rawValue: value)
+// MARK: Convenience functionality
+private extension MOS6507.Status {
+	static func random() -> Self {
+		return MOS6507.Status(rawValue: .random(in: 0x00...0xff))
+	}
+}
+
+private extension OptionSet {
+	subscript (option: Self.Element) -> Bool {
+		get {
+			return self.contains(option)
 		}
-		
-		public var rawValue: Int
-		
-		public init(rawValue: Int) {
-			self.rawValue = rawValue
-		}
-		
-		internal mutating func set(_ option: Self, _ value: Bool) {
-			if value {
+		set {
+			if newValue {
 				self.insert(option)
 			} else {
 				self.remove(option)
@@ -1142,41 +1029,30 @@ public extension MOS6507 {
 	}
 }
 
-
-// MARK: -
-// MARK: Convenience functionality
 private extension Int {
 	init(low: Int, high: Int) {
 		self = Self(high) * 0x100 + Self(low)
 	}
 	
 	var low: Int {
-		get {
-			return self % 0x100
-		}
-		set {
-			self = self.high * 0x100 + newValue
-		}
+		get { self % 0x100 }
+		set { self = self.high * 0x100 + newValue }
 	}
 	
 	var high: Int {
-		get {
-			return self / 0x100
-		}
-		set {
-			self = newValue * 0x100 + self.low
-		}
+		get { self / 0x100 }
+		set { self = newValue * 0x100 + self.low }
 	}
 }
 
 extension Int {
 	subscript(bit: Int) -> Bool {
 		get {
-			let mask = 0x01 << bit
+			let mask = 1 << bit
 			return self & mask == mask
 		}
 		set {
-			let mask = 0x01 << bit
+			let mask = 1 << bit
 			if newValue {
 				self |= mask
 			} else {

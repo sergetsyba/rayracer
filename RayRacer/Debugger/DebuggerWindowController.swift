@@ -16,8 +16,6 @@ class DebuggerWindowController: NSWindowController {
 	
 	private var assemblyViewController = AssemblyViewController()
 	private var systemStateViewController = SystemStateViewController()
-	
-	private let console: Atari2600 = .current
 	private var cancellables: Set<AnyCancellable> = []
 	
 	init() {
