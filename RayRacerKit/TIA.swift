@@ -72,7 +72,7 @@ extension TIA {
 	}
 	
 	/// One of six objects TIA draws on screen.
-	public protocol GraphicsObject {
+	public protocol Drawable {
 		/// Returns `true` when this object should be drawn at the specified position in the scan
 		/// line; returns `false` otherwise.
 		func draws(at position: Int) -> Bool
@@ -140,7 +140,7 @@ extension TIA {
 			return self.playfield.color
 		}
 		if self.playfield.draws(at: point) {
-			if self.playfield.control.contains(.scoreMode) {
+			if self.playfield.control[.scoreMode] {
 				return point < 80
 				? self.players.0.color
 				: self.players.1.color
@@ -281,16 +281,8 @@ extension TIA: Addressable {
 			self.backgroundColor = data
 		case 0x0a:
 			// MARK: CTRLPF
-			if data[0] {
-				self.playfield.control.insert(.reflected)
-			} else {
-				self.playfield.control.remove(.reflected)
-			}
-			if data[1] {
-				self.playfield.control.insert(.scoreMode)
-			} else {
-				self.playfield.control.remove(.scoreMode)
-			}
+			self.playfield.control[.reflected] = data[0]
+			self.playfield.control[.scoreMode] = data[1]
 			self.ball.size = 1 << ((data >> 4) & 0x3)
 		case 0x0d:
 			// MARK: PF0

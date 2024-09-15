@@ -18,7 +18,7 @@ extension TIA {
 
 // MARK: -
 // MARK: Drawing
-extension TIA.Ball: TIA.GraphicsObject {
+extension TIA.Ball: TIA.Drawable {
 	public func draws(at position: Int) -> Bool {
 		let enabled = self.delayed
 		? self.enabled.1

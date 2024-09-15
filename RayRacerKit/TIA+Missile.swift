@@ -18,7 +18,7 @@ extension TIA {
 
 // MARK: -
 // MARK: Drawing
-extension TIA.Missile: TIA.GraphicsObject {
+extension TIA.Missile: TIA.Drawable {
 	public func draws(at position: Int) -> Bool {
 		guard self.enabled else {
 			return false

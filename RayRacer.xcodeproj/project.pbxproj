@@ -44,6 +44,7 @@
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
+		95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +107,7 @@
 		95C918EA2C07810900B431C4 /* SystemStateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStateViewController.swift; sourceTree = "<group>"; };
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
 		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
+		95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OptionSet+Subscript.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +174,7 @@
 				9502E5962A423296007A32DA /* MOS6507+Assembly.swift */,
 				952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */,
 				958691B12A4FF61D00C727C0 /* MOS6532.swift */,
+				95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */,
 				9595FE912A4E02FE00F6F857 /* TIA.swift */,
 				95A222122C8A000D008176F7 /* TIA+Ball.swift */,
 				95A222112C8A000C008176F7 /* TIA+Missile.swift */,
@@ -401,6 +404,7 @@
 				952C1A292C902E8D00D341D6 /* MOS6507+Status.swift in Sources */,
 				95A222152C8A000D008176F7 /* TIA+Missile.swift in Sources */,
 				958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */,
+				95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

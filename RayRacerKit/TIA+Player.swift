@@ -20,7 +20,7 @@ extension TIA {
 
 // MARK: -
 // MARK: Drawing
-extension TIA.Player: TIA.GraphicsObject {
+extension TIA.Player: TIA.Drawable {
 	private static let sectionLookUp = [
 		0x001, // ●○○○○○○○○○
 		0x005, // ●○●○○○○○○○

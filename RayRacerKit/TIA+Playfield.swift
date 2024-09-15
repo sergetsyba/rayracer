@@ -30,7 +30,7 @@ extension TIA {
 
 // MARK: -
 // MARK: Drawing
-extension TIA.Playfield: TIA.GraphicsObject {
+extension TIA.Playfield: TIA.Drawable {
 	public func draws(at position: Int) -> Bool {
 		let bit = (position / 4) % 20
 		if position < 80 {

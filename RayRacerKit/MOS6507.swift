@@ -1014,21 +1014,6 @@ private extension MOS6507.Status {
 	}
 }
 
-private extension OptionSet {
-	subscript (option: Self.Element) -> Bool {
-		get {
-			return self.contains(option)
-		}
-		set {
-			if newValue {
-				self.insert(option)
-			} else {
-				self.remove(option)
-			}
-		}
-	}
-}
-
 private extension Int {
 	init(low: Int, high: Int) {
 		self = Self(high) * 0x100 + Self(low)
