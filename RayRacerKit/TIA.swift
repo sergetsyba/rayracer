@@ -107,14 +107,14 @@ extension TIA {
 		}
 		
 		let point = self.colorClock - 68
-		let points = [
-			self.players.0.draws(at: point),
-			self.players.1.draws(at: point),
-			self.missiles.0.draws(at: point),
-			self.missiles.0.draws(at: point),
-			self.ball.draws(at: point),
-			self.playfield.draws(at: point)
-		]
+//		let points = [
+//			self.players.0.draws(at: point),
+//			self.players.1.draws(at: point),
+//			self.missiles.0.draws(at: point),
+//			self.missiles.0.draws(at: point),
+//			self.ball.draws(at: point),
+//			self.playfield.draws(at: point)
+//		]
 		
 		//		for (index1, object) in GraphicsObject.allCases.enumerated() {
 		//			var collisions = self.collistions[object] ?? []

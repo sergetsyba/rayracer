@@ -13,7 +13,7 @@
 		950A64A12C4BCD3C007D4362 /* Addressable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950A64A02C4BCD3C007D4362 /* Addressable.swift */; };
 		9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */; };
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
-		9523FDAB2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9523FDAA2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift */; };
+		9523FDAB2C8D81DB0094A597 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */; };
 		9523FDAC2C8D81DB0094A597 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
 		952C1A292C902E8D00D341D6 /* MOS6507+Status.swift in Sources */ = {isa = PBXBuildFile; fileRef = 952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */; };
 		953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92AE2A1AEB8300EC52AC /* Console.swift */; };
@@ -72,7 +72,7 @@
 		9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Preferences.swift"; sourceTree = "<group>"; };
 		951CC4FD2A58723300537CD1 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		9523FDA82C8D81DB0094A597 /* RayRacerKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RayRacerKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9523FDAA2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atarti2600PerformanceTests.swift; sourceTree = "<group>"; };
+		9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
 		952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MOS6507+Status.swift"; sourceTree = "<group>"; };
 		953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RayRacerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		953D92AE2A1AEB8300EC52AC /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
@@ -141,7 +141,7 @@
 			children = (
 				954A18652A1AEE5800EBC582 /* RayRacer */,
 				953D92A82A1AEB7400EC52AC /* RayRacerKit */,
-				9523FDA92C8D81DB0094A597 /* RayRacerKitTests */,
+				9523FDA92C8D81DB0094A597 /* RayRacerKitPerfromanceTests */,
 				95F563FD2A42E33E0028A90B /* Frameworks */,
 				951E2F842A18B11900E6902F /* Products */,
 			);
@@ -157,12 +157,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9523FDA92C8D81DB0094A597 /* RayRacerKitTests */ = {
+		9523FDA92C8D81DB0094A597 /* RayRacerKitPerfromanceTests */ = {
 			isa = PBXGroup;
 			children = (
-				9523FDAA2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift */,
+				9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */,
 			);
-			path = RayRacerKitTests;
+			path = RayRacerKitPerfromanceTests;
 			sourceTree = "<group>";
 		};
 		953D92A82A1AEB7400EC52AC /* RayRacerKit */ = {
@@ -385,7 +385,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9523FDAB2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift in Sources */,
+				9523FDAB2C8D81DB0094A597 /* PerformanceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
