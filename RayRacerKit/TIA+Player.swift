@@ -33,8 +33,6 @@ extension TIA.Player: TIA.Drawable {
 	]
 	
 	public func draws(at position: Int) -> Bool {
-		// ensure beam position is within possible player graphics
-		// positions range
 		let counter = position - self.position
 		guard (0..<80).contains(counter) else {
 			return false

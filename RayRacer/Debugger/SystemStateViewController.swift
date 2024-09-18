@@ -220,11 +220,9 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		
 		switch item {
 		case .beamPosition:
-			let scanLine = self.console.tia.screenClock / 228
-			let colorClock = self.console.tia.screenClock % 228
-			view?.stringValue = (item.rawValue, "\(scanLine), \(colorClock - 68)")
+			view?.stringValue = (item.rawValue, "\(tia.scanLine), \(tia.colorClock - 68)")
 		case .verticalSync:
-			view?.stringValue = (item.rawValue, self.formattedVerticalSync)
+			view?.boolValue = (item.rawValue, tia.verticalSync)
 		case .verticalBlank:
 			view?.boolValue = (item.rawValue, tia.verticalBlank)
 		case .waitForHorizontalSync:
@@ -480,15 +478,6 @@ private extension SystemStateViewController {
 		}
 		
 		return string
-	}
-	
-	private var formattedVerticalSync: String {
-		let (sync, clocks) = self.console.tia.verticalSync
-		if sync {
-			return "Yes, \(clocks)/\(3*228)"
-		} else {
-			return "No"
-		}
 	}
 	
 	private func formatGraphics(of player: TIA.Player) -> NSAttributedString {

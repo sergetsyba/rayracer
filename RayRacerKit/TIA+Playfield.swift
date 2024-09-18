@@ -6,6 +6,12 @@
 //
 
 extension TIA {
+	public struct Playfield {
+		public var graphics: Int
+		public var control: PlayfieldControl
+		public var color: Int
+	}
+
 	public struct PlayfieldControl: OptionSet {
 		public static let reflected = PlayfieldControl(rawValue: 1 << 0)
 		public static let scoreMode = PlayfieldControl(rawValue: 1 << 1)
@@ -16,14 +22,6 @@ extension TIA {
 		public init(rawValue: Int) {
 			self.rawValue = rawValue
 		}
-	}
-}
-
-extension TIA {
-	public struct Playfield {
-		public var graphics: Int
-		public var control: PlayfieldControl
-		public var color: Int
 	}
 }
 

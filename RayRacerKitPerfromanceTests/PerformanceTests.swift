@@ -14,6 +14,7 @@ final class PerformanceTests: XCTestCase {
 		let rom = try! Data(contentsOf: url)
 		
 		let console = Atari2600()
+		console.tia.output = NoOutput()
 		console.insertCartridge(rom)
 		
 		self.measure() {
@@ -21,5 +22,15 @@ final class PerformanceTests: XCTestCase {
 				console.stepInstruction()
 			}
 		}
+	}
+}
+
+class NoOutput: TIA.GraphicsOutput {
+	func sync() {
+		// does nothing
+	}
+	
+	func write(color: Int) {
+		// does nothing
 	}
 }

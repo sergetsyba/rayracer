@@ -20,16 +20,13 @@ extension TIA {
 // MARK: Drawing
 extension TIA.Ball: TIA.Drawable {
 	public func draws(at position: Int) -> Bool {
-		let enabled = self.delayed
-		? self.enabled.1
-		: self.enabled.0
-		
-		guard enabled else {
+		let counter = position - self.position
+		guard (0..<self.size).contains(counter) else {
 			return false
 		}
 		
-		let counter = position - self.position
-		return (0..<self.size)
-			.contains(counter)
+		return self.delayed
+		? self.enabled.1
+		: self.enabled.0
 	}
 }

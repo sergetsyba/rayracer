@@ -55,8 +55,8 @@ extension Atari2600 {
 	
 	/// Advances console state to the beginning of the first program instruction in the next TV field.
 	public func stepField() {
-		self.advanceClock()
-		while self.tia.screenClock > 0 {
+		self.stepScanLine()
+		while self.tia.scanLine > 0 {
 			self.advanceClock()
 		}
 		
