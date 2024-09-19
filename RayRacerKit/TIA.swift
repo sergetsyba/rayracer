@@ -58,6 +58,12 @@ public class TIA {
 		return self.screenClock % 228
 	}
 	
+	/// Resets TIA.
+	public func reset() {
+		self.screenClock = 0
+		self.verticalSyncClock = -1
+	}
+	
 	/// Advances color clock by 1 unit.
 	public func advanceClock() {
 		if self.verticalBlank || self.horizontalBlank {
