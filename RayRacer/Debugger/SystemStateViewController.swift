@@ -194,9 +194,8 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forMemoryDebugItem item: MemoryDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugValueTableCellView, owner: nil) as? DebugValueTableCellView
-		let riot = self.console.riot!
+		view?.textField?.stringValue = self.formatMemory(self.console.riot.memory)
 		
-		view?.textField?.stringValue = String(memory: riot.memory)
 		return view
 	}
 	
@@ -268,7 +267,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
+			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
 			return view
 		}
 	}
@@ -309,7 +308,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
+			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
 			return view
 		}
 	}
@@ -340,7 +339,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
+			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
 			return view
 		}
 	}
@@ -371,7 +370,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
+			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
 			return view
 		}
 	}
@@ -407,7 +406,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .ball))
+			view?.stringValue = (item.rawValue, self.formatCollisions(of: .ball))
 			return view
 		}
 	}
@@ -434,7 +433,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			//			view?.stringValue = (item.rawValue, self.formatCollisions(of: .playfield))
+			view?.stringValue = (item.rawValue, self.formatCollisions(of: .playfield))
 			return view
 		}
 	}
@@ -448,10 +447,6 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			view?.colorValue = (item.rawValue, backgroundColor)
 			return view
 		}
-	}
-	
-	private func makeView(_ outlineView: NSOutlineView, forCollisionDebugItem item: CollisionDebugItem) -> NSView? {
-		return nil
 	}
 }
 
@@ -478,6 +473,16 @@ private extension SystemStateViewController {
 		}
 		
 		return string
+	}
+	
+	private func formatMemory(_ data: Data) -> String {
+		return data.indices
+			.split(by: 16)
+			.map() {
+				return data[$0]
+					.map() { String(format: "%02x", $0) }
+					.joined(separator: " ")
+			}.joined(separator: "\n")
 	}
 	
 	private func formatGraphics(of player: TIA.Player) -> NSAttributedString {
@@ -559,28 +564,16 @@ private extension SystemStateViewController {
 		return "\(values) \(pattern.suffix(20))"
 	}
 	
-	//	private func formatCollisions(of object: TIA.GraphicsObject) -> String {
-	//		if let objects = self.console.tia.collistions[object] {
-	//			return objects.map({ "\($0)" })
-	//				.joined(separator: ", ")
-	//		} else {
-	//			return "None"
-	//		}
-	//	}
+	private func formatCollisions(of object: TIA.GraphicsObject) -> String {
+		let objects = self.console.tia
+			.collisions(of: object)
+			.map({ $0.rawValue })
+		
+		return objects.isEmpty
+		? "None"
+		: objects.joined(separator: ", ")
+	}
 }
-
-//extension TIA.GraphicsObject: CustomStringConvertible {
-//	public var description: String {
-//		switch self {
-//		case .player0: return "Player 0"
-//		case .player1: return "Player 1"
-//		case .missile0: return "Missile 0"
-//		case .missile1: return "Missile 1"
-//		case .ball: return "Ball"
-//		case .playfield: return "Playfield"
-//		}
-//	}
-//}
 
 
 // MARK: -
@@ -684,42 +677,11 @@ private extension SystemStateViewController {
 	enum BackgroundDebugItem: String, CaseIterable {
 		case color = "Color"
 	}
-	
-	enum CollisionDebugItem: String, CaseIterable {
-		case player0 = "Player 0"
-		case missile0 = "Missile 0"
-		case player1 = "Player 1"
-		case missile1 = "Missile 1"
-		case ball = "Ball"
-		case playField = "Play field"
-	}
-}
-
-
-// MARK: -
-// MARK: Data formatting
-private extension String {
-	init(memory: Data) {
-		self = memory.indices
-			.split(by: 16)
-			.map() {
-				return memory[$0]
-					.map() { String(format: "%02x", $0) }
-					.joined(separator: " ")
-			}.joined(separator: "\n")
-	}
 }
 
 
 // MARK: -
 // MARK: Convenience functionality
-private extension Range where Index == Int {
-	func split(by count: Int) -> any Sequence<Self> {
-		return Swift.stride(from: self.startIndex, to: self.endIndex, by: count)
-			.map() { $0..<$0+count }
-	}
-}
-
 extension MOS6507.Status {
 	public static let allValues: [Self] = [
 		.negative,
@@ -730,6 +692,128 @@ extension MOS6507.Status {
 		.zero,
 		.carry
 	]
+}
+
+private extension TIA {
+	enum GraphicsObject: String {
+		case player0 = "Player 0"
+		case missile0 = "Missile 0"
+		case player1 = "Player 1"
+		case missile1 = "Missile 1"
+		case ball = "Ball"
+		case playfield = "Playfield"
+	}
+	
+	func collisions(of object: GraphicsObject) -> [GraphicsObject] {
+		var objects: [GraphicsObject] = []		
+		switch object {
+		case .player0:
+			if self.read(at: 0x07)[7] {
+				objects.append(.player1)
+			}
+			if self.read(at: 0x00)[6] {
+				objects.append(.missile0)
+			}
+			if self.read(at: 0x01)[6] {
+				objects.append(.missile1)
+			}
+			if self.read(at: 0x02)[6] {
+				objects.append(.ball)
+			}
+			if self.read(at: 0x02)[7] {
+				objects.append(.playfield)
+			}
+		case .player1:
+			if self.read(at: 0x07)[7] {
+				objects.append(.player0)
+			}
+			if self.read(at: 0x00)[7] {
+				objects.append(.missile0)
+			}
+			if self.read(at: 0x01)[7] {
+				objects.append(.missile1)
+			}
+			if self.read(at: 0x03)[6] {
+				objects.append(.ball)
+			}
+			if self.read(at: 0x03)[7] {
+				objects.append(.playfield)
+			}
+		case .missile0:
+			if self.read(at: 0x00)[6] {
+				objects.append(.player0)
+			}
+			if self.read(at: 0x00)[7] {
+				objects.append(.player1)
+			}
+			if self.read(at: 0x07)[6] {
+				objects.append(.missile1)
+			}
+			if self.read(at: 0x04)[6] {
+				objects.append(.ball)
+			}
+			if self.read(at: 0x04)[7] {
+				objects.append(.playfield)
+			}
+		case .missile1:
+			if self.read(at: 0x01)[6] {
+				objects.append(.player0)
+			}
+			if self.read(at: 0x01)[7] {
+				objects.append(.player1)
+			}
+			if self.read(at: 0x07)[6] {
+				objects.append(.missile1)
+			}
+			if self.read(at: 0x05)[6] {
+				objects.append(.ball)
+			}
+			if self.read(at: 0x05)[7] {
+				objects.append(.playfield)
+			}
+		case .ball:
+			if self.read(at: 0x02)[6] {
+				objects.append(.player0)
+			}
+			if self.read(at: 0x03)[6] {
+				objects.append(.player0)
+			}
+			if self.read(at: 0x04)[6] {
+				objects.append(.missile0)
+			}
+			if self.read(at: 0x05)[6] {
+				objects.append(.missile1)
+			}
+			if self.read(at: 0x06)[7] {
+				objects.append(.playfield)
+			}
+		case .playfield:
+			if self.read(at: 0x02)[7] {
+				objects.append(.player0)
+			}
+			if self.read(at: 0x03)[7] {
+				objects.append(.player0)
+			}
+			if self.read(at: 0x04)[7] {
+				objects.append(.missile0)
+			}
+			if self.read(at: 0x05)[7] {
+				objects.append(.missile1)
+			}
+			if self.read(at: 0x06)[7] {
+				objects.append(.ball)
+			}
+		}
+		
+		return objects
+	}
+}
+
+private extension Range where Index == Int {
+	func split(by count: Int) -> any Sequence<Self> {
+		return Swift.stride(from: self.startIndex, to: self.endIndex, by: count)
+			.map() { $0..<$0+count }
+	}
 }
 
 private extension Int {
