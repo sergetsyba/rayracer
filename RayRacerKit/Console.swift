@@ -27,6 +27,7 @@ public class Atari2600: ObservableObject {
 	public func reset() {
 		self.cpu.reset()
 		self.riot.reset()
+		self.tia.reset()
 	}
 	
 	public func setSwitch(_ switch: Switches, on: Bool) {
@@ -85,10 +86,16 @@ extension Atari2600 {
 	public func stepInstruction() {
 		// advance TIA to horizontal sync when WSYNC is on
 		while self.tia.waitingHorizontalSync {
-			self.advanceClock()
+			self.tia.advanceClock()
+			self.tia.advanceClock()
+			self.tia.advanceClock()
+			
+			self.riot.advanceClock()
 		}
 		
+		// advance CPU clock once to pass the sync cycle
 		self.advanceClock()
+		// advance CPU clock until the next sync cycle
 		while !self.cpu.sync {
 			self.advanceClock()
 		}
@@ -99,10 +106,11 @@ extension Atari2600 {
 		self.tia.advanceClock()
 		self.tia.advanceClock()
 		
+		self.riot.advanceClock()
+		
 		if !self.tia.waitingHorizontalSync {
 			self.cpu.advanceClock()
 		}
-		self.riot.advanceClock()
 	}
 }
 
