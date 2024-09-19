@@ -106,6 +106,7 @@ extension RayRacerDelegate {
 		}
 		
 		self.console.resume(until: breakpoints)
+		self.postNotification(.break)
 	}
 	
 	@IBAction func didSelectStepInstructionMenuItem(_ sender: AnyObject) {
@@ -246,10 +247,10 @@ extension RayRacerDelegate: NSToolbarItemValidation {
 	func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
 		switch item.itemIdentifier {
 		case .resumeToolbarItem,
-				.stepProgramToolbarItem,
+				.stepInstructionToolbarItem,
 				.stepScanLineToolbarItem,
-				.stepFrameToolbarItem,
-				.gameResetToolbarItem:
+				.stepFieldToolbarItem,
+				.resetToolbarItem:
 			return self.console.cartridge != nil
 		default:
 			return false
@@ -260,10 +261,10 @@ extension RayRacerDelegate: NSToolbarItemValidation {
 
 private extension NSToolbarItem.Identifier {
 	static let resumeToolbarItem = NSToolbarItem.Identifier("ResumeToolbarItem")
-	static let stepProgramToolbarItem = NSToolbarItem.Identifier("StepProgramToolbarItem")
+	static let stepInstructionToolbarItem = NSToolbarItem.Identifier("StepInstructionToolbarItem")
 	static let stepScanLineToolbarItem = NSToolbarItem.Identifier("StepScanLineToolbarItem")
-	static let stepFrameToolbarItem = NSToolbarItem.Identifier("StepFrameToolbarItem")
-	static let gameResetToolbarItem = NSToolbarItem.Identifier("GameResetToolbarItem")
+	static let stepFieldToolbarItem = NSToolbarItem.Identifier("StepFieldToolbarItem")
+	static let resetToolbarItem = NSToolbarItem.Identifier("ResetToolbarItem")
 }
 
 
