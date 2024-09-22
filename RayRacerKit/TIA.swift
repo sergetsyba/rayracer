@@ -13,7 +13,6 @@ public class TIA {
 	private(set) public var backgroundColor: Int
 	
 	private var screenClock = 0
-	private var verticalSyncClock = -1
 	private var colors = Array(repeating: 0, count: 4)
 	private var collisions = 0
 	
@@ -26,21 +25,27 @@ public class TIA {
 		self.playfield = .random()
 		self.backgroundColor = .random(in: 0x00...0x7f)
 		
-		self.waitingHorizontalSync = false
+		self.verticalSync = false
 		self.verticalBlank = true
+		self.waitingHorizontalSync = false
 	}
 	
 	/// Indicates whether TIA is currenlty transmitting the vertical sync signal.
-	public var verticalSync: Bool {
-		return self.verticalSyncClock > -1
+	private(set) public var verticalSync: Bool {
+		didSet {
+			if !self.verticalSync {
+				self.screenClock = 0
+				self.output?.sync()
+			}
+		}
 	}
-	
-	/// Indicates whether TIA is currently waiting on horizontal sync.
-	private(set) public var waitingHorizontalSync: Bool
 	
 	/// Indicates whether TIA is currently transmitting no color signal due to electron beam being
 	/// in vertical retrace.
 	private(set) public var verticalBlank: Bool
+	
+	/// Indicates whether TIA is currently waiting on horizontal sync.
+	private(set) public var waitingHorizontalSync: Bool
 	
 	/// Indicates whether TIA is currently transmitting no color signal due to electron beam being
 	/// in horizontal retrace.
@@ -55,13 +60,15 @@ public class TIA {
 	
 	/// Color clock within the current scan line.
 	public var colorClock: Int {
-		return self.screenClock % 228
+		get { self.screenClock % 228 }
+		set { self.screenClock = self.scanLine * 228 + newValue }
 	}
 	
 	/// Resets TIA.
 	public func reset() {
+		self.verticalSync = false
+		self.verticalBlank = false
 		self.screenClock = 0
-		self.verticalSyncClock = -1
 	}
 	
 	/// Advances color clock by 1 unit.
@@ -191,7 +198,7 @@ extension TIA: Addressable {
 			return ((self.collisions & 0x3) << 6) | 0x30
 		case 0x01:
 			// MARK: CXM1P
-			return ((self.collisions & 0xc) << 4) | 0x30
+			return ((self.collisions & 0xc) << 4) | 0x31
 		case 0x02:
 			// MARK: CXP0FB
 			return ((self.collisions & 0xc) << 2) | 0x30
@@ -222,28 +229,7 @@ extension TIA: Addressable {
 		switch address {
 		case 0x00:
 			// MARK: VSYNC
-			if data[1] {
-				// begin counting vertical sync time
-				self.verticalSyncClock = 0
-			} else {
-				// ensure vertical sync is on
-				guard self.verticalSyncClock > -1 else {
-					return
-				}
-				
-				// when vertical sync has been on for at least 3 scan lines,
-				// send composite sync signal to the screen and reset frame
-				// clock
-				let elapsedCycles = self.screenClock - self.verticalSyncClock
-				let scanLines = elapsedCycles / 228
-				if scanLines >= 3 {
-					self.screenClock = 0
-					self.output?.sync()
-				}
-				
-				// stop counting vertical sync time
-				self.verticalSyncClock = -1
-			}
+			self.verticalSync = data[1]
 		case 0x01:
 			// MARK: VBLANK
 			self.verticalBlank = data[1]
@@ -252,7 +238,7 @@ extension TIA: Addressable {
 			self.waitingHorizontalSync = true
 		case 0x03:
 			// MARK: RSYNC
-			self.screenClock -= 3
+			self.colorClock = 0
 		case 0x04:
 			// MARK: NUSIZ0
 			self.players.0.copies = data & 0x3
