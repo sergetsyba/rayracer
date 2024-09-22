@@ -267,7 +267,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player1))
+			view?.stringValue = (item.rawValue, self.formatCollisions(of: .player0))
 			return view
 		}
 	}
@@ -370,7 +370,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .collisions:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile0))
+			view?.stringValue = (item.rawValue, self.formatCollisions(of: .missile1))
 			return view
 		}
 	}
