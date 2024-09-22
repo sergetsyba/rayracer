@@ -225,7 +225,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		case .verticalBlank:
 			view?.boolValue = (item.rawValue, tia.verticalBlank)
 		case .waitForHorizontalSync:
-			view?.boolValue = (item.rawValue, tia.waitingHorizontalSync)
+			view?.boolValue = (item.rawValue, tia.awaitsHorizontalSync)
 		}
 		
 		return view

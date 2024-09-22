@@ -27,7 +27,7 @@ public class TIA {
 		
 		self.verticalSync = false
 		self.verticalBlank = true
-		self.waitingHorizontalSync = false
+		self.awaitsHorizontalSync = false
 	}
 	
 	/// Indicates whether TIA is currenlty transmitting the vertical sync signal.
@@ -45,7 +45,7 @@ public class TIA {
 	private(set) public var verticalBlank: Bool
 	
 	/// Indicates whether TIA is currently waiting on horizontal sync.
-	private(set) public var waitingHorizontalSync: Bool
+	private(set) public var awaitsHorizontalSync: Bool
 	
 	/// Indicates whether TIA is currently transmitting no color signal due to electron beam being
 	/// in horizontal retrace.
@@ -87,7 +87,7 @@ public class TIA {
 		
 		// switch off WSYNC once color clock reaches end
 		if self.colorClock == 228-1 {
-			self.waitingHorizontalSync = false
+			self.awaitsHorizontalSync = false
 		}
 		
 		self.screenClock += 1
@@ -235,7 +235,7 @@ extension TIA: Addressable {
 			self.verticalBlank = data[1]
 		case 0x02:
 			// MARK: WSYNC
-			self.waitingHorizontalSync = true
+			self.awaitsHorizontalSync = true
 		case 0x03:
 			// MARK: RSYNC
 			self.colorClock = 0
