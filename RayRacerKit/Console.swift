@@ -72,16 +72,18 @@ extension Atari2600 {
 	}
 	
 	/// Resumes program execution for a single instruction.
-	public func stepInstruction() {
-		repeat {
-			self.advanceCycle()
-		} while !self.cpu.sync || self.tia.awaitsHorizontalSync
+	public func stepInstruction(count: Int = 1) {
+		for _ in 0..<count {
+			repeat {
+				self.advanceCycle()
+			} while !self.cpu.sync || self.tia.awaitsHorizontalSync
+		}
 	}
 	
 	/// Advances TIA clock by 3 units and RIOT and CPU clock by 1, unless CPU is halted by the TIA.
 	private func advanceCycle() {
 		// NOTE: in cases when color clock resets during the 3 TIA clock
-		// ticks and WSYNC turns off, CPU clock should not increment;
+		// ticks and WSYNC switches off, CPU clock should not increment;
 		// so the check for WSYNC being on has to happen before advancing
 		// TIA clock
 		let cpuHalted = self.tia.awaitsHorizontalSync

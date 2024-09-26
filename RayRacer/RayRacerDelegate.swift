@@ -114,6 +114,13 @@ extension RayRacerDelegate {
 		self.postNotification(.break)
 	}
 	
+	@IBAction func didSelectStepInstructionsMenuItem(_ sender: AnyObject) {
+		self.withStepInputPanel(prompt: "Instructions:") {
+			self.console.stepInstruction(count: $0)
+			self.postNotification(.break)
+		}
+	}
+	
 	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
 		self.console.stepScanLine()
 		self.postNotification(.break)
@@ -309,6 +316,32 @@ private extension RayRacerDelegate {
 		
 		self.showWindow(of: windowController)
 		self.defaults.addOpenedFileURL(url)
+	}
+	
+	func withStepInputPanel(prompt: String, _ perform: @escaping (Int) -> Void) {
+		let controller = IntegerInputViewController()
+		controller.prompt = prompt
+		
+		let panel = NSPanel(contentViewController: controller)
+		panel.styleMask = [.utilityWindow, .titled, .closable]
+		panel.titlebarAppearsTransparent = true
+		panel.title = "Step program"
+		
+		// TODO: releas panel when closed
+		// panel.isReleasedWhenClosed = true
+		
+		controller.handler = { [unowned panel] in
+			switch $0 {
+			case .cancel:
+				panel.close()
+			case .OK:
+				perform($1)
+			default:
+				break
+			}
+		}
+		
+		panel.makeKeyAndOrderFront(self)
 	}
 }
 

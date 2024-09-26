@@ -34,7 +34,7 @@ public class TIA {
 	private(set) public var verticalSync: Bool {
 		didSet {
 			if !self.verticalSync {
-				self.screenClock = 0
+				self.screenClock = self.colorClock
 				self.output?.sync()
 			}
 		}
@@ -59,7 +59,7 @@ public class TIA {
 	}
 	
 	/// Color clock within the current scan line.
-	public var colorClock: Int {
+	private(set) public var colorClock: Int {
 		get { self.screenClock % 228 }
 		set { self.screenClock = self.scanLine * 228 + newValue }
 	}
@@ -85,12 +85,12 @@ public class TIA {
 			self.output?.write(color: color)
 		}
 		
-		// switch off WSYNC once color clock reaches end
-		if self.colorClock == 228-1 {
+		self.screenClock += 1
+		
+		// switch off WSYNC once color clock resets
+		if self.colorClock == 0 {
 			self.awaitsHorizontalSync = false
 		}
-		
-		self.screenClock += 1
 	}
 }
 
