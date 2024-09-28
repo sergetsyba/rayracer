@@ -128,9 +128,27 @@ extension RayRacerDelegate {
 		self.postNotification(.break)
 	}
 	
+	@IBAction func didSelectStepScanLinesMenuItem(_ sender: AnyObject) {
+		self.withStepperPanel(prompt: "Scan lines:") { [unowned self] in
+			for _ in 0..<$0 {
+				self.console.stepScanLine()
+			}
+			self.postNotification(.break)
+		}
+	}
+	
 	@IBAction func didSelectStepFieldMenuItem(_ sender: AnyObject) {
 		self.console.stepField()
 		self.postNotification(.break)
+	}
+	
+	@IBAction func didSelectStepFieldsMenuItem(_ sender: AnyObject) {
+		self.withStepperPanel(prompt: "Fields:") { [unowned self] in
+			for _ in 0..<$0 {
+				self.console.stepField()
+			}
+			self.postNotification(.break)
+		}
 	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
@@ -351,6 +369,7 @@ extension RayRacerDelegate {
 			}
 		}
 		
+		viewController.view.needsLayout = true
 		self.showWindow(of: windowController)
 	}
 }

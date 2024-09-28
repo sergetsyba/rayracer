@@ -8,6 +8,7 @@
 import Cocoa
 
 class IntegerInputViewController: NSViewController {
+	// TODO: make label update its intrinsic content size to avoid extra space when switching steppers
 	@IBOutlet private var label: NSTextField!
 	@IBOutlet private var textField: NSTextField!
 	@IBOutlet private var stepper: NSStepper!

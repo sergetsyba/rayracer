@@ -192,10 +192,22 @@
                                     <action selector="didSelectStepScanLineMenuItem:" target="-1" id="1Nj-yR-c7h"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Step Scan Lines..." alternate="YES" keyEquivalent="" id="3ZC-Ug-Agq">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES"/>
+                                <connections>
+                                    <action selector="didSelectStepScanLinesMenuItem:" target="-1" id="xXD-Bx-V9O"/>
+                                </connections>
+                            </menuItem>
                             <menuItem title="Step Field" keyEquivalent="" id="OO4-lS-ntS">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="didSelectStepFieldMenuItem:" target="-1" id="cbR-XU-LVm"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Step Fields..." alternate="YES" keyEquivalent="" id="3sD-RI-SKh">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES"/>
+                                <connections>
+                                    <action selector="didSelectStepFieldsMenuItem:" target="-1" id="PoD-Ae-Fdj"/>
                                 </connections>
                             </menuItem>
                         </items>
