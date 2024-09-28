@@ -46,6 +46,10 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 		
 		return descirptor
 	}
+	
+	func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
+		return true
+	}
 }
 
 
@@ -342,21 +346,17 @@ extension RayRacerDelegate {
 		// when a window controller with integer input is already open,
 		// re-use it
 		let windowController = self.windowControllers
-			.first(where: { $0.contentViewController is IntegerInputViewController })
+			.first(where: { $0.contentViewController is StepperViewController })
 		// when no window controller with integer input is yet open,
 		// create a new one
 		?? {
-			let panel = NSPanel()
-			panel.styleMask = [.utilityWindow, .titled, .closable]
-			panel.titlebarAppearsTransparent = true
-			panel.level = .modalPanel
-			panel.title = "Stepper"
-			panel.contentViewController = IntegerInputViewController()
+			let windowController = NSWindowController(windowNibName: "StepperPanel")
+			windowController.contentViewController = StepperViewController()
 			
-			return NSWindowController(window: panel)
+			return windowController
 		}()
 		
-		let viewController = windowController.contentViewController as! IntegerInputViewController
+		let viewController = windowController.contentViewController as! StepperViewController
 		viewController.prompt = prompt
 		viewController.handler = { [unowned windowController] in
 			switch $0 {
@@ -369,7 +369,6 @@ extension RayRacerDelegate {
 			}
 		}
 		
-		viewController.view.needsLayout = true
 		self.showWindow(of: windowController)
 	}
 }

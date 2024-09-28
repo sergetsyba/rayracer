@@ -26,8 +26,9 @@
 		954E3CD22C285184009218CB /* DebugSectionTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */; };
 		954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */; };
 		955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */; };
-		95706CA82CA298070000A6FC /* IntegerInputView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95706CA72CA298070000A6FC /* IntegerInputView.xib */; };
-		95706CAA2CA298AC0000A6FC /* IntegerInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95706CA92CA298AC0000A6FC /* IntegerInputViewController.swift */; };
+		956034FB2CA7FE8900382201 /* StepperPanel.xib in Resources */ = {isa = PBXBuildFile; fileRef = 956034FA2CA7FE8900382201 /* StepperPanel.xib */; };
+		95706CA82CA298070000A6FC /* StepperView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95706CA72CA298070000A6FC /* StepperView.xib */; };
+		95706CAA2CA298AC0000A6FC /* StepperViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95706CA92CA298AC0000A6FC /* StepperViewController.swift */; };
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
 		957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957AADDA2C0B22BB00692B3F /* String+Extensions.swift */; };
 		958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958691B12A4FF61D00C727C0 /* MOS6532.swift */; };
@@ -89,8 +90,9 @@
 		954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSectionTableCellView.swift; sourceTree = "<group>"; };
 		954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugValueTableCellView.swift; sourceTree = "<group>"; };
 		955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSFont+Constants.swift"; sourceTree = "<group>"; };
-		95706CA72CA298070000A6FC /* IntegerInputView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = IntegerInputView.xib; sourceTree = "<group>"; };
-		95706CA92CA298AC0000A6FC /* IntegerInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegerInputViewController.swift; sourceTree = "<group>"; };
+		956034FA2CA7FE8900382201 /* StepperPanel.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = StepperPanel.xib; sourceTree = "<group>"; };
+		95706CA72CA298070000A6FC /* StepperView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = StepperView.xib; sourceTree = "<group>"; };
+		95706CA92CA298AC0000A6FC /* StepperViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepperViewController.swift; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
 		957AADDA2C0B22BB00692B3F /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		958691B12A4FF61D00C727C0 /* MOS6532.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6532.swift; sourceTree = "<group>"; };
@@ -218,12 +220,13 @@
 				951CC4FD2A58723300537CD1 /* FormView.swift */,
 				955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */,
 				957A12882A3F4517002163C1 /* NSView+ContentView.swift */,
+				956034FA2CA7FE8900382201 /* StepperPanel.xib */,
+				95706CA72CA298070000A6FC /* StepperView.xib */,
+				95706CA92CA298AC0000A6FC /* StepperViewController.swift */,
 				957AADDA2C0B22BB00692B3F /* String+Extensions.swift */,
 				95C918E82C07810000B431C4 /* SystemStateView.xib */,
 				95C918EA2C07810900B431C4 /* SystemStateViewController.swift */,
 				9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */,
-				95706CA72CA298070000A6FC /* IntegerInputView.xib */,
-				95706CA92CA298AC0000A6FC /* IntegerInputViewController.swift */,
 			);
 			path = Debugger;
 			sourceTree = "<group>";
@@ -377,8 +380,9 @@
 			files = (
 				95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */,
 				95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */,
-				95706CA82CA298070000A6FC /* IntegerInputView.xib in Resources */,
+				95706CA82CA298070000A6FC /* StepperView.xib in Resources */,
 				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
+				956034FB2CA7FE8900382201 /* StepperPanel.xib in Resources */,
 				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
 				95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */,
 				954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */,
@@ -421,7 +425,7 @@
 			files = (
 				95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */,
 				955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */,
-				95706CAA2CA298AC0000A6FC /* IntegerInputViewController.swift in Sources */,
+				95706CAA2CA298AC0000A6FC /* StepperViewController.swift in Sources */,
 				951CC4FE2A58723300537CD1 /* FormView.swift in Sources */,
 				954E3CD02C283B3E009218CB /* DebugItemTableCellView.swift in Sources */,
 				957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */,

@@ -1,5 +1,5 @@
 //
-//  IntegerInputViewController.swift
+//  StepperViewController.swift
 //  RayRacer
 //
 //  Created by Serge Tsyba on 24.9.2024.
@@ -7,7 +7,7 @@
 
 import Cocoa
 
-class IntegerInputViewController: NSViewController {
+class StepperViewController: NSViewController {
 	// TODO: make label update its intrinsic content size to avoid extra space when switching steppers
 	@IBOutlet private var label: NSTextField!
 	@IBOutlet private var textField: NSTextField!
@@ -23,7 +23,7 @@ class IntegerInputViewController: NSViewController {
 	}
 	
 	convenience init() {
-		self.init(nibName: "IntegerInputView", bundle: .main)
+		self.init(nibName: "StepperView", bundle: .main)
 	}
 	
 	override func viewDidLoad() {
@@ -34,7 +34,7 @@ class IntegerInputViewController: NSViewController {
 	}
 }
 
-extension IntegerInputViewController {
+extension StepperViewController {
 	@IBAction func didPressCancelButton(sender: NSButton!) {
 		self.handler?(.cancel, self.textField.integerValue)
 	}

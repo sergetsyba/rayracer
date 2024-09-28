@@ -6,7 +6,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="IntegerInputViewController" customModule="RayRacer" customModuleProvider="target">
+        <customObject id="-2" userLabel="File's Owner" customClass="StepperViewController" customModule="RayRacer" customModuleProvider="target">
             <connections>
                 <outlet property="label" destination="wt9-0Y-Hg9" id="gpW-uf-V3g"/>
                 <outlet property="stepper" destination="Vh5-Hy-Iqs" id="vnT-Pz-u3D"/>
