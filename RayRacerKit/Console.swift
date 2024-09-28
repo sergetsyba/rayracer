@@ -72,12 +72,10 @@ extension Atari2600 {
 	}
 	
 	/// Resumes program execution for a single instruction.
-	public func stepInstruction(count: Int = 1) {
-		for _ in 0..<count {
-			repeat {
-				self.advanceCycle()
-			} while !self.cpu.sync || self.tia.awaitsHorizontalSync
-		}
+	public func stepInstruction() {
+		repeat {
+			self.advanceCycle()
+		} while !self.cpu.sync || self.tia.awaitsHorizontalSync
 	}
 	
 	/// Advances TIA clock by 3 units and RIOT and CPU clock by 1, unless CPU is halted by the TIA.

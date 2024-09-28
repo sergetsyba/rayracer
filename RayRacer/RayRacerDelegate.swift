@@ -115,8 +115,10 @@ extension RayRacerDelegate {
 	}
 	
 	@IBAction func didSelectStepInstructionsMenuItem(_ sender: AnyObject) {
-		self.withStepInputPanel(prompt: "Instructions:") {
-			self.console.stepInstruction(count: $0)
+		self.withStepperPanel(prompt: "Instructions:") { [unowned self] in
+			for _ in 0..<$0 {
+				self.console.stepInstruction()
+			}
 			self.postNotification(.break)
 		}
 	}
@@ -277,8 +279,8 @@ private extension NSToolbarItem.Identifier {
 
 // MARK: -
 // MARK: Custom functionality
-private extension RayRacerDelegate {
-	func withModalFileOpenPanel(_ perform: (URL) -> Void) {
+extension RayRacerDelegate {
+	private func withModalFileOpenPanel(_ perform: (URL) -> Void) {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
 		panel.canChooseFiles = true
@@ -293,7 +295,7 @@ private extension RayRacerDelegate {
 		}
 	}
 	
-	func openFile(at url: URL) {
+	private func openFile(at url: URL) {
 		guard let data = try? Data(contentsOfSecurityScopedResourceAt: url) else {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
@@ -318,30 +320,38 @@ private extension RayRacerDelegate {
 		self.defaults.addOpenedFileURL(url)
 	}
 	
-	func withStepInputPanel(prompt: String, _ perform: @escaping (Int) -> Void) {
-		let controller = IntegerInputViewController()
-		controller.prompt = prompt
+	private func withStepperPanel(prompt: String, handler: @escaping (Int) -> Void) {
+		// when a window controller with integer input is already open,
+		// re-use it
+		let windowController = self.windowControllers
+			.first(where: { $0.contentViewController is IntegerInputViewController })
+		// when no window controller with integer input is yet open,
+		// create a new one
+		?? {
+			let panel = NSPanel()
+			panel.styleMask = [.utilityWindow, .titled, .closable]
+			panel.titlebarAppearsTransparent = true
+			panel.level = .modalPanel
+			panel.title = "Stepper"
+			panel.contentViewController = IntegerInputViewController()
+			
+			return NSWindowController(window: panel)
+		}()
 		
-		let panel = NSPanel(contentViewController: controller)
-		panel.styleMask = [.utilityWindow, .titled, .closable]
-		panel.titlebarAppearsTransparent = true
-		panel.title = "Step program"
-		
-		// TODO: releas panel when closed
-		// panel.isReleasedWhenClosed = true
-		
-		controller.handler = { [unowned panel] in
+		let viewController = windowController.contentViewController as! IntegerInputViewController
+		viewController.prompt = prompt
+		viewController.handler = { [unowned windowController] in
 			switch $0 {
-			case .cancel:
-				panel.close()
 			case .OK:
-				perform($1)
+				handler($1)
+			case .cancel:
+				windowController.close()
 			default:
 				break
 			}
 		}
 		
-		panel.makeKeyAndOrderFront(self)
+		self.showWindow(of: windowController)
 	}
 }
 
