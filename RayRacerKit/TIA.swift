@@ -163,8 +163,8 @@ extension TIA {
 			collisions[0] = $0[2] && $0[0]
 			collisions[1] = $0[2] && $0[1]
 			// cxm1p
-			collisions[2] = $0[3] && $0[0]
-			collisions[3] = $0[3] && $0[1]
+			collisions[2] = $0[3] && $0[1]
+			collisions[3] = $0[3] && $0[0]
 			// cxp0fb
 			collisions[4] = $0[0] && $0[4]
 			collisions[5] = $0[0] && $0[5]
@@ -195,28 +195,28 @@ extension TIA: Addressable {
 		switch address % 0x10 {
 		case 0x00:
 			// MARK: CXM0P
-			return ((self.collisions & 0x3) << 6) | 0x30
+			return ((self.collisions & 0x3) << 6) | address
 		case 0x01:
 			// MARK: CXM1P
-			return ((self.collisions & 0xc) << 4) | 0x31
+			return ((self.collisions & 0xc) << 4) | address
 		case 0x02:
 			// MARK: CXP0FB
-			return ((self.collisions & 0xc) << 2) | 0x30
+			return ((self.collisions & 0xc) << 2) | address
 		case 0x03:
 			// MARK: CXP1FB
-			return (self.collisions & 0xc0) | 0x30
+			return (self.collisions & 0xc0) | address
 		case 0x04:
 			// MARK: CXM0FB
-			return ((self.collisions & 0x300) >> 2) | 0x30
+			return ((self.collisions & 0x300) >> 2) | address
 		case 0x05:
 			// MARK: CXM1FB
-			return ((self.collisions & 0xc00) >> 4) | 0x30
+			return ((self.collisions & 0xc00) >> 4) | address
 		case 0x06:
 			// MARK: CXBLPF
-			return ((self.collisions & 0x1000) >> 5) | 0x30
+			return ((self.collisions & 0x1000) >> 5) | address
 		case 0x07:
 			// MARK: CXPPMM
-			return ((self.collisions & 0x6000) >> 6) | 0x30
+			return ((self.collisions & 0x6000) >> 6) | address
 		case 0x0c:
 			// MARK: INPT4
 			return 0x80
@@ -235,7 +235,14 @@ extension TIA: Addressable {
 			self.verticalBlank = data[1]
 		case 0x02:
 			// MARK: WSYNC
-			self.awaitsHorizontalSync = true
+			// NOTE: when last CPU clock cycle of a write instruction coincides
+			// with last three TIA color clocks in a scan line, WSYNC will
+			// incorrectly stay on for an extra scanline, since it is reset at
+			// the end of each TIA color clock cycle emulation, but the writing
+			// CPU clock cycle is executed after that in console clock
+			// emulation;
+			// ensuring color clock is not reset guards against this edge case
+			self.awaitsHorizontalSync = self.colorClock > 0
 		case 0x03:
 			// MARK: RSYNC
 			self.colorClock = 0

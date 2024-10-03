@@ -20,7 +20,7 @@
             <rect key="frame" x="0.0" y="0.0" width="201" height="105"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="wt9-0Y-Hg9">
+                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="wt9-0Y-Hg9">
                     <rect key="frame" x="18" y="67" width="42" height="16"/>
                     <textFieldCell key="cell" lineBreakMode="clipping" title="Value:" id="4xE-3s-6dR">
                         <font key="font" usesAppearanceFont="YES"/>
@@ -61,7 +61,7 @@ DQ
                         <binding destination="-2" name="value" keyPath="self.textField.intValue" id="v2M-Je-cHE"/>
                     </connections>
                 </stepper>
-                <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5I3-Ts-VmR">
+                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5I3-Ts-VmR">
                     <rect key="frame" x="66" y="64" width="100" height="21"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="100" id="lhJ-Py-YWc"/>

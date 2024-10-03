@@ -80,18 +80,18 @@ extension Atari2600 {
 	
 	/// Advances TIA clock by 3 units and RIOT and CPU clock by 1, unless CPU is halted by the TIA.
 	private func advanceCycle() {
-		// NOTE: in cases when color clock resets during the 3 TIA clock
-		// ticks and WSYNC switches off, CPU clock should not increment;
-		// so the check for WSYNC being on has to happen before advancing
-		// TIA clock
-		let cpuHalted = self.tia.awaitsHorizontalSync
+		// NOTE: even when color clock resets during any of the three TIA clock
+		// cycles and WSYNC switches off, CPU clock cycle should not be
+		// executed, since in hardware these happen simulatenously;
+		// so the check for CPU being ready or halted has to happen first
+		let cpuReady = !self.tia.awaitsHorizontalSync
 		
 		self.tia.advanceClock()
 		self.tia.advanceClock()
 		self.tia.advanceClock()
 		
 		self.riot.advanceClock()
-		if !cpuHalted {
+		if cpuReady {
 			self.cpu.advanceClock()
 		}
 	}
