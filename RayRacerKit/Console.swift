@@ -27,6 +27,7 @@ public class Atari2600: ObservableObject {
 	public func reset() {
 		self.cpu.reset()
 		self.riot.reset()
+		self.tia.reset()
 	}
 	
 	public func setSwitch(_ switch: Switches, on: Bool) {
@@ -47,62 +48,52 @@ public class Atari2600: ObservableObject {
 // MARK: -
 // MARK: Debugging
 extension Atari2600 {
+	/// Resumes program execution until the first instruction at one of the specified addresses.
 	public func resume(until breakpoints: any Sequence<Int>) {
 		repeat {
 			self.stepInstruction()
-		} while breakpoints.contains(self.cpu.programCounter) == false
+		} while !self.cpu.sync || !breakpoints.contains(self.cpu.programCounter)
 	}
 	
-	/// Advances console state to the beginning of the first program instruction in the next TV field.
+	/// Resumes program execution until the first instruction in the next TV field.
 	public func stepField() {
-		self.advanceClock()
-		while self.tia.screenClock > 0 {
-			self.advanceClock()
-		}
-		
-		// finish current instruction when new field begins in
-		// the middle of executing it
-		while !self.cpu.sync {
-			self.advanceClock()
-		}
+		self.stepScanLine()
+		repeat {
+			self.advanceCycle()
+		} while !self.cpu.sync || self.tia.scanLine > 0
 	}
 	
-	/// Advances console state to the beginning of the first program instruction in the next scan line.
+	/// Resumes program execution until the first instruction in the next TV scan line.
 	public func stepScanLine() {
-		self.advanceClock()
-		while self.tia.colorClock > 0 {
-			self.advanceClock()
-		}
-		
-		// finish current instruction when new scan line begins in
-		// the middle of executing it
-		while !self.cpu.sync {
-			self.advanceClock()
-		}
+		let scanLine = self.tia.scanLine
+		repeat {
+			self.advanceCycle()
+		} while !self.cpu.sync || self.tia.scanLine == scanLine
 	}
 	
-	/// Advances console state to the beginning of the next program instruction.
+	/// Resumes program execution for a single instruction.
 	public func stepInstruction() {
-		// advance TIA to horizontal sync when WSYNC is on
-		while self.tia.waitingHorizontalSync {
-			self.advanceClock()
-		}
-		
-		self.advanceClock()
-		while !self.cpu.sync {
-			self.advanceClock()
-		}
+		repeat {
+			self.advanceCycle()
+		} while !self.cpu.sync || self.tia.awaitsHorizontalSync
 	}
 	
-	private func advanceClock() {
+	/// Advances TIA clock by 3 units and RIOT and CPU clock by 1, unless CPU is halted by the TIA.
+	private func advanceCycle() {
+		// NOTE: even when color clock resets during any of the three TIA clock
+		// cycles and WSYNC switches off, CPU clock cycle should not be
+		// executed, since in hardware these happen simulatenously;
+		// so the check for CPU being ready or halted has to happen first
+		let cpuReady = !self.tia.awaitsHorizontalSync
+		
 		self.tia.advanceClock()
 		self.tia.advanceClock()
 		self.tia.advanceClock()
 		
-		if !self.tia.waitingHorizontalSync {
+		self.riot.advanceClock()
+		if cpuReady {
 			self.cpu.advanceClock()
 		}
-		self.riot.advanceClock()
 	}
 }
 

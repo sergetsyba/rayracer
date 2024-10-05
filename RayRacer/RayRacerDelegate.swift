@@ -46,6 +46,10 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 		
 		return descirptor
 	}
+	
+	func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
+		return true
+	}
 }
 
 
@@ -106,6 +110,7 @@ extension RayRacerDelegate {
 		}
 		
 		self.console.resume(until: breakpoints)
+		self.postNotification(.break)
 	}
 	
 	@IBAction func didSelectStepInstructionMenuItem(_ sender: AnyObject) {
@@ -113,14 +118,41 @@ extension RayRacerDelegate {
 		self.postNotification(.break)
 	}
 	
+	@IBAction func didSelectStepInstructionsMenuItem(_ sender: AnyObject) {
+		self.withStepperPanel(prompt: "Instructions:") { [unowned self] in
+			for _ in 0..<$0 {
+				self.console.stepInstruction()
+			}
+			self.postNotification(.break)
+		}
+	}
+	
 	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
 		self.console.stepScanLine()
 		self.postNotification(.break)
 	}
 	
+	@IBAction func didSelectStepScanLinesMenuItem(_ sender: AnyObject) {
+		self.withStepperPanel(prompt: "Scan lines:") { [unowned self] in
+			for _ in 0..<$0 {
+				self.console.stepScanLine()
+			}
+			self.postNotification(.break)
+		}
+	}
+	
 	@IBAction func didSelectStepFieldMenuItem(_ sender: AnyObject) {
 		self.console.stepField()
 		self.postNotification(.break)
+	}
+	
+	@IBAction func didSelectStepFieldsMenuItem(_ sender: AnyObject) {
+		self.withStepperPanel(prompt: "Fields:") { [unowned self] in
+			for _ in 0..<$0 {
+				self.console.stepField()
+			}
+			self.postNotification(.break)
+		}
 	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
@@ -246,10 +278,10 @@ extension RayRacerDelegate: NSToolbarItemValidation {
 	func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
 		switch item.itemIdentifier {
 		case .resumeToolbarItem,
-				.stepProgramToolbarItem,
+				.stepInstructionToolbarItem,
 				.stepScanLineToolbarItem,
-				.stepFrameToolbarItem,
-				.gameResetToolbarItem:
+				.stepFieldToolbarItem,
+				.resetToolbarItem:
 			return self.console.cartridge != nil
 		default:
 			return false
@@ -260,17 +292,17 @@ extension RayRacerDelegate: NSToolbarItemValidation {
 
 private extension NSToolbarItem.Identifier {
 	static let resumeToolbarItem = NSToolbarItem.Identifier("ResumeToolbarItem")
-	static let stepProgramToolbarItem = NSToolbarItem.Identifier("StepProgramToolbarItem")
+	static let stepInstructionToolbarItem = NSToolbarItem.Identifier("StepInstructionToolbarItem")
 	static let stepScanLineToolbarItem = NSToolbarItem.Identifier("StepScanLineToolbarItem")
-	static let stepFrameToolbarItem = NSToolbarItem.Identifier("StepFrameToolbarItem")
-	static let gameResetToolbarItem = NSToolbarItem.Identifier("GameResetToolbarItem")
+	static let stepFieldToolbarItem = NSToolbarItem.Identifier("StepFieldToolbarItem")
+	static let resetToolbarItem = NSToolbarItem.Identifier("ResetToolbarItem")
 }
 
 
 // MARK: -
 // MARK: Custom functionality
-private extension RayRacerDelegate {
-	func withModalFileOpenPanel(_ perform: (URL) -> Void) {
+extension RayRacerDelegate {
+	private func withModalFileOpenPanel(_ perform: (URL) -> Void) {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
 		panel.canChooseFiles = true
@@ -285,7 +317,7 @@ private extension RayRacerDelegate {
 		}
 	}
 	
-	func openFile(at url: URL) {
+	private func openFile(at url: URL) {
 		guard let data = try? Data(contentsOfSecurityScopedResourceAt: url) else {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
@@ -308,6 +340,36 @@ private extension RayRacerDelegate {
 		
 		self.showWindow(of: windowController)
 		self.defaults.addOpenedFileURL(url)
+	}
+	
+	private func withStepperPanel(prompt: String, handler: @escaping (Int) -> Void) {
+		// when a window controller with integer input is already open,
+		// re-use it
+		let windowController = self.windowControllers
+			.first(where: { $0.contentViewController is StepperViewController })
+		// when no window controller with integer input is yet open,
+		// create a new one
+		?? {
+			let windowController = NSWindowController(windowNibName: "StepperPanel")
+			windowController.contentViewController = StepperViewController()
+			
+			return windowController
+		}()
+		
+		let viewController = windowController.contentViewController as! StepperViewController
+		viewController.prompt = prompt
+		viewController.handler = { [unowned windowController] in
+			switch $0 {
+			case .OK:
+				handler($1)
+			case .cancel:
+				windowController.close()
+			default:
+				break
+			}
+		}
+		
+		self.showWindow(of: windowController)
 	}
 }
 

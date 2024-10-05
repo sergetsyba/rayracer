@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="23094" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22690"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23094"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -180,16 +180,34 @@
                                     <action selector="didSelectStepInstructionMenuItem:" target="-1" id="5fN-sa-2e4"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Step Instructions..." alternate="YES" keyEquivalent="" id="YT8-G8-Jzg">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES"/>
+                                <connections>
+                                    <action selector="didSelectStepInstructionsMenuItem:" target="-1" id="rpc-vj-Xuw"/>
+                                </connections>
+                            </menuItem>
                             <menuItem title="Step Scan Line" keyEquivalent="" id="3fk-3m-aEx">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="didSelectStepScanLineMenuItem:" target="-1" id="1Nj-yR-c7h"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Step Scan Lines..." alternate="YES" keyEquivalent="" id="3ZC-Ug-Agq">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES"/>
+                                <connections>
+                                    <action selector="didSelectStepScanLinesMenuItem:" target="-1" id="xXD-Bx-V9O"/>
+                                </connections>
+                            </menuItem>
                             <menuItem title="Step Field" keyEquivalent="" id="OO4-lS-ntS">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="didSelectStepFieldMenuItem:" target="-1" id="cbR-XU-LVm"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Step Fields..." alternate="YES" keyEquivalent="" id="3sD-RI-SKh">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES"/>
+                                <connections>
+                                    <action selector="didSelectStepFieldsMenuItem:" target="-1" id="PoD-Ae-Fdj"/>
                                 </connections>
                             </menuItem>
                         </items>

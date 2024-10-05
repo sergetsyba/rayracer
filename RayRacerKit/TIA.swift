@@ -6,57 +6,91 @@
 //
 
 public class TIA {
-	public var output: GraphicsOutput?
-	private(set) public var screenClock: Int
-	private var verticalSyncClock: Int
-	
-	private(set) public var verticalBlank: Bool
-	internal(set) public var waitingHorizontalSync: Bool
-	
 	private(set) public var players: (Player, Player)
 	private(set) public var missiles: (Missile, Missile)
 	private(set) public var ball: Ball
 	private(set) public var playfield: Playfield
 	private(set) public var backgroundColor: Int
 	
-	//	private(set) public var collistions: [GraphicsObject: Set<GraphicsObject>] = [:]
+	private var screenClock = 0
+	private var colors = Array(repeating: 0, count: 4)
+	private var collisions = 0
+	
+	public var output: GraphicsOutput?
 	
 	init() {
-		self.screenClock = 0
-		self.verticalSyncClock = -1
-		
-		self.verticalBlank = true
-		self.waitingHorizontalSync = false
-		
 		self.players = (.random(), .random())
 		self.missiles = (.random(), .random())
 		self.ball = .random()
 		self.playfield = .random()
 		self.backgroundColor = .random(in: 0x00...0x7f)
+		
+		self.verticalSync = false
+		self.verticalBlank = true
+		self.awaitsHorizontalSync = false
 	}
 	
-	func advanceClock(cycles: Int = 1) {
-		self.output?.write(color: self.color)
+	/// Indicates whether TIA is currenlty transmitting the vertical sync signal.
+	private(set) public var verticalSync: Bool {
+		didSet {
+			if !self.verticalSync {
+				self.screenClock = self.colorClock
+				self.output?.sync()
+			}
+		}
+	}
+	
+	/// Indicates whether TIA is currently transmitting no color signal due to electron beam being
+	/// in vertical retrace.
+	private(set) public var verticalBlank: Bool
+	
+	/// Indicates whether TIA is currently waiting on horizontal sync.
+	private(set) public var awaitsHorizontalSync: Bool
+	
+	/// Indicates whether TIA is currently transmitting no color signal due to electron beam being
+	/// in horizontal retrace.
+	public var horizontalBlank: Bool {
+		return self.colorClock < 68
+	}
+	
+	/// Scan line number, whose signal TIA assumes it currently is transmitting.
+	public var scanLine: Int {
+		return self.screenClock / 228
+	}
+	
+	/// Color clock within the current scan line.
+	private(set) public var colorClock: Int {
+		get { self.screenClock % 228 }
+		set { self.screenClock = self.scanLine * 228 + newValue }
+	}
+	
+	/// Resets TIA.
+	public func reset() {
+		self.verticalSync = false
+		self.verticalBlank = false
+		self.screenClock = 0
+	}
+	
+	/// Advances color clock by 1 unit.
+	public func advanceClock() {
+		if self.verticalBlank || self.horizontalBlank {
+			self.output?.write(color: 0)
+		} else {
+			let state = self.graphicsState(at: self.colorClock - 68)
+			let objectIndex = Self.graphicsLookUp[state]
+			let color = self.colors[objectIndex]
+			let collisions = Self.collisionsLookUp[state & 0x1f]
+			
+			self.collisions |= collisions
+			self.output?.write(color: color)
+		}
+		
 		self.screenClock += 1
 		
-		if self.screenClock % 228 == 0 {
-			self.waitingHorizontalSync = false
+		// switch off WSYNC once color clock resets
+		if self.colorClock == 0 {
+			self.awaitsHorizontalSync = false
 		}
-	}
-	
-	@discardableResult
-	func advanceClockToHorizontalSync() -> Int {
-		// do not advance to the next scan line when color clock is at 0
-		guard self.colorClock > 0 else {
-			self.waitingHorizontalSync = false
-			return 0
-		}
-		
-		let cycles = 228 - self.colorClock
-		self.advanceClock(cycles: cycles)
-		self.waitingHorizontalSync = false
-		
-		return cycles
 	}
 }
 
@@ -72,85 +106,87 @@ extension TIA {
 	}
 	
 	/// One of six objects TIA draws on screen.
-	public protocol GraphicsObject {
+	public protocol Drawable {
 		/// Returns `true` when this object should be drawn at the specified position in the scan
 		/// line; returns `false` otherwise.
 		func draws(at position: Int) -> Bool
 	}
 }
 
-// MARK: -
-// MARK: Convenience registers
 extension TIA {
-	public var colorClock: Int {
-		return self.screenClock % 228
+	private func graphicsState(at point: Int) -> Int {
+		var state = 0
+		state[0] = self.players.0.draws(at: point)
+		state[1] = self.players.1.draws(at: point)
+		state[2] = self.missiles.0.draws(at: point)
+		state[3] = self.missiles.1.draws(at: point)
+		state[4] = self.ball.draws(at: point)
+		state[5] = self.playfield.draws(at: point)
+		
+		state[6] = self.playfield.control[.scoreMode]
+		state[7] = point < 80
+		
+		return state
 	}
 	
-	public var verticalSync: (Bool, Int) {
-		return (self.verticalSyncClock > -1, self.verticalSyncClock)
-	}
+	private static let graphicsLookUp = (0x00...0xff)
+		.map() {
+			// player/missile 0
+			if $0[0] || $0[1] {
+				return 0
+			}
+			// player/missile 1
+			if $0[2] || $0[3] {
+				return 1
+			}
+			// ball
+			if $0[4] {
+				return 2
+			}
+			// playfield
+			if $0[5] {
+				// score mode
+				if $0[6] {
+					return $0[6] ? 0 : 1
+				} else {
+					return 2
+				}
+			}
+			// background
+			return 3
+		}
 	
-	public var horizontalBlank: Bool {
-		return self.colorClock < 68
-	}
-	
-	public var overscan: Bool {
-		return self.screenClock >= 232 * 228
-	}
+	private static let collisionsLookUp: [Int] = (0x00...0x1f)
+		.map() {
+			var collisions = 0
+			// cxm0p
+			collisions[0] = $0[2] && $0[0]
+			collisions[1] = $0[2] && $0[1]
+			// cxm1p
+			collisions[2] = $0[3] && $0[1]
+			collisions[3] = $0[3] && $0[0]
+			// cxp0fb
+			collisions[4] = $0[0] && $0[4]
+			collisions[5] = $0[0] && $0[5]
+			// cxp1fb
+			collisions[6] = $0[1] && $0[4]
+			collisions[7] = $0[1] && $0[5]
+			// cxm0fb
+			collisions[8] = $0[2] && $0[4]
+			collisions[9] = $0[2] && $0[5]
+			// cxm1fb
+			collisions[10] = $0[3] && $0[4]
+			collisions[11] = $0[3] && $0[5]
+			// cxblpf
+			collisions[12] = $0[4] && $0[5]
+			// cxppmm
+			collisions[13] = $0[2] && $0[3]
+			collisions[14] = $0[0] && $0[1]
+			
+			return collisions
+		}
 }
 
-extension TIA {
-	private var color: Int {
-		guard self.verticalBlank == false,
-			  self.horizontalBlank == false else {
-			return 0
-		}
-		
-		let point = self.colorClock - 68
-		let points = [
-			self.players.0.draws(at: point),
-			self.players.1.draws(at: point),
-			self.missiles.0.draws(at: point),
-			self.missiles.0.draws(at: point),
-			self.ball.draws(at: point),
-			self.playfield.draws(at: point)
-		]
-		
-		//		for (index1, object) in GraphicsObject.allCases.enumerated() {
-		//			var collisions = self.collistions[object] ?? []
-		//			for index2 in points.indices {
-		//				if points[index1] && points[index2] && index1 != index2 {
-		//					collisions.insert(GraphicsObject.allCases[index2])
-		//				}
-		//			}
-		//
-		//			self.collistions[object] = collisions
-		//		}
-		
-		
-		if self.players.0.draws(at: point)
-			|| self.missiles.0.draws(at: point) {
-			return self.players.0.color
-		}
-		if self.players.1.draws(at: point)
-			|| self.missiles.1.draws(at: point) {
-			return self.players.1.color
-		}
-		if self.ball.draws(at: point) {
-			return self.playfield.color
-		}
-		if self.playfield.draws(at: point) {
-			if self.playfield.control.contains(.scoreMode) {
-				return point < 80
-				? self.players.0.color
-				: self.players.1.color
-			} else {
-				return self.playfield.color
-			}
-		}
-		return self.backgroundColor
-	}
-}
 
 // MARK: -
 // MARK: Bus integration
@@ -159,60 +195,28 @@ extension TIA: Addressable {
 		switch address % 0x10 {
 		case 0x00:
 			// MARK: CXM0P
-			return 0x30
+			return ((self.collisions & 0x3) << 6) | address
 		case 0x01:
 			// MARK: CXM1P
-			return 0x31
+			return ((self.collisions & 0xc) << 4) | address
 		case 0x02:
 			// MARK: CXP0FB
-			return 0x32
+			return ((self.collisions & 0x30) << 2) | address
 		case 0x03:
 			// MARK: CXP1FB
-			return 0x33
+			return (self.collisions & 0xc0) | address
 		case 0x04:
 			// MARK: CXM0FB
-			return 0x34
+			return ((self.collisions & 0x300) >> 2) | address
 		case 0x05:
 			// MARK: CXM1FB
-			return 0x35
+			return ((self.collisions & 0xc00) >> 4) | address
 		case 0x06:
 			// MARK: CXBLPF
-			return 0x36
+			return ((self.collisions & 0x1000) >> 5) | address
 		case 0x07:
 			// MARK: CXPPMM
-			return 0x37
-			
-			//		case 0x00:
-			//			// MARK: CXM0P
-			//			return self.collided(.missile0, with: .player0)
-			//			|| self.collided(.missile0, with: .player1) ? 0xc0 : 0x30
-			//		case 0x01:
-			//			// MARK: CXM1P
-			//			return self.collided(.missile1, with: .player0)
-			//			|| self.collided(.missile1, with: .player1) ? 0xc0 : 0x31
-			//		case 0x02:
-			//			// MARK: CXP0FB
-			//			return self.collided(.player0, with: .playfield)
-			//			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x32
-			//		case 0x03:
-			//			// MARK: CXP1FB
-			//			return self.collided(.player1, with: .playfield)
-			//			|| self.collided(.player1, with: .ball) ? 0xc0 : 0x33
-			//		case 0x04:
-			//			// MARK: CXM0FB
-			//			return self.collided(.missile0, with: .playfield)
-			//			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x34
-			//		case 0x05:
-			//			// MARK: CXM1FB
-			//			return self.collided(.missile1, with: .playfield)
-			//			|| self.collided(.player0, with: .ball) ? 0xc0 : 0x35
-			//		case 0x06:
-			//			// MARK: CXBLPF
-			//			return self.collided(.ball, with: .playfield) ? 0xc0 : 0x36
-			//		case 0x07:
-			//			// MARK: CXPPMM
-			//			return self.collided(.player0, with: .player1)
-			//			|| self.collided(.missile0, with: .missile1) ? 0xc0 : 0x37
+			return ((self.collisions & 0x6000) >> 7) | address
 		case 0x0c:
 			// MARK: INPT4
 			return 0x80
@@ -225,38 +229,23 @@ extension TIA: Addressable {
 		switch address {
 		case 0x00:
 			// MARK: VSYNC
-			if data[1] {
-				// begin counting vertical sync time
-				self.verticalSyncClock = 0
-			} else {
-				// ensure vertical sync is on
-				guard self.verticalSyncClock > -1 else {
-					return
-				}
-				
-				// when vertical sync has been on for at least 3 scan lines,
-				// send composite sync signal to the screen and reset frame
-				// clock
-				let elapsedCycles = self.screenClock - self.verticalSyncClock
-				let scanLines = elapsedCycles / 228
-				if scanLines >= 3 {
-					self.screenClock = 0
-					self.output?.sync()
-				}
-				
-				// stop counting vertical sync time
-				self.verticalSyncClock = -1
-			}
+			self.verticalSync = data[1]
 		case 0x01:
 			// MARK: VBLANK
 			self.verticalBlank = data[1]
 		case 0x02:
 			// MARK: WSYNC
-			self.waitingHorizontalSync = true
+			// NOTE: when last CPU clock cycle of a write instruction coincides
+			// with last three TIA color clocks in a scan line, WSYNC will
+			// incorrectly stay on for an extra scanline, since it is reset at
+			// the end of each TIA color clock cycle emulation, but the writing
+			// CPU clock cycle is executed after that in console clock
+			// emulation;
+			// ensuring color clock is not reset guards against this edge case
+			self.awaitsHorizontalSync = self.colorClock > 0
 		case 0x03:
 			// MARK: RSYNC
-			self.advanceClockToHorizontalSync()
-			self.screenClock -= 3
+			self.colorClock = 0
 		case 0x04:
 			// MARK: NUSIZ0
 			self.players.0.copies = data & 0x3
@@ -269,28 +258,24 @@ extension TIA: Addressable {
 			// MARK: COLUP0
 			self.players.0.color = data
 			self.missiles.0.color = data
+			self.colors[0] = data
 		case 0x07:
 			// MARK: COLUP1
 			self.players.1.color = data
 			self.missiles.1.color = data
+			self.colors[1] = data
 		case 0x08:
 			// MARK: COLUPF
 			self.playfield.color = data
+			self.colors[2] = data
 		case 0x09:
 			// MARK: COLUBK
 			self.backgroundColor = data
+			self.colors[3] = data
 		case 0x0a:
 			// MARK: CTRLPF
-			if data[0] {
-				self.playfield.control.insert(.reflected)
-			} else {
-				self.playfield.control.remove(.reflected)
-			}
-			if data[1] {
-				self.playfield.control.insert(.scoreMode)
-			} else {
-				self.playfield.control.remove(.scoreMode)
-			}
+			self.playfield.control[.reflected] = data[0]
+			self.playfield.control[.scoreMode] = data[1]
 			self.ball.size = 1 << ((data >> 4) & 0x3)
 		case 0x0d:
 			// MARK: PF0
@@ -389,9 +374,9 @@ extension TIA: Addressable {
 			self.missiles.0.motion = 0
 			self.missiles.1.motion = 0
 			self.ball.motion = 0
-			//		case 0x2c:
+		case 0x2c:
 			// MARK: CXCLR
-			//			self.collistions = [:]
+			self.collisions = 0
 			
 		default:
 			break

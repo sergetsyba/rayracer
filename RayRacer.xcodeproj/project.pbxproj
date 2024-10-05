@@ -13,7 +13,7 @@
 		950A64A12C4BCD3C007D4362 /* Addressable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950A64A02C4BCD3C007D4362 /* Addressable.swift */; };
 		9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */; };
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
-		9523FDAB2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9523FDAA2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift */; };
+		9523FDAB2C8D81DB0094A597 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */; };
 		9523FDAC2C8D81DB0094A597 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
 		952C1A292C902E8D00D341D6 /* MOS6507+Status.swift in Sources */ = {isa = PBXBuildFile; fileRef = 952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */; };
 		953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92AE2A1AEB8300EC52AC /* Console.swift */; };
@@ -26,6 +26,9 @@
 		954E3CD22C285184009218CB /* DebugSectionTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */; };
 		954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */; };
 		955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */; };
+		956034FB2CA7FE8900382201 /* StepperPanel.xib in Resources */ = {isa = PBXBuildFile; fileRef = 956034FA2CA7FE8900382201 /* StepperPanel.xib */; };
+		95706CA82CA298070000A6FC /* StepperView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95706CA72CA298070000A6FC /* StepperView.xib */; };
+		95706CAA2CA298AC0000A6FC /* StepperViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95706CA92CA298AC0000A6FC /* StepperViewController.swift */; };
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
 		957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957AADDA2C0B22BB00692B3F /* String+Extensions.swift */; };
 		958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958691B12A4FF61D00C727C0 /* MOS6532.swift */; };
@@ -44,6 +47,7 @@
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
+		95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,7 +75,7 @@
 		9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Preferences.swift"; sourceTree = "<group>"; };
 		951CC4FD2A58723300537CD1 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		9523FDA82C8D81DB0094A597 /* RayRacerKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RayRacerKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9523FDAA2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atarti2600PerformanceTests.swift; sourceTree = "<group>"; };
+		9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
 		952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MOS6507+Status.swift"; sourceTree = "<group>"; };
 		953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RayRacerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		953D92AE2A1AEB8300EC52AC /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
@@ -86,6 +90,9 @@
 		954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSectionTableCellView.swift; sourceTree = "<group>"; };
 		954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugValueTableCellView.swift; sourceTree = "<group>"; };
 		955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSFont+Constants.swift"; sourceTree = "<group>"; };
+		956034FA2CA7FE8900382201 /* StepperPanel.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = StepperPanel.xib; sourceTree = "<group>"; };
+		95706CA72CA298070000A6FC /* StepperView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = StepperView.xib; sourceTree = "<group>"; };
+		95706CA92CA298AC0000A6FC /* StepperViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepperViewController.swift; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
 		957AADDA2C0B22BB00692B3F /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		958691B12A4FF61D00C727C0 /* MOS6532.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6532.swift; sourceTree = "<group>"; };
@@ -106,6 +113,7 @@
 		95C918EA2C07810900B431C4 /* SystemStateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStateViewController.swift; sourceTree = "<group>"; };
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
 		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
+		95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OptionSet+Subscript.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,7 +147,7 @@
 			children = (
 				954A18652A1AEE5800EBC582 /* RayRacer */,
 				953D92A82A1AEB7400EC52AC /* RayRacerKit */,
-				9523FDA92C8D81DB0094A597 /* RayRacerKitTests */,
+				9523FDA92C8D81DB0094A597 /* RayRacerKitPerfromanceTests */,
 				95F563FD2A42E33E0028A90B /* Frameworks */,
 				951E2F842A18B11900E6902F /* Products */,
 			);
@@ -155,12 +163,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9523FDA92C8D81DB0094A597 /* RayRacerKitTests */ = {
+		9523FDA92C8D81DB0094A597 /* RayRacerKitPerfromanceTests */ = {
 			isa = PBXGroup;
 			children = (
-				9523FDAA2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift */,
+				9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */,
 			);
-			path = RayRacerKitTests;
+			path = RayRacerKitPerfromanceTests;
 			sourceTree = "<group>";
 		};
 		953D92A82A1AEB7400EC52AC /* RayRacerKit */ = {
@@ -172,6 +180,7 @@
 				9502E5962A423296007A32DA /* MOS6507+Assembly.swift */,
 				952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */,
 				958691B12A4FF61D00C727C0 /* MOS6532.swift */,
+				95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */,
 				9595FE912A4E02FE00F6F857 /* TIA.swift */,
 				95A222122C8A000D008176F7 /* TIA+Ball.swift */,
 				95A222112C8A000C008176F7 /* TIA+Missile.swift */,
@@ -211,6 +220,9 @@
 				951CC4FD2A58723300537CD1 /* FormView.swift */,
 				955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */,
 				957A12882A3F4517002163C1 /* NSView+ContentView.swift */,
+				956034FA2CA7FE8900382201 /* StepperPanel.xib */,
+				95706CA72CA298070000A6FC /* StepperView.xib */,
+				95706CA92CA298AC0000A6FC /* StepperViewController.swift */,
 				957AADDA2C0B22BB00692B3F /* String+Extensions.swift */,
 				95C918E82C07810000B431C4 /* SystemStateView.xib */,
 				95C918EA2C07810900B431C4 /* SystemStateViewController.swift */,
@@ -368,7 +380,9 @@
 			files = (
 				95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */,
 				95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */,
+				95706CA82CA298070000A6FC /* StepperView.xib in Resources */,
 				954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */,
+				956034FB2CA7FE8900382201 /* StepperPanel.xib in Resources */,
 				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
 				95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */,
 				954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */,
@@ -382,7 +396,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9523FDAB2C8D81DB0094A597 /* Atarti2600PerformanceTests.swift in Sources */,
+				9523FDAB2C8D81DB0094A597 /* PerformanceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,6 +415,7 @@
 				952C1A292C902E8D00D341D6 /* MOS6507+Status.swift in Sources */,
 				95A222152C8A000D008176F7 /* TIA+Missile.swift in Sources */,
 				958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */,
+				95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -410,6 +425,7 @@
 			files = (
 				95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */,
 				955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */,
+				95706CAA2CA298AC0000A6FC /* StepperViewController.swift in Sources */,
 				951CC4FE2A58723300537CD1 /* FormView.swift in Sources */,
 				954E3CD02C283B3E009218CB /* DebugItemTableCellView.swift in Sources */,
 				957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */,

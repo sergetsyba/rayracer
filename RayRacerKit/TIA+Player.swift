@@ -20,7 +20,7 @@ extension TIA {
 
 // MARK: -
 // MARK: Drawing
-extension TIA.Player: TIA.GraphicsObject {
+extension TIA.Player: TIA.Drawable {
 	private static let sectionLookUp = [
 		0x001, // ●○○○○○○○○○
 		0x005, // ●○●○○○○○○○
@@ -33,8 +33,6 @@ extension TIA.Player: TIA.GraphicsObject {
 	]
 	
 	public func draws(at position: Int) -> Bool {
-		// ensure beam position is within possible player graphics
-		// positions range
 		let counter = position - self.position
 		guard (0..<80).contains(counter) else {
 			return false

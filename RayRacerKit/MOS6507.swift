@@ -959,7 +959,7 @@ private extension MOS6507 {
 	
 	func increment(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		var result = (operand + 0x1) & 0xff
+		let result = (operand + 0x1) & 0xff
 		
 		self.bus.write(result, at: address)
 		self.status[.zero] = result == 0x0
@@ -968,7 +968,7 @@ private extension MOS6507 {
 	
 	func decrement(valueAt address: Int) {
 		let operand = self.bus.read(at: address)
-		var result = (operand - 0x1) & 0xff
+		let result = (operand - 0x1) & 0xff
 		
 		self.bus.write(result, at: address)
 		self.status[.zero] = result == 0x0
@@ -1011,21 +1011,6 @@ private extension MOS6507 {
 private extension MOS6507.Status {
 	static func random() -> Self {
 		return MOS6507.Status(rawValue: .random(in: 0x00...0xff))
-	}
-}
-
-private extension OptionSet {
-	subscript (option: Self.Element) -> Bool {
-		get {
-			return self.contains(option)
-		}
-		set {
-			if newValue {
-				self.insert(option)
-			} else {
-				self.remove(option)
-			}
-		}
 	}
 }
 

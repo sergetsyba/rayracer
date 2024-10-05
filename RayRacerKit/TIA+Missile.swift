@@ -18,14 +18,13 @@ extension TIA {
 
 // MARK: -
 // MARK: Drawing
-extension TIA.Missile: TIA.GraphicsObject {
+extension TIA.Missile: TIA.Drawable {
 	public func draws(at position: Int) -> Bool {
-		guard self.enabled else {
+		let counter = position - self.position
+		guard (0..<self.size).contains(counter) else {
 			return false
 		}
 		
-		let counter = position - self.position
-		return (0..<self.size)
-			.contains(counter)
+		return self.enabled
 	}
 }

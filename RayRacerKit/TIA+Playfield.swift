@@ -6,6 +6,12 @@
 //
 
 extension TIA {
+	public struct Playfield {
+		public var graphics: Int
+		public var control: PlayfieldControl
+		public var color: Int
+	}
+
 	public struct PlayfieldControl: OptionSet {
 		public static let reflected = PlayfieldControl(rawValue: 1 << 0)
 		public static let scoreMode = PlayfieldControl(rawValue: 1 << 1)
@@ -19,18 +25,10 @@ extension TIA {
 	}
 }
 
-extension TIA {
-	public struct Playfield {
-		public var graphics: Int
-		public var control: PlayfieldControl
-		public var color: Int
-	}
-}
-
 
 // MARK: -
 // MARK: Drawing
-extension TIA.Playfield: TIA.GraphicsObject {
+extension TIA.Playfield: TIA.Drawable {
 	public func draws(at position: Int) -> Bool {
 		let bit = (position / 4) % 20
 		if position < 80 {

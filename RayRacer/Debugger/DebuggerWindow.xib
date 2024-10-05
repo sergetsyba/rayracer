@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="23094" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22690"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23094"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -16,7 +16,7 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <window title="Debugger" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" frameAutosaveName="" animationBehavior="default" toolbarStyle="expanded" id="O0w-qX-Wdo">
+        <window title="Debugger" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" frameAutosaveName="DebuggerWindow" animationBehavior="default" toolbarStyle="expanded" id="O0w-qX-Wdo">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="803" y="281" width="464" height="500"/>
@@ -56,7 +56,7 @@
                     <constraint firstItem="tPf-EC-MbN" firstAttribute="top" secondItem="vgU-mt-Beg" secondAttribute="top" constant="20" symbolic="YES" id="hd4-pg-GVr"/>
                 </constraints>
             </view>
-            <toolbar key="toolbar" implicitIdentifier="1042316F-9260-480B-AC8B-55DC96BF8C6E" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="LSb-J4-Z97">
+            <toolbar key="toolbar" implicitIdentifier="1042316F-9260-480B-AC8B-55DC96BF8C6E" autosavesConfiguration="NO" showsBaselineSeparator="NO" displayMode="iconAndLabel" sizeMode="regular" id="LSb-J4-Z97">
                 <allowedToolbarItems>
                     <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="t5g-MI-3EV"/>
                     <toolbarItem implicitItemIdentifier="AC7480E9-C555-43FF-932E-01D195016076" explicitItemIdentifier="ResumeToolbarItem" label="Resume" paletteLabel="Resume" tag="-1" image="play" catalog="system" bordered="YES" sizingBehavior="auto" id="hES-oj-yEd">
@@ -64,7 +64,7 @@
                             <action selector="didSelectGameResumeMenuItem:" target="-1" id="RPq-3O-VcL"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="47624D7F-560E-48A5-8388-78924C654B1A" explicitItemIdentifier="StepProgramToolbarItem" label="Step instruction" paletteLabel="Step instruction" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" id="a8G-Mj-SRq">
+                    <toolbarItem implicitItemIdentifier="47624D7F-560E-48A5-8388-78924C654B1A" explicitItemIdentifier="StepInstructionToolbarItem" label="Step instruction" paletteLabel="Step instruction" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" id="a8G-Mj-SRq">
                         <connections>
                             <action selector="didSelectStepInstructionMenuItem:" target="-1" id="RNm-RY-qyU"/>
                         </connections>
@@ -74,7 +74,7 @@
                             <action selector="didSelectStepScanLineMenuItem:" target="-1" id="9je-gD-IFc"/>
                         </connections>
                     </toolbarItem>
-                    <toolbarItem implicitItemIdentifier="295F8941-6FBB-4E40-85F9-5F67E52DCDB0" explicitItemIdentifier="StepFrameToolbarItem" label="Step field" paletteLabel="Step field" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" id="T0T-jK-rXU">
+                    <toolbarItem implicitItemIdentifier="295F8941-6FBB-4E40-85F9-5F67E52DCDB0" explicitItemIdentifier="StepFieldToolbarItem" label="Step field" paletteLabel="Step field" tag="-1" image="forward.frame" catalog="system" bordered="YES" sizingBehavior="auto" id="T0T-jK-rXU">
                         <connections>
                             <action selector="didSelectStepFieldMenuItem:" target="-1" id="GWW-xH-Mc2"/>
                         </connections>
@@ -103,7 +103,7 @@
         </window>
     </objects>
     <resources>
-        <image name="forward.frame" catalog="system" width="16" height="13"/>
+        <image name="forward.frame" catalog="system" width="16" height="12"/>
         <image name="play" catalog="system" width="12" height="13"/>
         <image name="restart.circle" catalog="system" width="15" height="15"/>
     </resources>
