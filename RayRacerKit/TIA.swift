@@ -201,7 +201,7 @@ extension TIA: Addressable {
 			return ((self.collisions & 0xc) << 4) | address
 		case 0x02:
 			// MARK: CXP0FB
-			return ((self.collisions & 0xc) << 2) | address
+			return ((self.collisions & 0x30) << 2) | address
 		case 0x03:
 			// MARK: CXP1FB
 			return (self.collisions & 0xc0) | address
@@ -216,7 +216,7 @@ extension TIA: Addressable {
 			return ((self.collisions & 0x1000) >> 5) | address
 		case 0x07:
 			// MARK: CXPPMM
-			return ((self.collisions & 0x6000) >> 6) | address
+			return ((self.collisions & 0x6000) >> 7) | address
 		case 0x0c:
 			// MARK: INPT4
 			return 0x80
