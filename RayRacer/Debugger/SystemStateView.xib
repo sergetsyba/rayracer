@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="23094" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22690"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23094"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="SystemStateViewController" customModule="Atari2600" customModuleProvider="target">
+        <customObject id="-2" userLabel="File's Owner" customClass="SystemStateViewController" customModule="RayRacer" customModuleProvider="target">
             <connections>
                 <outlet property="outlineView" destination="dgc-zO-aRP" id="jSP-Sw-ERv"/>
                 <outlet property="view" destination="TG1-Q0-bLy" id="sW7-vo-nk9"/>
@@ -40,11 +40,11 @@
                                 </textFieldCell>
                                 <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                 <prototypeCellViews>
-                                    <tableCellView identifier="DebugSectionTableCellView" id="YMK-tn-Tg3" customClass="DebugSectionTableCellView" customModule="Atari2600" customModuleProvider="target">
+                                    <tableCellView identifier="DebugSectionTableCellView" id="YMK-tn-Tg3" customClass="DebugSectionTableCellView" customModule="RayRacer" customModuleProvider="target">
                                         <rect key="frame" x="18" y="0.0" width="235" height="20"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="fI3-EO-t8I">
+                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="fI3-EO-t8I">
                                                 <rect key="frame" x="0.0" y="2" width="96" height="16"/>
                                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="bDJ-en-H2Q">
                                                     <font key="font" usesAppearanceFont="YES"/>
@@ -63,11 +63,11 @@
                                             <outlet property="textField" destination="fI3-EO-t8I" id="rmP-rR-PYw"/>
                                         </connections>
                                     </tableCellView>
-                                    <tableCellView identifier="DebugValueTableCellView" id="xAn-Zx-UTW" customClass="DebugValueTableCellView" customModule="Atari2600" customModuleProvider="target">
+                                    <tableCellView identifier="DebugValueTableCellView" id="xAn-Zx-UTW" customClass="DebugValueTableCellView" customModule="RayRacer" customModuleProvider="target">
                                         <rect key="frame" x="18" y="20" width="235" height="20"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="e9M-CV-vpj">
+                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="e9M-CV-vpj">
                                                 <rect key="frame" x="0.0" y="2" width="96" height="16"/>
                                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Table View Cell" id="RFC-I5-qMz">
                                                     <font key="font" usesAppearanceFont="YES"/>
@@ -86,11 +86,11 @@
                                             <outlet property="textField" destination="e9M-CV-vpj" id="xfb-3l-Zrh"/>
                                         </connections>
                                     </tableCellView>
-                                    <tableCellView identifier="DebugItemTableCellView" id="yCm-Gy-mrS" customClass="DebugItemTableCellView" customModule="Atari2600" customModuleProvider="target">
+                                    <tableCellView identifier="DebugItemTableCellView" id="yCm-Gy-mrS" customClass="DebugItemTableCellView" customModule="RayRacer" customModuleProvider="target">
                                         <rect key="frame" x="18" y="40" width="235" height="20"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="hIo-w3-C30">
+                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="hIo-w3-C30">
                                                 <rect key="frame" x="0.0" y="2" width="96" height="16"/>
                                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="D0f-uJ-Tbj">
                                                     <font key="font" usesAppearanceFont="YES"/>
@@ -109,11 +109,11 @@
                                             <outlet property="textField" destination="hIo-w3-C30" id="Pge-V1-8WP"/>
                                         </connections>
                                     </tableCellView>
-                                    <tableCellView identifier="DebugColorTableCellView" id="1HW-vp-pqz" customClass="DebugColorTableCellView" customModule="Atari2600" customModuleProvider="target">
+                                    <tableCellView identifier="DebugColorTableCellView" id="1HW-vp-pqz" customClass="DebugColorTableCellView" customModule="RayRacer" customModuleProvider="target">
                                         <rect key="frame" x="18" y="60" width="235" height="20"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="hYg-JW-WRQ">
+                                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="hYg-JW-WRQ">
                                                 <rect key="frame" x="0.0" y="2" width="96" height="16"/>
                                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="jmy-wl-GAs">
                                                     <font key="font" usesAppearanceFont="YES"/>

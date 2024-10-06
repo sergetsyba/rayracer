@@ -118,41 +118,14 @@ extension RayRacerDelegate {
 		self.postNotification(.break)
 	}
 	
-	@IBAction func didSelectStepInstructionsMenuItem(_ sender: AnyObject) {
-		self.withStepperPanel(prompt: "Instructions:") { [unowned self] in
-			for _ in 0..<$0 {
-				self.console.stepInstruction()
-			}
-			self.postNotification(.break)
-		}
-	}
-	
 	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
 		self.console.stepScanLine()
 		self.postNotification(.break)
 	}
 	
-	@IBAction func didSelectStepScanLinesMenuItem(_ sender: AnyObject) {
-		self.withStepperPanel(prompt: "Scan lines:") { [unowned self] in
-			for _ in 0..<$0 {
-				self.console.stepScanLine()
-			}
-			self.postNotification(.break)
-		}
-	}
-	
 	@IBAction func didSelectStepFieldMenuItem(_ sender: AnyObject) {
 		self.console.stepField()
 		self.postNotification(.break)
-	}
-	
-	@IBAction func didSelectStepFieldsMenuItem(_ sender: AnyObject) {
-		self.withStepperPanel(prompt: "Fields:") { [unowned self] in
-			for _ in 0..<$0 {
-				self.console.stepField()
-			}
-			self.postNotification(.break)
-		}
 	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
@@ -340,36 +313,6 @@ extension RayRacerDelegate {
 		
 		self.showWindow(of: windowController)
 		self.defaults.addOpenedFileURL(url)
-	}
-	
-	private func withStepperPanel(prompt: String, handler: @escaping (Int) -> Void) {
-		// when a window controller with integer input is already open,
-		// re-use it
-		let windowController = self.windowControllers
-			.first(where: { $0.contentViewController is StepperViewController })
-		// when no window controller with integer input is yet open,
-		// create a new one
-		?? {
-			let windowController = NSWindowController(windowNibName: "StepperPanel")
-			windowController.contentViewController = StepperViewController()
-			
-			return windowController
-		}()
-		
-		let viewController = windowController.contentViewController as! StepperViewController
-		viewController.prompt = prompt
-		viewController.handler = { [unowned windowController] in
-			switch $0 {
-			case .OK:
-				handler($1)
-			case .cancel:
-				windowController.close()
-			default:
-				break
-			}
-		}
-		
-		self.showWindow(of: windowController)
 	}
 }
 

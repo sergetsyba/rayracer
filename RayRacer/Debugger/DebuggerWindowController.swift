@@ -30,6 +30,11 @@ class DebuggerWindowController: NSWindowController {
 		return "DebuggerWindow"
 	}
 	
+	private var console: Atari2600 {
+		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
+		return delegate.console
+	}
+	
 	override func windowDidLoad() {
 		super.windowDidLoad()
 		self.toolbar.insertItem(withItemIdentifier: .breakpointsToolbarItem, at: 0)
@@ -57,6 +62,44 @@ private extension DebuggerWindowController {
 	
 	@IBAction func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.clearBreakpoints()
+	}
+	
+	@IBAction func didSelectStepMultipleMenuItem(_ sender: NSMenuItem) {
+		guard let window = self.window,
+			  window.titlebarAccessoryViewControllers.isEmpty else {
+			// do nothing when multi stepper is already shown
+			return
+		}
+		
+		let viewController = MultiStepperViewController()
+		viewController.handler = { [unowned window] in
+			switch $0 {
+			case .step(let kind, let count):
+				switch kind {
+				case .instructions:
+					for _ in 0..<count {
+						self.console.stepInstruction()
+					}
+				case .scanLines:
+					for _ in 0..<count {
+						self.console.stepScanLine()
+					}
+				case .fields:
+					for _ in 0..<count {
+						self.console.stepField()
+					}
+				}
+				// TODO: post break notification
+				
+			case .done:
+				if let index = window.titlebarAccessoryViewControllers
+					.firstIndex(where: { $0 is MultiStepperViewController }) {
+					window.removeTitlebarAccessoryViewController(at: index)
+				}
+			}
+		}
+		
+		window.addTitlebarAccessoryViewController(viewController)
 	}
 }
 
