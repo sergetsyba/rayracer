@@ -171,25 +171,26 @@
                             <menuItem title="Resume" keyEquivalent="" id="Pxe-bV-Adm">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="didSelectGameResumeMenuItem:" target="-1" id="jfk-aM-hs8"/>
+                                    <action selector="didSelectGameResumeMenuItem:" target="-1" id="hFu-qz-ao2"/>
                                 </connections>
                             </menuItem>
+                            <menuItem isSeparatorItem="YES" id="tth-gF-L90"/>
                             <menuItem title="Step CPU Instruction" keyEquivalent="" id="eNY-Yg-lVd">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="didSelectStepInstructionMenuItem:" target="-1" id="5fN-sa-2e4"/>
+                                    <action selector="didSelectStepCPUInstructionMenuItem:" target="-1" id="Q5s-LO-MtR"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Step TV Scan Line" keyEquivalent="" id="3fk-3m-aEx">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="didSelectStepScanLineMenuItem:" target="-1" id="1Nj-yR-c7h"/>
+                                    <action selector="didSelectStepTVScanLineMenuItem:" target="-1" id="5qc-ez-fx8"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Step TV Field" keyEquivalent="" id="8c7-VB-60i">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="didSelectStepFieldMenuItem:" target="-1" id="kmL-eG-5Dd"/>
+                                    <action selector="didSelectStepTVFieldMenuItem:" target="-1" id="kjq-hF-EgS"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Step Multiple..." keyEquivalent="" id="OO4-lS-ntS">

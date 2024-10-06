@@ -103,31 +103,6 @@ extension RayRacerDelegate {
 		self.postNotification(.reset)
 	}
 	
-	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		var breakpoints: [Int] = []
-		if let identifier = self.console.gameIdentifier {
-			breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
-		}
-		
-		self.console.resume(until: breakpoints)
-		self.postNotification(.break)
-	}
-	
-	@IBAction func didSelectStepInstructionMenuItem(_ sender: AnyObject) {
-		self.console.stepInstruction()
-		self.postNotification(.break)
-	}
-	
-	@IBAction func didSelectStepScanLineMenuItem(_ sender: AnyObject) {
-		self.console.stepScanLine()
-		self.postNotification(.break)
-	}
-	
-	@IBAction func didSelectStepFieldMenuItem(_ sender: AnyObject) {
-		self.console.stepField()
-		self.postNotification(.break)
-	}
-	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
 		let windowController = DebuggerWindowController()
 		self.showWindow(of: windowController)
@@ -143,7 +118,6 @@ private extension RayRacerDelegate {
 
 extension Notification.Name {
 	static let reset = Notification.Name("Break")
-	static let `break` = Notification.Name("Break")
 }
 
 
