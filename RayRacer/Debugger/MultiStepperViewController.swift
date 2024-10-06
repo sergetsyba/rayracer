@@ -8,31 +8,48 @@
 import Cocoa
 
 class MultiStepperViewController: NSTitlebarAccessoryViewController {
-	@IBOutlet private var kindPopUpButton: NSPopUpButton!
+	@IBOutlet private var popUpButton: NSPopUpButton!
 	@IBOutlet private var textField: NSTextField!
 	
+	private let defaults: UserDefaults = .standard
 	var handler: ((Action) -> Void)? = nil
-	
-	var kind: Kind = .instructions {
-		didSet {
-			if self.isViewLoaded {
-				self.updateView()
-			}
-		}
-	}
 	
 	convenience init() {
 		self.init(nibName: "MultiStepperView", bundle: .main)
+		self.identifier = NSUserInterfaceItemIdentifier("MultiStepperViewController")
+	}
+}
+
+extension MultiStepperViewController {
+	enum Step: Int {
+		case instructions = 0
+		case scanLines = 1
+		case fields = 2
 	}
 	
+	enum Action {
+		case step(Step, Int)
+		case done
+	}
+}
+
+
+// MARK: -
+// MARK: View lifecycle
+extension MultiStepperViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		self.textField.cell?
-			.focusRingType = .none
+		
+		self.popUpButton.selectItem(at: self.defaults.debugStep.rawValue)
+		self.textField.integerValue = self.defaults.debugStepCount
+		self.textField.cell?.focusRingType = .none
 	}
 	
-	private func updateView() {
-		self.kindPopUpButton.selectItem(at: self.kind.rawValue)
+	override func viewWillDisappear() {
+		super.viewWillDisappear()
+		
+		self.defaults.debugStep = Step(rawValue: self.popUpButton.indexOfSelectedItem)!
+		self.defaults.debugStepCount = self.textField.integerValue
 	}
 }
 
@@ -41,9 +58,9 @@ class MultiStepperViewController: NSTitlebarAccessoryViewController {
 // MARK: Target actions
 extension MultiStepperViewController {
 	@IBAction func didPressStepButton(_ sender: NSButton) {
-		let kind = Kind(rawValue: self.kindPopUpButton.indexOfSelectedItem)
+		let step = Step(rawValue: self.popUpButton.indexOfSelectedItem)!
 		let count = self.textField.integerValue
-		self.handler?(.step(kind!, count))
+		self.handler?(.step(step, count))
 	}
 	
 	@IBAction func didPressDoneButton(_ sender: NSButton) {
@@ -51,21 +68,9 @@ extension MultiStepperViewController {
 	}
 }
 
-extension MultiStepperViewController {
-	enum Kind: Int {
-		case instructions = 0
-		case scanLines = 1
-		case fields = 2
-	}
-	
-	enum Action {
-		case step(Kind, Int)
-		case done
-	}
-}
-
 
 // MARK: -
+// MARK: Data formatting
 class PositiveIntegerFormatter: Formatter {
 	override func string(for obj: Any?) -> String? {
 		guard let number = obj as? Int else {
@@ -88,4 +93,32 @@ class PositiveIntegerFormatter: Formatter {
 		return String(partialStringPtr.pointee)
 			.contains(where: { !$0.isNumber }) == false
 	}
+}
+
+
+// MARK: -
+// MARK: Preferences
+extension UserDefaults {
+	var debugStep: MultiStepperViewController.Step {
+		get {
+			guard let value = self.value(forKey: .debugStep) as? Int,
+				  let step = MultiStepperViewController.Step(rawValue: value) else {
+				return .instructions
+			}
+			return step
+		}
+		set {
+			self.set(newValue.rawValue, forKey: .debugStep)
+		}
+	}
+	
+	var debugStepCount: Int {
+		get { self.value(forKey: .debugStepCount) as? Int ?? 1 }
+		set { self.set(newValue, forKey: .debugStepCount) }
+	}
+}
+
+extension String {
+	static let debugStep = "DebugStep"
+	static let debugStepCount = "DebugStepCount"
 }

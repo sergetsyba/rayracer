@@ -74,8 +74,8 @@ private extension DebuggerWindowController {
 		let viewController = MultiStepperViewController()
 		viewController.handler = { [unowned window] in
 			switch $0 {
-			case .step(let kind, let count):
-				switch kind {
+			case .step(let step, let count):
+				switch step {
 				case .instructions:
 					for _ in 0..<count {
 						self.console.stepInstruction()
