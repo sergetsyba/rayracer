@@ -45,6 +45,11 @@ extension MultiStepperViewController {
 		self.textField.cell?.focusRingType = .none
 	}
 	
+	override func viewDidAppear() {
+		super.viewDidAppear()
+		self.textField.becomeFirstResponder()
+	}
+	
 	override func viewWillDisappear() {
 		super.viewWillDisappear()
 		
