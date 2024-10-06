@@ -174,40 +174,28 @@
                                     <action selector="didSelectGameResumeMenuItem:" target="-1" id="jfk-aM-hs8"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Step Instruction" keyEquivalent="" id="eNY-Yg-lVd">
+                            <menuItem title="Step CPU Instruction" keyEquivalent="" id="eNY-Yg-lVd">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="didSelectStepInstructionMenuItem:" target="-1" id="5fN-sa-2e4"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Step Instructions..." alternate="YES" keyEquivalent="" id="YT8-G8-Jzg">
-                                <modifierMask key="keyEquivalentModifierMask" option="YES"/>
-                                <connections>
-                                    <action selector="didSelectStepMultipleMenuItem:" target="-1" id="425-O0-QLd"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Step Scan Line" keyEquivalent="" id="3fk-3m-aEx">
+                            <menuItem title="Step TV Scan Line" keyEquivalent="" id="3fk-3m-aEx">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="didSelectStepScanLineMenuItem:" target="-1" id="1Nj-yR-c7h"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Step Scan Lines..." alternate="YES" keyEquivalent="" id="3ZC-Ug-Agq">
-                                <modifierMask key="keyEquivalentModifierMask" option="YES"/>
-                                <connections>
-                                    <action selector="didSelectStepMultipleMenuItem:" target="-1" id="0qj-JF-M3q"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Step Field" keyEquivalent="" id="OO4-lS-ntS">
+                            <menuItem title="Step TV Field" keyEquivalent="" id="8c7-VB-60i">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="didSelectStepFieldMenuItem:" target="-1" id="cbR-XU-LVm"/>
+                                    <action selector="didSelectStepFieldMenuItem:" target="-1" id="kmL-eG-5Dd"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Step Fields..." alternate="YES" keyEquivalent="" id="3sD-RI-SKh">
-                                <modifierMask key="keyEquivalentModifierMask" option="YES"/>
+                            <menuItem title="Step Multiple..." keyEquivalent="" id="OO4-lS-ntS">
+                                <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
-                                    <action selector="didSelectStepMultipleMenuItem:" target="-1" id="AYA-jZ-iCf"/>
+                                    <action selector="didSelectStepMultipleMenuItem:" target="-1" id="eGd-Ys-UY1"/>
                                 </connections>
                             </menuItem>
                         </items>

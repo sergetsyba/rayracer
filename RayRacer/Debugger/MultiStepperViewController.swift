@@ -18,6 +18,11 @@ class MultiStepperViewController: NSTitlebarAccessoryViewController {
 		self.init(nibName: "MultiStepperView", bundle: .main)
 		self.identifier = NSUserInterfaceItemIdentifier("MultiStepperViewController")
 	}
+	
+	@discardableResult
+	override func becomeFirstResponder() -> Bool {
+		return self.textField.becomeFirstResponder()
+	}
 }
 
 extension MultiStepperViewController {
@@ -47,7 +52,7 @@ extension MultiStepperViewController {
 	
 	override func viewDidAppear() {
 		super.viewDidAppear()
-		self.textField.becomeFirstResponder()
+		_ = self.becomeFirstResponder()
 	}
 	
 	override func viewWillDisappear() {

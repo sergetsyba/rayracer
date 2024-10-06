@@ -65,14 +65,15 @@ private extension DebuggerWindowController {
 	}
 	
 	@IBAction func didSelectStepMultipleMenuItem(_ sender: NSMenuItem) {
-		guard let window = self.window,
-			  window.titlebarAccessoryViewControllers.isEmpty else {
-			// do nothing when multi stepper is already shown
+		if let window = self.window,
+		   let viewController = window.titlebarAccessoryViewControllers.first as? MultiStepperViewController {
+			// focus on multi-stepper view when it is already shown
+			viewController.becomeFirstResponder()
 			return
 		}
 		
 		let viewController = MultiStepperViewController()
-		viewController.handler = { [unowned window] in
+		viewController.handler = { [unowned self] in
 			switch $0 {
 			case .step(let step, let count):
 				switch step {
@@ -92,14 +93,16 @@ private extension DebuggerWindowController {
 				// TODO: post break notification
 				
 			case .done:
-				if let index = window.titlebarAccessoryViewControllers
+				if let window = self.window,
+				   let index = window.titlebarAccessoryViewControllers
 					.firstIndex(where: { $0 is MultiStepperViewController }) {
 					window.removeTitlebarAccessoryViewController(at: index)
 				}
 			}
 		}
 		
-		window.addTitlebarAccessoryViewController(viewController)
+		self.window?
+			.addTitlebarAccessoryViewController(viewController)
 	}
 }
 
