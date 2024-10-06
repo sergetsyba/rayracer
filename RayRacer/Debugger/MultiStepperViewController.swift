@@ -27,7 +27,8 @@ class MultiStepperViewController: NSTitlebarAccessoryViewController {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		self.updateView()
+		self.textField.cell?
+			.focusRingType = .none
 	}
 	
 	private func updateView() {
