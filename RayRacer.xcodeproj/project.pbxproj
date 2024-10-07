@@ -81,6 +81,7 @@
 		953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RayRacerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		953D92AE2A1AEB8300EC52AC /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		953D92B02A1AEB9E00EC52AC /* MOS6507.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6507.swift; sourceTree = "<group>"; };
+		954202232CB3BB7800AFEC6C /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 		954A18642A1AEE5800EBC582 /* RayRacer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RayRacer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RayRacerDelegate.swift; sourceTree = "<group>"; };
 		954A18682A1AEE5A00EBC582 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -148,6 +149,7 @@
 				9523FDA92C8D81DB0094A597 /* RayRacerKitPerfromanceTests */,
 				95F563FD2A42E33E0028A90B /* Frameworks */,
 				951E2F842A18B11900E6902F /* Products */,
+				954202232CB3BB7800AFEC6C /* Readme.md */,
 			);
 			sourceTree = "<group>";
 		};
