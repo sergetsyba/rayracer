@@ -18,6 +18,9 @@ class DebuggerWindowController: NSWindowController {
 	private var systemStateViewController = SystemStateViewController()
 	private var cancellables: Set<AnyCancellable> = []
 	
+	private let defaults: UserDefaults = .standard
+	private let notifications: NotificationCenter = .default
+	
 	init() {
 		super.init(window: nil)
 	}
@@ -57,6 +60,68 @@ private extension DebuggerWindowController {
 	
 	@IBAction func removeAllBreakpointsMenuItemSelected(_ sender: NSMenuItem) {
 		self.assemblyViewController.clearBreakpoints()
+	}
+	
+	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
+		var breakpoints: [Int] = []
+		if let identifier = self.console.gameIdentifier {
+			breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
+		}
+		
+		self.console.resume(until: breakpoints)
+		self.notifications.post(name: .break, object: self)
+	}
+	
+	@IBAction func didSelectStepCPUInstructionMenuItem(_ sender: AnyObject) {
+		self.stepCPUInstructions(count: 1)
+	}
+	
+	@IBAction func didSelectStepTVScanLineMenuItem(_ sender: AnyObject) {
+		self.stepTVScanLines(count: 1)
+	}
+	
+	@IBAction func didSelectStepTVFieldMenuItem(_ sender: AnyObject) {
+		self.stepTVFields(count: 1)
+	}
+	
+	@IBAction func didSelectStepMultipleMenuItem(_ sender: NSMenuItem) {
+		guard let window = self.window else {
+			return
+		}
+		
+		if let viewController = window.titlebarAccessoryViewControllers.first as? MultiStepperViewController {
+			// focus on multi-stepper view when it is already shown
+			viewController.becomeFirstResponder()
+		} else {
+			let viewController = self.makeMultiStepperViewController()
+			window.addTitlebarAccessoryViewController(viewController)
+			viewController.becomeFirstResponder()
+		}
+	}
+	
+	private func makeMultiStepperViewController() -> MultiStepperViewController {
+		let viewController = MultiStepperViewController()
+		viewController.handler = { [unowned self] in
+			switch $0 {
+			case .step(let step, let count):
+				switch step {
+				case .instructions:
+					self.stepCPUInstructions(count: count)
+				case .scanLines:
+					self.stepTVScanLines(count: count)
+				case .fields:
+					self.stepTVFields(count: count)
+				}
+				
+			case .done:
+				if let index = self.window?.titlebarAccessoryViewControllers
+					.firstIndex(where: { $0 is MultiStepperViewController }) {
+					self.window?.removeTitlebarAccessoryViewController(at: index)
+				}
+			}
+		}
+		
+		return viewController
 	}
 }
 
@@ -137,6 +202,41 @@ extension DebuggerWindowController: NSToolbarDelegate {
 
 private extension NSToolbarItem.Identifier {
 	static let breakpointsToolbarItem = NSToolbarItem.Identifier("BreakpointsToolbarItem")
+}
+
+
+// MARK: -
+// MARK: Custom functionality
+private extension DebuggerWindowController {
+	private var console: Atari2600 {
+		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
+		return delegate.console
+	}
+	
+	private func stepCPUInstructions(count: Int) {
+		for _ in 0..<count {
+			self.console.stepInstruction()
+		}
+		self.notifications.post(name: .break, object: self)
+	}
+	
+	private func stepTVScanLines(count: Int) {
+		for _ in 0..<count {
+			self.console.stepScanLine()
+		}
+		self.notifications.post(name: .break, object: self)
+	}
+	
+	private func stepTVFields(count: Int) {
+		for _ in 0..<count {
+			self.console.stepField()
+		}
+		self.notifications.post(name: .break, object: self)
+	}
+}
+
+extension Notification.Name {
+	static let `break` = Notification.Name("Break")
 }
 
 
