@@ -10,6 +10,7 @@ import MetalKit
 import RayRacerKit
 
 class ScreenViewController: NSViewController {
+	private let console: Atari2600
 	private let commandQueue: MTLCommandQueue
 	private let pipelineState: MTLRenderPipelineState
 	
@@ -17,6 +18,7 @@ class ScreenViewController: NSViewController {
 	private let imageTexture: MTLTexture
 	
 	private let screenSize: MTLSize = .ntsc
+	private var screenDataReady = true
 	private var screenData = Array<UInt8>(forTextureSize: .ntsc)
 	private var screenIndex = 0
 	
@@ -24,18 +26,20 @@ class ScreenViewController: NSViewController {
 		fatalError("init(coder:) has not been implemented")
 	}
 	
-	init(commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
+	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
 		guard let device = MTLCreateSystemDefaultDevice() else {
 			fatalError("Failed to initialize Metal.")
 		}
 		
 		guard let screenTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: .ntsc)),
 			  let imageTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: .ntscImage)) else {
-				  fatalError("Failed to initialize screen render texture.")
-			  }
+			fatalError("Failed to initialize screen render texture.")
+		}
 		
+		self.console = console
 		self.commandQueue = commandQueue
 		self.pipelineState = pipelineState
+		
 		self.screenTexture = screenTexture
 		self.imageTexture = imageTexture
 		
@@ -60,8 +64,7 @@ extension ScreenViewController {
 		let view = MTKView()
 		view.device = self.commandQueue.device
 		view.delegate = self
-		view.isPaused = true
-		view.enableSetNeedsDisplay = true
+		view.preferredFramesPerSecond = 30
 		
 		// force view aspect ratio to 4:3
 		view.addConstraint(view.widthAnchor.constraint(
@@ -81,10 +84,24 @@ extension ScreenViewController: MTKViewDelegate {
 	}
 	
 	func draw(in view: MTKView) {
+		// skip frame when emulation has not produced field data
+		guard self.screenDataReady else {
+			print("skipping frame")
+			return
+		}
+		
 		guard let commandBuffer = self.commandQueue.makeCommandBuffer(),
 			  let blitEncoder = commandBuffer.makeBlitCommandEncoder() else {
 			return
 		}
+		
+		// copy screen data into texture buffer
+		let region = MTLRegion(origin: .zero, size: self.screenSize)
+		self.screenTexture.replace(
+			region: region,
+			mipmapLevel: 0,
+			withBytes: self.screenData,
+			bytesPerRow: region.size.width)
 		
 		// extract visible image from signal data, ignoring vertical and
 		// horizontal blanking regions
@@ -101,6 +118,14 @@ extension ScreenViewController: MTKViewDelegate {
 		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
 		renderEncoder.endEncoding()
 		
+		// begin preparing next field once command buffer work finishes
+		commandBuffer.addCompletedHandler() { [unowned self] _ in
+			DispatchQueue.global(qos: .userInitiated)
+				.async() { [unowned self] in
+					self.console.resume()
+				}
+		}
+		
 		commandBuffer.present(view.currentDrawable!)
 		commandBuffer.commit()
 	}
@@ -114,15 +139,12 @@ extension ScreenViewController: TIA.GraphicsOutput {
 	}
 	
 	func sync() {
-		let region = MTLRegion(origin: .zero, size: self.screenSize)
-		self.screenTexture.replace(
-			region: region,
-			mipmapLevel: 0,
-			withBytes: self.screenData,
-			bytesPerRow: region.size.width)
-		
+		self.console.pause()
 		self.screenIndex = 0
-		self.view.needsDisplay = true
+		
+		DispatchQueue.main.async() {
+			self.screenDataReady = true
+		}
 	}
 	
 	func write(color: Int) {

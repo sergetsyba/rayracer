@@ -17,17 +17,12 @@ public class Atari2600: ObservableObject {
 	public var switches: Switches = .random()
 	public var joystic = Joystick()
 	
+	private(set) public var paused = true
+	
 	public init() {
 		self.cpu = MOS6507(bus: self)
 		self.riot = MOS6532(ports: (self.joystic, self))
 		self.tia = TIA()
-	}
-	
-	// Resets internal state.
-	public func reset() {
-		self.cpu.reset()
-		self.riot.reset()
-		self.tia.reset()
 	}
 	
 	public func setSwitch(_ switch: Switches, on: Bool) {
@@ -40,7 +35,30 @@ public class Atari2600: ObservableObject {
 	
 	public func insertCartridge(_ data: Data) {
 		self.cartridge = data
-		self.reset()
+	}
+	
+	/// Pauses program execution when it is being executed.
+	public func pause() {
+		self.paused = true
+	}
+	
+	/// Resumes program execution when it is paused.
+	public func resume() {
+		guard self.paused else {
+			return
+		}
+		
+		self.paused = false
+		while self.paused == false {
+			self.advanceCycle()
+		}
+	}
+	
+	/// Resets internal state.
+	public func reset() {
+		self.cpu.reset()
+		self.riot.reset()
+		self.tia.reset()
 	}
 }
 

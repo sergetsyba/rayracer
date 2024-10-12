@@ -271,6 +271,7 @@ extension RayRacerDelegate {
 		}
 		
 		let viewController = ScreenViewController(
+			console: self.console,
 			commandQueue: self.commandQueue,
 			pipelineState: self.pipelineState)
 		
@@ -287,6 +288,11 @@ extension RayRacerDelegate {
 		
 		self.showWindow(of: windowController)
 		self.defaults.addOpenedFileURL(url)
+		
+		DispatchQueue.global(qos: .userInitiated)
+			.async() { [unowned self] in
+				self.console.resume()
+			}
 	}
 }
 
