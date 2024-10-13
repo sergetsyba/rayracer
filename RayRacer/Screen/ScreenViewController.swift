@@ -14,13 +14,16 @@ class ScreenViewController: NSViewController {
 	private let commandQueue: MTLCommandQueue
 	private let pipelineState: MTLRenderPipelineState
 	
-	private let screenTexture: MTLTexture
+	private let screenBuffer: MTLBuffer
 	private let imageTexture: MTLTexture
 	
-	private let screenSize: MTLSize = .ntsc
+	private var screenData: Array<UInt8>
 	private var screenDataReady = true
-	private var screenData = Array<UInt8>(forTextureSize: .ntsc)
 	private var screenIndex = 0
+	
+	private let screenSize: MTLSize = .ntsc
+	private let imageSize: MTLSize = .ntscImage
+	private let imageOrigin: MTLOrigin = .ntscImage
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
@@ -31,8 +34,9 @@ class ScreenViewController: NSViewController {
 			fatalError("Failed to initialize Metal.")
 		}
 		
-		guard let screenTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: .ntsc)),
-			  let imageTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: .ntscImage)) else {
+		self.screenData = Array<UInt8>(forTextureSize: self.screenSize)
+		guard let screenBuffer = device.makeBuffer(bytesNoCopy: &self.screenData, length: self.screenData.count),
+			  let imageTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: self.imageSize)) else {
 			fatalError("Failed to initialize screen render texture.")
 		}
 		
@@ -40,7 +44,7 @@ class ScreenViewController: NSViewController {
 		self.commandQueue = commandQueue
 		self.pipelineState = pipelineState
 		
-		self.screenTexture = screenTexture
+		self.screenBuffer = screenBuffer
 		self.imageTexture = imageTexture
 		
 		super.init(nibName: nil, bundle: nil)
@@ -51,6 +55,11 @@ class ScreenViewController: NSViewController {
 		descriptor.pixelFormat = .r8Uint
 		descriptor.width = size.width
 		descriptor.height = size.height
+		
+		// texture is only available on the GPU for ::read
+		// or ::sample operations
+		descriptor.storageMode = .private
+		descriptor.usage = .shaderRead
 		
 		return descriptor
 	}
@@ -95,24 +104,19 @@ extension ScreenViewController: MTKViewDelegate {
 			return
 		}
 		
-		// copy screen data into texture buffer
-		let region = MTLRegion(origin: .zero, size: self.screenSize)
-		self.screenTexture.replace(
-			region: region,
-			mipmapLevel: 0,
-			withBytes: self.screenData,
-			bytesPerRow: region.size.width)
-		
 		// extract visible image from signal data, ignoring vertical and
 		// horizontal blanking regions
-		blitEncoder.copy(from: self.screenTexture, sourceSlice: 0, sourceLevel: 0, sourceOrigin: .ntscImage, sourceSize: .ntscImage, to: self.imageTexture, destinationSlice: 0, destinationLevel: 0, destinationOrigin: .zero)
+		let imageOffset = self.imageOrigin.y * self.screenSize.width + self.imageOrigin.x
+		let bytesPerRow = self.screenSize.width * MemoryLayout<UInt8>.size
+		blitEncoder.copy(from: self.screenBuffer, sourceOffset: imageOffset, sourceBytesPerRow: bytesPerRow, sourceBytesPerImage: 0, sourceSize: self.imageSize, to: self.imageTexture, destinationSlice: 0, destinationLevel: 0, destinationOrigin: .zero)
 		blitEncoder.endEncoding()
 		
-		guard let descriptor = view.currentRenderPassDescriptor,
-			  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor) else {
+		guard let renderPassDescriptor = view.currentRenderPassDescriptor,
+			  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
 			return
 		}
 		
+		// encode render pass
 		renderEncoder.setRenderPipelineState(self.pipelineState)
 		renderEncoder.setFragmentTexture(self.imageTexture, index: 0)
 		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -142,6 +146,7 @@ extension ScreenViewController: TIA.GraphicsOutput {
 		self.console.pause()
 		self.screenIndex = 0
 		
+		// notify emulation has produced next field data
 		DispatchQueue.main.async() {
 			self.screenDataReady = true
 		}
