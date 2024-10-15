@@ -11,15 +11,14 @@ import RayRacerKit
 
 class ScreenViewController: NSViewController {
 	private let console: Atari2600
+	private var screenData: Array<UInt8>
+	private var screenDataReady = false
+	private var screenIndex = 0
+	
 	private let commandQueue: MTLCommandQueue
 	private let pipelineState: MTLRenderPipelineState
-	
 	private let screenBuffer: MTLBuffer
 	private let imageTexture: MTLTexture
-	
-	private var screenData: Array<UInt8>
-	private var screenDataReady = true
-	private var screenIndex = 0
 	
 	private let screenSize: MTLSize = .ntsc
 	private let imageSize: MTLSize = .ntscImage
@@ -30,20 +29,17 @@ class ScreenViewController: NSViewController {
 	}
 	
 	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
-		guard let device = MTLCreateSystemDefaultDevice() else {
-			fatalError("Failed to initialize Metal.")
-		}
+		self.console = console
+		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count)
 		
-		self.screenData = Array<UInt8>(forTextureSize: self.screenSize)
+		let device = commandQueue.device
 		guard let screenBuffer = device.makeBuffer(bytesNoCopy: &self.screenData, length: self.screenData.count),
 			  let imageTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: self.imageSize)) else {
 			fatalError("Failed to initialize screen render texture.")
 		}
 		
-		self.console = console
 		self.commandQueue = commandQueue
 		self.pipelineState = pipelineState
-		
 		self.screenBuffer = screenBuffer
 		self.imageTexture = imageTexture
 		
@@ -56,8 +52,7 @@ class ScreenViewController: NSViewController {
 		descriptor.width = size.width
 		descriptor.height = size.height
 		
-		// texture is only available on the GPU for ::read
-		// or ::sample operations
+		// mark available only on the GPU for ::read or ::sample operations
 		descriptor.storageMode = .private
 		descriptor.usage = .shaderRead
 		
@@ -82,6 +77,18 @@ extension ScreenViewController {
 		
 		self.view = view
 	}
+	
+	override func viewDidAppear() {
+		super.viewDidAppear()
+		
+		// mark screen data being ready and suspend console with default
+		// suspension code, which will be resumed when display link triggers
+		// rendering the first field
+		if self.console.state == .off {
+			self.console.suspend()
+			self.screenDataReady = true
+		}
+	}
 }
 
 
@@ -93,9 +100,10 @@ extension ScreenViewController: MTKViewDelegate {
 	}
 	
 	func draw(in view: MTKView) {
-		// skip frame when emulation has not produced field data
-		guard self.screenDataReady else {
-			print("skipping frame")
+		// skip frame when console has been suspended by debugger
+		// or has not yet produced field data
+		guard self.screenDataReady,
+			  case .suspended(code: 0) = self.console.state else {
 			return
 		}
 		
@@ -143,7 +151,7 @@ extension ScreenViewController: TIA.GraphicsOutput {
 	}
 	
 	func sync() {
-		self.console.pause()
+		self.console.suspend()
 		self.screenIndex = 0
 		
 		// notify emulation has produced next field data
@@ -165,7 +173,7 @@ extension ScreenViewController: TIA.GraphicsOutput {
 
 // MARK: -
 // MARK: Convenience functionality
-extension MTLOrigin {
+private extension MTLOrigin {
 	static let zero = MTLOrigin(x: 0, y: 0, z: 0)
 	
 	// TIA blanks each image scanline for the first 68 color clocks;
@@ -174,7 +182,7 @@ extension MTLOrigin {
 	static let ntscImage = MTLOrigin(x: 68, y: 22, z: 0)
 }
 
-extension MTLSize {
+private extension MTLSize {
 	// TIA signals a NTSC TV at 228 color clocks per scan line;
 	// NTSC frame consists of 525 scan lines of 2 interlaced fields
 	static let ntsc = MTLSize(width: 228, height: 525/2, depth: 1)
@@ -185,11 +193,8 @@ extension MTLSize {
 	// with ~8% of those scanlines ((480/2)*0.08 = 19) being in overscan,
 	// and are optionally not shown by TVs
 	static let ntscImage = MTLSize(width: 228-68, height: 480/2-19, depth: 1)
-}
-
-extension Array where Element: Numeric {
-	init(forTextureSize size: MTLSize) {
-		let count = size.width * size.height * size.depth
-		self.init(repeating: 0, count: count)
+	
+	var count: Int {
+		return self.width * self.height * self.depth
 	}
 }

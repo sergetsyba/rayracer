@@ -73,7 +73,9 @@ private extension DebuggerWindowController {
 	}
 	
 	@IBAction func didSelectStepCPUInstructionMenuItem(_ sender: AnyObject) {
-		self.stepCPUInstructions(count: 1)
+		self.console.resume(instructions: 1) {
+			self.notifications.post(name: .break, object: self)
+		}
 	}
 	
 	@IBAction func didSelectStepTVScanLineMenuItem(_ sender: AnyObject) {
@@ -106,7 +108,9 @@ private extension DebuggerWindowController {
 			case .step(let step, let count):
 				switch step {
 				case .instructions:
-					self.stepCPUInstructions(count: count)
+					self.console.resume(instructions: count) {
+						self.notifications.post(name: .break, object: self)
+					}
 				case .scanLines:
 					self.stepTVScanLines(count: count)
 				case .fields:
@@ -228,10 +232,16 @@ private extension DebuggerWindowController {
 	}
 	
 	private func stepTVFields(count: Int) {
-		for _ in 0..<count {
-			self.console.stepField()
+		let console = self.console
+		
+		Task.detached() {
+			for _ in 0..<count {
+				console.stepField()
+			}
+			
+			NotificationCenter.default
+				.post(name: .break, object: self)
 		}
-		self.notifications.post(name: .break, object: self)
 	}
 }
 

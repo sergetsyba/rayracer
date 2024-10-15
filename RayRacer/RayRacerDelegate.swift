@@ -288,11 +288,6 @@ extension RayRacerDelegate {
 		
 		self.showWindow(of: windowController)
 		self.defaults.addOpenedFileURL(url)
-		
-		DispatchQueue.global(qos: .userInitiated)
-			.async() { [unowned self] in
-				self.console.resume()
-			}
 	}
 }
 

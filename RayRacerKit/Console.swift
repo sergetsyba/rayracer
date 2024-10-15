@@ -17,7 +17,8 @@ public class Atari2600: ObservableObject {
 	public var switches: Switches = .random()
 	public var joystic = Joystick()
 	
-	private(set) public var paused = true
+	private(set) public var state: State = .off
+	private var debug: (condition: () -> Bool, callback: () -> Void)?
 	
 	public init() {
 		self.cpu = MOS6507(bus: self)
@@ -33,32 +34,69 @@ public class Atari2600: ObservableObject {
 		}
 	}
 	
+	/// Loads the specified data as cartridge ROM.
 	public func insertCartridge(_ data: Data) {
 		self.cartridge = data
 	}
 	
-	/// Pauses program execution when it is being executed.
-	public func pause() {
-		self.paused = true
-	}
-	
-	/// Resumes program execution when it is paused.
+	/// Resumes console emulation.
 	public func resume() {
-		guard self.paused else {
+		guard self.state != .on else {
+			// do nothing when console is alredy on
 			return
 		}
 		
-		self.paused = false
-		while self.paused == false {
-			self.advanceCycle()
+		self.state = .on
+		if let (condition, callback) = self.debug {
+			while self.state == .on {
+				self.advanceCycle()
+				
+				if condition() {
+					self.state = .suspended(2)
+					callback()
+				}
+			}
+		} else {
+			while self.state == .on {
+				self.advanceCycle()
+			}
 		}
 	}
 	
-	/// Resets internal state.
+	/// Suspends console emulation with the specified optional suspension code.
+	public func suspend(code: Int = 0) {
+		self.state = .suspended(code)
+	}
+	
+	/// Advances TIA clock by 3 units and RIOT and CPU clock by 1, unless CPU is halted by the TIA.
+	private func advanceCycle() {
+		// NOTE: even when color clock resets during any of the three TIA clock
+		// cycles and WSYNC switches off, CPU clock cycle should not be
+		// executed, since in hardware these happen simulatenously;
+		// so the check for CPU being ready or halted has to happen first
+		let cpuReady = !self.tia.awaitsHorizontalSync
+		
+		self.tia.advanceClock()
+		self.tia.advanceClock()
+		self.tia.advanceClock()
+		
+		self.riot.advanceClock()
+		if cpuReady {
+			self.cpu.advanceClock()
+		}
+	}
+	
+	/// Resets internal state of all console components.
 	public func reset() {
 		self.cpu.reset()
 		self.riot.reset()
 		self.tia.reset()
+	}
+	
+	public enum State: Equatable {
+		case off
+		case on
+		case suspended(Int)
 	}
 }
 
@@ -96,22 +134,21 @@ extension Atari2600 {
 		} while !self.cpu.sync || self.tia.awaitsHorizontalSync
 	}
 	
-	/// Advances TIA clock by 3 units and RIOT and CPU clock by 1, unless CPU is halted by the TIA.
-	private func advanceCycle() {
-		// NOTE: even when color clock resets during any of the three TIA clock
-		// cycles and WSYNC switches off, CPU clock cycle should not be
-		// executed, since in hardware these happen simulatenously;
-		// so the check for CPU being ready or halted has to happen first
-		let cpuReady = !self.tia.awaitsHorizontalSync
-		
-		self.tia.advanceClock()
-		self.tia.advanceClock()
-		self.tia.advanceClock()
-		
-		self.riot.advanceClock()
-		if cpuReady {
-			self.cpu.advanceClock()
-		}
+	/// Resumes console until program advances by the specified number of CPU instructions.
+	public func resume(instructions: Int, callback: @escaping () -> Void) {
+		var remaining = instructions
+		self.resume(until: { [unowned self] in
+			if self.cpu.sync {
+				remaining -= 1
+			}
+			return remaining == 0
+			
+		}, callback: callback)
+	}
+	
+	private func resume(until condition: @escaping () -> Bool, callback: @escaping () -> Void) {
+		self.debug = (condition, callback)
+		self.resume()
 	}
 }
 
