@@ -12,7 +12,7 @@ import RayRacerKit
 class ScreenViewController: NSViewController {
 	private let console: Atari2600
 	private var screenData: Array<UInt8>
-	private var screenDataReady = false
+	private var screenDataReady: Bool
 	private var screenIndex = 0
 	
 	private let commandQueue: MTLCommandQueue
@@ -31,6 +31,7 @@ class ScreenViewController: NSViewController {
 	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
 		self.console = console
 		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count)
+		self.screenDataReady = true
 		
 		let device = commandQueue.device
 		guard let screenBuffer = device.makeBuffer(bytesNoCopy: &self.screenData, length: self.screenData.count),
@@ -76,18 +77,6 @@ extension ScreenViewController {
 			multiplier: 4.0/3.0))
 		
 		self.view = view
-	}
-	
-	override func viewDidAppear() {
-		super.viewDidAppear()
-		
-		// mark screen data being ready and suspend console with default
-		// suspension code, which will be resumed when display link triggers
-		// rendering the first field
-		if self.console.state == .off {
-			self.console.suspend()
-			self.screenDataReady = true
-		}
 	}
 }
 

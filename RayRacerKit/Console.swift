@@ -65,7 +65,16 @@ public class Atari2600: ObservableObject {
 	
 	/// Suspends console emulation with the specified optional suspension code.
 	public func suspend(code: Int = 0) {
-		self.state = .suspended(code)
+		switch self.state {
+		case .suspended(let currentCode):
+			// when emulation is currently suspended, overwrite suspension
+			// code only when it is higher than the current one
+			if code > currentCode {
+				self.state = .suspended(code)
+			}
+		default:
+			self.state = .suspended(code)
+		}
 	}
 	
 	/// Advances TIA clock by 3 units and RIOT and CPU clock by 1, unless CPU is halted by the TIA.

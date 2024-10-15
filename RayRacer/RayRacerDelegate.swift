@@ -58,13 +58,15 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 extension RayRacerDelegate {
 	@IBAction func didSelectInsertCartridgeMenuItem(_ sender: AnyObject) {
 		self.withModalFileOpenPanel({
-			self.openFile(at: $0)
+			self.showScreen(forProgramAt: $0)
 		})
 	}
 	
 	@IBAction func didSelectInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
-		let url = sender.representedObject as! URL
-		self.openFile(at: url)
+		// TODO: show error message when representedObject is not a URL
+		if let url = sender.representedObject as? URL {
+			self.showScreen(forProgramAt: url)
+		}
 	}
 	
 	@IBAction func didSelectClearInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
@@ -104,8 +106,7 @@ extension RayRacerDelegate {
 	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
-		let windowController = DebuggerWindowController()
-		self.showWindow(of: windowController)
+		self.showDebugger()
 	}
 }
 
@@ -264,7 +265,7 @@ extension RayRacerDelegate {
 		}
 	}
 	
-	private func openFile(at url: URL) {
+	private func showScreen(forProgramAt url: URL) {
 		guard let data = try? Data(contentsOfSecurityScopedResourceAt: url) else {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
@@ -288,6 +289,23 @@ extension RayRacerDelegate {
 		
 		self.showWindow(of: windowController)
 		self.defaults.addOpenedFileURL(url)
+		
+		// suspend console emulation with default suspension code,
+		// unless it has been suspended by another component
+		if self.console.state == .off {
+			self.console.suspend(code: 0)
+		}
+	}
+	
+	private func showDebugger() {
+		let controller = DebuggerWindowController()
+		self.showWindow(of: controller)
+		
+		// suspend console emulation with debugger suspension code,
+		// unless it is already on
+		if self.console.state == .off {
+			self.console.suspend(code: 2)
+		}
 	}
 }
 
