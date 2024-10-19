@@ -18,9 +18,6 @@ class DebuggerWindowController: NSWindowController {
 	private var systemStateViewController = SystemStateViewController()
 	private var cancellables: Set<AnyCancellable> = []
 	
-	private let defaults: UserDefaults = .standard
-	private let notifications: NotificationCenter = .default
-	
 	init() {
 		super.init(window: nil)
 	}
@@ -35,7 +32,14 @@ class DebuggerWindowController: NSWindowController {
 	
 	override func windowDidLoad() {
 		super.windowDidLoad()
-		self.toolbar.insertItem(withItemIdentifier: .breakpointsToolbarItem, at: 0)
+		
+		// breakpoints toolbar items is a NSToolbarMenuItem, which is not
+		// supported in NIBs; inserting the item manually modifies all toolbar
+		// instances and will crash when attempting to insert again
+		if self.toolbar.items
+			.contains(where: { $0.itemIdentifier == .breakpointsToolbarItem }) == false {
+			self.toolbar.insertItem(withItemIdentifier: .breakpointsToolbarItem, at: 0)
+		}
 		
 		self.assemblyViewBox.contentView = self.assemblyViewController.view
 		self.assemblyViewBox.contentView?
@@ -46,7 +50,6 @@ class DebuggerWindowController: NSWindowController {
 			.maskLayerToBounds(cornerRadius: NSBox.defaultCornerRaius)
 		
 		self.setUpSinks()
-		self.window?.becomeKey()
 	}
 }
 
@@ -63,69 +66,33 @@ private extension DebuggerWindowController {
 	}
 	
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		var breakpoints: [Int] = []
-		if let identifier = self.console.gameIdentifier {
-			breakpoints = self.defaults.breakpoints(forGameIdentifier: identifier)
-		}
-		
-		self.console.resume(until: breakpoints)
-		self.notifications.post(name: .break, object: self)
+		self.resume()
 	}
 	
 	@IBAction func didSelectStepCPUInstructionMenuItem(_ sender: AnyObject) {
-		self.console.resume(instructions: 1) {
-			self.notifications.post(name: .break, object: self)
-		}
+		self.resume(step: .instructions, count: 1)
 	}
 	
 	@IBAction func didSelectStepTVScanLineMenuItem(_ sender: AnyObject) {
-		self.stepTVScanLines(count: 1)
+		self.resume(step: .scanLines, count: 1)
 	}
 	
 	@IBAction func didSelectStepTVFieldMenuItem(_ sender: AnyObject) {
-		self.stepTVFields(count: 1)
+		self.resume(step: .fields, count: 1)
 	}
 	
 	@IBAction func didSelectStepMultipleMenuItem(_ sender: NSMenuItem) {
-		guard let window = self.window else {
-			return
+		var viewController: MultiStepperViewController! = self.window?
+			.titlebarAccessoryViewControllers.first as? MultiStepperViewController
+		
+		if viewController == nil {
+			viewController = MultiStepperViewController()
+			viewController.handler = self.resume(step:count:)
+			self.window?
+				.addTitlebarAccessoryViewController(viewController)
 		}
 		
-		if let viewController = window.titlebarAccessoryViewControllers.first as? MultiStepperViewController {
-			// focus on multi-stepper view when it is already shown
-			viewController.becomeFirstResponder()
-		} else {
-			let viewController = self.makeMultiStepperViewController()
-			window.addTitlebarAccessoryViewController(viewController)
-			viewController.becomeFirstResponder()
-		}
-	}
-	
-	private func makeMultiStepperViewController() -> MultiStepperViewController {
-		let viewController = MultiStepperViewController()
-		viewController.handler = { [unowned self] in
-			switch $0 {
-			case .step(let step, let count):
-				switch step {
-				case .instructions:
-					self.console.resume(instructions: count) {
-						self.notifications.post(name: .break, object: self)
-					}
-				case .scanLines:
-					self.stepTVScanLines(count: count)
-				case .fields:
-					self.stepTVFields(count: count)
-				}
-				
-			case .done:
-				if let index = self.window?.titlebarAccessoryViewControllers
-					.firstIndex(where: { $0 is MultiStepperViewController }) {
-					self.window?.removeTitlebarAccessoryViewController(at: index)
-				}
-			}
-		}
-		
-		return viewController
+		viewController.becomeFirstResponder()
 	}
 }
 
@@ -147,7 +114,7 @@ private extension DebuggerWindowController {
 		let menu = NSMenu()
 		menu.items = self.createBreakpointMenuItems(breakpoints)
 		
-		let toolbarItem = self.toolbar[.breakpointsToolbarItem] as? NSMenuToolbarItem
+		let toolbarItem = self.toolbar.menuItem(withIdentifier: .breakpointsToolbarItem)
 		toolbarItem?.menu = menu
 		toolbarItem?.isEnabled = menu.items.count > 0
 	}
@@ -204,8 +171,28 @@ extension DebuggerWindowController: NSToolbarDelegate {
 	}
 }
 
+extension DebuggerWindowController: NSToolbarItemValidation {
+	func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+		switch item.itemIdentifier {
+		case .gameResumeToolbarItem,
+				.stepCPUInstructionToolbarItem,
+				.stepTVScanLineToolbarItem,
+				.stepTVFieldToolbarItem:
+			return self.console.cartridge != nil
+			&& self.console.isSuspended(withCode: 2)
+		default:
+			return false
+		}
+	}
+}
+
 private extension NSToolbarItem.Identifier {
 	static let breakpointsToolbarItem = NSToolbarItem.Identifier("BreakpointsToolbarItem")
+	static let gameResumeToolbarItem = NSToolbarItem.Identifier("GameResumeToolbarItem")
+	static let stepCPUInstructionToolbarItem = NSToolbarItem.Identifier("StepCPUInstructionToolbarItem")
+	static let stepTVScanLineToolbarItem = NSToolbarItem.Identifier("StepTVScanLineToolbarItem")
+	static let stepTVFieldToolbarItem = NSToolbarItem.Identifier("StepTVFieldToolbarItem")
+	static let consoleResetToolbarItem = NSToolbarItem.Identifier("ConsoleResetToolbarItem")
 }
 
 
@@ -217,31 +204,42 @@ private extension DebuggerWindowController {
 		return delegate.console
 	}
 	
-	private func stepCPUInstructions(count: Int) {
-		for _ in 0..<count {
-			self.console.stepInstruction()
-		}
-		self.notifications.post(name: .break, object: self)
+	private func resume() {
+		let console = self.console
+		let breakpoints = UserDefaults.standard
+			.breakpoints(forGameIdentifier: console.gameIdentifier!)
+		
+		DispatchQueue.global(qos: .userInitiated)
+			.async() { [unowned self] in
+				console.resume(breakpoints: breakpoints, completionHandler: self.didReachBreakpoint)
+			}
 	}
 	
-	private func stepTVScanLines(count: Int) {
-		for _ in 0..<count {
-			self.console.stepScanLine()
-		}
-		self.notifications.post(name: .break, object: self)
-	}
-	
-	private func stepTVFields(count: Int) {
+	private func resume(step: MultiStepperViewController.Step, count: Int) {
 		let console = self.console
 		
-		Task.detached() {
-			for _ in 0..<count {
-				console.stepField()
-			}
-			
-			NotificationCenter.default
-				.post(name: .break, object: self)
+		switch step {
+		case .instructions:
+			DispatchQueue.global(qos: .userInitiated)
+				.async() { [unowned self] in
+					console.resume(instructions: count, completionHandler: self.didReachBreakpoint)
+				}
+		case .scanLines:
+			DispatchQueue.global(qos: .userInitiated)
+				.async() { [unowned self] in
+					console.resume(scanLines: count, completionHandler: self.didReachBreakpoint)
+				}
+		case .fields:
+			DispatchQueue.global(qos: .userInitiated)
+				.async() { [unowned self] in
+					console.resume(fields: count, completionHandler: self.didReachBreakpoint)
+				}
 		}
+	}
+	
+	private func didReachBreakpoint() {
+		NotificationCenter.default
+			.post(name: .break, object: self)
 	}
 }
 
@@ -252,12 +250,6 @@ extension Notification.Name {
 
 // MARK: -
 // MARK: Convenience functionality
-private extension NSToolbar {
-	subscript (identifier: NSToolbarItem.Identifier) -> NSToolbarItem? {
-		return self.items.first(where: { $0.itemIdentifier == identifier })
-	}
-}
-
 private extension NSView {
 	func maskLayerToBounds(cornerRadius: CGFloat) {
 		self.wantsLayer = true
@@ -268,4 +260,16 @@ private extension NSView {
 
 private extension NSBox {
 	static let defaultCornerRaius: CGFloat = 4.5
+}
+
+private extension NSToolbar {
+	func menuItem(withIdentifier identifier: NSToolbarItem.Identifier) -> NSMenuToolbarItem? {
+		for item in self.items {
+			if let menuItem = item as? NSMenuToolbarItem,
+			   menuItem.itemIdentifier == identifier {
+				return menuItem
+			}
+		}
+		return nil
+	}
 }

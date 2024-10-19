@@ -89,10 +89,9 @@ extension ScreenViewController: MTKViewDelegate {
 	}
 	
 	func draw(in view: MTKView) {
-		// skip frame when console has been suspended by debugger
+		// skip frame when console has been suspended by another component
 		// or has not yet produced field data
-		guard self.screenDataReady,
-			  case .suspended(code: 0) = self.console.state else {
+		guard self.screenDataReady else {
 			return
 		}
 		

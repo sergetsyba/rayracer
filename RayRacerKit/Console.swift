@@ -11,18 +11,17 @@ public class Atari2600: ObservableObject {
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
-	private(set) public var cartridge: Data? = nil
-	private(set) public var frame = Data(count: 262 * 228)
 	
+	public var cartridge: Data? = nil
 	public var switches: Switches = .random()
-	public var joystic = Joystick()
+	public var controller = Joystick()
 	
-	private(set) public var state: State = .off
+	private var state: State = .suspended(0)
 	private var debug: (condition: () -> Bool, callback: () -> Void)?
 	
 	public init() {
 		self.cpu = MOS6507(bus: self)
-		self.riot = MOS6532(ports: (self.joystic, self))
+		self.riot = MOS6532(ports: (self.controller, self))
 		self.tia = TIA()
 	}
 	
@@ -34,46 +33,47 @@ public class Atari2600: ObservableObject {
 		}
 	}
 	
-	/// Loads the specified data as cartridge ROM.
-	public func insertCartridge(_ data: Data) {
-		self.cartridge = data
+	public func isSuspended(withCode code: Int) -> Bool {
+		if case .suspended(let currentCode) = self.state {
+			return code == currentCode
+		} else {
+			return false
+		}
 	}
 	
-	/// Resumes console emulation.
-	public func resume() {
-		guard self.state != .on else {
-			// do nothing when console is alredy on
+	///	Suspends emulation with the specified suspension code. When emulation is already suspended,
+	///	updates suspension code only when it is higher than the current one.
+	public func suspend(withCode code: Int = 0) {
+		if case .suspended(let currentCode) = self.state,
+		   currentCode < code {
+			return
+		}
+		
+		self.state = .suspended(code)
+	}
+	
+	/// Resumes emulation when it has been suspended with a code lower than or equal to
+	/// the specified one.
+	public func resume(withCode code: Int = 0) {
+		guard case .suspended(let currentCode) = self.state,
+			  currentCode <= code else {
 			return
 		}
 		
 		self.state = .on
 		if let (condition, callback) = self.debug {
-			while self.state == .on {
+			while case .on = self.state {
 				self.advanceCycle()
 				
 				if condition() {
-					self.state = .suspended(2)
+					self.state = .suspended(code)
 					callback()
 				}
 			}
 		} else {
-			while self.state == .on {
+			while case .on = self.state {
 				self.advanceCycle()
 			}
-		}
-	}
-	
-	/// Suspends console emulation with the specified optional suspension code.
-	public func suspend(code: Int = 0) {
-		switch self.state {
-		case .suspended(let currentCode):
-			// when emulation is currently suspended, overwrite suspension
-			// code only when it is higher than the current one
-			if code > currentCode {
-				self.state = .suspended(code)
-			}
-		default:
-			self.state = .suspended(code)
 		}
 	}
 	
@@ -102,7 +102,7 @@ public class Atari2600: ObservableObject {
 		self.tia.reset()
 	}
 	
-	public enum State: Equatable {
+	private enum State {
 		case off
 		case on
 		case suspended(Int)
@@ -113,50 +113,60 @@ public class Atari2600: ObservableObject {
 // MARK: -
 // MARK: Debugging
 extension Atari2600 {
-	/// Resumes program execution until the first instruction at one of the specified addresses.
-	public func resume(until breakpoints: any Sequence<Int>) {
-		repeat {
-			self.stepInstruction()
-		} while !self.cpu.sync || !breakpoints.contains(self.cpu.programCounter)
-	}
-	
-	/// Resumes program execution until the first instruction in the next TV field.
-	public func stepField() {
-		self.stepScanLine()
-		repeat {
-			self.advanceCycle()
-		} while !self.cpu.sync || self.tia.scanLine > 0
-	}
-	
-	/// Resumes program execution until the first instruction in the next TV scan line.
-	public func stepScanLine() {
-		let scanLine = self.tia.scanLine
-		repeat {
-			self.advanceCycle()
-		} while !self.cpu.sync || self.tia.scanLine == scanLine
-	}
-	
-	/// Resumes program execution for a single instruction.
-	public func stepInstruction() {
-		repeat {
-			self.advanceCycle()
-		} while !self.cpu.sync || self.tia.awaitsHorizontalSync
-	}
-	
-	/// Resumes console until program advances by the specified number of CPU instructions.
-	public func resume(instructions: Int, callback: @escaping () -> Void) {
+	/// Resumes program for  the specified number of CPU instructions.
+	public func resume(instructions: Int, completionHandler handler: @escaping () -> Void) {
 		var remaining = instructions
-		self.resume(until: { [unowned self] in
-			if self.cpu.sync {
+		self.debug = ({ [unowned self] in
+			if self.cpu.sync && !self.tia.awaitsHorizontalSync {
 				remaining -= 1
 			}
 			return remaining == 0
-			
-		}, callback: callback)
+		}, handler)
+		
+		self.resume(withCode: 2)
 	}
 	
-	private func resume(until condition: @escaping () -> Bool, callback: @escaping () -> Void) {
-		self.debug = (condition, callback)
+	/// Resumes program for the specified number of TV scan lines.
+	public func resume(scanLines: Int, completionHandler handler: @escaping () -> Void) {
+		var remaining = scanLines
+		var colorClock = self.tia.colorClock
+		
+		self.debug = ({ [unowned self] in
+			if self.tia.colorClock < colorClock {
+				remaining -= 1
+			}
+			
+			colorClock = self.tia.colorClock
+			return self.cpu.sync && remaining == 0
+		}, handler)
+		
+		self.resume(withCode: 2)
+	}
+	
+	/// Resumes program for the specified number of TV fields.
+	public func resume(fields: Int, completionHandler handler: @escaping () -> Void) {
+		var remaining = fields
+		var scanLine = self.tia.scanLine
+		
+		self.debug = ({ [unowned self] in
+			if self.tia.scanLine < scanLine {
+				remaining -= 1
+			}
+			
+			scanLine = self.tia.scanLine
+			return self.cpu.sync && remaining == 0
+		}, handler)
+		
+		self.resume(withCode: 2)
+	}
+	
+	/// Resumes program until an instruction at any of the specified program addresses.
+	public func resume(breakpoints: any Sequence<Int>, completionHandler handler: @escaping () -> Void) {
+		self.debug = ({ [unowned self] in
+			return self.cpu.sync
+			&& breakpoints.contains(self.cpu.programCounter)
+		}, handler)
+		
 		self.resume()
 	}
 }

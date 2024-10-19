@@ -100,7 +100,7 @@ extension RayRacerDelegate {
 		self.defaults.consoleSwitches = self.console.switches
 	}
 	
-	@IBAction func didSelectResetMenuItem(_ sender: AnyObject) {
+	@IBAction func didSelectConsoleResetMenuItem(_ sender: AnyObject) {
 		self.console.reset()
 		self.postNotification(.reset)
 	}
@@ -119,23 +119,6 @@ private extension RayRacerDelegate {
 
 extension Notification.Name {
 	static let reset = Notification.Name("Break")
-}
-
-
-// MARK: -
-// MARK: Window management
-extension RayRacerDelegate: NSWindowDelegate {
-	func showWindow(of windowController: NSWindowController) {
-		windowController.window?.delegate = self
-		windowController.showWindow(self)
-		self.windowControllers.insert(windowController)
-	}
-	
-	func windowWillClose(_ notification: Notification) {
-		if let window = notification.object as? NSWindow {
-			self.windowControllers.remove(where: { $0.window == window })
-		}
-	}
 }
 
 
@@ -266,45 +249,59 @@ extension RayRacerDelegate {
 	}
 	
 	private func showScreen(forProgramAt url: URL) {
+		var windowController: NSWindowController! = self.windowControllers
+			.first(where: { $0.contentViewController is ScreenViewController })
+		
+		if windowController == nil {
+			let viewController = ScreenViewController(console: self.console, commandQueue: self.commandQueue, pipelineState: self.pipelineState)
+			self.console.tia.output = viewController
+			
+			windowController = NSWindowController(windowNibName: "ScreenWindow")
+			windowController.contentViewController = viewController
+		}
+		
 		guard let data = try? Data(contentsOfSecurityScopedResourceAt: url) else {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
 		}
 		
-		let viewController = ScreenViewController(
-			console: self.console,
-			commandQueue: self.commandQueue,
-			pipelineState: self.pipelineState)
-		
-		let windowController = NSWindowController(windowNibName: "ScreenWindow")
-		windowController.contentViewController = viewController
-		windowController.window?
-			.title = url.lastPathComponent
-		
-		self.console.tia.output = viewController
+		self.console.cartridge = data
 		self.console.switches = self.defaults.consoleSwitches
-		self.console.insertCartridge(data)
 		self.console.reset()
-		self.postNotification(.reset)
 		
+		NotificationCenter.default.post(name: .reset, object: self)
+		UserDefaults.standard.addOpenedFileURL(url)
+		
+		windowController.window?.title = url.lastPathComponent
 		self.showWindow(of: windowController)
-		self.defaults.addOpenedFileURL(url)
-		
-		// suspend console emulation with default suspension code,
-		// unless it has been suspended by another component
-		if self.console.state == .off {
-			self.console.suspend(code: 0)
-		}
 	}
 	
 	private func showDebugger() {
-		let controller = DebuggerWindowController()
-		self.showWindow(of: controller)
+		var windowController: NSWindowController! = self.windowControllers
+			.first(where: { $0 is DebuggerWindowController })
 		
-		// suspend console emulation with debugger suspension code,
-		// unless it is already on
-		if self.console.state == .off {
-			self.console.suspend(code: 2)
+		if windowController == nil {
+			windowController = DebuggerWindowController()
+		}
+		
+		self.console.suspend(withCode: 2)
+		self.showWindow(of: windowController)
+	}
+}
+
+
+// MARK: -
+// MARK: Window management
+extension RayRacerDelegate: NSWindowDelegate {
+	func showWindow(of windowController: NSWindowController) {
+		self.windowControllers.insert(windowController)
+		windowController.window?.delegate = self
+		windowController.window?.makeKeyAndOrderFront(self)
+	}
+	
+	func windowWillClose(_ notification: Notification) {
+		if let window = notification.object as? NSWindow {
+			self.windowControllers.remove(where: { $0.window == window })
 		}
 	}
 }
