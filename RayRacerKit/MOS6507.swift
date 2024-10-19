@@ -29,9 +29,9 @@ public class MOS6507 {
 	private(set) public var stackPointer: Int
 	private(set) public var programCounter: Int
 	
-	private var decoded: (() -> Void, Int, Int?) = ({}, 0, 0)
-	private var elapsedCycles: Int = 0
 	private var bus: Addressable
+	private var decoded: (operation: () -> Void, duration: Int, operandAddress: Int?) = ({}, 0, nil)
+	private var elapsedCycles = 0
 	
 	public init(bus: Addressable) {
 		self.accumulator = .random(in: 0x00...0xff)
@@ -66,8 +66,8 @@ public class MOS6507 {
 	public func advanceClock() {
 		self.elapsedCycles += 1
 		
-		if self.elapsedCycles == self.decoded.1 {
-			self.decoded.0()
+		if self.elapsedCycles == self.decoded.duration {
+			self.decoded.operation()
 			self.decoded = self.decodeOperation(at: self.programCounter)
 			self.elapsedCycles = 0
 		}
@@ -78,14 +78,9 @@ public class MOS6507 {
 // MARK: -
 // MARK: Operation decoding
 extension MOS6507 {
-	/// Returns the number of CPU cycles it takes to execute the current instruction in the program.
-	public var operationDuration: Int {
-		return self.decoded.1
-	}
-	
 	/// Returns the dereferenced operand address of the current instruction in the program.
 	public var operandAddress: Int? {
-		return self.decoded.2
+		return self.decoded.operandAddress
 	}
 	
 	/// Returns the next operation in the program and the amount of CPU cycles it will take to execute.

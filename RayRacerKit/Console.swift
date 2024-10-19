@@ -11,23 +11,18 @@ public class Atari2600: ObservableObject {
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
-	private(set) public var cartridge: Data? = nil
-	private(set) public var frame = Data(count: 262 * 228)
 	
+	public var cartridge: Data? = nil
 	public var switches: Switches = .random()
-	public var joystic = Joystick()
+	public var controller = Joystick()
+	
+	private var state: State = .suspended(0)
+	private var debug: (condition: () -> Bool, callback: () -> Void)?
 	
 	public init() {
 		self.cpu = MOS6507(bus: self)
-		self.riot = MOS6532(ports: (self.joystic, self))
+		self.riot = MOS6532(ports: (self.controller, self))
 		self.tia = TIA()
-	}
-	
-	// Resets internal state.
-	public func reset() {
-		self.cpu.reset()
-		self.riot.reset()
-		self.tia.reset()
 	}
 	
 	public func setSwitch(_ switch: Switches, on: Bool) {
@@ -38,44 +33,48 @@ public class Atari2600: ObservableObject {
 		}
 	}
 	
-	public func insertCartridge(_ data: Data) {
-		self.cartridge = data
-		self.reset()
-	}
-}
-
-
-// MARK: -
-// MARK: Debugging
-extension Atari2600 {
-	/// Resumes program execution until the first instruction at one of the specified addresses.
-	public func resume(until breakpoints: any Sequence<Int>) {
-		repeat {
-			self.stepInstruction()
-		} while !self.cpu.sync || !breakpoints.contains(self.cpu.programCounter)
+	public func isSuspended(withCode code: Int) -> Bool {
+		if case .suspended(let currentCode) = self.state {
+			return code == currentCode
+		} else {
+			return false
+		}
 	}
 	
-	/// Resumes program execution until the first instruction in the next TV field.
-	public func stepField() {
-		self.stepScanLine()
-		repeat {
-			self.advanceCycle()
-		} while !self.cpu.sync || self.tia.scanLine > 0
+	///	Suspends emulation with the specified suspension code. When emulation is already suspended,
+	///	updates suspension code only when it is higher than the current one.
+	public func suspend(withCode code: Int = 0) {
+		if case .suspended(let currentCode) = self.state,
+		   currentCode < code {
+			return
+		}
+		
+		self.state = .suspended(code)
 	}
 	
-	/// Resumes program execution until the first instruction in the next TV scan line.
-	public func stepScanLine() {
-		let scanLine = self.tia.scanLine
-		repeat {
-			self.advanceCycle()
-		} while !self.cpu.sync || self.tia.scanLine == scanLine
-	}
-	
-	/// Resumes program execution for a single instruction.
-	public func stepInstruction() {
-		repeat {
-			self.advanceCycle()
-		} while !self.cpu.sync || self.tia.awaitsHorizontalSync
+	/// Resumes emulation when it has been suspended with a code lower than or equal to
+	/// the specified one.
+	public func resume(withCode code: Int = 0) {
+		guard case .suspended(let currentCode) = self.state,
+			  currentCode <= code else {
+			return
+		}
+		
+		self.state = .on
+		if let (condition, callback) = self.debug {
+			while case .on = self.state {
+				self.advanceCycle()
+				
+				if condition() {
+					self.state = .suspended(code)
+					callback()
+				}
+			}
+		} else {
+			while case .on = self.state {
+				self.advanceCycle()
+			}
+		}
 	}
 	
 	/// Advances TIA clock by 3 units and RIOT and CPU clock by 1, unless CPU is halted by the TIA.
@@ -94,6 +93,81 @@ extension Atari2600 {
 		if cpuReady {
 			self.cpu.advanceClock()
 		}
+	}
+	
+	/// Resets internal state of all console components.
+	public func reset() {
+		self.cpu.reset()
+		self.riot.reset()
+		self.tia.reset()
+	}
+	
+	private enum State {
+		case off
+		case on
+		case suspended(Int)
+	}
+}
+
+
+// MARK: -
+// MARK: Debugging
+extension Atari2600 {
+	/// Resumes program for  the specified number of CPU instructions.
+	public func resume(instructions: Int, completionHandler handler: @escaping () -> Void) {
+		var remaining = instructions
+		self.debug = ({ [unowned self] in
+			if self.cpu.sync && !self.tia.awaitsHorizontalSync {
+				remaining -= 1
+			}
+			return remaining == 0
+		}, handler)
+		
+		self.resume(withCode: 2)
+	}
+	
+	/// Resumes program for the specified number of TV scan lines.
+	public func resume(scanLines: Int, completionHandler handler: @escaping () -> Void) {
+		var remaining = scanLines
+		var colorClock = self.tia.colorClock
+		
+		self.debug = ({ [unowned self] in
+			if self.tia.colorClock < colorClock {
+				remaining -= 1
+			}
+			
+			colorClock = self.tia.colorClock
+			return self.cpu.sync && remaining == 0
+		}, handler)
+		
+		self.resume(withCode: 2)
+	}
+	
+	/// Resumes program for the specified number of TV fields.
+	public func resume(fields: Int, completionHandler handler: @escaping () -> Void) {
+		var remaining = fields
+		var scanLine = self.tia.scanLine
+		
+		self.debug = ({ [unowned self] in
+			if self.tia.scanLine < scanLine {
+				remaining -= 1
+			}
+			
+			scanLine = self.tia.scanLine
+			return self.cpu.sync && remaining == 0
+		}, handler)
+		
+		self.resume(withCode: 2)
+	}
+	
+	/// Resumes program until an instruction at any of the specified program addresses.
+	public func resume(breakpoints: any Sequence<Int>, completionHandler handler: @escaping () -> Void) {
+		self.debug = ({ [unowned self] in
+			return self.cpu.sync
+			&& breakpoints.contains(self.cpu.programCounter)
+		}, handler)
+		
+		self.resume()
 	}
 }
 

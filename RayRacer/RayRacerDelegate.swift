@@ -58,13 +58,15 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 extension RayRacerDelegate {
 	@IBAction func didSelectInsertCartridgeMenuItem(_ sender: AnyObject) {
 		self.withModalFileOpenPanel({
-			self.openFile(at: $0)
+			self.showScreen(forProgramAt: $0)
 		})
 	}
 	
 	@IBAction func didSelectInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
-		let url = sender.representedObject as! URL
-		self.openFile(at: url)
+		// TODO: show error message when representedObject is not a URL
+		if let url = sender.representedObject as? URL {
+			self.showScreen(forProgramAt: url)
+		}
 	}
 	
 	@IBAction func didSelectClearInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
@@ -98,14 +100,13 @@ extension RayRacerDelegate {
 		self.defaults.consoleSwitches = self.console.switches
 	}
 	
-	@IBAction func didSelectResetMenuItem(_ sender: AnyObject) {
+	@IBAction func didSelectConsoleResetMenuItem(_ sender: AnyObject) {
 		self.console.reset()
 		self.postNotification(.reset)
 	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
-		let windowController = DebuggerWindowController()
-		self.showWindow(of: windowController)
+		self.showDebugger()
 	}
 }
 
@@ -118,23 +119,6 @@ private extension RayRacerDelegate {
 
 extension Notification.Name {
 	static let reset = Notification.Name("Break")
-}
-
-
-// MARK: -
-// MARK: Window management
-extension RayRacerDelegate: NSWindowDelegate {
-	func showWindow(of windowController: NSWindowController) {
-		windowController.window?.delegate = self
-		windowController.showWindow(self)
-		self.windowControllers.insert(windowController)
-	}
-	
-	func windowWillClose(_ notification: Notification) {
-		if let window = notification.object as? NSWindow {
-			self.windowControllers.remove(where: { $0.window == window })
-		}
-	}
 }
 
 
@@ -264,29 +248,61 @@ extension RayRacerDelegate {
 		}
 	}
 	
-	private func openFile(at url: URL) {
+	private func showScreen(forProgramAt url: URL) {
+		var windowController: NSWindowController! = self.windowControllers
+			.first(where: { $0.contentViewController is ScreenViewController })
+		
+		if windowController == nil {
+			let viewController = ScreenViewController(console: self.console, commandQueue: self.commandQueue, pipelineState: self.pipelineState)
+			self.console.tia.output = viewController
+			
+			windowController = NSWindowController(windowNibName: "ScreenWindow")
+			windowController.contentViewController = viewController
+		}
+		
 		guard let data = try? Data(contentsOfSecurityScopedResourceAt: url) else {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
 		}
 		
-		let viewController = ScreenViewController(
-			commandQueue: self.commandQueue,
-			pipelineState: self.pipelineState)
-		
-		let windowController = NSWindowController(windowNibName: "ScreenWindow")
-		windowController.contentViewController = viewController
-		windowController.window?
-			.title = url.lastPathComponent
-		
-		self.console.tia.output = viewController
+		self.console.cartridge = data
 		self.console.switches = self.defaults.consoleSwitches
-		self.console.insertCartridge(data)
 		self.console.reset()
-		self.postNotification(.reset)
 		
+		NotificationCenter.default.post(name: .reset, object: self)
+		UserDefaults.standard.addOpenedFileURL(url)
+		
+		windowController.window?.title = url.lastPathComponent
 		self.showWindow(of: windowController)
-		self.defaults.addOpenedFileURL(url)
+	}
+	
+	private func showDebugger() {
+		var windowController: NSWindowController! = self.windowControllers
+			.first(where: { $0 is DebuggerWindowController })
+		
+		if windowController == nil {
+			windowController = DebuggerWindowController()
+		}
+		
+		self.console.suspend(withCode: 2)
+		self.showWindow(of: windowController)
+	}
+}
+
+
+// MARK: -
+// MARK: Window management
+extension RayRacerDelegate: NSWindowDelegate {
+	func showWindow(of windowController: NSWindowController) {
+		self.windowControllers.insert(windowController)
+		windowController.window?.delegate = self
+		windowController.window?.makeKeyAndOrderFront(self)
+	}
+	
+	func windowWillClose(_ notification: Notification) {
+		if let window = notification.object as? NSWindow {
+			self.windowControllers.remove(where: { $0.window == window })
+		}
 	}
 }
 

@@ -10,33 +10,38 @@ import MetalKit
 import RayRacerKit
 
 class ScreenViewController: NSViewController {
+	private let console: Atari2600
+	private var screenData: Array<UInt8>
+	private var screenDataReady: Bool
+	private var screenIndex = 0
+	
 	private let commandQueue: MTLCommandQueue
 	private let pipelineState: MTLRenderPipelineState
-	
-	private let screenTexture: MTLTexture
+	private let screenBuffer: MTLBuffer
 	private let imageTexture: MTLTexture
 	
 	private let screenSize: MTLSize = .ntsc
-	private var screenData = Array<UInt8>(forTextureSize: .ntsc)
-	private var screenIndex = 0
+	private let imageSize: MTLSize = .ntscImage
+	private let imageOrigin: MTLOrigin = .ntscImage
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
 	
-	init(commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
-		guard let device = MTLCreateSystemDefaultDevice() else {
-			fatalError("Failed to initialize Metal.")
-		}
+	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
+		self.console = console
+		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count)
+		self.screenDataReady = true
 		
-		guard let screenTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: .ntsc)),
-			  let imageTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: .ntscImage)) else {
-				  fatalError("Failed to initialize screen render texture.")
-			  }
+		let device = commandQueue.device
+		guard let screenBuffer = device.makeBuffer(bytesNoCopy: &self.screenData, length: self.screenData.count),
+			  let imageTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: self.imageSize)) else {
+			fatalError("Failed to initialize screen render texture.")
+		}
 		
 		self.commandQueue = commandQueue
 		self.pipelineState = pipelineState
-		self.screenTexture = screenTexture
+		self.screenBuffer = screenBuffer
 		self.imageTexture = imageTexture
 		
 		super.init(nibName: nil, bundle: nil)
@@ -47,6 +52,10 @@ class ScreenViewController: NSViewController {
 		descriptor.pixelFormat = .r8Uint
 		descriptor.width = size.width
 		descriptor.height = size.height
+		
+		// mark available only on the GPU for ::read or ::sample operations
+		descriptor.storageMode = .private
+		descriptor.usage = .shaderRead
 		
 		return descriptor
 	}
@@ -60,8 +69,7 @@ extension ScreenViewController {
 		let view = MTKView()
 		view.device = self.commandQueue.device
 		view.delegate = self
-		view.isPaused = true
-		view.enableSetNeedsDisplay = true
+		view.preferredFramesPerSecond = 30
 		
 		// force view aspect ratio to 4:3
 		view.addConstraint(view.widthAnchor.constraint(
@@ -81,6 +89,12 @@ extension ScreenViewController: MTKViewDelegate {
 	}
 	
 	func draw(in view: MTKView) {
+		// skip frame when console has been suspended by another component
+		// or has not yet produced field data
+		guard self.screenDataReady else {
+			return
+		}
+		
 		guard let commandBuffer = self.commandQueue.makeCommandBuffer(),
 			  let blitEncoder = commandBuffer.makeBlitCommandEncoder() else {
 			return
@@ -88,18 +102,29 @@ extension ScreenViewController: MTKViewDelegate {
 		
 		// extract visible image from signal data, ignoring vertical and
 		// horizontal blanking regions
-		blitEncoder.copy(from: self.screenTexture, sourceSlice: 0, sourceLevel: 0, sourceOrigin: .ntscImage, sourceSize: .ntscImage, to: self.imageTexture, destinationSlice: 0, destinationLevel: 0, destinationOrigin: .zero)
+		let imageOffset = self.imageOrigin.y * self.screenSize.width + self.imageOrigin.x
+		let bytesPerRow = self.screenSize.width * MemoryLayout<UInt8>.size
+		blitEncoder.copy(from: self.screenBuffer, sourceOffset: imageOffset, sourceBytesPerRow: bytesPerRow, sourceBytesPerImage: 0, sourceSize: self.imageSize, to: self.imageTexture, destinationSlice: 0, destinationLevel: 0, destinationOrigin: .zero)
 		blitEncoder.endEncoding()
 		
-		guard let descriptor = view.currentRenderPassDescriptor,
-			  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor) else {
+		guard let renderPassDescriptor = view.currentRenderPassDescriptor,
+			  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
 			return
 		}
 		
+		// encode render pass
 		renderEncoder.setRenderPipelineState(self.pipelineState)
 		renderEncoder.setFragmentTexture(self.imageTexture, index: 0)
 		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
 		renderEncoder.endEncoding()
+		
+		// begin preparing next field once command buffer work finishes
+		commandBuffer.addCompletedHandler() { [unowned self] _ in
+			DispatchQueue.global(qos: .userInitiated)
+				.async() { [unowned self] in
+					self.console.resume()
+				}
+		}
 		
 		commandBuffer.present(view.currentDrawable!)
 		commandBuffer.commit()
@@ -114,15 +139,13 @@ extension ScreenViewController: TIA.GraphicsOutput {
 	}
 	
 	func sync() {
-		let region = MTLRegion(origin: .zero, size: self.screenSize)
-		self.screenTexture.replace(
-			region: region,
-			mipmapLevel: 0,
-			withBytes: self.screenData,
-			bytesPerRow: region.size.width)
-		
+		self.console.suspend()
 		self.screenIndex = 0
-		self.view.needsDisplay = true
+		
+		// notify emulation has produced next field data
+		DispatchQueue.main.async() {
+			self.screenDataReady = true
+		}
 	}
 	
 	func write(color: Int) {
@@ -138,7 +161,7 @@ extension ScreenViewController: TIA.GraphicsOutput {
 
 // MARK: -
 // MARK: Convenience functionality
-extension MTLOrigin {
+private extension MTLOrigin {
 	static let zero = MTLOrigin(x: 0, y: 0, z: 0)
 	
 	// TIA blanks each image scanline for the first 68 color clocks;
@@ -147,7 +170,7 @@ extension MTLOrigin {
 	static let ntscImage = MTLOrigin(x: 68, y: 22, z: 0)
 }
 
-extension MTLSize {
+private extension MTLSize {
 	// TIA signals a NTSC TV at 228 color clocks per scan line;
 	// NTSC frame consists of 525 scan lines of 2 interlaced fields
 	static let ntsc = MTLSize(width: 228, height: 525/2, depth: 1)
@@ -158,11 +181,8 @@ extension MTLSize {
 	// with ~8% of those scanlines ((480/2)*0.08 = 19) being in overscan,
 	// and are optionally not shown by TVs
 	static let ntscImage = MTLSize(width: 228-68, height: 480/2-19, depth: 1)
-}
-
-extension Array where Element: Numeric {
-	init(forTextureSize size: MTLSize) {
-		let count = size.width * size.height * size.depth
-		self.init(repeating: 0, count: count)
+	
+	var count: Int {
+		return self.width * self.height * self.depth
 	}
 }

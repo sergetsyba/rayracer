@@ -12,7 +12,7 @@ class MultiStepperViewController: NSTitlebarAccessoryViewController {
 	@IBOutlet private var textField: NSTextField!
 	
 	private let defaults: UserDefaults = .standard
-	var handler: ((Action) -> Void)? = nil
+	var handler: ((Step, Int) -> Void)? = nil
 	
 	convenience init() {
 		self.init(nibName: "MultiStepperView", bundle: .main)
@@ -30,11 +30,6 @@ extension MultiStepperViewController {
 		case instructions = 0
 		case scanLines = 1
 		case fields = 2
-	}
-	
-	enum Action {
-		case step(Step, Int)
-		case done
 	}
 }
 
@@ -54,13 +49,6 @@ extension MultiStepperViewController {
 		super.viewDidAppear()
 		_ = self.becomeFirstResponder()
 	}
-	
-	override func viewWillDisappear() {
-		super.viewWillDisappear()
-		
-		self.defaults.debugStep = Step(rawValue: self.popUpButton.indexOfSelectedItem)!
-		self.defaults.debugStepCount = self.textField.integerValue
-	}
 }
 
 
@@ -68,13 +56,21 @@ extension MultiStepperViewController {
 // MARK: Target actions
 extension MultiStepperViewController {
 	@IBAction func didPressStepButton(_ sender: NSButton) {
-		let step = Step(rawValue: self.popUpButton.indexOfSelectedItem)!
-		let count = self.textField.integerValue
-		self.handler?(.step(step, count))
+		if let handler = self.handler,
+		   let step = Step(rawValue: self.popUpButton.indexOfSelectedItem) {
+			let count = self.textField.integerValue
+			handler(step, count)
+			
+			self.defaults.debugStep = step
+			self.defaults.debugStepCount = count
+		}
 	}
 	
 	@IBAction func didPressDoneButton(_ sender: NSButton) {
-		self.handler?(.done)
+		if let window = self.view.window,
+		   let index = window.titlebarAccessoryViewControllers.firstIndex(of: self) {
+			window.removeTitlebarAccessoryViewController(at: index)
+		}
 	}
 }
 
