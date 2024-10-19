@@ -155,10 +155,10 @@
                                     <action selector="didSelectGameResumeMenuItem:" target="-1" id="d3B-ZI-7Yf"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Reset" alternate="YES" keyEquivalent="r" identifier="ResetMenuItem" id="S33-bq-fEN">
+                            <menuItem title="Console Reset" alternate="YES" keyEquivalent="r" identifier="ConsoleResetMenuItem" id="S33-bq-fEN">
                                 <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                 <connections>
-                                    <action selector="didSelectResetMenuItem:" target="-1" id="kB4-qh-B8p"/>
+                                    <action selector="didSelectConsoleResetMenuItem:" target="-1" id="6li-yN-oih"/>
                                 </connections>
                             </menuItem>
                         </items>
