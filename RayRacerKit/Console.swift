@@ -13,24 +13,23 @@ public class Atari2600: ObservableObject {
 	private(set) public var tia: TIA!
 	
 	public var cartridge: Data? = nil
-	public var switches: Switches = .random()
-	public var controller = Joystick()
+	public var joystick = Joystick()
 	
 	private var state: State = .suspended(0)
 	private var debug: (condition: () -> Bool, callback: () -> Void)?
 	
-	public init() {
+	public init(switches: Atari2600.Switches = [.color]) {
 		self.cpu = MOS6507(bus: self)
-		self.riot = MOS6532(ports: (self.controller, self))
+		
+		self.riot = MOS6532()
+		self.riot.peripherals.b = switches
+		
 		self.tia = TIA()
 	}
 	
-	public func setSwitch(_ switch: Switches, on: Bool) {
-		if on {
-			self.switches.insert(`switch`)
-		} else {
-			self.switches.remove(`switch`)
-		}
+	public var switches: Switches {
+		get { return self.riot.peripherals.b as! Switches }
+		set { self.riot.peripherals.b = newValue }
 	}
 	
 	public func isSuspended(withCode code: Int) -> Bool {
@@ -226,53 +225,9 @@ extension Atari2600: Addressable {
 
 
 // MARK: - Console switches
-extension Atari2600 {
-	public struct Switches: OptionSet {
-		public static let reset = Switches(rawValue: 1 << 0)
-		public static let select = Switches(rawValue: 1 << 1)
-		public static let color = Switches(rawValue: 1 << 3)
-		public static let difficulty0 = Switches(rawValue: 1 << 6)
-		public static let difficulty1 = Switches(rawValue: 1 << 7)
-		
-		public var rawValue: Int
-		
-		public static func random() -> Switches {
-			let value: Int = .random(in: 0x00...0xff)
-			return Switches(rawValue: value)
-		}
-		
-		public init(rawValue: Int) {
-			self.rawValue = rawValue
-		}
-	}
-}
-
-extension Atari2600: MOS6532.Port {
+extension Atari2600: TIA.Peripheral {
 	public func read() -> Int {
-		// when switches for `select` and `reset` are on, corresponding
-		// bit values are set to 0
-		return self.switches.rawValue ^ 0x03
-	}
-	
-	public func write(_ data: Int) {
-		// port B is supposed to be read-only, but can be written to
-		// nonetheless; writing sets the 3 unassigned bits
-		self.switches.rawValue |= data & 0x34
-	}
-}
-
-
-// MARK: - Joystick
-extension Atari2600 {
-	public struct Joystick {
-	}
-}
-
-extension Atari2600.Joystick: MOS6532.Port {
-	public func read() -> Int {
-		return 0
-	}
-	
-	public mutating func write(_ data: Int) {
+		let data = self.joystick.pressed.rawValue
+		return (data >> 1) & 0x10
 	}
 }

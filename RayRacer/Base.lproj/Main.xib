@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="23094" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="23504" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23094"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="23504"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -81,16 +81,16 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Left Difficulty" identifier="LeftDifficultyMenu" id="7yJ-gm-YJm">
                                     <items>
-                                        <menuItem title="Advanced" id="sqI-4l-jbT">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="didSelectLeftDifficultyMenuItem:" target="Voe-Tx-rLC" id="7Tb-0t-fO4"/>
-                                            </connections>
-                                        </menuItem>
                                         <menuItem title="Beginner" id="ZsC-Ai-7bF">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="didSelectLeftDifficultyMenuItem:" target="Voe-Tx-rLC" id="giR-Us-1zD"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Advanced" id="sqI-4l-jbT">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="didSelectLeftDifficultyMenuItem:" target="Voe-Tx-rLC" id="7Tb-0t-fO4"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -103,16 +103,16 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Right Difficulty" identifier="RightDifficultyMenu" id="wle-Gt-4Yw">
                                     <items>
-                                        <menuItem title="Advanced" id="lML-lA-Y31">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="didSelectRightDifficultyMenuItem:" target="Voe-Tx-rLC" id="Bj7-aB-d4c"/>
-                                            </connections>
-                                        </menuItem>
                                         <menuItem title="Beginner" id="s19-Qg-dJZ">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="didSelectRightDifficultyMenuItem:" target="Voe-Tx-rLC" id="DPI-j4-Aq6"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Advanced" id="lML-lA-Y31">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="didSelectRightDifficultyMenuItem:" target="Voe-Tx-rLC" id="Bj7-aB-d4c"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -125,16 +125,16 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" identifier="TVTypeMenu" id="7my-vM-HKb">
                                     <items>
-                                        <menuItem title="Color" id="Nbz-iy-v04">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="didSelectTVTypeMenuItem:" target="Voe-Tx-rLC" id="4g9-DF-WlV"/>
-                                            </connections>
-                                        </menuItem>
                                         <menuItem title="Black•White" id="cVR-DK-yLh">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="didSelectTVTypeMenuItem:" target="Voe-Tx-rLC" id="SNl-UL-ZBh"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Color" id="Nbz-iy-v04">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="didSelectTVTypeMenuItem:" target="Voe-Tx-rLC" id="4g9-DF-WlV"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -144,15 +144,14 @@
                                 </menu>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="udC-K7-4Yk"/>
-                            <menuItem title="Game Select" id="Pg0-pC-YRK">
-                                <modifierMask key="keyEquivalentModifierMask"/>
+                            <menuItem title="Game Select" keyEquivalent="g" identifier="GameSelectMenuItem" id="Pg0-pC-YRK">
                                 <connections>
                                     <action selector="didSelectGameSelectMenuItem:" target="-1" id="ynQ-kv-hCQ"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Game Reset" keyEquivalent="r" identifier="GameResetMenuItem" id="Qfz-Kq-MTK">
+                            <menuItem title="Game Reset" keyEquivalent="r" id="Qfz-Kq-MTK">
                                 <connections>
-                                    <action selector="didSelectGameResumeMenuItem:" target="-1" id="d3B-ZI-7Yf"/>
+                                    <action selector="didSelectGameResetMenuItem:" target="Voe-Tx-rLC" id="O5D-UU-eXl"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Console Reset" alternate="YES" keyEquivalent="r" identifier="ConsoleResetMenuItem" id="S33-bq-fEN">
@@ -162,6 +161,9 @@
                                 </connections>
                             </menuItem>
                         </items>
+                        <connections>
+                            <outlet property="delegate" destination="Voe-Tx-rLC" id="07k-c8-u3n"/>
+                        </connections>
                     </menu>
                 </menuItem>
                 <menuItem title="Debug" id="AYR-5t-LOm">

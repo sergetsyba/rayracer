@@ -56,54 +56,7 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 // MARK: -
 // MARK: Target actions
 extension RayRacerDelegate {
-	@IBAction func didSelectInsertCartridgeMenuItem(_ sender: AnyObject) {
-		self.withModalFileOpenPanel({
-			self.showScreen(forProgramAt: $0)
-		})
-	}
 	
-	@IBAction func didSelectInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
-		// TODO: show error message when representedObject is not a URL
-		if let url = sender.representedObject as? URL {
-			self.showScreen(forProgramAt: url)
-		}
-	}
-	
-	@IBAction func didSelectClearInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
-		self.defaults.clearOpenedFileURLs()
-	}
-	
-	@IBAction func didSelectLeftDifficultyMenuItem(_ sender: NSMenuItem) {
-		self.didSelectConsoleSwitchesMenuItem(sender, for: .difficulty0)
-	}
-	
-	@IBAction func didSelectRightDifficultyMenuItem(_ sender: NSMenuItem) {
-		self.didSelectConsoleSwitchesMenuItem(sender, for: .difficulty1)
-	}
-	
-	@IBAction func didSelectTVTypeMenuItem(_ sender: NSMenuItem) {
-		self.didSelectConsoleSwitchesMenuItem(sender, for: .color)
-	}
-	
-	@IBAction func didSelectGameSelectMenuItem(_ sender: NSMenuItem) {
-	}
-	
-	@IBAction func didSelectGameResetMenuItem(_ sender: AnyObject) {
-	}
-	
-	private func didSelectConsoleSwitchesMenuItem(_ menuItem: NSMenuItem, for switch: Atari2600.Switches) {
-		// menu items for `on` switch values appear at the top of the menu
-		let on = menuItem.menu?
-			.index(of: menuItem) == 0
-		
-		self.console.setSwitch(`switch`, on: on)
-		self.defaults.consoleSwitches = self.console.switches
-	}
-	
-	@IBAction func didSelectConsoleResetMenuItem(_ sender: AnyObject) {
-		self.console.reset()
-		self.postNotification(.reset)
-	}
 	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
 		self.showDebugger()
@@ -135,7 +88,6 @@ extension RayRacerDelegate: NSMenuDelegate {
 			self.prepareConsoleSwitchesMenuItems(in: menu, for: .difficulty1)
 		case .tvTypeMenu:
 			self.prepareConsoleSwitchesMenuItems(in: menu, for: .color)
-			
 		default:
 			break
 		}
@@ -171,9 +123,9 @@ extension RayRacerDelegate: NSMenuDelegate {
 	}
 	
 	private func prepareConsoleSwitchesMenuItems(in menu: NSMenu, for value: Atari2600.Switches) {
-		// menu items for `on` switch values are at the top of the menu
+		// menu items for `off` states appear at index 0
 		let selectedIndex = self.defaults.consoleSwitches
-			.contains(value) ? 0 : 1
+			.contains(value) ? 1 : 0
 		
 		for (index, menuItem) in menu.items.enumerated() {
 			menuItem.state = index == selectedIndex ? .on : .off
@@ -193,9 +145,8 @@ extension RayRacerDelegate: NSMenuItemValidation {
 }
 
 private extension NSUserInterfaceItemIdentifier {
-	static let insertRecentCartridgeMenuItem = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenuItem")
-	static let gameResetMenuItem = NSUserInterfaceItemIdentifier("GameResetMenuItem")
 	static let insertRecentCartridgeMenu = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenu")
+	static let insertRecentCartridgeMenuItem = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenuItem")
 	
 	static let leftDifficultyMenu = NSUserInterfaceItemIdentifier("LeftDifficultyMenu")
 	static let rightDifficultyMenu = NSUserInterfaceItemIdentifier("RightDifficultyMenu")
@@ -233,7 +184,7 @@ private extension NSToolbarItem.Identifier {
 // MARK: -
 // MARK: Custom functionality
 extension RayRacerDelegate {
-	private func withModalFileOpenPanel(_ perform: (URL) -> Void) {
+	func withModalFileOpenPanel(_ perform: (URL) -> Void) {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
 		panel.canChooseFiles = true
@@ -248,7 +199,7 @@ extension RayRacerDelegate {
 		}
 	}
 	
-	private func showScreen(forProgramAt url: URL) {
+	func showScreen(forProgramAt url: URL) {
 		var windowController: NSWindowController! = self.windowControllers
 			.first(where: { $0.contentViewController is ScreenViewController })
 		
@@ -331,6 +282,10 @@ private extension Set {
 			self.remove(at: index)
 		}
 	}
+}
+
+private extension String {
+	static let tabCharacter = String(String(utf16CodeUnits: [unichar(NSTabCharacter)], count: 1))
 }
 
 extension Atari2600 {

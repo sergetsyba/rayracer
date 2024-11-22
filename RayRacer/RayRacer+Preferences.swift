@@ -21,6 +21,13 @@ extension UserDefaults {
 		}
 	}
 	
+	/// Number of milliseconds to simulate holding a trigger switch for (game select or game reset).
+	/// Default is 500 milliseconds.
+	var consoleSwitchHoldInterval: Int {
+		get { return self.object(forKey: .consoleSwitchHoldInterval) as? Int ?? 500 }
+		set { self.setValue(newValue, forKey: .consoleSwitchHoldInterval) }
+	}
+	
 	var openedFileURLs: [URL] {
 		// show up to 10 recently opened files
 		return self.openedFileBookmarks
@@ -78,6 +85,7 @@ extension UserDefaults {
 
 private extension String {
 	static let consoleSwitches = "ConsoleSwitches"
+	static let consoleSwitchHoldInterval = "ConsoleSwitchHoldInterval"
 	static let openedFileBookmarks = "OpenedFileBookmarks"
 }
 
