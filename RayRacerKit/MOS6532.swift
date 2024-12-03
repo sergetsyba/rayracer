@@ -74,7 +74,7 @@ extension MOS6532 {
 		public static func random() -> Self {
 			return Timer(
 				value: .random(in: 0x00...0xff),
-				interval: .random(of: [1, 8, 64, 1024]))
+				interval: 1024)
 		}
 		
 		public var value: Int {
@@ -119,8 +119,6 @@ extension MOS6532: Addressable {
 			// read data from data register for output pins
 			let input = self.peripherals.b.read() & ~self.dataDirection.b
 			let output = self.data.b & self.dataDirection.b
-			
-			print(output)
 			return input | output
 			
 			// MARK: Data direction B

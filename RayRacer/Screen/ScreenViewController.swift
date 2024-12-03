@@ -78,6 +78,42 @@ extension ScreenViewController {
 		
 		self.view = view
 	}
+	
+	override func viewDidAppear() {
+		super.viewDidAppear()
+		self.view.window?
+			.makeFirstResponder(self)
+	}
+	
+	override func keyDown(with event: NSEvent) {
+		if let button = Joystick.Buttons(keyCode: event.keyCode) {
+			self.console.joystick.press(button)
+		} else {
+			super.keyDown(with: event)
+		}
+	}
+	
+	override func keyUp(with event: NSEvent) {
+		if let button = Joystick.Buttons(keyCode: event.keyCode) {
+			self.console.joystick.release(button)
+		} else {
+			super.keyUp(with: event)
+		}
+	}
+}
+
+private extension Joystick.Buttons {
+	init?(keyCode: UInt16) {
+		switch keyCode {
+		case 49: self = .fire
+		case 123: self = .left
+		case 124: self = .right
+		case 125: self = .down
+		case 126: self = .up
+		default:
+			return nil
+		}
+	}
 }
 
 

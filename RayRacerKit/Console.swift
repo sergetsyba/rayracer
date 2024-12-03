@@ -22,7 +22,7 @@ public class Atari2600: ObservableObject {
 		self.cpu = MOS6507(bus: self)
 		
 		self.riot = MOS6532()
-		self.riot.peripherals.a = self.joystick
+		self.riot.peripherals.a = self
 		self.riot.peripherals.b = switches
 		
 		self.tia = TIA()
@@ -213,12 +213,13 @@ extension Atari2600: Addressable {
 }
 
 
-// MARK: - Console switches
 extension Atari2600: TIA.Peripheral {
 	public func read() -> Int {
 		let data = self.joystick.pressed.rawValue
-		return (data >> 1) & 0x10
+		return (~data << 4) & 0xf0
 	}
+	
+	
 }
 
 extension Atari2600: MOS6532.Peripheral {

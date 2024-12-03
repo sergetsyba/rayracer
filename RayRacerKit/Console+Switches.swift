@@ -15,8 +15,8 @@ extension Atari2600 {
 		
 		public var rawValue: Int
 		
-		public init(rawValue: Int = 0x8) {
-			self.rawValue = rawValue
+		public init(rawValue: Int) {
+			self.rawValue = rawValue | 0x34
 		}
 	}
 }
