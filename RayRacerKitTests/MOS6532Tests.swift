@@ -6,10 +6,18 @@
 //
 
 import Testing
-import RayRacerKit
+@testable import RayRacerKit
 
 @Suite("MOS6532")
 struct MOS6532Tests {
+	@Test("Sets ports to input on reset.")
+	func setsPortsToInputOnReset() {
+		let riot = MOS6532()
+		riot.reset()
+		
+		#expect(riot.dataDirection == (0x0, 0x0))
+	}
+	
 	@Suite("I/O tests")
 	struct IOTests {
 		private let riot = MOS6532()

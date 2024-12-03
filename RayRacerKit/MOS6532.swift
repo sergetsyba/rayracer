@@ -25,6 +25,8 @@ public class MOS6532 {
 	
 	/// Resets internal state.
 	func reset() {
+		// both ports are set as input on reset
+		self.dataDirection = (0x0, 0x0)
 		self.memory = Data(randomOfCount: 128)
 		self.timer = .random()
 	}
@@ -87,11 +89,6 @@ extension MOS6532 {
 		}
 	}
 	
-	public protocol Port {
-		func read() -> Int
-		mutating func write(_ data: Int)
-	}
-	
 	public enum DataDirection {
 		case read
 		case write
@@ -122,6 +119,8 @@ extension MOS6532: Addressable {
 			// read data from data register for output pins
 			let input = self.peripherals.b.read() & ~self.dataDirection.b
 			let output = self.data.b & self.dataDirection.b
+			
+			print(output)
 			return input | output
 			
 			// MARK: Data direction B
