@@ -8,18 +8,25 @@
 import Foundation
 
 public class MOS6532 {
+	var peripherals: (a: Peripheral, b: Peripheral)
+	var data: (a: Int, b: Int) = (.random, .random)
+	var dataDirection: (a: Int, b: Int) = (.random, .random)
+	
 	internal(set) public var memory: Data
-	private(set) public var ports: (a: (Port, direction: DataDirection), b: (Port, direction: DataDirection))
 	private(set) public var timer: Timer
 	
-	public init(ports: (Port, Port)) {
+	public init() {
+		self.peripherals.a = NoPeripheral()
+		self.peripherals.b = NoPeripheral()
+		
 		self.memory = Data(randomOfCount: 128)
-		self.ports = ((ports.0, .read), (ports.1, .read))
 		self.timer = .random()
 	}
 	
 	/// Resets internal state.
 	func reset() {
+		// both ports are set as input on reset
+		self.dataDirection = (0x0, 0x0)
 		self.memory = Data(randomOfCount: 128)
 		self.timer = .random()
 	}
@@ -27,6 +34,28 @@ public class MOS6532 {
 	/// Advances clock by the speciied number of cycles.
 	func advanceClock(cycles: Int = 1) {
 		self.timer.advanceClock(cycles: cycles)
+	}
+}
+
+extension MOS6532 {
+	public protocol Peripheral {
+		func read() -> Int
+		mutating func write(_ data: Int)
+	}
+}
+
+private struct NoPeripheral: MOS6532.Peripheral {
+	func read() -> Int {
+		return .random(in: 0x00...0xff)
+	}
+	
+	mutating func write(_ data: Int) {
+	}
+}
+
+private extension Int {
+	static var random: Self {
+		return .random(in: 0x00...0xff)
 	}
 }
 
@@ -44,8 +73,8 @@ extension MOS6532 {
 		
 		public static func random() -> Self {
 			return Timer(
-				value: .random(in: 0x00...0xff),
-				interval: .random(of: [1, 8, 64, 1024]))
+				value: 123,
+				interval: 1024)
 		}
 		
 		public var value: Int {
@@ -60,11 +89,6 @@ extension MOS6532 {
 		}
 	}
 	
-	public protocol Port {
-		func read() -> Int
-		mutating func write(_ data: Int)
-	}
-	
 	public enum DataDirection {
 		case read
 		case write
@@ -77,12 +101,30 @@ extension MOS6532 {
 extension MOS6532: Addressable {
 	public func read(at address: Int) -> Int {
 		switch address % 0x08 {
-		case 0x00:
-			// MARK: SWCHA
-			return self.ports.a.0.read()
+			// MARK: Data A
+		case 0x00, 0x08, 0x10, 0x18:
+			// read data from peripheral for input pins
+			// read data from data register for output pins
+			let input = self.peripherals.a.read() & ~self.dataDirection.a
+			let output = self.data.a & self.dataDirection.a
+			return input | output
+			
+			// MARK: Data direction A
+		case 0x01, 0x09, 0x11, 0x19:
+			return self.dataDirection.a
+			
+			// MARK: Data B
 		case 0x02:
-			// MARK: SWCHB
-			return self.ports.b.0.read()
+			// read data from peripheral for input pins
+			// read data from data register for output pins
+			let input = self.peripherals.b.read() & ~self.dataDirection.b
+			let output = self.data.b & self.dataDirection.b
+			return input | output
+			
+			// MARK: Data direction B
+		case 0x03, 0x0b, 0x13, 0x1b:
+			return self.dataDirection.b
+			
 		case 0x04:
 			// MARK: INTIM
 			return  self.timer.value
@@ -93,18 +135,34 @@ extension MOS6532: Addressable {
 	
 	public func write(_ data: Int, at address: Int) {
 		switch address {
-		case 0x00:
-			// MARK: SWCHA
-			self.ports.a.0.write(data)
-		case 0x01:
-			// MARK: SWACNT
-			self.ports.a.direction = data == 0x1 ? .write : .read
-		case 0x02:
-			// MARK: SWCHB
-			self.ports.b.0.write(data)
-		case 0x03:
-			// MARK: SWBCNT
-			self.ports.b.direction = data == 0x1 ? .write : .read
+			// MARK: Data A
+		case 0x00, 0x08, 0x10, 0x18:
+			self.data.a = data
+			// write data to peripheral for output pins
+			let output = data & self.dataDirection.a
+			self.peripherals.a.write(output)
+			
+			// MARK: Data direction A
+		case 0x01, 0x09, 0x11, 0x19:
+			self.dataDirection.a = data
+			// write data to peripheral for output pins
+			let output = self.data.a & data
+			self.peripherals.a.write(output)
+			
+			// MARK: Data B
+		case 0x02, 0x0a, 0x12, 0x1a:
+			self.data.b = data
+			// write data to peripheral for output pins
+			let output = data & self.dataDirection.b
+			self.peripherals.b.write(output)
+			
+			// MARK: Data direction B
+		case 0x03, 0xb, 0x13, 0x1b:
+			self.dataDirection.b = data
+			// write data to peripheral for output pins
+			let output = self.data.b & data
+			self.peripherals.b.write(output)
+			
 		case 0x14:
 			// MARK: TIM1T
 			self.timer = Timer(value: data, interval: 1)

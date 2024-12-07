@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1600"
+   LastUpgradeVersion = "1610"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -20,8 +20,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "9523FDA72C8D81DB0094A597"
-               BuildableName = "RayRacerKitTests.xctest"
-               BlueprintName = "RayRacerKitTests"
+               BuildableName = "RayRacerKitPerformanceTests.xctest"
+               BlueprintName = "RayRacerKitPerformanceTests"
                ReferencedContainer = "container:RayRacer.xcodeproj">
             </BuildableReference>
          </TestableReference>

@@ -13,24 +13,25 @@ public class Atari2600: ObservableObject {
 	private(set) public var tia: TIA!
 	
 	public var cartridge: Data? = nil
-	public var switches: Switches = .random()
-	public var controller = Joystick()
+	public var controllers: (Controller, Controller) = (.none, .none)
 	
 	private var state: State = .suspended(0)
 	private var debug: (condition: () -> Bool, callback: () -> Void)?
 	
-	public init() {
+	public init(switches: Atari2600.Switches = [.color]) {
 		self.cpu = MOS6507(bus: self)
-		self.riot = MOS6532(ports: (self.controller, self))
+		
+		self.riot = MOS6532()
+		self.riot.peripherals.a = self
+		self.riot.peripherals.b = switches
+		
 		self.tia = TIA()
+		self.tia.peripheral = self
 	}
 	
-	public func setSwitch(_ switch: Switches, on: Bool) {
-		if on {
-			self.switches.insert(`switch`)
-		} else {
-			self.switches.remove(`switch`)
-		}
+	public var switches: Switches {
+		get { return self.riot.peripherals.b as! Switches }
+		set { self.riot.peripherals.b = newValue }
 	}
 	
 	public func isSuspended(withCode code: Int) -> Bool {
@@ -45,7 +46,7 @@ public class Atari2600: ObservableObject {
 	///	updates suspension code only when it is higher than the current one.
 	public func suspend(withCode code: Int = 0) {
 		if case .suspended(let currentCode) = self.state,
-		   currentCode < code {
+		   currentCode > code {
 			return
 		}
 		
@@ -66,7 +67,7 @@ public class Atari2600: ObservableObject {
 				self.advanceCycle()
 				
 				if condition() {
-					self.state = .suspended(code)
+					self.state = .suspended(2)
 					callback()
 				}
 			}
@@ -167,112 +168,45 @@ extension Atari2600 {
 			&& breakpoints.contains(self.cpu.programCounter)
 		}, handler)
 		
-		self.resume()
+		self.resume(withCode: 2)
 	}
 }
 
 
 // MARK: -
+// MARK: Bus routing
 extension Atari2600: Addressable {
-	public func unmirror(_ address: Int) -> Int {
-		if (0x0040..<0x0080).contains(address) {
-			return address - 0x40
-		}
-		if (0x5000..<0x6000).contains(address) {
-			return address + 0xa000
-		}
-		return address
-	}
-	
 	public func read(at address: Int) -> Int {
-		let address = self.unmirror(address)
-		if (0x0000..<0x0040).contains(address) {
-			return self.tia.read(at: address)
-		}
-		if (0x0080..<0x0100).contains(address) {
-			let address = address - 0x0080
-			let data = self.riot.memory[address]
+		if address & 0xf000 == 0xf000 {
+			let data = self.cartridge?[address & 0x0fff] ?? 0xea
 			return Int(data)
+		} else if address & 0x280 == 0x280 {
+			return self.riot.read(at: address & 0x1f)
+		} else if address & 0x80 == 0x80 {
+			let data = self.riot.memory[address & 0x7f]
+			return Int(data)
+		} else {
+			return self.tia.read(at: address & 0x3f)
 		}
-		if (0x0280..<0x0300).contains(address) {
-			let address = address - 0x0280
-			return self.riot.read(at: address)
-		}
-		
-		let data = self.cartridge?[address - 0xf000]
-		?? 0xea//.random(in: 0x00...0xff)
-		
-		return Int(data)
 	}
 	
 	public func write(_ data: Int, at address: Int) {
-		let address = self.unmirror(address)
-		if (0x0000..<0x0040).contains(address) {
-			return self.tia.write(data, at: address)
-		}
-		if (0x0080..<0x0100).contains(address) {
-			let address = address - 0x0080
-			return self.riot.memory[address] = UInt8(data)
-		}
-		if (0x0280..<0x0300).contains(address) {
-			let address = address - 0x0280
-			return self.riot.write(data, at: address)
-		}
-		
-		let message = String(format: "Ignoring write at address $%04x", address)
-		print(message)
-	}
-}
-
-
-// MARK: - Console switches
-extension Atari2600 {
-	public struct Switches: OptionSet {
-		public static let reset = Switches(rawValue: 1 << 0)
-		public static let select = Switches(rawValue: 1 << 1)
-		public static let color = Switches(rawValue: 1 << 3)
-		public static let difficulty0 = Switches(rawValue: 1 << 6)
-		public static let difficulty1 = Switches(rawValue: 1 << 7)
-		
-		public var rawValue: Int
-		
-		public static func random() -> Switches {
-			let value: Int = .random(in: 0x00...0xff)
-			return Switches(rawValue: value)
-		}
-		
-		public init(rawValue: Int) {
-			self.rawValue = rawValue
+		if address & 0xf000 == 0xf000 {
+			print(format: "Ignoring write at ROM address $%04x.", address)
+		} else if address & 0x280 == 0x280 {
+			self.riot.write(data, at: address & 0x1f)
+		} else if address & 0x80 == 0x80 {
+			self.riot.memory[address & 0x7f] = UInt8(data)
+		} else {
+			self.tia.write(data, at: address & 0x3f)
 		}
 	}
 }
 
-extension Atari2600: MOS6532.Port {
-	public func read() -> Int {
-		// when switches for `select` and `reset` are on, corresponding
-		// bit values are set to 0
-		return self.switches.rawValue ^ 0x03
-	}
-	
-	public func write(_ data: Int) {
-		// port B is supposed to be read-only, but can be written to
-		// nonetheless; writing sets the 3 unassigned bits
-		self.switches.rawValue |= data & 0x34
-	}
-}
 
-
-// MARK: - Joystick
-extension Atari2600 {
-	public struct Joystick {
-	}
-}
-
-extension Atari2600.Joystick: MOS6532.Port {
-	public func read() -> Int {
-		return 0
-	}
-	
-	public mutating func write(_ data: Int) {
-	}
+// MARK: -
+// MARK: Convenience functionality
+func print(format: String, _ arguments: any CVarArg...) {
+	let message = String(format: format, arguments)
+	print(message)
 }

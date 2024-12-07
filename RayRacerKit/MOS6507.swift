@@ -43,7 +43,6 @@ public class MOS6507 {
 		self.programCounter = .random(in: 0x0000...0xffff)
 		
 		self.bus = bus
-		self.reset()
 	}
 	
 	/// Returns `true` when this CPU is in the first operation cycle; returns `false` otherwise.

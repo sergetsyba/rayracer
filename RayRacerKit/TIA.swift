@@ -17,8 +17,12 @@ public class TIA {
 	private var collisions = 0
 	
 	public var output: GraphicsOutput?
+	public var peripheral: Peripheral = .none
 	
-	init() {
+	private var vblank = 0
+	private var input = 0x0
+	
+	public init() {
 		self.players = (.random(), .random())
 		self.missiles = (.random(), .random())
 		self.ball = .random()
@@ -26,7 +30,6 @@ public class TIA {
 		self.backgroundColor = .random(in: 0x00...0x7f)
 		
 		self.verticalSync = false
-		self.verticalBlank = true
 		self.awaitsHorizontalSync = false
 	}
 	
@@ -42,7 +45,9 @@ public class TIA {
 	
 	/// Indicates whether TIA is currently transmitting no color signal due to electron beam being
 	/// in vertical retrace.
-	private(set) public var verticalBlank: Bool
+	public var verticalBlank: Bool {
+		return self.vblank[1]
+	}
 	
 	/// Indicates whether TIA is currently waiting on horizontal sync.
 	private(set) public var awaitsHorizontalSync: Bool
@@ -67,12 +72,24 @@ public class TIA {
 	/// Resets TIA.
 	public func reset() {
 		self.verticalSync = false
-		self.verticalBlank = false
+		self.vblank = 0
 		self.screenClock = 0
 	}
 	
 	/// Advances color clock by 1 unit.
 	public func advanceClock() {
+//		var input = self.peripheral.read()
+//		if self.vblank[7] {
+//			// when dumped ports disabled, ground
+//			input &= 0xf0
+//		}
+//		if self.vblank[6] {
+//			// when latched ports disabled, latch low
+//			input &= self.input | 0x0f
+//		}
+//		self.input = input
+		
+		
 		if self.verticalBlank || self.horizontalBlank {
 			self.output?.write(color: 0)
 		} else {
@@ -110,6 +127,10 @@ extension TIA {
 		/// Returns `true` when this object should be drawn at the specified position in the scan
 		/// line; returns `false` otherwise.
 		func draws(at position: Int) -> Bool
+	}
+	
+	public protocol Peripheral {
+		func read() -> Int
 	}
 }
 
@@ -217,9 +238,27 @@ extension TIA: Addressable {
 		case 0x07:
 			// MARK: CXPPMM
 			return ((self.collisions & 0x6000) >> 7) | address
+			
+		case 0x08:
+			// MARK: INPT0
+			return (self.input << 7) & 0x80
+		case 0x09:
+			// MARK: INPT1
+			return (self.input << 6) & 0x80
+		case 0x0a:
+			// MARK: INPT2
+			return (self.input << 5) & 0x80
+		case 0x0b:
+			// MARK: INPT3
+			return (self.input << 4) & 0x80
 		case 0x0c:
 			// MARK: INPT4
-			return 0x80
+			let data = self.peripheral.read()
+			return (data << 3) & 0x80
+		case 0x0d:
+			// MARK: INPT5
+			let data = self.peripheral.read()
+			return (data << 2) & 0x80
 		default:
 			return .random(in: 0x00..<0x100)
 		}
@@ -233,7 +272,7 @@ extension TIA: Addressable {
 			self.screenClock = 0
 		case 0x01:
 			// MARK: VBLANK
-			self.verticalBlank = data[1]
+			self.vblank = data
 		case 0x02:
 			// MARK: WSYNC
 			// NOTE: when last CPU clock cycle of a write instruction coincides
@@ -444,5 +483,19 @@ public extension TIA.Playfield {
 public extension TIA.PlayfieldControl {
 	static func random() -> Self {
 		return TIA.PlayfieldControl(rawValue: .random(in: 0x00...0xff))
+	}
+}
+
+
+// MARK: -
+private extension TIA.Peripheral where Self == NoPeripheral {
+	static var none: Self {
+		return NoPeripheral()
+	}
+}
+
+private struct NoPeripheral: TIA.Peripheral {
+	func read() -> Int {
+		return .random(in: 0x00...0xff)
 	}
 }
