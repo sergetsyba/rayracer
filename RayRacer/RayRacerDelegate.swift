@@ -79,15 +79,18 @@ extension Notification.Name {
 // MARK: Main menu management
 extension RayRacerDelegate: NSMenuDelegate {
 	func menuNeedsUpdate(_ menu: NSMenu) {
+		let switches = UserDefaults.standard
+			.consoleSwitches
+		
 		switch menu.identifier {
 		case .insertRecentCartridgeMenu:
 			self.prepareInsertRecentCartridgeMenuItems(in: menu)
 		case .leftDifficultyMenu:
-			self.prepareConsoleSwitchesMenuItems(in: menu, for: .difficulty0)
+			menu.selectedItemIndex = switches[.difficulty0] ? 1 : 0
 		case .rightDifficultyMenu:
-			self.prepareConsoleSwitchesMenuItems(in: menu, for: .difficulty1)
+			menu.selectedItemIndex = switches[.difficulty1] ? 1 : 0
 		case .tvTypeMenu:
-			self.prepareConsoleSwitchesMenuItems(in: menu, for: .color)
+			menu.selectedItemIndex = switches[.color] ? 1 : 0
 		default:
 			break
 		}
@@ -120,16 +123,6 @@ extension RayRacerDelegate: NSMenuDelegate {
 		}
 		
 		menu.items = menuItems
-	}
-	
-	private func prepareConsoleSwitchesMenuItems(in menu: NSMenu, for value: Atari2600.Switches) {
-		// menu items for `off` states appear at index 0
-		let selectedIndex = self.defaults.consoleSwitches
-			.contains(value) ? 1 : 0
-		
-		for (index, menuItem) in menu.items.enumerated() {
-			menuItem.state = index == selectedIndex ? .on : .off
-		}
 	}
 }
 
@@ -260,6 +253,20 @@ extension RayRacerDelegate: NSWindowDelegate {
 
 // MARK: -
 // MARK: Convenience functionality
+private extension NSMenu {
+	var selectedItemIndex: Int? {
+		get {
+			return self.items
+				.firstIndex(where: { $0.state == .on })
+		}
+		set {
+			for (index, item) in self.items.enumerated() {
+				item.state = index == newValue ? .on : .off
+			}
+		}
+	}
+}
+
 private extension Data {
 	enum SecurityScopeError: Error {
 		case requestDenied

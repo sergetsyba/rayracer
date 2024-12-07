@@ -20,8 +20,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "9523FDA72C8D81DB0094A597"
-               BuildableName = "RayRacerKitTests.xctest"
-               BlueprintName = "RayRacerKitTests"
+               BuildableName = "RayRacerKitPerformanceTests.xctest"
+               BlueprintName = "RayRacerKitPerformanceTests"
                ReferencedContainer = "container:RayRacer.xcodeproj">
             </BuildableReference>
          </TestableReference>

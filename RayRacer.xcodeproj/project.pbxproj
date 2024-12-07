@@ -51,6 +51,9 @@
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
 		95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */; };
+		95F5190A2D047F3800C5E8BC /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F519092D047F3800C5E8BC /* Controller.swift */; };
+		95F5190C2D04827900C5E8BC /* Console+ControllerPorts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F5190B2D04827900C5E8BC /* Console+ControllerPorts.swift */; };
+		95F5190E2D0494D400C5E8BC /* NoController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F5190D2D0494D400C5E8BC /* NoController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +131,9 @@
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
 		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
 		95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OptionSet+Subscript.swift"; sourceTree = "<group>"; };
+		95F519092D047F3800C5E8BC /* Controller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controller.swift; sourceTree = "<group>"; };
+		95F5190B2D04827900C5E8BC /* Console+ControllerPorts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Console+ControllerPorts.swift"; sourceTree = "<group>"; };
+		95F5190D2D0494D400C5E8BC /* NoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -205,6 +211,9 @@
 			children = (
 				950A64A02C4BCD3C007D4362 /* Addressable.swift */,
 				953D92AE2A1AEB8300EC52AC /* Console.swift */,
+				95F5190B2D04827900C5E8BC /* Console+ControllerPorts.swift */,
+				958738982CEC89280063C751 /* Console+Switches.swift */,
+				95F5190F2D0494DC00C5E8BC /* Controller */,
 				953D92B02A1AEB9E00EC52AC /* MOS6507.swift */,
 				9502E5962A423296007A32DA /* MOS6507+Assembly.swift */,
 				952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */,
@@ -215,8 +224,6 @@
 				95A222112C8A000C008176F7 /* TIA+Missile.swift */,
 				95A222142C8A000D008176F7 /* TIA+Player.swift */,
 				95A222132C8A000D008176F7 /* TIA+Playfield.swift */,
-				95A2FE9F2CE8A5D40058F393 /* Joystick.swift */,
-				958738982CEC89280063C751 /* Console+Switches.swift */,
 			);
 			path = RayRacerKit;
 			sourceTree = "<group>";
@@ -272,6 +279,16 @@
 				95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */,
 			);
 			path = Screen;
+			sourceTree = "<group>";
+		};
+		95F5190F2D0494DC00C5E8BC /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				95F519092D047F3800C5E8BC /* Controller.swift */,
+				95A2FE9F2CE8A5D40058F393 /* Joystick.swift */,
+				95F5190D2D0494D400C5E8BC /* NoController.swift */,
+			);
+			path = Controller;
 			sourceTree = "<group>";
 		};
 		95F563FD2A42E33E0028A90B /* Frameworks */ = {
@@ -471,14 +488,17 @@
 				950A64A12C4BCD3C007D4362 /* Addressable.swift in Sources */,
 				9502E5972A423296007A32DA /* MOS6507+Assembly.swift in Sources */,
 				95A222172C8A000D008176F7 /* TIA+Playfield.swift in Sources */,
+				95F5190C2D04827900C5E8BC /* Console+ControllerPorts.swift in Sources */,
 				95A222182C8A000D008176F7 /* TIA+Player.swift in Sources */,
 				953D92B12A1AEB9E00EC52AC /* MOS6507.swift in Sources */,
+				95F5190A2D047F3800C5E8BC /* Controller.swift in Sources */,
 				958738992CEC89280063C751 /* Console+Switches.swift in Sources */,
 				9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */,
 				953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */,
 				95A222162C8A000D008176F7 /* TIA+Ball.swift in Sources */,
 				952C1A292C902E8D00D341D6 /* MOS6507+Status.swift in Sources */,
 				95A222152C8A000D008176F7 /* TIA+Missile.swift in Sources */,
+				95F5190E2D0494D400C5E8BC /* NoController.swift in Sources */,
 				958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */,
 				95A2FEA02CE8A5D40058F393 /* Joystick.swift in Sources */,
 				95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */,

@@ -11,6 +11,8 @@ import RayRacerKit
 
 class ScreenViewController: NSViewController {
 	private let console: Atari2600
+	private let joystick = Joystick()
+	
 	private var screenData: Array<UInt8>
 	private var screenDataReady: Bool
 	private var screenIndex = 0
@@ -30,6 +32,8 @@ class ScreenViewController: NSViewController {
 	
 	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
 		self.console = console
+		self.console.controllers.0 = self.joystick
+		
 		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count)
 		self.screenDataReady = true
 		
@@ -87,7 +91,7 @@ extension ScreenViewController {
 	
 	override func keyDown(with event: NSEvent) {
 		if let button = Joystick.Buttons(keyCode: event.keyCode) {
-			self.console.joystick.press(button)
+			self.joystick.press(button)
 		} else {
 			super.keyDown(with: event)
 		}
@@ -95,7 +99,7 @@ extension ScreenViewController {
 	
 	override func keyUp(with event: NSEvent) {
 		if let button = Joystick.Buttons(keyCode: event.keyCode) {
-			self.console.joystick.release(button)
+			self.joystick.release(button)
 		} else {
 			super.keyUp(with: event)
 		}

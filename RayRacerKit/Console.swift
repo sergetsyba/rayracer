@@ -13,7 +13,7 @@ public class Atari2600: ObservableObject {
 	private(set) public var tia: TIA!
 	
 	public var cartridge: Data? = nil
-	public var joystick = Joystick()
+	public var controllers: (Controller, Controller) = (.none, .none)
 	
 	private var state: State = .suspended(0)
 	private var debug: (condition: () -> Bool, callback: () -> Void)?
@@ -26,7 +26,7 @@ public class Atari2600: ObservableObject {
 		self.riot.peripherals.b = switches
 		
 		self.tia = TIA()
-		self.tia.peripheral = self.joystick
+		self.tia.peripheral = self
 	}
 	
 	public var switches: Switches {
@@ -174,17 +174,8 @@ extension Atari2600 {
 
 
 // MARK: -
+// MARK: Bus routing
 extension Atari2600: Addressable {
-	public func unmirror(_ address: Int) -> Int {
-		if (0x0040..<0x0080).contains(address) {
-			return address - 0x40
-		}
-		if (0x5000..<0x6000).contains(address) {
-			return address + 0xa000
-		}
-		return address
-	}
-	
 	public func read(at address: Int) -> Int {
 		if address & 0xf000 == 0xf000 {
 			let data = self.cartridge?[address & 0x0fff] ?? 0xea
@@ -209,22 +200,6 @@ extension Atari2600: Addressable {
 		} else {
 			self.tia.write(data, at: address & 0x3f)
 		}
-	}
-}
-
-
-extension Atari2600: TIA.Peripheral {
-	public func read() -> Int {
-		let data = self.joystick.pressed.rawValue
-		return (~data << 4) & 0xf0
-	}
-	
-	
-}
-
-extension Atari2600: MOS6532.Peripheral {
-	public func write(_ data: Int) {
-		// does nothing
 	}
 }
 

@@ -73,7 +73,7 @@ extension MOS6532 {
 		
 		public static func random() -> Self {
 			return Timer(
-				value: .random(in: 0x00...0xff),
+				value: 123,
 				interval: 1024)
 		}
 		

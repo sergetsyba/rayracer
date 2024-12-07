@@ -32,15 +32,15 @@ extension RayRacerDelegate {
 // MARK: Console switches
 extension RayRacerDelegate {
 	@IBAction func didSelectLeftDifficultyMenuItem(_ sender: NSMenuItem) {
-		self.setConsoleSwitch(.difficulty0, on: sender.menuIndex == 0)
+		self.setConsoleSwitch(.difficulty0, on: sender.menuIndex == 1)
 	}
 	
 	@IBAction func didSelectRightDifficultyMenuItem(_ sender: NSMenuItem) {
-		self.setConsoleSwitch(.difficulty1, on: sender.menuIndex == 0)
+		self.setConsoleSwitch(.difficulty1, on: sender.menuIndex == 1)
 	}
 	
 	@IBAction func didSelectTVTypeMenuItem(_ sender: NSMenuItem) {
-		self.setConsoleSwitch(.color, on: sender.menuIndex == 0)
+		self.setConsoleSwitch(.color, on: sender.menuIndex == 1)
 	}
 	
 	@IBAction func didSelectGameSelectMenuItem(_ sender: NSMenuItem) {
@@ -53,6 +53,9 @@ extension RayRacerDelegate {
 	
 	@IBAction func didSelectConsoleResetMenuItem(_ sender: AnyObject) {
 		self.console.reset()
+		
+		NotificationCenter.default
+			.post(name: .reset, object: self)
 	}
 	
 	private func setConsoleSwitch(_ `switch`: Atari2600.Switches, on: Bool) {
@@ -81,7 +84,7 @@ extension RayRacerDelegate {
 
 // MARK: -
 // MARK: Convenience functionality
-private extension OptionSet {
+extension OptionSet {
 	subscript(_ index: Self.Element) -> Bool {
 		get {
 			return self.contains(index)

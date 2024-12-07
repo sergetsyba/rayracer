@@ -5,25 +5,24 @@
 //  Created by Serge Tsyba on 16.11.2024.
 //
 
-public struct Joystick {
+public class Joystick {
 	private(set) var pressed = Buttons()
-	public var eventHanlder: ((Buttons) -> Void)?
 	
-	var output: Int {
-		return self.pressed.rawValue
+	public init(pressed: Buttons = []) {
+		self.pressed = pressed
 	}
 	
-	public mutating func press(_ buttons: Buttons) {
+	public func press(_ buttons: Buttons) {
 		self.pressed.insert(buttons)
-		self.eventHanlder?(self.pressed)
 	}
 	
-	public mutating func release(_ buttons: Buttons) {
+	public func release(_ buttons: Buttons) {
 		self.pressed.remove(buttons)
-		self.eventHanlder?(self.pressed)
 	}
 }
 
+// MARK: -
+// MARK: Buttons
 extension Joystick {
 	public struct Buttons: OptionSet {
 		public static let up = Buttons(rawValue: 1 << 0)
@@ -40,15 +39,11 @@ extension Joystick {
 	}
 }
 
-
-extension Joystick: MOS6532.Peripheral, TIA.Peripheral {
-	public func read() -> Int {
-		
-		
-		return 0x0
-	}
-	
-	public func write(_ data: Int) {
-		//
+// MARK: -
+// MARK: Controller
+extension Joystick: Controller {
+	public var output: Int {
+		let data = self.pressed.rawValue
+		return ~data & 0xff
 	}
 }

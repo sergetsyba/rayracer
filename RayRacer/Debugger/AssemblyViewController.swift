@@ -217,7 +217,7 @@ private extension AssemblyViewController {
 		case .zeroPage, .absolute:
 			// for instructions with absolute addressing, always return
 			// formatted operand address target
-			let address = self.console.unmirror(instruction.operand)
+			let address = self.unmirror(instruction.operand)
 			return self.formatTarget(at: address)
 			
 		default:
@@ -226,12 +226,22 @@ private extension AssemblyViewController {
 			// that instruction
 			if self.program?[row].0 == self.console.cpu.programCounter,
 			   let address = self.console.cpu.operandAddress {
-				let address = self.console.unmirror(address)
+				let address = self.unmirror(address)
 				return self.formatTarget(at: address)
 			} else {
 				return nil
 			}
 		}
+	}
+	
+	private func unmirror(_ address: Int) -> Int {
+		if (0x0040..<0x0080).contains(address) {
+			return address - 0x40
+		}
+		if (0x5000..<0x6000).contains(address) {
+			return address + 0xa000
+		}
+		return address
 	}
 	
 	private func formatTarget(at address: Int) -> String? {
