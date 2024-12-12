@@ -806,7 +806,7 @@ private extension MOS6507 {
 				low -= 0xa
 			}
 			
-			var result = high * 0x10 + low
+			result = high * 0x10 + low
 			if result > 0x99 {
 				self.status[.carry] = true
 				result -= 0xa0
