@@ -27,10 +27,18 @@ extension TIA.Player: TIA.Drawable {
 		0x011, // ●○○●○○○○○○
 		0x015, // ●○●○●○○○○○
 		0x101, // ●○○○○○○○●○
-		0x001, // ●●○○○○○○○○
+		0x003, // ●●○○○○○○○○
 		0x111, // ●○○○●○○○●○
-		0x001  // ●●●●○○○○○○
+		0x00f  // ●●●●○○○○○○
 	]
+	
+	private var scale: Int {
+		switch self.copies {
+		case 5: return 2
+		case 7: return 4
+		default: return 1
+		}
+	}
 	
 	public func draws(at position: Int) -> Bool {
 		let counter = position - self.position
@@ -47,8 +55,10 @@ extension TIA.Player: TIA.Drawable {
 		? self.graphics.1
 		: self.graphics.0
 		
+		let bit = (counter % 8) / self.scale
+		
 		return self.reflected
-		? graphics[counter % 8]
-		: graphics[7 - counter % 8]
+		? graphics[bit]
+		: graphics[7 - bit]
 	}
 }
