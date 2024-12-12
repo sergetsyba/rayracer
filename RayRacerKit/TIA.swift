@@ -257,7 +257,9 @@ extension TIA: Addressable {
 		case 0x00:
 			// MARK: VSYNC
 			self.verticalSync = data[1]
-			self.screenClock = 0
+			if !self.verticalSync {
+				self.screenClock = 0
+			}
 		case 0x01:
 			// MARK: VBLANK
 			self.vblank = data
