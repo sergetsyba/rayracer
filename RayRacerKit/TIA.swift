@@ -276,11 +276,11 @@ extension TIA: Addressable {
 			self.colorClock = 0
 		case 0x04:
 			// MARK: NUSIZ0
-			self.players.0.copies = data & 0x3
+			self.players.0.copies = data & 0x7
 			self.missiles.0.size = 1 << ((data >> 4) & 0x3)
 		case 0x05:
 			// MARK: NUSIZ1
-			self.players.1.copies = data & 0x3
+			self.players.1.copies = data & 0x7
 			self.missiles.1.size = 1 << ((data >> 4) & 0x3)
 		case 0x06:
 			// MARK: COLUP0

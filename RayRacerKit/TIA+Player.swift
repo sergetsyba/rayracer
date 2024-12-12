@@ -55,7 +55,7 @@ extension TIA.Player: TIA.Drawable {
 		? self.graphics.1
 		: self.graphics.0
 		
-		let bit = (counter % 8) / self.scale
+		let bit = (counter / self.scale) % 8
 		
 		return self.reflected
 		? graphics[bit]
