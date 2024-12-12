@@ -465,8 +465,10 @@ extension MOS6507 {
 		case 0x40: return self.withImpliedAddressing(
 			self.returnFromInterrupt, cycles: 6)
 			// MARK: RTS
-		case 0x60: return self.withImpliedAddressing(
-			self.returnFromSubroutine, cycles: 6)
+		case 0x60: return self.withImpliedAddressing({
+			self.returnFromSubroutine()
+			self.programCounter += 1
+		}, cycles: 6)
 			
 			// MARK: SBC
 		case 0xe9: return self.withImmediateAddressing(
@@ -987,8 +989,16 @@ private extension MOS6507 {
 	}
 	
 	func jumpToSubroutine(at address: Int) {
-		self.pushStack(self.programCounter.high)
-		self.pushStack(self.programCounter.low)
+		// this instruction is wrapped within the absolute addressing closure,
+		// which increments program counter by 2 before calling this function;
+		// however, in hardware program counter is first incremented by 1,
+		// then it is pushed onto the stack and incremented by 1 once more;
+		// pushing (program counter - 1) onto the stack corrects for it and
+		// avoids a separate addressing for this instruction
+		let programCounter = self.programCounter - 1
+		
+		self.pushStack(programCounter.high)
+		self.pushStack(programCounter.low)
 		self.programCounter = address
 	}
 	
