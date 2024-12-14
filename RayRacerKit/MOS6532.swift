@@ -19,7 +19,7 @@ public class MOS6532 {
 		self.peripherals.a = NoPeripheral()
 		self.peripherals.b = NoPeripheral()
 		
-		self.memory = Data(randomOfCount: 128)
+		self.memory = Data(repeating: 0x0, count: 128)
 		self.timer = .random()
 	}
 	
@@ -27,7 +27,7 @@ public class MOS6532 {
 	func reset() {
 		// both ports are set as input on reset
 		self.dataDirection = (0x0, 0x0)
-		self.memory = Data(randomOfCount: 128)
+		self.memory = Data(repeating: 0x0, count: 128)
 		self.timer = .random()
 	}
 	
@@ -40,7 +40,7 @@ public class MOS6532 {
 extension MOS6532 {
 	public protocol Peripheral {
 		func read() -> Int
-		mutating func write(_ data: Int)
+		mutating func write(_ data: Int, mask: Int)
 	}
 }
 
@@ -49,7 +49,7 @@ private struct NoPeripheral: MOS6532.Peripheral {
 		return .random(in: 0x00...0xff)
 	}
 	
-	mutating func write(_ data: Int) {
+	mutating func write(_ data: Int, mask: Int) {
 	}
 }
 
@@ -138,30 +138,22 @@ extension MOS6532: Addressable {
 			// MARK: Data A
 		case 0x00, 0x08, 0x10, 0x18:
 			self.data.a = data
-			// write data to peripheral for output pins
-			let output = data & self.dataDirection.a
-			self.peripherals.a.write(output)
+			self.peripherals.a.write(self.data.a, mask: self.dataDirection.a)
 			
 			// MARK: Data direction A
 		case 0x01, 0x09, 0x11, 0x19:
 			self.dataDirection.a = data
-			// write data to peripheral for output pins
-			let output = self.data.a & data
-			self.peripherals.a.write(output)
+			self.peripherals.a.write(self.data.a, mask: self.dataDirection.a)
 			
 			// MARK: Data B
 		case 0x02, 0x0a, 0x12, 0x1a:
 			self.data.b = data
-			// write data to peripheral for output pins
-			let output = data & self.dataDirection.b
-			self.peripherals.b.write(output)
+			self.peripherals.a.write(self.data.b, mask: self.dataDirection.b)
 			
 			// MARK: Data direction B
 		case 0x03, 0xb, 0x13, 0x1b:
 			self.dataDirection.b = data
-			// write data to peripheral for output pins
-			let output = self.data.b & data
-			self.peripherals.b.write(output)
+			self.peripherals.b.write(self.data.b, mask: self.dataDirection.b)
 			
 		case 0x14:
 			// MARK: TIM1T

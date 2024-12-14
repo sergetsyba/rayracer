@@ -810,14 +810,18 @@ private extension MOS6507 {
 			
 			result = high * 0x10 + low
 			if result > 0x99 {
-				self.status[.carry] = true
 				result -= 0xa0
+				self.status[.carry] = true
+			} else {
+				self.status[.carry] = false
 			}
 		} else {
 			result = self.accumulator + operand + carry
 			if result > 0xff {
-				self.status[.carry] = true
 				result -= 0x100
+				self.status[.carry] = true
+			} else {
+				self.status[.carry] = false
 			}
 		}
 		
@@ -843,14 +847,18 @@ private extension MOS6507 {
 			
 			result = high * 0x10 + low
 			if result < 0x0 {
-				self.status[.carry] = true
 				result += 0xa0
+				self.status[.carry] = false
+			} else {
+				self.status[.carry] = true
 			}
 		} else {
 			result = self.accumulator - operand - borrow
 			if result < 0x0 {
-				self.status[.carry] = true
 				result += 0x100
+				self.status[.carry] = false
+			} else {
+				self.status[.carry] = true
 			}
 		}
 		
@@ -858,7 +866,6 @@ private extension MOS6507 {
 		
 		self.accumulator = result
 		self.status[.overflow] = overflow[7]
-		self.status[.carry] = result >= 0x0
 	}
 	
 	func bitTestAccumulator(withValueAt address: Int) {

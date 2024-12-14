@@ -28,10 +28,12 @@ extension Atari2600.Switches: MOS6532.Peripheral {
 		return self.rawValue ^ 0x03
 	}
 	
-	public mutating func write(_ data: Int) {
+	public mutating func write(_ data: Int, mask: Int) {
 		// switches are supposed to be read-only, but can be written to
 		// nonetheless; writing sets the 3 unused bits
-		self.rawValue &= ~0x34
-		self.rawValue |= data & 0x34
+		let mask = mask & 0x34
+		
+		self.rawValue &= ~mask
+		self.rawValue |= data & mask
 	}
 }

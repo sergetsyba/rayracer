@@ -16,7 +16,7 @@ extension Atari2600: MOS6532.Peripheral {
 		return (data1 & 0x0f) | ((data0 << 4) & 0xf0)
 	}
 	
-	public func write(_ data: Int) {
+	public func write(_ data: Int, mask: Int) {
 		// TODO:
 	}
 }
