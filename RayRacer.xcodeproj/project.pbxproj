@@ -13,6 +13,8 @@
 		950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641DE2A39C4E700938403 /* AssemblyAddressCellView.swift */; };
 		950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641E22A39CDAB00938403 /* BreakpointToggle.swift */; };
 		950A64A12C4BCD3C007D4362 /* Addressable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950A64A02C4BCD3C007D4362 /* Addressable.swift */; };
+		9512A7F42D0F0A5E009EB065 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
+		9512A7F52D0F0A5E009EB065 /* RayRacerKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */; };
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
 		9523FDAB2C8D81DB0094A597 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */; };
@@ -57,6 +59,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		9512A7F62D0F0A5E009EB065 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 951E2F7B2A18B11900E6902F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 953D92A62A1AEB7400EC52AC;
+			remoteInfo = RayRacerKit;
+		};
 		9523FDAD2C8D81DB0094A597 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 951E2F7B2A18B11900E6902F /* Project object */;
@@ -79,6 +88,20 @@
 			remoteInfo = RayRacerKit;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9512A7F82D0F0A5E009EB065 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				9512A7F52D0F0A5E009EB065 /* RayRacerKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		9502E5962A423296007A32DA /* MOS6507+Assembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MOS6507+Assembly.swift"; sourceTree = "<group>"; };
@@ -160,6 +183,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9512A7F42D0F0A5E009EB065 /* RayRacerKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,11 +378,13 @@
 				954A18602A1AEE5800EBC582 /* Sources */,
 				954A18612A1AEE5800EBC582 /* Frameworks */,
 				954A18622A1AEE5800EBC582 /* Resources */,
+				9512A7F82D0F0A5E009EB065 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				95A2D0062C512C7600440622 /* PBXTargetDependency */,
+				9512A7F72D0F0A5E009EB065 /* PBXTargetDependency */,
 			);
 			name = RayRacer;
 			productName = Atari2600;
@@ -542,6 +568,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		9512A7F72D0F0A5E009EB065 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 953D92A62A1AEB7400EC52AC /* RayRacerKit */;
+			targetProxy = 9512A7F62D0F0A5E009EB065 /* PBXContainerItemProxy */;
+		};
 		9523FDAE2C8D81DB0094A597 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 953D92A62A1AEB7400EC52AC /* RayRacerKit */;
@@ -832,7 +863,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
-				MARKETING_VERSION = 0.1;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -865,7 +896,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
-				MARKETING_VERSION = 0.1;
+				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

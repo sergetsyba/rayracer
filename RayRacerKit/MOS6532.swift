@@ -8,104 +8,54 @@
 import Foundation
 
 public class MOS6532 {
-	var peripherals: (a: Peripheral, b: Peripheral)
-	var data: (a: Int, b: Int) = (.random, .random)
-	var dataDirection: (a: Int, b: Int) = (.random, .random)
+	public var peripherals: (a: Peripheral, b: Peripheral)
 	
 	internal(set) public var memory: Data
-	private(set) public var timer: Timer
+	internal(set) public var data: (a: Int, b: Int)
+	internal(set) public var dataDirection: (a: Int, b: Int)
+	internal(set) public var timer: (Int, interval: Int)
 	
 	public init() {
-		self.peripherals.a = NoPeripheral()
-		self.peripherals.b = NoPeripheral()
+		self.peripherals = (.none, .none)
 		
-		self.memory = Data(repeating: 0x0, count: 128)
-		self.timer = .random()
+		self.memory = .random(count: 128)
+		self.data = (.random(), .random())
+		self.dataDirection = (0x00, 0x00)
+		self.timer = (1024 * .random(), 1024)
 	}
 	
 	/// Resets internal state.
-	func reset() {
+	public func reset() {
+		self.memory = .random(count: 128)
+		self.data = (.random(), .random())
+		
 		// both ports are set as input on reset
-		self.dataDirection = (0x0, 0x0)
-		self.memory = Data(repeating: 0x0, count: 128)
-		self.timer = .random()
+		self.dataDirection = (0x00, 0x00)
+		self.timer = (1024 * .random(), 1024)
 	}
 	
 	/// Advances clock by the speciied number of cycles.
-	func advanceClock(cycles: Int = 1) {
-		self.timer.advanceClock(cycles: cycles)
-	}
-}
-
-extension MOS6532 {
-	public protocol Peripheral {
-		func read() -> Int
-		mutating func write(_ data: Int, mask: Int)
-	}
-}
-
-private struct NoPeripheral: MOS6532.Peripheral {
-	func read() -> Int {
-		return .random(in: 0x00...0xff)
-	}
-	
-	mutating func write(_ data: Int, mask: Int) {
-	}
-}
-
-private extension Int {
-	static var random: Self {
-		return .random(in: 0x00...0xff)
-	}
-}
-
-
-// MARK: -
-extension MOS6532 {
-	public struct Timer {
-		private(set) public var clock: Int
-		private(set) public var interval: Int
-		
-		public init(value: Int, interval: Int) {
-			self.clock = value * interval
-			self.interval = interval
+	public func advanceClock() {
+		if self.timer.0 > -0xff {
+			self.timer.0 -= 1
 		}
-		
-		public static func random() -> Self {
-			return Timer(
-				value: 123,
-				interval: 1024)
-		}
-		
-		public var value: Int {
-			return self.clock < 0
-			? Int(signed: 0xff - self.clock, bits: 8)
-			: self.clock / self.interval
-		}
-		
-		public mutating func advanceClock(cycles: Int) {
-			// stop timer when it reaches limit
-			self.clock = max(-0xff, self.clock - cycles)
-		}
-	}
-	
-	public enum DataDirection {
-		case read
-		case write
 	}
 }
 
 
 // MARK: -
 // MARK: Bus integration
-extension MOS6532: Addressable {
+extension MOS6532 {
+	/// Reads data at the specified address in this chip.
 	public func read(at address: Int) -> Int {
 		switch address % 0x08 {
 			// MARK: Data A
 		case 0x00, 0x08, 0x10, 0x18:
 			// read data from peripheral for input pins
+			var input = self.peripherals.a.read()
+			input &= ~self.dataDirection.a
+			
 			// read data from data register for output pins
-			let input = self.peripherals.a.read() & ~self.dataDirection.a
 			let output = self.data.a & self.dataDirection.a
 			return input | output
 			
@@ -116,8 +66,10 @@ extension MOS6532: Addressable {
 			// MARK: Data B
 		case 0x02:
 			// read data from peripheral for input pins
+			var input = self.peripherals.b.read()
+			input &= ~self.dataDirection.b
+			
 			// read data from data register for output pins
-			let input = self.peripherals.b.read() & ~self.dataDirection.b
 			let output = self.data.b & self.dataDirection.b
 			return input | output
 			
@@ -126,13 +78,17 @@ extension MOS6532: Addressable {
 			return self.dataDirection.b
 			
 		case 0x04:
-			// MARK: INTIM
-			return  self.timer.value
+			// MARK: Timer
+			return self.timer.0 < 0
+			? Int(signed: 0xff - self.timer.0)
+			: self.timer.0 / self.timer.interval
+			
 		default:
 			return 0x00
 		}
 	}
 	
+	/// Writes the specified data at the specified address in this chip.
 	public func write(_ data: Int, at address: Int) {
 		switch address {
 			// MARK: Data A
@@ -156,17 +112,17 @@ extension MOS6532: Addressable {
 			self.peripherals.b.write(self.data.b, mask: self.dataDirection.b)
 			
 		case 0x14:
-			// MARK: TIM1T
-			self.timer = Timer(value: data, interval: 1)
+			// MARK: Timer x1
+			self.timer = (data, 1)
 		case 0x15:
-			// MARK: TIM8T
-			self.timer = Timer(value: data, interval: 8)
+			// MARK: Timer x8
+			self.timer = (8 * data, 8)
 		case 0x16:
-			// MARK: TIM64T
-			self.timer = Timer(value: data, interval: 64)
+			// MARK: Timer x64
+			self.timer = (64 * data, 64)
 		case 0x17:
-			// MARK: T1024T
-			self.timer = Timer(value: data, interval: 1-24)
+			// MARK: Timer x1024
+			self.timer = (1024 * data, 1024)
 			
 		default:
 			break
@@ -176,25 +132,50 @@ extension MOS6532: Addressable {
 
 
 // MARK: -
-// MARK: Convenience functionality
-private extension UInt8 {
-	static var random: Self {
-		return Self.random(in: 1...255)
+// MARK: Peripheral
+extension MOS6532 {
+	public protocol Peripheral {
+		func read() -> Int
+		mutating func write(_ data: Int, mask: Int)
 	}
 }
 
+extension MOS6532.Peripheral where Self == NoPeripheral {
+	static var none: Self {
+		return NoPeripheral()
+	}
+}
+
+private struct NoPeripheral: MOS6532.Peripheral {
+	func read() -> Int {
+		return .random(in: 0x00...0xff)
+	}
+	
+	mutating func write(_ data: Int, mask: Int) {
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
 private extension Int {
-	static func random(of values: [Int]) -> Int {
+	static func random() -> Self {
+		return .random(in: 0x00...0xff)
+	}
+	
+	static func random(of values: [Int]) -> Self {
 		let index: Int = .random(in: 0..<values.count)
 		return values[index]
 	}
 }
 
 extension Data {
-	init(randomOfCount count: Int) {
-		self.init(count: count)
-		for index in self.indices {
-			self[index] = .random
+	static func random(count: Int) -> Self {
+		var data = Data(count: 128)
+		for index in data.indices {
+			data[index] = .random(in: 0x00...0xff)
 		}
+		
+		return data
 	}
 }
