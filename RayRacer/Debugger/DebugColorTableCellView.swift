@@ -35,19 +35,21 @@ class DebugColorTableCellView: NSTableCellView {
 // MARK: -
 // MARK: Convenience functionality
 private extension NSColor {
-	convenience init(ntscColor color: Int) {
-		let color1 = withUnsafePointer(to: ntsc_palette) {
-			let pointer = $0.pointer(to: \.0)
-			let index = color / 2 * 3
-			
-			return pointer![index]
+	static let ntscPalette: [simd_float3] = {
+		return withUnsafePointer(to: ntsc_palette) {
+			let item = $0.pointer(to: \.0)
+			return (0..<128)
+				.compactMap({ item?[$0] })
+				.map({ simd_float3($0) / 255.0 })
 		}
-		
-		let color2 = simd_float3(color1) / 255.0
+	}()
+	
+	convenience init(ntscColor color: Int) {
+		let components = Self.ntscPalette[color / 2]
 		self.init(
-			red: CGFloat(color2.x),
-			green: CGFloat(color2.y),
-			blue: CGFloat(color2.z),
+			red: CGFloat(components.x),
+			green: CGFloat(components.y),
+			blue: CGFloat(components.z),
 			alpha: 1.0)
 	}
 }

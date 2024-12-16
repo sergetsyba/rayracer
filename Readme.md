@@ -7,9 +7,6 @@ Ray Racer is under development and offers only partial emulation at present.
 
 It does not emulate
 
-* double- and quad-sized player graphics
-* ~~movable object collisions~~
-* ~~console switches~~
 * any controller other than 1 button joystick
 * audio
 * cartridges over 4KB with bank-switching

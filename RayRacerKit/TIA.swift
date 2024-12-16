@@ -78,18 +78,6 @@ public class TIA {
 	
 	/// Advances color clock by 1 unit.
 	public func advanceClock() {
-//		var input = self.peripheral.read()
-//		if self.vblank[7] {
-//			// when dumped ports disabled, ground
-//			input &= 0xf0
-//		}
-//		if self.vblank[6] {
-//			// when latched ports disabled, latch low
-//			input &= self.input | 0x0f
-//		}
-//		self.input = input
-		
-		
 		if self.verticalBlank || self.horizontalBlank {
 			self.output?.write(color: 0)
 		} else {
@@ -138,8 +126,8 @@ extension TIA {
 	private func graphicsState(at point: Int) -> Int {
 		var state = 0
 		state[0] = self.players.0.draws(at: point)
-		state[1] = self.players.1.draws(at: point)
-		state[2] = self.missiles.0.draws(at: point)
+		state[1] = self.missiles.0.draws(at: point)
+		state[2] = self.players.1.draws(at: point)
 		state[3] = self.missiles.1.draws(at: point)
 		state[4] = self.ball.draws(at: point)
 		state[5] = self.playfield.draws(at: point)
@@ -181,28 +169,28 @@ extension TIA {
 		.map() {
 			var collisions = 0
 			// cxm0p
-			collisions[0] = $0[2] && $0[0]
-			collisions[1] = $0[2] && $0[1]
+			collisions[0] = $0[1] && $0[0]
+			collisions[1] = $0[1] && $0[2]
 			// cxm1p
-			collisions[2] = $0[3] && $0[1]
+			collisions[2] = $0[3] && $0[2]
 			collisions[3] = $0[3] && $0[0]
 			// cxp0fb
 			collisions[4] = $0[0] && $0[4]
 			collisions[5] = $0[0] && $0[5]
 			// cxp1fb
-			collisions[6] = $0[1] && $0[4]
-			collisions[7] = $0[1] && $0[5]
+			collisions[6] = $0[2] && $0[4]
+			collisions[7] = $0[2] && $0[5]
 			// cxm0fb
-			collisions[8] = $0[2] && $0[4]
-			collisions[9] = $0[2] && $0[5]
+			collisions[8] = $0[1] && $0[4]
+			collisions[9] = $0[1] && $0[5]
 			// cxm1fb
 			collisions[10] = $0[3] && $0[4]
 			collisions[11] = $0[3] && $0[5]
 			// cxblpf
 			collisions[12] = $0[4] && $0[5]
 			// cxppmm
-			collisions[13] = $0[2] && $0[3]
-			collisions[14] = $0[0] && $0[1]
+			collisions[13] = $0[1] && $0[3]
+			collisions[14] = $0[0] && $0[2]
 			
 			return collisions
 		}
@@ -269,7 +257,9 @@ extension TIA: Addressable {
 		case 0x00:
 			// MARK: VSYNC
 			self.verticalSync = data[1]
-			self.screenClock = 0
+			if !self.verticalSync {
+				self.screenClock = 0
+			}
 		case 0x01:
 			// MARK: VBLANK
 			self.vblank = data
@@ -288,11 +278,11 @@ extension TIA: Addressable {
 			self.colorClock = 0
 		case 0x04:
 			// MARK: NUSIZ0
-			self.players.0.copies = data & 0x3
+			self.players.0.copies = data & 0x7
 			self.missiles.0.size = 1 << ((data >> 4) & 0x3)
 		case 0x05:
 			// MARK: NUSIZ1
-			self.players.1.copies = data & 0x3
+			self.players.1.copies = data & 0x7
 			self.missiles.1.size = 1 << ((data >> 4) & 0x3)
 		case 0x06:
 			// MARK: COLUP0

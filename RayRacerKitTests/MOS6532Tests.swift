@@ -116,7 +116,7 @@ private class TestPeripheral: MOS6532.Peripheral {
 		return data
 	}
 	
-	func write(_ data: Int) {
+	func write(_ data: Int, mask: Int) {
 		self.data = data
 	}
 }
