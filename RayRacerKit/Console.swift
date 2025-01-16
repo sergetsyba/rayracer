@@ -146,19 +146,19 @@ extension Atari2600 {
 	
 	/// Resumes program for the specified number of TV fields.
 	public func resume(fields: Int, completionHandler handler: @escaping () -> Void) {
-		var remaining = fields
-		var scanLine = self.tia.scanLine
-		
-		self.debug = ({ [unowned self] in
-			if self.tia.scanLine < scanLine {
-				remaining -= 1
-			}
-			
-			scanLine = self.tia.scanLine
-			return self.cpu.sync && remaining == 0
-		}, handler)
-		
-		self.resume(withCode: 2)
+//		var remaining = fields
+//		var scanLine = self.tia.scanLine
+//		
+//		self.debug = ({ [unowned self] in
+//			if self.tia.scanLine < scanLine {
+//				remaining -= 1
+//			}
+//			
+//			scanLine = self.tia.scanLine
+//			return self.cpu.sync && remaining == 0
+//		}, handler)
+//		
+//		self.resume(withCode: 2)
 	}
 	
 	/// Resumes program until an instruction at any of the specified program addresses.

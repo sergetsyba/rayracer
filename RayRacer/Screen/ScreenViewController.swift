@@ -178,13 +178,21 @@ extension ScreenViewController: TIA.GraphicsOutput {
 		return self.screenIndex / self.screenSize.width
 	}
 	
-	func sync() {
+	func verticalSync() {
 		self.console.suspend()
 		self.screenIndex = 0
 		
 		// notify emulation has produced next field data
 		DispatchQueue.main.async() {
 			self.screenDataReady = true
+		}
+	}
+	
+	func horizontalSync() {
+		// advance index to the beginning of the next scan line
+		let offset = self.screenIndex % self.screenSize.width
+		if offset > 0 {
+			self.screenIndex += self.screenSize.width - offset
 		}
 	}
 	
