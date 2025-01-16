@@ -219,7 +219,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		
 		switch item {
 		case .beamPosition:
-			view?.stringValue = (item.rawValue, "\(tia.scanLine), \(tia.colorClock - 68)")
+			view?.stringValue = (item.rawValue, "todo" /*"\(tia.scanLine), \(tia.colorClock - 68)"*/)
 		case .verticalSync:
 			view?.boolValue = (item.rawValue, tia.verticalSync)
 		case .verticalBlank:
@@ -329,7 +329,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, missile.color)
+			view?.colorValue = (item.rawValue, 0)
 			return view
 			
 		case .position:
@@ -360,7 +360,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, missile.color)
+			view?.colorValue = (item.rawValue, 0)
 			return view
 			
 		case .position:

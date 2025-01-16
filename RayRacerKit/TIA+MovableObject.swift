@@ -13,16 +13,18 @@ extension TIA {
 }
 
 extension TIA.MovableObject {
-	mutating func resetPosition() {
-		self.position = 160-4
-	}
-	
 	mutating func advanceClock() {
 		self.position += 1
 		self.position %= 160
 	}
 	
-	mutating func applyMotion() {
+	/// Resets position counter of this object.
+	mutating func reset() {
+		self.position = 160-4
+	}
+	
+	/// Applies horizontal motion to the position counter of this object.
+	mutating func move() {
 		self.position += self.motion
 		self.position %= 160
 	}

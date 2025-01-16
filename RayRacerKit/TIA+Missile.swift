@@ -6,25 +6,16 @@
 //
 
 extension TIA {
-	public struct Missile {
-		public var enabled: Bool
-		public var size: Int
-		public var color: Int
-		public var position: Int
-		public var motion: Int
-	}
-}
-
-
-// MARK: -
-// MARK: Drawing
-extension TIA.Missile: TIA.Drawable {
-	public func draws(at position: Int) -> Bool {
-		let counter = position - self.position
-		guard (0..<self.size).contains(counter) else {
-			return false
-		}
+	public struct Missile: MovableObject {
+		public var position = 0
+		public var motion = 0
 		
-		return self.enabled
+		public var enabled = false
+		public var size = 1
+		
+		var draws: Bool {
+			return self.enabled
+			&& self.position < self.size
+		}
 	}
 }
