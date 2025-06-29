@@ -252,7 +252,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, player.color)
+			view?.colorValue = (item.rawValue, 0)
 			return view
 			
 		case .position:
@@ -293,7 +293,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, player.color)
+			view?.colorValue = (item.rawValue, 0)
 			return view
 			
 		case .position:
@@ -391,7 +391,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, self.console.tia.playfield.color)
+			view?.colorValue = (item.rawValue, 0 /*self.console.tia.playfield.color*/)
 			return view
 			
 		case .position:
@@ -428,7 +428,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .color:
 			let view = outlineView.makeView(withIdentifier: .debugColorTableCellView, owner: nil) as? DebugColorTableCellView
-			view?.colorValue = (item.rawValue, playfield.color)
+			view?.colorValue = (item.rawValue, 0 /*playfield.color*/)
 			return view
 			
 		case .collisions:
@@ -439,7 +439,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forBackgroundDebugItem item: BackgroundDebugItem) -> NSView? {
-		let backgroundColor = self.console.tia.backgroundColor
+		let backgroundColor = 0//self.console.tia.backgroundColor
 		
 		switch item {
 		case .color:
@@ -487,8 +487,8 @@ private extension SystemStateViewController {
 	
 	private func formatGraphics(of player: TIA.Player) -> NSAttributedString {
 		let formatted = (
-			self.formatPlayerGraphics(player.graphics.0, reflected: player.reflected),
-			self.formatPlayerGraphics(player.graphics.1, reflected: player.reflected))
+			self.formatPlayerGraphics(Int(player.graphics.0), reflected: player.reflected),
+			self.formatPlayerGraphics(Int(player.graphics.1), reflected: player.reflected))
 		
 		let string = NSMutableAttributedString(string: formatted.0 + "  " + formatted.1)
 		let range = player.delayed
@@ -547,20 +547,15 @@ private extension SystemStateViewController {
 	}
 	
 	private func formatGraphics(of playfield: TIA.Playfield) -> String {
-		let pfs = [
-			(playfield.graphics & 0x0000f) << 4,
-			Int(reversingBits: (playfield.graphics & 0x00ff0) >> 4),
-			(playfield.graphics & 0xff000) >> 12
-		]
-		
-		let values = pfs
+		let values = playfield.graphics
 			.map({ String(format: "%02x", $0) })
 			.joined(separator: " ")
 		
-		let pattern = (0..<20)
-			.map({ playfield.graphics[$0] ? "■": "□" })
-			.joined()
+//		let pattern = (0..<20)
+//			.map({ playfield.graphics[$0] ? "■": "□" })
+//			.joined()
 		
+		let pattern = ""
 		return "\(values) \(pattern.suffix(20))"
 	}
 	

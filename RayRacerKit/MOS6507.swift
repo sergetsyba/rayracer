@@ -1042,7 +1042,7 @@ private extension Int {
 }
 
 extension Int {
-	subscript(bit: Int) -> Bool {
+	public subscript(bit: Int) -> Bool {
 		get {
 			let mask = 1 << bit
 			return self & mask == mask

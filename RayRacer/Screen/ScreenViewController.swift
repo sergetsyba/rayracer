@@ -14,8 +14,7 @@ class ScreenViewController: NSViewController {
 	private let joystick = Joystick()
 	
 	private var screenData: Array<UInt8>
-	private var screenDataReady: Bool
-	private var screenIndex = 0
+	private var screenIndex: Int
 	
 	private let commandQueue: MTLCommandQueue
 	private let pipelineState: MTLRenderPipelineState
@@ -35,7 +34,7 @@ class ScreenViewController: NSViewController {
 		self.console.controllers.0 = self.joystick
 		
 		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count)
-		self.screenDataReady = true
+		self.screenIndex = 0
 		
 		let device = commandQueue.device
 		guard let screenBuffer = device.makeBuffer(bytesNoCopy: &self.screenData, length: self.screenData.count),
@@ -129,9 +128,8 @@ extension ScreenViewController: MTKViewDelegate {
 	}
 	
 	func draw(in view: MTKView) {
-		// skip frame when console has been suspended by another component
-		// or has not yet produced field data
-		guard self.screenDataReady else {
+		// skip frame when console has not finished producing field data
+		guard self.screenIndex == 0 else {
 			return
 		}
 		
@@ -174,18 +172,11 @@ extension ScreenViewController: MTKViewDelegate {
 
 // MARK: -
 extension ScreenViewController: TIA.GraphicsOutput {
-	private var currentScanLine: Int {
-		return self.screenIndex / self.screenSize.width
-	}
-	
 	func verticalSync() {
+		// suspend emulation and notify renderer console has finished
+		// producing field data
 		self.console.suspend()
 		self.screenIndex = 0
-		
-		// notify emulation has produced next field data
-		DispatchQueue.main.async() {
-			self.screenDataReady = true
-		}
 	}
 	
 	func horizontalSync() {
@@ -197,10 +188,6 @@ extension ScreenViewController: TIA.GraphicsOutput {
 	}
 	
 	func write(color: Int) {
-		guard self.currentScanLine < self.screenSize.height else {
-			return
-		}
-		
 		self.screenData[self.screenIndex] = UInt8(color)
 		self.screenIndex += 1
 	}

@@ -66,19 +66,22 @@ private extension DebuggerWindowController {
 	}
 	
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		self.resume()
+		let breakpoints = UserDefaults.standard
+			.breakpoints(forGameIdentifier: self.console.gameIdentifier!)
+		
+		self.console.resume(until: breakpoints)
 	}
 	
 	@IBAction func didSelectStepCPUInstructionMenuItem(_ sender: AnyObject) {
-		self.resume(step: .instructions, count: 1)
+		self.console.resume(instructions: 1)
 	}
 	
 	@IBAction func didSelectStepTVScanLineMenuItem(_ sender: AnyObject) {
-		self.resume(step: .scanLines, count: 1)
+		self.console.resume(scanLines: 1)
 	}
 	
 	@IBAction func didSelectStepTVFieldMenuItem(_ sender: AnyObject) {
-		self.resume(step: .fields, count: 1)
+		self.console.resume(fields: 1)
 	}
 	
 	@IBAction func didSelectStepMultipleMenuItem(_ sender: NSMenuItem) {
@@ -87,7 +90,17 @@ private extension DebuggerWindowController {
 		
 		if viewController == nil {
 			viewController = MultiStepperViewController()
-			viewController.handler = self.resume(step:count:)
+			viewController.handler = { [unowned self] in
+				switch $0 {
+				case .instructions:
+					self.console.resume(instructions: $1)
+				case .scanLines:
+					self.console.resume(scanLines: $1)
+				case .fields:
+					self.console.resume(fields: $1)
+				}
+			}
+			
 			self.window?
 				.addTitlebarAccessoryViewController(viewController)
 		}
@@ -179,7 +192,7 @@ extension DebuggerWindowController: NSToolbarItemValidation {
 				.stepTVScanLineToolbarItem,
 				.stepTVFieldToolbarItem:
 			return self.console.cartridge != nil
-			&& self.console.isSuspended(withCode: 2)
+			&& self.console.isSuspended(withPriority: .high)
 		default:
 			return false
 		}
@@ -199,52 +212,63 @@ private extension NSToolbarItem.Identifier {
 // MARK: -
 // MARK: Custom functionality
 private extension DebuggerWindowController {
-	private var console: Atari2600 {
+	var console: Atari2600 {
 		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
 		return delegate.console
 	}
+}
+
+private extension Atari2600 {
+	func resume(until breakpoints: [Breakpoint]) {
+		self.resume(until: { console in
+			return breakpoints.contains(console.cpu.programCounter)
+			&& console.cpu.sync
+			&& !console.tia.awaitsHorizontalSync
+		})
+	}
 	
-	private func resume() {
-		let console = self.console
-		let breakpoints = UserDefaults.standard
-			.breakpoints(forGameIdentifier: console.gameIdentifier!)
-		
+	func resume(instructions: Int) {
+		self.resume(until: { console in
+			return console.cpu.sync
+			&& !console.tia.awaitsHorizontalSync
+		}, count: instructions)
+	}
+	
+	func resume(scanLines: Int) {
+		self.resume(until: { console in
+			return true
+		}, count: scanLines)
+	}
+	
+	func resume(fields: Int) {
+		self.resume(until: { console in
+			return true
+		}, count: fields)
+	}
+	
+	/// Resumes emulation until the specified condition occurs the specified number of times.
+	private func resume(until condition: @escaping (Atari2600) -> Bool, count: Int = 1) {
 		DispatchQueue.global(qos: .userInitiated)
 			.async() { [unowned self] in
-				console.resume(breakpoints: breakpoints, completionHandler: self.didReachBreakpoint)
+				var remaining = count
+				
+				self.resume(priority: .high, until: ({
+					if condition(self) {
+						remaining -= 1
+					}
+					return remaining == 0
+				}))
+				
+				DispatchQueue.main.async() {
+					NotificationCenter.default
+						.post(name: .break, object: nil)
+				}
 			}
-	}
-	
-	private func resume(step: MultiStepperViewController.Step, count: Int) {
-		let console = self.console
-		
-		switch step {
-		case .instructions:
-			DispatchQueue.global(qos: .userInitiated)
-				.async() { [unowned self] in
-					console.resume(instructions: count, completionHandler: self.didReachBreakpoint)
-				}
-		case .scanLines:
-			DispatchQueue.global(qos: .userInitiated)
-				.async() { [unowned self] in
-					console.resume(scanLines: count, completionHandler: self.didReachBreakpoint)
-				}
-		case .fields:
-			DispatchQueue.global(qos: .userInitiated)
-				.async() { [unowned self] in
-					console.resume(fields: count, completionHandler: self.didReachBreakpoint)
-				}
-		}
-	}
-	
-	private func didReachBreakpoint() {
-		NotificationCenter.default
-			.post(name: .break, object: self)
 	}
 }
 
 extension Notification.Name {
-	static let `break` = Notification.Name("Break")
+	static let `break` = Notification.Name("ProgramDidSuspendAtBreakpointNotification")
 }
 
 
