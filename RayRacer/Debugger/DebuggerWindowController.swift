@@ -66,22 +66,23 @@ private extension DebuggerWindowController {
 	}
 	
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
-		let breakpoints = UserDefaults.standard
-			.breakpoints(forGameIdentifier: self.console.gameIdentifier!)
-		
-		self.console.resume(until: breakpoints)
+		self.resume(until: {
+			return self.assemblyViewController
+				.breakpoints
+				.contains($0.cpu.programCounter)
+		})
 	}
 	
 	@IBAction func didSelectStepCPUInstructionMenuItem(_ sender: AnyObject) {
-		self.console.resume(instructions: 1)
+		self.resume(step: .instructions, count: 1)
 	}
 	
 	@IBAction func didSelectStepTVScanLineMenuItem(_ sender: AnyObject) {
-		self.console.resume(scanLines: 1)
+		self.resume(step: .scanLines, count: 1)
 	}
 	
 	@IBAction func didSelectStepTVFieldMenuItem(_ sender: AnyObject) {
-		self.console.resume(fields: 1)
+		self.resume(step: .fields, count: 1)
 	}
 	
 	@IBAction func didSelectStepMultipleMenuItem(_ sender: NSMenuItem) {
@@ -91,14 +92,7 @@ private extension DebuggerWindowController {
 		if viewController == nil {
 			viewController = MultiStepperViewController()
 			viewController.handler = { [unowned self] in
-				switch $0 {
-				case .instructions:
-					self.console.resume(instructions: $1)
-				case .scanLines:
-					self.console.resume(scanLines: $1)
-				case .fields:
-					self.console.resume(fields: $1)
-				}
+				self.resume(step: $0, count: $1)
 			}
 			
 			self.window?
@@ -106,6 +100,17 @@ private extension DebuggerWindowController {
 		}
 		
 		viewController.becomeFirstResponder()
+	}
+	
+	private func resume(step: MultiStepperViewController.Step, count: Int) {
+		switch step {
+		case .instructions:
+			self.resume(until: { _ in true }, count: count)
+		case .scanLines:
+			self.resume(until: { (_, syncCount) in syncCount == count })
+		case .fields:
+			self.resume(until: { (syncCount, _) in syncCount == count })
+		}
 	}
 }
 
@@ -210,59 +215,65 @@ private extension NSToolbarItem.Identifier {
 
 
 // MARK: -
-// MARK: Custom functionality
-private extension DebuggerWindowController {
-	var console: Atari2600 {
+// MARK: Resume/suspend functionality
+extension DebuggerWindowController {
+	private var console: Atari2600 {
 		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
 		return delegate.console
-	}
-}
-
-private extension Atari2600 {
-	func resume(until breakpoints: [Breakpoint]) {
-		self.resume(until: { console in
-			return breakpoints.contains(console.cpu.programCounter)
-			&& console.cpu.sync
-			&& !console.tia.awaitsHorizontalSync
-		})
-	}
-	
-	func resume(instructions: Int) {
-		self.resume(until: { console in
-			return console.cpu.sync
-			&& !console.tia.awaitsHorizontalSync
-		}, count: instructions)
-	}
-	
-	func resume(scanLines: Int) {
-		self.resume(until: { console in
-			return true
-		}, count: scanLines)
-	}
-	
-	func resume(fields: Int) {
-		self.resume(until: { console in
-			return true
-		}, count: fields)
 	}
 	
 	/// Resumes emulation until the specified condition occurs the specified number of times.
 	private func resume(until condition: @escaping (Atari2600) -> Bool, count: Int = 1) {
+		let console = self.console
+		
 		DispatchQueue.global(qos: .userInitiated)
-			.async() { [unowned self] in
+			.async() { [unowned console] in
 				var remaining = count
-				
-				self.resume(priority: .high, until: ({
-					if condition(self) {
-						remaining -= 1
+				console.resume(priority: .high, until: (
+					{ [unowned console] in
+						if condition(console)
+							&& console.cpu.sync
+							&& !console.tia.awaitsHorizontalSync {
+							remaining -= 1
+						}
+						return remaining == 0
+					},
+					{ [unowned self] in
+						DispatchQueue.main.async() { [unowned self] in
+							NotificationCenter.default
+								.post(name: .break, object: self)
+						}
 					}
-					return remaining == 0
-				}))
+				))
+			}
+	}
+	
+	/// Resumes emulation until the specified condition, which receives vertical and horizontal sync
+	/// counts, is satisified.
+	private func resume(until condition: @escaping (Int, Int) -> Bool) {
+		let console = self.console
+		
+		DispatchQueue.global(qos: .userInitiated)
+			.async() { [unowned console] in
+				let counter = GraphicsSyncCounter()
+				counter.output = console.tia.output
 				
-				DispatchQueue.main.async() {
-					NotificationCenter.default
-						.post(name: .break, object: nil)
-				}
+				console.tia.output = counter
+				console.resume(priority: .high, until: (
+					{ [unowned console] in
+						return condition(counter.counts.0, counter.counts.1)
+						&& console.cpu.sync
+						&& !console.tia.awaitsHorizontalSync
+					},
+					{ [unowned console, self] in
+						console.tia.output = counter.output
+						
+						DispatchQueue.main.async() { [unowned self] in
+							NotificationCenter.default
+								.post(name: .break, object: self)
+						}
+					}
+				))
 			}
 	}
 }

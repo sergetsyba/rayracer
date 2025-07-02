@@ -6,31 +6,28 @@
 //
 
 public class TIA {
-	private(set) public var players: (Player, Player)
+	private(set) public var players = (Player(), Player())
 	private(set) public var missiles = (Missile(), Missile())
 	private(set) public var ball = Ball()
-	private(set) public var playfield: Playfield
-	private(set) public var backgroundColor: Int
+	private(set) public var playfield = Playfield()
 	
 	private var colors = Array(repeating: 0, count: 4)
 	private var collisions = 0
 	
-	public var output: GraphicsOutput?
 	public var peripheral: Peripheral = .none
+	public var output: GraphicsOutput?
 	
 	private var input = 0x0
+	private var buffer = Array(repeating: 0, count: 4*20)
 	
 	public init() {
-		self.players = (.random(), .random())
-		self.playfield = .random()
-		self.backgroundColor = .random(in: 0x00...0x7f)
-		
 		self.verticalSync = false
 		self.verticalBlank = false
 		self.awaitsHorizontalSync = false
 		
 		self.colorClock = 0
 		self.horizontalBlankResetClock = 68
+		self.hmove = false
 	}
 	
 	/// Indicates whether TIA is currenlty transmitting the vertical sync signal.
@@ -38,7 +35,7 @@ public class TIA {
 		didSet {
 			if oldValue && !self.verticalSync {
 				self.output?
-					.verticalSync()
+					.sync(.vertical)
 			}
 		}
 	}
@@ -58,15 +55,17 @@ public class TIA {
 			if colorClock == 228 {
 				self.awaitsHorizontalSync = false
 				self.horizontalBlankResetClock = 68
+				self.hmove = false
 				
 				self.colorClock = 0
 				self.output?
-					.horizontalSync()
+					.sync(.horizontal)
 			}
 		}
 	}
 	
 	private var horizontalBlankResetClock: Int
+	private var hmove: Bool
 	
 	/// Resets TIA.
 	public func reset() {
@@ -78,40 +77,35 @@ public class TIA {
 		let state = self.graphicsState(at: self.colorClock - 68)
 		let objectIndex = Self.graphicsLookUp[state]
 		let color = self.colors[objectIndex]
-		let collisions = Self.collisionsLookUp[state & 0x1f]
 		
+		let collisions = Self.collisionsLookUp[state & 0x1f]
 		self.collisions |= collisions
+		
 		return color
 	}
 	
 	/// Advances color clock by 1 unit.
 	public func advanceClock() {
+		let color: Int
 		if self.colorClock < 68 {
-			self.output?
-				.write(color: 0)
-		} else if self.colorClock < self.horizontalBlankResetClock {
-			if self.colorClock == self.horizontalBlankResetClock-1 {
-				// apply horizontal motion at the last color of horizontal blank
-				self.missiles.0.move()
-				self.missiles.1.move()
-				self.ball.move()
-			}
-			
-			let color = self.playfield.draws(at: self.colorClock - 68)
-			? self.colors[2]
-			: 0
-			
-			self.output?
-				.write(color: color)
+			// horizontal blank
+			color = 0
 		} else {
-			let color = self.verticalBlank
-			? 0
-			: self.color
-			
-			self.output?
-				.write(color: color)
-			
+			color = self.color
+		}
+		
+		self.output?
+			.write(color: color)
+		
+		if self.colorClock == self.horizontalBlankResetClock - 1 && self.hmove {
+			self.players.0.move()
+			self.players.1.move()
+		}
+		
+		if self.colorClock >= self.horizontalBlankResetClock {
+			self.players.0.advanceClock()
 			self.missiles.0.advanceClock()
+			self.players.1.advanceClock()
 			self.missiles.1.advanceClock()
 			self.ball.advanceClock()
 		}
@@ -121,14 +115,17 @@ public class TIA {
 }
 
 extension TIA {
+	public enum GraphicsSync {
+		case horizontal
+		case vertical
+	}
+	
 	/// TIA outputs color signals in a raster scan for at most 262 scanlines, with 160 signals in each.
 	/// The number of scanlines with actual graphics in them is controlled by a program via
 	/// the VBLANK register.
 	public protocol GraphicsOutput {
-		/// Signals the start of a new field.
-		mutating func verticalSync()
-		/// Signals the start of a new scan line.
-		mutating func horizontalSync()
+		/// Signals the start of a new scan line or field.
+		mutating func sync(_ sync: GraphicsSync)
 		/// Signals the next color value.
 		mutating func write(color: Int)
 	}
@@ -148,10 +145,10 @@ extension TIA {
 extension TIA {
 	private func graphicsState(at point: Int) -> Int {
 		var state = 0
-		//		state[0] = self.players.0.draws(at: point)
-		state[1] = self.missiles.0.draws
-		//		state[2] = self.players.1.draws(at: point)
-		state[3] = self.missiles.1.draws
+		state[0] = self.players.0.draws
+		//		state[1] = self.missiles.0.draws
+		state[2] = self.players.1.draws
+		//		state[3] = self.missiles.1.draws
 		state[4] = self.ball.draws
 		state[5] = self.playfield.draws(at: point)
 		
@@ -277,14 +274,11 @@ extension TIA: Addressable {
 	
 	public func write(_ data: Int, at address: Int) {
 		switch address {
-		case 0x00:
-			// MARK: VSYNC
+		case 0x00:	// MARK: VSYNC
 			self.verticalSync = data[1]
-		case 0x01:
-			// MARK: VBLANK
+		case 0x01:	// MARK: VBLANK
 			self.verticalBlank = data[1]
-		case 0x02:
-			// MARK: WSYNC
+		case 0x02:	// MARK: WSYNC
 			// NOTE: when last CPU clock cycle of a write instruction coincides
 			// with last three TIA color clocks in a scan line, WSYNC will
 			// incorrectly stay on for an extra scanline, since it is reset at
@@ -293,127 +287,99 @@ extension TIA: Addressable {
 			// emulation;
 			// ensuring color clock is not reset guards against this edge case
 			self.awaitsHorizontalSync = self.colorClock > 0
-		case 0x03:
-			// MARK: RSYNC
+		case 0x03:	// MARK: RSYNC
 			self.colorClock = 0
-		case 0x04:
-			// MARK: NUSIZ0
+			
+		case 0x04:	// MARK: NUSIZ0
 			self.players.0.copies = data & 0x7
+			self.missiles.0.copies = data & 0x7
 			self.missiles.0.size = 1 << ((data >> 4) & 0x3)
-		case 0x05:
-			// MARK: NUSIZ1
+			
+		case 0x05:	// MARK: NUSIZ1
 			self.players.1.copies = data & 0x7
+			self.missiles.1.copies = data & 0x7
 			self.missiles.1.size = 1 << ((data >> 4) & 0x3)
-		case 0x06:
-			// MARK: COLUP0
-			self.players.0.color = data
+			
+		case 0x06:	// MARK: COLUP0
 			self.colors[0] = data
-		case 0x07:
-			// MARK: COLUP1
-			self.players.1.color = data
+		case 0x07:	// MARK: COLUP1
 			self.colors[1] = data
-		case 0x08:
-			// MARK: COLUPF
-			self.playfield.color = data
+		case 0x08:	// MARK: COLUPF
 			self.colors[2] = data
-		case 0x09:
-			// MARK: COLUBK
-			self.backgroundColor = data
+		case 0x09:	// MARK: COLUBK
 			self.colors[3] = data
-		case 0x0a:
-			// MARK: CTRLPF
-			self.playfield.control[.reflected] = data[0]
-			self.playfield.control[.scoreMode] = data[1]
+			
+		case 0x0a:	// MARK: CTRLPF
+			self.playfield.control = Playfield.Control(rawValue: data & 0x3)
 			self.ball.size = 1 << ((data >> 4) & 0x3)
-		case 0x0d:
-			// MARK: PF0
-			self.playfield.graphics &= 0xffff0
-			self.playfield.graphics |= data >> 4
-		case 0x0e:
-			// MARK: PF1
-			self.playfield.graphics &= 0xff00f
-			self.playfield.graphics |= Int(reversingBits: data) << 4
-		case 0x0f:
-			// MARK: PF2
-			self.playfield.graphics &= 0x00fff
-			self.playfield.graphics |= data << 12
-		case 0x0b:
-			// MARK: REFP0
+		case 0x0d:	// MARK: PF0
+			self.playfield.graphics[0] = UInt8(data)
+		case 0x0e:	// MARK: PF1
+			self.playfield.graphics[1] = UInt8(Int(reversingBits: data))
+		case 0x0f:	// MARK: PF2
+			self.playfield.graphics[2] = UInt8(data)
+		case 0x0b:	// MARK: REFP0
 			self.players.0.reflected = data[3]
-		case 0x0c:
-			// MARK: REFP1
+		case 0x0c:	// MARK: REFP1
 			self.players.1.reflected = data[3]
-		case 0x10:
-			// MARK: RESP0
-			// resetting player position takes additional 4 color clock to
-			// decode and 1 to latch
-			self.players.0.position = max(0, self.colorClock - 68) + 5
-		case 0x11:
-			// MARK: RESP1
-			// resetting player position takes additional 4 color clock to
-			// decode and 1 to latch
-			self.players.1.position = max(0, self.colorClock - 68) + 5
+			
+		case 0x10:	// MARK: RESP0
+			self.players.0.reset()
+		case 0x11:	// MARK: RESP1
+			self.players.1.reset()
 		case 0x12:	// MARK: RESM0
 			self.missiles.0.reset()
 		case 0x13:	// MARK: RESM1
 			self.missiles.1.reset()
 		case 0x14:	// MARK: RESBL
 			self.ball.reset()
-		case 0x1b:
-			// MARK: GRP0
-			self.players.0.graphics.0 = data
+			
+		case 0x1b:	// MARK: GRP0
+			self.players.0.graphics.0 = UInt8(data)
 			self.players.1.graphics.1 = self.players.1.graphics.0
-		case 0x1c:
-			// MARK: GRP1
-			self.players.1.graphics.0 = data
+		case 0x1c:	// MARK: GRP1
+			self.players.1.graphics.0 = UInt8(data)
 			self.players.0.graphics.1 = self.players.0.graphics.0
 			self.ball.enabled.1 = self.ball.enabled.0
+			
 		case 0x1d:	// MARK: ENAM0
 			self.missiles.0.enabled = data[1]
 		case 0x1e:	// MARK: ENAM1
 			self.missiles.1.enabled = data[1]
 		case 0x1f:	// MARK: ENABL
 			self.ball.enabled.0 = data[1]
-		case 0x20:
-			// MARK: HMP0
-			self.players.0.motion = Int(signed: data >> 4, bits: 4)
-		case 0x21:
-			// MARK: HMP1
-			self.players.1.motion = Int(signed: data >> 4, bits: 4)
+			
+		case 0x20:	// MARK: HMP0
+			self.players.0.motion = (data >> 4) ^ 0x8
+		case 0x21:	// MARK: HMP1
+			self.players.1.motion = (data >> 4) ^ 0x8
 		case 0x22:	// MARK: HMM0
 			self.missiles.0.motion = (data >> 4) ^ 0x8
 		case 0x23:	// MARK: HMM1
 			self.missiles.1.motion = (data >> 4) ^ 0x8
 		case 0x24:	// MARK: HMBL
 			self.ball.motion = (data >> 4) ^ 0x8
-		case 0x25:
-			// MARK: VDELP0
+			
+		case 0x25:	// MARK: VDELP0
 			self.players.0.delayed = data[0]
-		case 0x26:
-			// MARK: VDELP1
+		case 0x26:	// MARK: VDELP1
 			self.players.1.delayed = data[0]
-		case 0x27:
-			// MARK: VDELBL
+		case 0x27:	// MARK: VDELBL
 			self.ball.delayed = data[0]
-		case 0x2a:
-			// MARK: HMOVE
-			//			self.players.0.position -= self.players.0.motion
-			//			self.players.1.position -= self.players.1.motion
-			//			self.missiles.0.position -= self.missiles.0.motion
-			//			self.missiles.1.position -= self.missiles.1.motion
-			//			self.ball.position -= self.ball.motion
+			
+		case 0x2a:	// MARK: HMOVE
 			self.horizontalBlankResetClock += 8
-		case 0x2b:
-			// MARK: HMCLR
+			self.hmove = true
+			
+		case 0x2b:	// MARK: HMCLR
 			self.players.0.motion = 0
 			self.players.1.motion = 0
 			self.missiles.0.motion = 0
 			self.missiles.1.motion = 0
 			self.ball.motion = 0
-		case 0x2c:
-			// MARK: CXCLR
-			self.collisions = 0
 			
+		case 0x2c:	// MARK: CXCLR
+			self.collisions = 0
 		default:
 			break
 		}
@@ -429,34 +395,6 @@ public extension Int {
 		for bit in 0..<8 {
 			self[bit] = value[7-bit]
 		}
-	}
-}
-
-extension TIA.Player {
-	static func random() -> Self {
-		return TIA.Player(
-			graphics: (.random(in: 0x00...0xff), .random(in: 0x00...0xff)),
-			reflected: .random(),
-			copies: .random(in: 1...3),
-			color: .random(in: 0x00...0xff),
-			position: .random(in: 5...160),
-			motion: .random(in: -8...7),
-			delayed: .random())
-	}
-}
-
-public extension TIA.Playfield {
-	static func random() -> Self {
-		return TIA.Playfield(
-			graphics: .random(in: 0x000000...0xffffff),
-			control: .random(),
-			color: .random(in: 0x00...0xff))
-	}
-}
-
-public extension TIA.PlayfieldControl {
-	static func random() -> Self {
-		return TIA.PlayfieldControl(rawValue: .random(in: 0x00...0xff))
 	}
 }
 

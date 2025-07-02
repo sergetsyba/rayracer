@@ -172,18 +172,19 @@ extension ScreenViewController: MTKViewDelegate {
 
 // MARK: -
 extension ScreenViewController: TIA.GraphicsOutput {
-	func verticalSync() {
-		// suspend emulation and notify renderer console has finished
-		// producing field data
-		self.console.suspend()
-		self.screenIndex = 0
-	}
-	
-	func horizontalSync() {
-		// advance index to the beginning of the next scan line
-		let offset = self.screenIndex % self.screenSize.width
-		if offset > 0 {
-			self.screenIndex += self.screenSize.width - offset
+	func sync(_ sync: TIA.GraphicsSync) {
+		switch sync {
+		case .horizontal:
+			// advance index to the beginning of the next scan line
+			let offset = self.screenIndex % self.screenSize.width
+			if offset > 0 {
+				self.screenIndex += self.screenSize.width - offset
+			}
+		case .vertical:
+			// suspend emulation and notify renderer console has finished
+			// producing field data
+			self.console.suspend()
+			self.screenIndex = 0
 		}
 	}
 	

@@ -16,7 +16,7 @@ public class Atari2600: ObservableObject {
 	public var controllers: (Controller, Controller) = (.none, .none)
 	
 	private var state: State = .suspended(.normal)
-	private var suspensionCondition: (() -> Bool)?
+	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
 	
 	public init(switches: Atari2600.Switches = [.color]) {
 		self.cpu = MOS6507(bus: self)
@@ -50,8 +50,7 @@ extension Atari2600 {
 	}
 	
 	private enum State {
-		case off
-		case on
+		case resumed
 		case suspended(SuspensionPriority)
 	}
 	
@@ -73,7 +72,7 @@ extension Atari2600 {
 		// note: it seems impossible to combine first to cases into one
 		// due to value binding on .suspended case
 		switch self.state {
-		case .on:
+		case .resumed:
 			self.state = .suspended(priority)
 		case .suspended(let currentPriority) where currentPriority < priority:
 			self.state = .suspended(priority)
@@ -82,32 +81,32 @@ extension Atari2600 {
 		}
 	}
 	
-	/// Resumes emulation until the specified suspension condition is satisifed.
-	///
-	/// When emulation was suspended with a higher priority than the specified one, does nothing.
-	public func resume(priority: SuspensionPriority = .normal, until condition: (() -> Bool)? = nil) {
+	/// Resumes emulation when it is suspended with a priority lower or equal to the specified one.
+	// TODO: explaing suspension context
+	public func resume(priority: SuspensionPriority = .normal, until suspension: (condition: () -> Bool, callback: () -> Void)? = nil) {
 		// do not resume emulation when current suspension priority is higher
 		guard case .suspended(let currentPriority) = self.state,
 			  currentPriority <= priority else {
-			return
+				  return
+			  }
+		
+		if let (condition, callback) = suspension {
+			self.suspension = (condition, callback, priority)
 		}
 		
-		if let _ = condition {
-			self.suspensionCondition = condition
-		}
-		
-		self.state = .on
-		if let shouldSuspend = self.suspensionCondition {
-			while case .on = self.state {
+		self.state = .resumed
+		if let (condition, callback, priority) = self.suspension {
+			while case .resumed = self.state {
 				self.advanceCycle()
 				
-				if shouldSuspend() {
-					self.suspensionCondition = nil
+				if condition() {
 					self.state = .suspended(priority)
+					self.suspension = nil
+					callback()
 				}
 			}
 		} else {
-			while case .on = self.state {
+			while case .resumed = self.state {
 				self.advanceCycle()
 			}
 		}
