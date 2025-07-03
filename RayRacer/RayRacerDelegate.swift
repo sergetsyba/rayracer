@@ -228,7 +228,7 @@ extension RayRacerDelegate {
 			windowController = DebuggerWindowController()
 		}
 		
-		self.console.suspend(withCode: 2)
+		self.console.suspend(priority: .high)
 		self.showWindow(of: windowController)
 	}
 }

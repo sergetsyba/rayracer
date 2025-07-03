@@ -6,27 +6,24 @@
 //
 
 extension TIA {
-	public struct Ball {
-		public var enabled: (Bool, Bool)
-		public var size: Int
-		public var position: Int
-		public var motion: Int
-		public var delayed: Bool
-	}
-}
-
-
-// MARK: -
-// MARK: Drawing
-extension TIA.Ball: TIA.Drawable {
-	public func draws(at position: Int) -> Bool {
-		let counter = position - self.position
-		guard (0..<self.size).contains(counter) else {
-			return false
+	public struct Ball: MovableObject {
+		public var position: Int = 0
+		public var motion: Int = 0
+		
+		public var enabled: (Bool, Bool) = (false, false)
+		public var delayed: Bool = false
+		public var size: Int = 1
+		
+		var graphics: UInt8 {
+			return (1 << self.size) - 1
 		}
 		
-		return self.delayed
-		? self.enabled.1
-		: self.enabled.0
+		var draws: Bool {
+			let enabled = self.delayed
+			? self.enabled.1
+			: self.enabled.0
+			
+			return enabled && self.position < self.size
+		}
 	}
 }

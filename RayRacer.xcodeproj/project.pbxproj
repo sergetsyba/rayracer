@@ -31,6 +31,7 @@
 		954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */; };
 		955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */; };
 		955B4BEB2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955B4BEA2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift */; };
+		955BED7C2E13E14300577348 /* GraphicsSyncCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */; };
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
 		957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957AADDA2C0B22BB00692B3F /* String+Extensions.swift */; };
 		958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958691B12A4FF61D00C727C0 /* MOS6532.swift */; };
@@ -45,6 +46,7 @@
 		95A2FEA02CE8A5D40058F393 /* Joystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A2FE9F2CE8A5D40058F393 /* Joystick.swift */; };
 		95A2FEA92CE8AB480058F393 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
 		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
+		95A850D22D391840002EF974 /* TIA+MovableObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A850D12D391840002EF974 /* TIA+MovableObject.swift */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
 		95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */; };
@@ -130,6 +132,7 @@
 		954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugValueTableCellView.swift; sourceTree = "<group>"; };
 		955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSFont+Constants.swift"; sourceTree = "<group>"; };
 		955B4BEA2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+MainMenu.swift"; sourceTree = "<group>"; };
+		955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphicsSyncCounter.swift; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
 		957AADDA2C0B22BB00692B3F /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		958691B12A4FF61D00C727C0 /* MOS6532.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6532.swift; sourceTree = "<group>"; };
@@ -144,6 +147,7 @@
 		95A2FE9F2CE8A5D40058F393 /* Joystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Joystick.swift; sourceTree = "<group>"; };
 		95A2FEA52CE8AB480058F393 /* RayRacerKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RayRacerKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
+		95A850D12D391840002EF974 /* TIA+MovableObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TIA+MovableObject.swift"; sourceTree = "<group>"; };
 		95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindowController.swift; sourceTree = "<group>"; };
 		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
 		95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenViewController.swift; sourceTree = "<group>"; };
@@ -246,6 +250,7 @@
 				9595FE912A4E02FE00F6F857 /* TIA.swift */,
 				95A222122C8A000D008176F7 /* TIA+Ball.swift */,
 				95A222112C8A000C008176F7 /* TIA+Missile.swift */,
+				95A850D12D391840002EF974 /* TIA+MovableObject.swift */,
 				95A222142C8A000D008176F7 /* TIA+Player.swift */,
 				95A222132C8A000D008176F7 /* TIA+Playfield.swift */,
 			);
@@ -281,6 +286,7 @@
 				954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */,
 				954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */,
 				951CC4FD2A58723300537CD1 /* FormView.swift */,
+				955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */,
 				9503F0D52CB1B16700C71436 /* MultiStepperView.xib */,
 				9503F0D72CB1B2BA00C71436 /* MultiStepperViewController.swift */,
 				955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */,
@@ -523,6 +529,7 @@
 				953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */,
 				95A222162C8A000D008176F7 /* TIA+Ball.swift in Sources */,
 				952C1A292C902E8D00D341D6 /* MOS6507+Status.swift in Sources */,
+				95A850D22D391840002EF974 /* TIA+MovableObject.swift in Sources */,
 				95A222152C8A000D008176F7 /* TIA+Missile.swift in Sources */,
 				95F5190E2D0494D400C5E8BC /* NoController.swift in Sources */,
 				958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */,
@@ -541,6 +548,7 @@
 				954E3CD02C283B3E009218CB /* DebugItemTableCellView.swift in Sources */,
 				9503F0D82CB1B2BA00C71436 /* MultiStepperViewController.swift in Sources */,
 				957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */,
+				955BED7C2E13E14300577348 /* GraphicsSyncCounter.swift in Sources */,
 				954C4F702C9586E20063B170 /* RayRacer+Preferences.swift in Sources */,
 				957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */,
 				950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */,

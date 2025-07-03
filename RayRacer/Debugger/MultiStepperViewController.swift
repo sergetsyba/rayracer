@@ -8,8 +8,8 @@
 import Cocoa
 
 class MultiStepperViewController: NSTitlebarAccessoryViewController {
-	@IBOutlet private var popUpButton: NSPopUpButton!
-	@IBOutlet private var textField: NSTextField!
+	@IBOutlet var popUpButton: NSPopUpButton!
+	@IBOutlet var textField: NSTextField!
 	
 	private let defaults: UserDefaults = .standard
 	var handler: ((Step, Int) -> Void)? = nil
@@ -18,18 +18,13 @@ class MultiStepperViewController: NSTitlebarAccessoryViewController {
 		self.init(nibName: "MultiStepperView", bundle: .main)
 		self.identifier = NSUserInterfaceItemIdentifier("MultiStepperViewController")
 	}
-	
-	@discardableResult
-	override func becomeFirstResponder() -> Bool {
-		return self.textField.becomeFirstResponder()
-	}
 }
 
 extension MultiStepperViewController {
 	enum Step: Int {
-		case instructions = 0
-		case scanLines = 1
-		case fields = 2
+		case instructions
+		case scanLines
+		case fields
 	}
 }
 

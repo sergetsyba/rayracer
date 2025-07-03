@@ -6,25 +6,33 @@
 //
 
 extension TIA {
-	public struct Missile {
-		public var enabled: Bool
-		public var size: Int
-		public var color: Int
-		public var position: Int
-		public var motion: Int
+	public struct Missile: MovableObject {
+		public var position: Int = 0
+		public var motion: Int = 0
+		
+		public var enabled: Bool = false
+		public var copies: Int = 1
+		public var size: Int = 1
+		
+		var draws: Bool {
+			return Self.sections[self.copies][self.position / 8]
+			&& self.enabled
+			&& self.position < self.size
+		}
 	}
 }
 
-
-// MARK: -
-// MARK: Drawing
-extension TIA.Missile: TIA.Drawable {
-	public func draws(at position: Int) -> Bool {
-		let counter = position - self.position
-		guard (0..<self.size).contains(counter) else {
-			return false
-		}
-		
-		return self.enabled
-	}
+private extension TIA.Missile {
+	/// A look-up table of 8 color clock wide screen sections, where a missile can or cannot be drawn,
+	/// based on the value in a corresponding NUSIZ register.
+	static let sections = [
+		0x001, // ●○○○○○○○○○
+		0x005, // ●○●○○○○○○○
+		0x011, // ●○○●○○○○○○
+		0x015, // ●○●○●○○○○○
+		0x101, // ●○○○○○○○●○
+		0x001, // ●○○○○○○○○○
+		0x111, // ●○○○●○○○●○
+		0x001  // ●○○○○○○○○○
+	]
 }

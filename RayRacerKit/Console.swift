@@ -15,8 +15,8 @@ public class Atari2600: ObservableObject {
 	public var cartridge: Data? = nil
 	public var controllers: (Controller, Controller) = (.none, .none)
 	
-	private var state: State = .suspended(0)
-	private var debug: (condition: () -> Bool, callback: () -> Void)?
+	private var state: State = .suspended(.normal)
+	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
 	
 	public init(switches: Atari2600.Switches = [.color]) {
 		self.cpu = MOS6507(bus: self)
@@ -34,45 +34,79 @@ public class Atari2600: ObservableObject {
 		set { self.riot.peripherals.b = newValue }
 	}
 	
-	public func isSuspended(withCode code: Int) -> Bool {
-		if case .suspended(let currentCode) = self.state {
-			return code == currentCode
+	/// Resets internal state of all console components.
+	public func reset() {
+		self.cpu.reset()
+		self.riot.reset()
+		self.tia.reset()
+	}
+}
+
+// MARK: - Suspend/resume functionality
+extension Atari2600 {
+	public enum SuspensionPriority: Comparable {
+		case normal
+		case high
+	}
+	
+	private enum State {
+		case resumed
+		case suspended(SuspensionPriority)
+	}
+	
+	/// Returns `true` when emulation is suspended with the specified priority; returns `false`
+	/// otherwise.
+	public func isSuspended(withPriority priority: SuspensionPriority = .normal) -> Bool {
+		if case .suspended(let currentPriority) = self.state {
+			return priority == currentPriority
 		} else {
 			return false
 		}
 	}
 	
-	///	Suspends emulation with the specified suspension code. When emulation is already suspended,
-	///	updates suspension code only when it is higher than the current one.
-	public func suspend(withCode code: Int = 0) {
-		if case .suspended(let currentCode) = self.state,
-		   currentCode > code {
+	///	Suspends emulation.
+	///
+	///	When emualtion is already suspended with a lower priority than the specified one, updates
+	///	suspension priority to the specified one.
+	public func suspend(priority: SuspensionPriority = .normal) {
+		// note: it seems impossible to combine first to cases into one
+		// due to value binding on .suspended case
+		switch self.state {
+		case .resumed:
+			self.state = .suspended(priority)
+		case .suspended(let currentPriority) where currentPriority < priority:
+			self.state = .suspended(priority)
+		default:
 			return
 		}
-		
-		self.state = .suspended(code)
 	}
 	
-	/// Resumes emulation when it has been suspended with a code lower than or equal to
-	/// the specified one.
-	public func resume(withCode code: Int = 0) {
-		guard case .suspended(let currentCode) = self.state,
-			  currentCode <= code else {
-			return
+	/// Resumes emulation when it is suspended with a priority lower or equal to the specified one.
+	// TODO: explaing suspension context
+	public func resume(priority: SuspensionPriority = .normal, until suspension: (condition: () -> Bool, callback: () -> Void)? = nil) {
+		// do not resume emulation when current suspension priority is higher
+		guard case .suspended(let currentPriority) = self.state,
+			  currentPriority <= priority else {
+				  return
+			  }
+		
+		if let (condition, callback) = suspension {
+			self.suspension = (condition, callback, priority)
 		}
 		
-		self.state = .on
-		if let (condition, callback) = self.debug {
-			while case .on = self.state {
+		self.state = .resumed
+		if let (condition, callback, priority) = self.suspension {
+			while case .resumed = self.state {
 				self.advanceCycle()
 				
 				if condition() {
-					self.state = .suspended(2)
+					self.state = .suspended(priority)
+					self.suspension = nil
 					callback()
 				}
 			}
 		} else {
-			while case .on = self.state {
+			while case .resumed = self.state {
 				self.advanceCycle()
 			}
 		}
@@ -94,81 +128,6 @@ public class Atari2600: ObservableObject {
 		if cpuReady {
 			self.cpu.advanceClock()
 		}
-	}
-	
-	/// Resets internal state of all console components.
-	public func reset() {
-		self.cpu.reset()
-		self.riot.reset()
-		self.tia.reset()
-	}
-	
-	private enum State {
-		case off
-		case on
-		case suspended(Int)
-	}
-}
-
-
-// MARK: -
-// MARK: Debugging
-extension Atari2600 {
-	/// Resumes program for  the specified number of CPU instructions.
-	public func resume(instructions: Int, completionHandler handler: @escaping () -> Void) {
-		var remaining = instructions
-		self.debug = ({ [unowned self] in
-			if self.cpu.sync && !self.tia.awaitsHorizontalSync {
-				remaining -= 1
-			}
-			return remaining == 0
-		}, handler)
-		
-		self.resume(withCode: 2)
-	}
-	
-	/// Resumes program for the specified number of TV scan lines.
-	public func resume(scanLines: Int, completionHandler handler: @escaping () -> Void) {
-		var remaining = scanLines
-		var colorClock = self.tia.colorClock
-		
-		self.debug = ({ [unowned self] in
-			if self.tia.colorClock < colorClock {
-				remaining -= 1
-			}
-			
-			colorClock = self.tia.colorClock
-			return self.cpu.sync && remaining == 0
-		}, handler)
-		
-		self.resume(withCode: 2)
-	}
-	
-	/// Resumes program for the specified number of TV fields.
-	public func resume(fields: Int, completionHandler handler: @escaping () -> Void) {
-		var remaining = fields
-		var scanLine = self.tia.scanLine
-		
-		self.debug = ({ [unowned self] in
-			if self.tia.scanLine < scanLine {
-				remaining -= 1
-			}
-			
-			scanLine = self.tia.scanLine
-			return self.cpu.sync && remaining == 0
-		}, handler)
-		
-		self.resume(withCode: 2)
-	}
-	
-	/// Resumes program until an instruction at any of the specified program addresses.
-	public func resume(breakpoints: any Sequence<Int>, completionHandler handler: @escaping () -> Void) {
-		self.debug = ({ [unowned self] in
-			return self.cpu.sync
-			&& breakpoints.contains(self.cpu.programCounter)
-		}, handler)
-		
-		self.resume(withCode: 2)
 	}
 }
 
