@@ -6,22 +6,41 @@
 //
 
 extension TIA {
-	public struct Player {
-		public var graphics: (Int, Int)
-		public var reflected: Bool
-		public var copies: Int
-		public var color: Int = 0
-		public var position: Int
-		public var motion: Int
-		public var delayed: Bool
+	public struct Player: MovableObject {
+		public var position: Int = 0
+		public var motion: Int = 0
+		
+		public var graphics: (UInt8, UInt8) = (0, 0)
+		public var delayed: Bool = false
+		public var reflected: Bool = false
+		public var copies: Int = 1
+		
+		var draws: Bool {
+			// ensure player copy appears in the current 8-point section
+			guard Self.sections[self.copies][self.position / 8] else {
+				return false
+			}
+			
+			let graphics = self.delayed
+			? self.graphics.1
+			: self.graphics.0
+			
+			let bit = (self.position / self.scale) % 8
+			
+			return self.reflected
+			? graphics[bit]
+			: graphics[7 - bit]
+		}
 	}
 }
 
 
 // MARK: -
 // MARK: Drawing
-extension TIA.Player: TIA.Drawable {
-	private static let sectionLookUp = [
+extension TIA.Player {
+	/// A look-up table of 8 color clock wide screen sections, where a player can or cannot be drawn,
+	/// based on the value in a corresponding NUSIZ register.
+	private static let sections = [
 		0x001, // ●○○○○○○○○○
 		0x005, // ●○●○○○○○○○
 		0x011, // ●○○●○○○○○○
@@ -38,27 +57,5 @@ extension TIA.Player: TIA.Drawable {
 		case 7: return 4
 		default: return 1
 		}
-	}
-	
-	public func draws(at position: Int) -> Bool {
-		let counter = position - self.position
-		guard (0..<80).contains(counter) else {
-			return false
-		}
-		
-		// ensure player copy appears in the current 8-point section
-		guard Self.sectionLookUp[self.copies][counter / 8] else {
-			return false
-		}
-		
-		let graphics = self.delayed
-		? self.graphics.1
-		: self.graphics.0
-		
-		let bit = (counter / self.scale) % 8
-		
-		return self.reflected
-		? graphics[bit]
-		: graphics[7 - bit]
 	}
 }

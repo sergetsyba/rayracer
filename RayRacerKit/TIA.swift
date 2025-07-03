@@ -33,11 +33,15 @@ public class TIA {
 	/// Indicates whether TIA is currenlty transmitting the vertical sync signal.
 	private(set) public var verticalSync: Bool {
 		didSet {
-			if oldValue && !self.verticalSync {
+			if self.verticalSync && !oldValue {
 				self.output?
 					.sync(.vertical)
 			}
 		}
+	}
+	/// Indicates whether TIA is currently transmitting the horizontal sync signal.
+	private var horizontalSync: Bool {
+		return self.colorClock < 68
 	}
 	
 	private(set) public var verticalBlank: Bool
@@ -86,17 +90,6 @@ public class TIA {
 	
 	/// Advances color clock by 1 unit.
 	public func advanceClock() {
-		let color: Int
-		if self.colorClock < 68 {
-			// horizontal blank
-			color = 0
-		} else {
-			color = self.color
-		}
-		
-		self.output?
-			.write(color: color)
-		
 		if self.colorClock == self.horizontalBlankResetClock - 1 && self.hmove {
 			self.players.0.move()
 			self.players.1.move()
@@ -110,21 +103,25 @@ public class TIA {
 			self.ball.advanceClock()
 		}
 		
+		let color = self.verticalSync || self.horizontalSync || self.verticalBlank
+		? 0
+		: self.color
+		
+		self.output?
+			.write(color: color)
+		
 		self.colorClock += 1
 	}
 }
 
 extension TIA {
 	public enum GraphicsSync {
-		case horizontal
 		case vertical
+		case horizontal
 	}
 	
-	/// TIA outputs color signals in a raster scan for at most 262 scanlines, with 160 signals in each.
-	/// The number of scanlines with actual graphics in them is controlled by a program via
-	/// the VBLANK register.
 	public protocol GraphicsOutput {
-		/// Signals the start of a new scan line or field.
+		/// Signals the start of a new field or scan line.
 		mutating func sync(_ sync: GraphicsSync)
 		/// Signals the next color value.
 		mutating func write(color: Int)

@@ -128,7 +128,7 @@ extension ScreenViewController: MTKViewDelegate {
 	}
 	
 	func draw(in view: MTKView) {
-		// skip frame when console has not finished producing field data
+		// skip frame when console is in the middle of producing field data
 		guard self.screenIndex == 0 else {
 			return
 		}

@@ -7,15 +7,24 @@
 
 extension TIA {
 	public struct Playfield {
-		public var graphics: Int
-		public var control: PlayfieldControl
-		public var color: Int
+		public var graphics: [UInt8] = [0, 0, 0]
+		public var control: Control = []
+		
+		func draws(at position: Int) -> Bool {
+			let position = self.control[.reflected] && position >= 80
+			? 23 - (position % 80) / 4
+			: (position % 80) / 4 + 4
+			
+			return self.graphics[position / 8][position % 8]
+		}
 	}
+}
 
-	public struct PlayfieldControl: OptionSet {
-		public static let reflected = PlayfieldControl(rawValue: 1 << 0)
-		public static let scoreMode = PlayfieldControl(rawValue: 1 << 1)
-		public static let priority = PlayfieldControl(rawValue: 1 << 2)
+extension TIA.Playfield {
+	public struct Control: OptionSet {
+		public static let reflected = Control(rawValue: 1 << 0)
+		public static let scoreMode = Control(rawValue: 1 << 1)
+		public static let priority = Control(rawValue: 1 << 2)
 		
 		public var rawValue: Int
 		
@@ -25,20 +34,19 @@ extension TIA {
 	}
 }
 
-
-// MARK: -
-// MARK: Drawing
-extension TIA.Playfield: TIA.Drawable {
-	public func draws(at position: Int) -> Bool {
-		let bit = (position / 4) % 20
-		if position < 80 {
-			// left playfield side
-			return self.graphics[bit]
-		} else {
-			// right playfield side
-			return self.control.contains(.reflected)
-			? self.graphics[19 - bit]
-			: self.graphics[bit]
+extension UInt8 {
+	subscript(bit: Int) -> Bool {
+		get {
+			let mask: Self = 0x01 << bit
+			return self & mask == mask
+		}
+		set {
+			let mask: Self = 0x01 << bit
+			if newValue {
+				self |= mask
+			} else {
+				self &= ~mask
+			}
 		}
 	}
 }

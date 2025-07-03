@@ -89,6 +89,7 @@ private extension DebuggerWindowController {
 		var viewController: MultiStepperViewController! = self.window?
 			.titlebarAccessoryViewControllers.first as? MultiStepperViewController
 		
+		// when multi-stepper is not shown, create and show it
 		if viewController == nil {
 			viewController = MultiStepperViewController()
 			viewController.handler = { [unowned self] in
@@ -99,7 +100,9 @@ private extension DebuggerWindowController {
 				.addTitlebarAccessoryViewController(viewController)
 		}
 		
-		viewController.becomeFirstResponder()
+		// forward focus to the text field in multi-stepper view
+		self.window?
+			.makeFirstResponder(viewController.textField)
 	}
 	
 	private func resume(step: MultiStepperViewController.Step, count: Int) {
