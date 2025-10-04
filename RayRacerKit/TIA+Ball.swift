@@ -7,7 +7,9 @@
 
 extension TIA {
 	public struct Ball: MovableObject {
-		public var position: Int = 0
+		public var position: Int = 0 {
+			didSet { self.position %= 160 }
+		}
 		public var motion: Int = 0
 		
 		public var enabled: (Bool, Bool) = (false, false)
@@ -18,12 +20,16 @@ extension TIA {
 			return (1 << self.size) - 1
 		}
 		
-		var draws: Bool {
+		var needsDrawing: Bool {
 			let enabled = self.delayed
 			? self.enabled.1
 			: self.enabled.0
 			
 			return enabled && self.position < self.size
+		}
+		
+		mutating func reset() {
+			self.position = 160
 		}
 	}
 }

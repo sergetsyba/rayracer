@@ -20,95 +20,88 @@ public class TIA {
 	private var input = 0x0
 	private var buffer = Array(repeating: 0, count: 4*20)
 	
-	public init() {
-		self.verticalSync = false
-		self.verticalBlank = false
-		self.awaitsHorizontalSync = false
-		
-		self.colorClock = 0
-		self.horizontalBlankResetClock = 68
-		self.hmove = false
-	}
-	
-	/// Indicates whether TIA is currenlty transmitting the vertical sync signal.
-	private(set) public var verticalSync: Bool {
+	/// Indicates whether vertical sync is enabled.
+	/// TIA outputs vertical sync signal when enabled, which is done by writing VSYNC register.
+	private(set) public var isVerticalSyncEnabled: Bool = false {
 		didSet {
-			if self.verticalSync && !oldValue {
+			if self.isVerticalSyncEnabled {
 				self.output?
 					.sync(.vertical)
 			}
 		}
 	}
-	/// Indicates whether TIA is currently transmitting the horizontal sync signal.
-	private var horizontalSync: Bool {
-		return self.colorClock < 68
+	
+	/// Indicates whether wait on color sync is currently inabled.
+	/// TIA is currently waiting on horizontal sync.
+	private(set) public var awaitsHorizontalSync: Bool = false
+	
+	/// Indicates whether vertical blanking is enabled.
+	/// TIA outputs blank video signal when enabled, which is done by writing to VBLANK register.
+	private(set) public var isVerticalBlankEnabled: Bool = false
+	
+	/// Indicates whether horizontal blanking is enabled.
+	/// TIA outputs blank video signal when enabled, which occurrs automatically for the first 76 or 68
+	/// color clocks of each scan line, depending on whether HMOVE register was strobed or not.
+	public var isHorizontalBlankEnabled: Bool {
+		return self.colorClock < self.horizontalBlankResetColorClock
 	}
 	
-	private(set) public var verticalBlank: Bool
-	
-	public var horizontalBlank: Bool {
-		return self.colorClock < self.horizontalBlankResetClock
-	}
-	
-	/// Indicates whether TIA is currently waiting on horizontal sync.
-	private(set) public var awaitsHorizontalSync: Bool
+	/// Color clock at which horizontal blank is turned off.
+	///
+	/// Horizontal blank is reset at
+	/// - color clock 68 normally
+	/// - color clock 76 when HMOVE register strobed
+	private var horizontalBlankResetColorClock = 68
 	
 	/// Color clock within the current scan line.
-	private(set) public var colorClock: Int {
-		didSet {
-			if colorClock == 228 {
-				self.awaitsHorizontalSync = false
-				self.horizontalBlankResetClock = 68
-				self.hmove = false
-				
-				self.colorClock = 0
-				self.output?
-					.sync(.horizontal)
-			}
-		}
+	private(set) public var colorClock: Int = 0 {
+		didSet { self.colorClock %= 228 }
 	}
-	
-	private var horizontalBlankResetClock: Int
-	private var hmove: Bool
 	
 	/// Resets TIA.
 	public func reset() {
-		self.verticalSync = false
+		self.isVerticalSyncEnabled = false
+		self.isVerticalBlankEnabled = false
+		self.awaitsHorizontalSync = false
+		
+		self.horizontalBlankResetColorClock = 68
 		self.colorClock = 0
-	}
-	
-	private var color: Int {
-		let state = self.graphicsState(at: self.colorClock - 68)
-		let objectIndex = Self.graphicsLookUp[state]
-		let color = self.colors[objectIndex]
-		
-		let collisions = Self.collisionsLookUp[state & 0x1f]
-		self.collisions |= collisions
-		
-		return color
 	}
 	
 	/// Advances color clock by 1 unit.
 	public func advanceClock() {
-		if self.colorClock == self.horizontalBlankResetClock - 1 && self.hmove {
-			self.players.0.move()
-			self.players.1.move()
+		if self.colorClock == 0 {
+			self.awaitsHorizontalSync = false
+			self.horizontalBlankResetColorClock = 68
+			
+			self.output?
+				.sync(.horizontal)
 		}
 		
-		if self.colorClock >= self.horizontalBlankResetClock {
-			self.players.0.advanceClock()
-			self.missiles.0.advanceClock()
-			self.players.1.advanceClock()
-			self.missiles.1.advanceClock()
-			self.ball.advanceClock()
+		if self.isHorizontalBlankEnabled {
+			// position counters of movable objects do not receive clock
+			// signals during horizontal blank
+			self.output?.blank()
+		} else {
+			let options = self.drawOptions(at: self.colorClock - 68)
+			
+			if self.isVerticalBlankEnabled {
+				self.output?
+					.blank()
+			} else {
+				let object = Self.objectIndexes[options.rawValue]
+				let color = self.colors[object]
+				self.output?
+					.write(color: color)
+			}
+			
+			// advance movable object position counters
+			self.players.0.position += 1
+			self.players.1.position += 1
+			self.missiles.0.position += 1
+			self.missiles.1.position += 1
+			self.ball.position += 1
 		}
-		
-		let color = self.verticalSync || self.horizontalSync || self.verticalBlank
-		? 0
-		: self.color
-		
-		self.output?
-			.write(color: color)
 		
 		self.colorClock += 1
 	}
@@ -123,64 +116,91 @@ extension TIA {
 	public protocol GraphicsOutput {
 		/// Signals the start of a new field or scan line.
 		mutating func sync(_ sync: GraphicsSync)
+		/// Signals the absence of color for the next value.
+		mutating func blank()
 		/// Signals the next color value.
 		mutating func write(color: Int)
-	}
-	
-	/// One of six objects TIA draws on screen.
-	public protocol Drawable {
-		/// Returns `true` when this object should be drawn at the specified position in the scan
-		/// line; returns `false` otherwise.
-		func draws(at position: Int) -> Bool
 	}
 	
 	public protocol Peripheral {
 		func read() -> Int
 	}
+	
+	/// One of six objects TIA draws on screen.
+	protocol MovableObject {
+		/// Position counter of this object.
+		/// This object will need to be drawn at specific values of its position counter.
+		var position: Int { get set }
+		/// Amount of horizontal motion, which adjusts this object's position.
+		/// Value ranges in [0, 15] and will move this object left or right on the current scan line once
+		/// HMOVE register is strobed.
+		var motion: Int { get set }
+		/// Returns `true` when this object should be drawn; returns `false` otherwise.
+		var needsDrawing: Bool { get }
+		/// Resets position counter of this object.
+		mutating func reset()
+	}
 }
 
 extension TIA {
-	private func graphicsState(at point: Int) -> Int {
-		var state = 0
-		state[0] = self.players.0.draws
-		//		state[1] = self.missiles.0.draws
-		state[2] = self.players.1.draws
-		//		state[3] = self.missiles.1.draws
-		state[4] = self.ball.draws
-		state[5] = self.playfield.draws(at: point)
-		
-		state[6] = self.playfield.control[.scoreMode]
-		state[7] = point < 80
-		
-		return state
-	}
-	
-	private static let graphicsLookUp = (0x00...0xff)
+	private static let objectIndexes: [Int] = (0x00...0xff)
 		.map() {
-			// player/missile 0
-			if $0[0] || $0[1] {
+			var options = DrawOptions(rawValue: $0)
+			
+			if options.contains(.player0) ||
+				options.contains(.missile0) {
+				// player 0/missile 0
 				return 0
-			}
-			// player/missile 1
-			if $0[2] || $0[3] {
+			} else if options.contains(.player1) ||
+						options.contains(.missile1) {
+				// player 1/missile 1
 				return 1
-			}
-			// ball
-			if $0[4] {
+			} else if options.contains(.ball) {
+				// ball
 				return 2
-			}
-			// playfield
-			if $0[5] {
-				// score mode
-				if $0[6] {
-					return $0[6] ? 0 : 1
+			} else if options.contains(.playfield) {
+				// playefield
+				if options.contains(.scoreMode) {
+					// score mode: player 0 or player 1
+					return options.contains(.player0) ? 0 : 1
 				} else {
+					// playfield
 					return 2
 				}
+			} else {
+				// background
+				return 3
 			}
-			// background
-			return 3
 		}
+	
+	private func drawOptions(at point: Int) -> DrawOptions {
+		var options: DrawOptions = []
+		if self.players.0.needsDrawing {
+			options.insert(.player0)
+		}
+		if self.players.1.needsDrawing {
+			options.insert(.player1)
+		}
+		if self.missiles.0.needsDrawing {
+			//			options.insert(.missile0)
+		}
+		if self.missiles.1.needsDrawing {
+			//			options.insert(.missile1)
+		}
+		if self.ball.needsDrawing {
+			options.insert(.ball)
+		}
+		if self.playfield.draws(at: point) {
+			options.insert(.playfield)
+		}
+		if self.playfield.control.contains(.scoreMode) {
+			options.insert(.scoreMode)
+		}
+		if point < 80 {
+			options.insert(.leftHalf)
+		}
+		return options
+	}
 	
 	private static let collisionsLookUp: [Int] = (0x00...0x1f)
 		.map() {
@@ -211,6 +231,49 @@ extension TIA {
 			
 			return collisions
 		}
+}
+
+extension TIA {
+	func applyHorizontalMotion() {
+		// NOTE: in hardware, horizontal motion advances position counters
+		// of movable objects gradually every 4 color clocks, beginning
+		// approximately 7 color clocks after HMOVE register is strobed;
+		// so, at most it takes 15*4+7=67 color clocks to apply maximum
+		// horizontal motion value of 15;
+		// when HMOVE is strobed late during horizontal blank interval or
+		// during visible portion of a scan line, horizontal motion
+		// results are unpredictable and depend on clock timings and
+		// hardware model;
+		// the following is a simplified emulation of horizontal motion:
+		// - when HMOVE register is strobed early during horizontal blanking
+		//   interval, as intended, it applies motion at once to reduce
+		//   unnecessary calculations, since there is no graphics output
+		//   anyway;
+		// - when HMOVE register is strobed late during horizontal blanking
+		//   interval, it applies as much motion as would fit into
+		//   horizontal blanking interval, as if it was applied gradually,
+		//   and ignores the remaining amount of horizontal motion;
+		// - when HMOVE register is strobed during visible portion of a
+		//   scan line, it completely ignores horizontal motion, since the
+		//   vast majority of games never do that anyway;
+		
+		let remainingClock = (68+8)-7 - self.colorClock
+		guard remainingClock > 0 else {
+			// ignore horizontal motion when HMOVE strobed late during
+			// horizontal blanking interval or during visible portion of
+			// a scan line
+			return
+		}
+		
+		// calculate maximum amount of horizontal motion, which could be
+		// applied during horizontal blanking interval
+		let ripples = remainingClock / 4
+		self.players.0.move(limit: ripples)
+		self.players.1.move(limit: ripples)
+		self.missiles.0.move(limit: ripples)
+		self.missiles.1.move(limit: ripples)
+		self.ball.move(limit: ripples)
+	}
 }
 
 
@@ -272,9 +335,9 @@ extension TIA: Addressable {
 	public func write(_ data: Int, at address: Int) {
 		switch address {
 		case 0x00:	// MARK: VSYNC
-			self.verticalSync = data[1]
+			self.isVerticalSyncEnabled = data[1]
 		case 0x01:	// MARK: VBLANK
-			self.verticalBlank = data[1]
+			self.isVerticalBlankEnabled = data[1]
 		case 0x02:	// MARK: WSYNC
 			// NOTE: when last CPU clock cycle of a write instruction coincides
 			// with last three TIA color clocks in a scan line, WSYNC will
@@ -365,8 +428,8 @@ extension TIA: Addressable {
 			self.ball.delayed = data[0]
 			
 		case 0x2a:	// MARK: HMOVE
-			self.horizontalBlankResetClock += 8
-			self.hmove = true
+			self.horizontalBlankResetColorClock = 68+8
+			self.applyHorizontalMotion()
 			
 		case 0x2b:	// MARK: HMCLR
 			self.players.0.motion = 0
@@ -392,6 +455,38 @@ public extension Int {
 		for bit in 0..<8 {
 			self[bit] = value[7-bit]
 		}
+	}
+}
+
+private extension TIA.MovableObject {
+	/// Resets position counter of this object.
+	mutating func reset() {
+		self.position = 160-4
+	}
+	
+	/// Applies horizontal motion.
+	/// This advances position counter of this object by the value of horizontal motion, but limited by
+	/// the specified motion limit.
+	mutating func move(limit: Int) {
+		self.position += min(self.motion, limit)
+	}
+}
+
+
+private struct DrawOptions: OptionSet {
+	static let player0   = DrawOptions(rawValue: 1 << 0)
+	static let player1   = DrawOptions(rawValue: 1 << 1)
+	static let missile0  = DrawOptions(rawValue: 1 << 2)
+	static let missile1  = DrawOptions(rawValue: 1 << 3)
+	static let ball	     = DrawOptions(rawValue: 1 << 4)
+	static let playfield = DrawOptions(rawValue: 1 << 5)
+	static let scoreMode = DrawOptions(rawValue: 1 << 6)
+	static let leftHalf  = DrawOptions(rawValue: 1 << 7)
+	
+	var rawValue: Int
+	
+	init(rawValue: Int) {
+		self.rawValue = rawValue
 	}
 }
 
