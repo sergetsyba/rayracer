@@ -221,9 +221,9 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		case .beamPosition:
 			view?.stringValue = (item.rawValue, "todo" /*"\(tia.scanLine), \(tia.colorClock - 68)"*/)
 		case .verticalSync:
-			view?.boolValue = (item.rawValue, tia.verticalSync)
+			view?.boolValue = (item.rawValue, tia.isVerticalSyncEnabled)
 		case .verticalBlank:
-			view?.boolValue = (item.rawValue, tia.verticalBlank)
+			view?.boolValue = (item.rawValue, tia.isVerticalBlankEnabled)
 		case .waitForHorizontalSync:
 			view?.boolValue = (item.rawValue, tia.awaitsHorizontalSync)
 		}

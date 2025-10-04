@@ -33,7 +33,7 @@ class ScreenViewController: NSViewController {
 		self.console = console
 		self.console.controllers.0 = self.joystick
 		
-		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count)
+		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count * 2)
 		self.screenIndex = 0
 		
 		let device = commandQueue.device
@@ -186,6 +186,11 @@ extension ScreenViewController: TIA.GraphicsOutput {
 			self.console.suspend()
 			self.screenIndex = 0
 		}
+	}
+	
+	func blank() {
+		self.screenData[self.screenIndex] = 0
+		self.screenIndex += 1
 	}
 	
 	func write(color: Int) {

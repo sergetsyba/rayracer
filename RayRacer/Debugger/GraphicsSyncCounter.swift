@@ -23,6 +23,10 @@ class GraphicsSyncCounter: TIA.GraphicsOutput {
 			.sync(sync)
 	}
 	
+	func blank() {
+		// does nothing
+	}
+	
 	func write(color: Int) {
 		self.output?
 			.write(color: color)
