@@ -7,7 +7,9 @@
 
 extension TIA {
 	public struct Player: MovableObject {
-		public var position: Int = 0
+		public var position: Int = 0 {
+			didSet { self.position %= 160 }
+		}
 		public var motion: Int = 0
 		
 		public var graphics: (UInt8, UInt8) = (0, 0)
@@ -15,7 +17,7 @@ extension TIA {
 		public var reflected: Bool = false
 		public var copies: Int = 1
 		
-		var draws: Bool {
+		var needsDrawing: Bool {
 			// ensure player copy appears in the current 8-point section
 			guard Self.sections[self.copies][self.position / 8] else {
 				return false
@@ -30,6 +32,10 @@ extension TIA {
 			return self.reflected
 			? graphics[bit]
 			: graphics[7 - bit]
+		}
+		
+		mutating func reset() {
+			self.position = 160-4-1
 		}
 	}
 }

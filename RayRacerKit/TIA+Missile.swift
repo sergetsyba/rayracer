@@ -7,17 +7,23 @@
 
 extension TIA {
 	public struct Missile: MovableObject {
-		public var position: Int = 0
+		public var position: Int = 0 {
+			didSet { self.position %= 160 }
+		}
 		public var motion: Int = 0
 		
 		public var enabled: Bool = false
 		public var copies: Int = 1
 		public var size: Int = 1
 		
-		var draws: Bool {
+		var needsDrawing: Bool {
 			return Self.sections[self.copies][self.position / 8]
 			&& self.enabled
 			&& self.position < self.size
+		}
+		
+		mutating func reset() {
+			self.position = 160-4
 		}
 	}
 }
