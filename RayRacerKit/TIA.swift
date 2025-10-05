@@ -137,8 +137,6 @@ extension TIA {
 		var motion: Int { get set }
 		/// Returns `true` when this object should be drawn; returns `false` otherwise.
 		var needsDrawing: Bool { get }
-		/// Resets position counter of this object.
-		mutating func reset()
 	}
 }
 

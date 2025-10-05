@@ -18,6 +18,8 @@ extension TIA {
 		public var copies: Int = 1
 		
 		var needsDrawing: Bool {
+			// TODO: fix player drawing, which starts at position counter 1
+			
 			// ensure player copy appears in the current 8-point section
 			guard Self.sections[self.copies][self.position / 8] else {
 				return false
@@ -32,10 +34,6 @@ extension TIA {
 			return self.reflected
 			? graphics[bit]
 			: graphics[7 - bit]
-		}
-		
-		mutating func reset() {
-			self.position = 160-4-1
 		}
 	}
 }

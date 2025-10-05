@@ -21,10 +21,6 @@ extension TIA {
 			&& self.enabled
 			&& self.position < self.size
 		}
-		
-		mutating func reset() {
-			self.position = 160-4
-		}
 	}
 }
 
