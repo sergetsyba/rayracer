@@ -101,6 +101,18 @@ public class TIA {
 			self.missiles.0.position += 1
 			self.missiles.1.position += 1
 			self.ball.position += 1
+			
+			// reset missile position counters if it is reset to player
+			// TODO: account for extra 1 pixel offset in player drawing
+			// TODO: account for player width
+			if self.missiles.0.isResetToPlayer
+				&& self.players.0.position == 0 {
+				self.missiles.0.reset()
+			}
+			if self.missiles.1.isResetToPlayer
+				&& self.players.1.position == 0 {
+				self.missiles.1.reset()
+			}
 		}
 		
 		self.colorClock += 1
@@ -137,8 +149,6 @@ extension TIA {
 		var motion: Int { get set }
 		/// Returns `true` when this object should be drawn; returns `false` otherwise.
 		var needsDrawing: Bool { get }
-		/// Resets position counter of this object.
-		mutating func reset()
 	}
 }
 
@@ -182,10 +192,10 @@ extension TIA {
 			options.insert(.player1)
 		}
 		if self.missiles.0.needsDrawing {
-			//			options.insert(.missile0)
+			options.insert(.missile0)
 		}
 		if self.missiles.1.needsDrawing {
-			//			options.insert(.missile1)
+			options.insert(.missile1)
 		}
 		if self.ball.needsDrawing {
 			options.insert(.ball)
@@ -403,9 +413,9 @@ extension TIA: Addressable {
 			self.ball.enabled.1 = self.ball.enabled.0
 			
 		case 0x1d:	// MARK: ENAM0
-			self.missiles.0.enabled = data[1]
+			self.missiles.0.isEnabled = data[1]
 		case 0x1e:	// MARK: ENAM1
-			self.missiles.1.enabled = data[1]
+			self.missiles.1.isEnabled = data[1]
 		case 0x1f:	// MARK: ENABL
 			self.ball.enabled.0 = data[1]
 			
@@ -426,6 +436,11 @@ extension TIA: Addressable {
 			self.players.1.delayed = data[0]
 		case 0x27:	// MARK: VDELBL
 			self.ball.delayed = data[0]
+			
+		case 0x28:	// MARK: RESMP0
+			self.missiles.0.isResetToPlayer = data[1]
+		case 0x29:	// MARK: RESMP1
+			self.missiles.1.isResetToPlayer = data[1]
 			
 		case 0x2a:	// MARK: HMOVE
 			self.horizontalBlankResetColorClock = 68+8
