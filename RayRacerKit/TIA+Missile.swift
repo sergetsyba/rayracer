@@ -12,14 +12,19 @@ extension TIA {
 		}
 		public var motion: Int = 0
 		
-		public var enabled: Bool = false
+		public var isEnabled: Bool = false
+		public var isResetToPlayer: Bool = false
+		
 		public var copies: Int = 1
 		public var size: Int = 1
 		
 		var needsDrawing: Bool {
-			return Self.sections[self.copies][self.position / 8]
-			&& self.enabled
-			&& self.position < self.size
+			if !self.isEnabled || self.isResetToPlayer {
+				return false
+			} else {
+				return Self.sections[self.copies][self.position / 8]
+				&& self.position < self.size
+			}
 		}
 	}
 }
