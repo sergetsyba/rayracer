@@ -15,22 +15,38 @@ final class PerformanceTests: XCTestCase {
 		
 		let console = Atari2600()
 		console.tia.output = NoOutput()
-		console.insertCartridge(rom)
+		console.cartridge = rom
+		console.reset()
 		
 		self.measure() {
-			for _ in 0..<1_000_000 {
-				console.stepInstruction()
-			}
+			console.resume(instructions: 1_000_000)
 		}
 	}
 }
 
 class NoOutput: TIA.GraphicsOutput {
-	func sync() {
+	func sync(_ sync: RayRacerKit.TIA.GraphicsSync) {
+		// does nothing
+	}
+	
+	func blank() {
 		// does nothing
 	}
 	
 	func write(color: Int) {
 		// does nothing
+	}
+}
+
+extension Atari2600 {
+	func resume(instructions: Int) {
+		var remaining = instructions
+		self.resume(priority: .high, until: ({ [unowned self] in
+			if self.cpu.sync
+				&& !self.tia.awaitsHorizontalSync {
+				remaining -= 1
+			}
+			return remaining == 0
+		}, {}))
 	}
 }
