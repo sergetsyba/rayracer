@@ -91,15 +91,15 @@ extension MOS6507 {
 			// implied addressing
 		case 0x18, 0x38, 0x58, 0xb8, 0xd8, 0x78, 0x88, 0xa8, 0x98, 0xc8, 0xe8, 0xf8,
 			0x0a, 0x2a, 0x4a, 0x6a, 0x8a, 0x9a, 0xaa, 0xba, 0xca, 0xea:
-			return (opcode, 0x00, 2, 1)
+			return (opcode, -1, 2, 1)
 		case 0x08, 0x48:
-			return (opcode, 0x00, 3, 1)
+			return (opcode, -1, 3, 1)
 		case 0x28, 0x68:
-			return (opcode, 0x00, 4, 1)
+			return (opcode, -1, 4, 1)
 		case 0x40, 0x60:
-			return (opcode, 0x00, 6, 1)
+			return (opcode, -1, 6, 1)
 		case 0x00:
-			return (opcode, 0x00, 7, 1)
+			return (opcode, -1, 7, 1)
 			
 			// immediate addressing
 		case 0xa2,
@@ -207,7 +207,7 @@ extension MOS6507 {
 		// in relative addressing page can be crossed both to a higher
 		// and a lower one
 		let address = (address + 1) + Int(signed: offset)
-		let cycle = address.high == page ? 0 : 1
+		let cycle = address.high == page ? 1 : 2
 		return (address, cycle)
 	}
 	
