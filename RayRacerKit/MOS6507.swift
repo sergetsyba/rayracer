@@ -71,7 +71,7 @@ public struct MOS6507 {
 		
 		if self.elapsedCycles == self.decoded.duration {
 			self.programCounter += self.decoded.length
-			self.executeOperation(opcode: self.decoded.opcode, address: self.decoded.address)
+			self.executeOperation(code: self.decoded.opcode, address: self.decoded.address)
 			
 			self.decoded = self.decodeOperation(at: self.programCounter)
 			self.elapsedCycles = 0
@@ -89,8 +89,10 @@ extension MOS6507 {
 	/// takes to execute and length of its instruction in the program bytecode.
 	private func decodeOperation(at address: Int) -> (opcode: Int, address: Int, duration: Int, length: Int) {
 		let opcode = self.bus.read(at: address)
+		let address = address + 0x1
+		
 		switch opcode {
-			// implied addressing
+			// MARK: implied addressing
 		case 0x18, 0x38, 0x58, 0xb8, 0xd8, 0x78, 0x88, 0xa8, 0x98, 0xc8, 0xe8, 0xf8,
 			0x0a, 0x2a, 0x4a, 0x6a, 0x8a, 0x9a, 0xaa, 0xba, 0xca, 0xea:
 			return (opcode, -1, 2, 1)
@@ -103,97 +105,117 @@ extension MOS6507 {
 		case 0x00:
 			return (opcode, -1, 7, 1)
 			
-			// immediate addressing
+			// MARK: immediate addressing
 		case 0xa2,
 			0x09, 0x29, 0x49, 0x69, 0xa9, 0xc9, 0xe9,
 			0xa0, 0xe0, 0xc0:
-			let address = address + 1
 			return (opcode, address, 2, 2)
 			
-			// relative addressing
-		case 0x10, 0x30, 0x50, 0x70, 0x90, 0xb0, 0xd0, 0xf0:
-			let (address, cycle) = self.readAddress(at: address + 1, relativeTo: address + 2)
-			return (opcode, address, 2 + cycle, 2)
+			// MARK: relative addressing
+		case 0x10:
+			let (address, cycles) = self.readRelativeAddress(at: address, on: self.status[.negative] == false)
+			return (opcode, address, 2 + cycles, 2)
+		case 0x30:
+			let (address, cycles) = self.readRelativeAddress(at: address, on: self.status[.negative])
+			return (opcode, address, 2 + cycles, 2)
+		case 0x50:
+			let (address, cycles) = self.readRelativeAddress(at: address, on: self.status[.overflow] == false)
+			return (opcode, address, 2 + cycles, 2)
+		case 0x70:
+			let (address, cycles) = self.readRelativeAddress(at: address, on: self.status[.overflow])
+			return (opcode, address, 2 + cycles, 2)
+		case 0x90:
+			let (address, cycles) = self.readRelativeAddress(at: address, on: self.status[.carry] == false)
+			return (opcode, address, 2 + cycles, 2)
+		case 0xb0:
+			let (address, cycles) = self.readRelativeAddress(at: address, on: self.status[.carry])
+			return (opcode, address, 2 + cycles, 2)
+		case 0xd0:
+			let (address, cycles) = self.readRelativeAddress(at: address, on: self.status[.zero] == false)
+			return (opcode, address, 2 + cycles, 2)
+		case 0xf0:
+			let (address, cycles) = self.readRelativeAddress(at: address, on: self.status[.zero])
+			return (opcode, address, 2 + cycles, 2)
 			
-			// 0-page absolute addressing
+			// MARK: 0-page absolute addressing
 		case 0x24, 0x84, 0xa4, 0xc4, 0xe4,
 			0x05, 0x25, 0x45, 0x65, 0x85, 0xa5, 0xc5, 0xe5,
 			0xa6, 0x86:
-			let address = self.read0PageAddress(at: address + 1)
+			let address = self.read0PageAddress(at: address)
 			return (opcode, address, 3, 2)
 			
 		case 0x06, 0x26, 0x46, 0x66, 0xc6, 0xe6:
-			let address = self.read0PageAddress(at: address + 1)
+			let address = self.read0PageAddress(at: address)
 			return (opcode, address, 5, 2)
 			
-			// 0-page x-indexed addressing
+			// MARK: 0-page x-indexed addressing
 		case 0x94, 0xb4,
 			0x15, 0x35, 0x55, 0x75, 0x95, 0xb5, 0xd5, 0xf5:
-			let address = self.read0PageXIndexedAddress(at: address + 1)
+			let address = self.read0PageXIndexedAddress(at: address)
 			return (opcode, address, 4, 2)
 			
 		case 0x16, 0x36, 0x56, 0x76, 0xd6, 0xf6:
-			let address = self.read0PageXIndexedAddress(at: address + 1)
+			let address = self.read0PageXIndexedAddress(at: address)
 			return (opcode, address, 6, 2)
 			
-			// 0-page y-indexed addressing
+			// MARK: 0-page y-indexed addressing
 		case 0x96, 0xb6:
-			let address = self.read0PageYIndexedAddress(at: address + 1)
+			let address = self.read0PageYIndexedAddress(at: address)
 			return (opcode, address, 4, 2)
 			
-			// absolute addressing
+			// MARK: absolute addressing
 		case 0x4c:
-			let address = self.readAddress(at: address + 1)
+			let address = self.readAddress(at: address)
 			return (opcode, address, 3, 3)
 			
 		case 0x2c, 0x8c, 0xac, 0xcc, 0xec,
 			0x0d, 0x2d, 0x4d, 0x6d, 0x8d, 0xad, 0xcd, 0xed,
 			0x8e, 0xae:
-			let address = self.readAddress(at: address + 1)
+			let address = self.readAddress(at: address)
 			return (opcode, address, 4, 3)
 			
 		case 0x20,
 			0x0e, 0x2e, 0x4e, 0x6e, 0xce, 0xee:
-			let address = self.readAddress(at: address + 1)
+			let address = self.readAddress(at: address)
 			return (opcode, address, 6, 3)
 			
-			// absolute x-indexed addressing
+			// MARK: absolute x-indexed addressing
 		case 0xbc,
 			0x1d, 0x3d, 0x5d, 0x7d, 0xbd, 0xdd, 0xfd:
-			let (address, cycle) = self.readXIndexedAddress(at: address + 1)
+			let (address, cycle) = self.readXIndexedAddress(at: address)
 			return (opcode, address, 4 + cycle, 3)
 			
 		case 0x9d:
-			let (address, _) = self.readXIndexedAddress(at: address + 1)
+			let (address, _) = self.readXIndexedAddress(at: address)
 			return (opcode, address, 5, 3)
 			
 		case 0x1e, 0x3e, 0x5e, 0x7e, 0xde, 0xfe:
-			let (address, _) = self.readXIndexedAddress(at: address + 1)
+			let (address, _) = self.readXIndexedAddress(at: address)
 			return (opcode, address, 7, 3)
 			
-			// absolute y-indexed addressing
+			// MARK: absolute y-indexed addressing
 		case 0x19, 0x39, 0x59, 0x79, 0xb9, 0xd9, 0xf9,
 			0xbe:
-			let (address, cycle) = self.readYIndexedAddress(at: address + 1)
+			let (address, cycle) = self.readYIndexedAddress(at: address)
 			return (opcode, address, 4 + cycle, 3)
 			
 		case 0x99:
-			let (address, _) = self.readYIndexedAddress(at: address + 1)
+			let (address, _) = self.readYIndexedAddress(at: address)
 			return (opcode, address, 5, 3)
 			
-			// indirect addressing
+			// MARK: indirect addressing
 		case 0x6c:
-			let address = self.readIndirectAddress(at: address + 1)
+			let address = self.readIndirectAddress(at: address)
 			return (opcode, address, 5, 3)
 			
-			// indirect x-indexed addressing
+			// MARK: indirect x-indexed addressing
 		case 0x61, 0x21, 0xc1, 0x41, 0xa1, 0x01, 0xe1, 0x81:
-			let address = self.readIndirectXIndexedAddress(at: address + 1)
+			let address = self.readIndirectXIndexedAddress(at: address)
 			return (opcode, address, 6, 2)
 			
-			// indirect y-indexed addressing
+			// MARK: indirect y-indexed addressing
 		case 0x11, 0x31, 0x51, 0x71, 0x91, 0xb1, 0xd1, 0xf1:
-			let (address, cycle) = self.readIndirectYIndexedAddress(at: address + 1)
+			let (address, cycle) = self.readIndirectYIndexedAddress(at: address)
 			return (opcode, address, 5 + cycle, 2)
 			
 		default:
@@ -203,9 +225,9 @@ extension MOS6507 {
 	}
 	
 	/// Executes operation with the specified code and operand address.
-	private mutating func executeOperation(opcode: Int, address: Int) {
-		switch opcode {
-			// adc
+	private mutating func executeOperation(code: Int, address: Int) {
+		switch code {
+			// MARK: adc
 		case 0x61, 0x65, 0x69, 0x6d, 0x71, 0x75, 0x7d, 0x79:
 			let operand = self.bus.read(at: address)
 			let carry = self.status[.carry] ? 0x1 : 0x0
@@ -242,44 +264,33 @@ extension MOS6507 {
 			self.accumulator = result
 			self.status[.overflow] = overflow[7]
 			
-			// and
+			// MARK: and
 		case 0x21, 0x25, 0x29, 0x2d, 0x31, 0x35, 0x39, 0x3d:
 			let operand = self.bus.read(at: address)
 			self.accumulator &= operand
 			
-			// asl (accumulator)
+			// MARK: asl (accumulator)
 		case 0x0a:
 			let carry = self.accumulator[7]
 			self.accumulator = (self.accumulator << 1) & 0xff
 			self.status[.carry] = carry
 			
-			// asl
+			// MARK: asl
 		case 0x06, 0x0e, 0x16, 0x1e:
 			let operand = self.bus.read(at: address)
-			let result = operand << 1
+			let carry = operand[7]
+			let result = (operand << 1) & 0xff
 			
-			self.bus.write(result & 0xff, at: address)
-			self.status[.carry] = result[8]
+			self.bus.write(result, at: address)
+			self.status[.carry] = carry
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = result[7]
 			
-			// bcc
-		case 0x90:
-			if self.status[.carry] == false {
-				self.programCounter = address
-			}
-			// bcs
-		case 0xb0:
-			if self.status[.carry] {
-				self.programCounter = address
-			}
-			// beq
-		case 0xf0:
-			if self.status[.zero] {
-				self.programCounter = address
-			}
+			// MARK: bcc, bcs, beq, bmi, bne, bpl
+		case 0x90, 0xb0, 0xf0, 0x30, 0xd0, 0x10:
+			self.programCounter = address
 			
-			// bit:
+			// MARK: bit:
 		case 0x24, 0x2c:
 			let operand = self.bus.read(at: address)
 			let result = self.accumulator & operand
@@ -288,57 +299,41 @@ extension MOS6507 {
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = operand[7]
 			
-			// bmi
-		case 0x30:
-			if self.status[.negative] {
-				self.programCounter = address
-			}
-			// bne
-		case 0xd0:
-			if self.status[.zero] == false {
-				self.programCounter = address
-			}
-			// bpl
-		case 0x10:
-			if self.status[.negative] == false {
-				self.programCounter = address
-			}
-			
 			//brk
 		case 0x00:
 			self.pushStack(self.programCounter >> 8)
-			self.pushStack(self.programCounter & 0x0f)
+			self.pushStack(self.programCounter & 0xff)
 			self.pushStack(self.status.rawValue)
 			
 			let low = self.bus.read(at: 0xfffe)
 			let high = self.bus.read(at: 0xffff)
-			self.programCounter = (high << 8) & low
+			self.programCounter = (high << 8) | low
 			
-			// bvc
+			// MARK: bvc
 		case 0x50:
 			if self.status[.overflow] == false {
 				self.programCounter = address
 			}
-			// bvs
+			// MARK: bvs
 		case 0x70:
 			if self.status[.overflow] {
 				self.programCounter = address
 			}
 			
-			// clc
+			// MARK: clc
 		case 0x18:
 			self.status[.carry] = false
-			// cld
+			// MARK: cld
 		case 0xd8:
 			self.status[.decimalMode] = false
-			// cli
+			// MARK: cli
 		case 0x58:
 			self.status[.interruptDisabled] = false
-			// clv
+			// MARK: clv
 		case 0xb8:
 			self.status[.overflow] = false
 			
-			// cmp
+			// MARK: cmp
 		case 0xc1, 0xc5, 0xc9, 0xcd, 0xd1, 0xd5, 0xd9, 0xdd:
 			let operand = self.bus.read(at: address)
 			let result = self.accumulator - operand
@@ -347,7 +342,7 @@ extension MOS6507 {
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = result[7]
 			
-			// cpx
+			// MARK: cpx
 		case 0xe0, 0xe4, 0xec:
 			let operand = self.bus.read(at: address)
 			let result = self.x - operand
@@ -356,7 +351,7 @@ extension MOS6507 {
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = result[7]
 			
-			// cpy
+			// MARK: cpy
 		case 0xc0, 0xc4, 0xcc:
 			let operand = self.bus.read(at: address)
 			let result = self.y - operand
@@ -365,7 +360,7 @@ extension MOS6507 {
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = result[7]
 			
-			// dec
+			// MARK: dec
 		case 0xc6, 0xce, 0xd6, 0xde:
 			let operand = self.bus.read(at: address)
 			let result = (operand - 0x1) & 0xff
@@ -374,19 +369,19 @@ extension MOS6507 {
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = result[7]
 			
-			// dex
+			// MARK: dex
 		case 0xca:
 			self.x = (self.x - 0x1) & 0xff
-			// dey
+			// MARK: dey
 		case 0x88:
 			self.y = (self.y - 0x1) & 0xff
 			
-			// eor
+			// MARK: eor
 		case 0x41, 0x45, 0x49, 0x4d, 0x51, 0x55, 0x59, 0x5d:
 			let operand = self.bus.read(at: address)
 			self.accumulator ^= operand
 			
-			// inc
+			// MARK: inc
 		case 0xe6, 0xee, 0xf6, 0xfe:
 			let operand = self.bus.read(at: address)
 			let result = (operand + 0x1) & 0xff
@@ -395,42 +390,45 @@ extension MOS6507 {
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = result[7]
 			
-			// inx
+			// MARK: inx
 		case 0xe8:
 			self.x = (self.x + 0x1) & 0xff
-			// iny
+			// MARK: iny
 		case 0xc8:
 			self.y = (self.y + 0x1) & 0xff
 			
-			// jmp
+			// MARK: jmp
 		case 0x4c, 0x6c:
 			self.programCounter = address
 			
-			// jsr
+			// MARK: jsr
 		case 0x20:
-			// TODO: add explanation for -1
+			// NOTE: JSR pushes PC+1 onto stack, but not PC+2 as it should be,
+			// and there's an extra PC+1 at the end of RTS, which then
+			// correctly aligns return to the beginning of next instruction;
 			let returnAddress = self.programCounter - 1
+			
 			self.pushStack(returnAddress >> 8)
-			self.pushStack(returnAddress & 0x0f)
+			self.pushStack(returnAddress & 0xff)
 			self.programCounter = address
 			
-			// lda
+			// MARK: lda
 		case 0xa1, 0xa5, 0xa9, 0xad, 0xb1, 0xb5, 0xb9, 0xbd:
 			self.accumulator = self.bus.read(at: address)
-			// ldx
+			// MARK: ldx
 		case 0xa2, 0xa6, 0xae, 0xb6, 0xbe:
 			self.x = self.bus.read(at: address)
-			// ldy
+			// MARK: ldy
 		case 0xa0, 0xa4, 0xac, 0xb4, 0xbc:
 			self.y = self.bus.read(at: address)
 			
-			// lsr (accumulator)
+			// MARK: lsr (accumulator)
 		case 0x4a:
 			let carry = self.accumulator[0]
 			self.accumulator >>= 1
 			self.status[.carry] = carry
 			
-			// lsr
+			// MARK: lsr
 		case 0x46, 0x4e, 0x56, 0x5e:
 			let operand = self.bus.read(at: address)
 			let result = operand << 1
@@ -440,30 +438,30 @@ extension MOS6507 {
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = result[7]
 			
-			// nop
+			// MARK: nop
 		case 0xea:
 			break
 			
-			// ora
+			// MARK: ora
 		case 0x01, 0x05, 0x09, 0x0d, 0x11, 0x15, 0x19, 0x1d:
 			let operand = self.bus.read(at: address)
 			self.accumulator |= operand
 			
-			// pha
+			// MARK: pha
 		case 0x48:
 			self.pushStack(self.accumulator)
-			// php
+			// MARK: php
 		case 0x08:
 			self.pushStack(self.status.rawValue)
-			// pla
+			// MARK: pla
 		case 0x68:
 			self.accumulator = self.pullStack()
-			// plp
+			// MARK: plp
 		case 0x28:
 			let status = self.pullStack()
 			self.status = Status(rawValue: status)
 			
-			// rol (accumulator)
+			// MARK: rol (accumulator)
 		case 0x2a:
 			let carry = self.accumulator[7]
 			var result = self.accumulator << 1
@@ -472,7 +470,7 @@ extension MOS6507 {
 			self.accumulator = result & 0xff
 			self.status[.carry] = carry
 			
-			// rol
+			// MARK: rol
 		case 0x26, 0x2e, 0x36, 0x3e:
 			let operand = self.bus.read(at: address)
 			var result = operand << 1
@@ -483,7 +481,7 @@ extension MOS6507 {
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = result[7]
 			
-			// ror (accumulator)
+			// MARK: ror (accumulator)
 		case 0x6a:
 			let carry = self.accumulator[0]
 			var result = self.accumulator >> 1
@@ -492,7 +490,7 @@ extension MOS6507 {
 			self.accumulator = result
 			self.status[.carry] = carry
 			
-			// ror
+			// MARK: ror
 		case 0x66, 0x6e, 0x76, 0x7e:
 			let operand = self.bus.read(at: address)
 			var result = operand >> 1
@@ -503,24 +501,24 @@ extension MOS6507 {
 			self.status[.zero] = result == 0x0
 			self.status[.negative] = result[7]
 			
-			// rti
+			// MARK: rti
 		case 0x40:
 			let status = self.pullStack()
 			let low = self.pullStack()
 			let high = self.pullStack()
 			
 			self.status = Status(rawValue: status)
-			self.programCounter = (high << 8) & low
+			self.programCounter = (high << 8) | low
 			
-			// rts
+			// MARK: rts
 		case 0x60:
 			let low = self.pullStack()
 			let high = self.pullStack()
 			
-			self.programCounter = (high << 8) & low
+			self.programCounter = (high << 8) | low
 			self.programCounter += 1
 			
-			// sbc
+			// MARK: sbc
 		case 0xe1, 0xe5, 0xe9, 0xed, 0xf1, 0xf5, 0xf9, 0xfd:
 			let operand = self.bus.read(at: address)
 			let borrow = self.status[.carry] ? 0x0: 0x1
@@ -557,47 +555,47 @@ extension MOS6507 {
 			self.accumulator = result
 			self.status[.overflow] = overflow[7]
 			
-			// sec
+			// MARK: sec
 		case 0x38:
 			self.status.insert(.carry)
-			// sed
+			// MARK: sed
 		case 0xf8:
 			self.status.insert(.decimalMode)
-			// sei
+			// MARK: sei
 		case 0x78:
 			self.status.insert(.overflow)
 			
-			// sta
+			// MARK: sta
 		case 0x81, 0x85, 0x8d, 0x91, 0x95, 0x99, 0x9d:
 			self.bus.write(self.accumulator, at: address)
-			// stx
+			// MARK: stx
 		case 0x86, 0x8e, 0x96:
 			self.bus.write(self.x, at: address)
-			// sty
+			// MARK: sty
 		case 0x84, 0x8c, 0x94:
 			self.bus.write(self.y, at: address)
 			
-			// tax
+			// MARK: tax
 		case 0xaa:
 			self.x = self.accumulator
-			// tay
+			// MARK: tay
 		case 0xa8:
 			self.y = self.accumulator
-			// tsx
+			// MARK: tsx
 		case 0xba:
 			self.x = self.stackPointer
-			// txa
+			// MARK: txa
 		case 0x8a:
 			self.accumulator = self.x
-			// txs
+			// MARK: txs
 		case 0x9a:
 			self.stackPointer = self.x
-			// tya
+			// MARK: tya
 		case 0x98:
 			self.accumulator = self.y
 			
 		default:
-			fatalError("Unknown opcode: \(opcode).")
+			fatalError("Unknown opcode: \(code).")
 		}
 	}
 	
@@ -624,19 +622,24 @@ extension MOS6507 {
 // MARK: -
 // MARK: Memory addressing
 extension MOS6507 {
-	/// Reads address, using relative addressing mode, at the first specified address, relative to
-	/// the second sepecified address in memory.
+	/// Resolves address, using reative addressing mode, from offset at the specified address, based on
+	/// the specified branching condition.
 	///
-	/// Additionally returns 0 when offseting takes an extra CPU cycle crossing memory page, otherwise
-	/// returns 0.
-	private func readAddress(at address1: Int, relativeTo address2: Int) -> (Int, Int) {
-		let page1 = address1 >> 8
+	/// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
+	/// address.
+	private func readRelativeAddress(at address: Int, on condition: Bool) -> (address: Int, cycles: Int) {
+		// when branch is not taken, program counter increments to +1
+		// relative to offset operand address
+		guard condition else {
+			return (address + 0x1, 0)
+		}
 		
-		let offset = self.bus.read(at: address1)
-		let address = address2 + Int(signed: offset)
+		let page1 = address >> 8
+		let offset = self.bus.read(at: address)
+		let address = address + 0x1 + Int(signed: offset)
+		
 		let page2 = address >> 8
-		
-		let cycle = page1 == page2 ? 0 : 1
+		let cycle = page1 == page2 ? 1 : 2
 		return (address, cycle)
 	}
 	
@@ -645,20 +648,22 @@ extension MOS6507 {
 		return self.bus.read(at: address)
 	}
 	
-	/// Reads address, using 0-page x-indexed addressing mode, at the specified address in memory.
+	/// Resolves address, using 0-page x-indexed addressing mode, reading from the specified address
+	/// in memory.
 	private func read0PageXIndexedAddress(at address: Int) -> Int {
 		var address = self.read0PageAddress(at: address)
 		address += self.x
-		address &= 0x0f
+		address &= 0xff
 		
 		return address
 	}
 	
-	/// Reads address, using 0-page y-indexed addressing mode, at the specified address in memory.
+	/// Resolves address, using 0-page y-indexed addressing mode, reading from the specified address
+	/// in memory.
 	private func read0PageYIndexedAddress(at address: Int) -> Int {
 		var address = self.read0PageAddress(at: address)
 		address += self.y
-		address &= 0x0f
+		address &= 0xff
 		
 		return address
 	}
@@ -666,16 +671,16 @@ extension MOS6507 {
 	/// Reads address at the specified address in memory.
 	private func readAddress(at address: Int) -> Int {
 		let low = self.bus.read(at: address)
-		let high = self.bus.read(at: address + 1)
-		let address = (high << 8) & low
+		let high = self.bus.read(at: address + 0x1)
+		let address = (high << 8) | low
 		
 		return address
 	}
 	
 	/// Reads address, using absolute, x-indexed addressing mode, at the specified address in memory.
 	///
-	/// Additionally returns 1 when indexing takes an extra CPU cycle crossing memory page, otherwise
-	/// returns 0.
+	/// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
+	/// address.
 	private func readXIndexedAddress(at address: Int) -> (address: Int, cycle: Int) {
 		var address = self.readAddress(at: address)
 		let page1 = address >> 8
@@ -688,8 +693,8 @@ extension MOS6507 {
 	
 	/// Reads address, using absolute, y-indexed addressing mode, at the specified address in memory.
 	///
-	/// Additionally returns 1 when indexing takes an extra CPU cycle crossing memory page, otherwise
-	/// returns 0.
+	/// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
+	/// address.
 	private func readYIndexedAddress(at address: Int) -> (address: Int, cycle: Int) {
 		var address = self.readAddress(at: address)
 		let page1 = address >> 8
@@ -718,8 +723,8 @@ extension MOS6507 {
 	
 	/// Reads address, using indirect y-indexed addressing mode, at the specified address in memory.
 	///
-	/// Additionally returns 1 when indexing takes an extra CPU cycle crossing memory page, otherwise
-	/// returns 0.
+	/// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
+	/// address.
 	private func readIndirectYIndexedAddress(at address: Int) -> (address: Int, cycle: Int) {
 		var address = self.read0PageAddress(at: address)
 		address = self.readAddress(at: address)
@@ -758,12 +763,9 @@ extension Int {
 		}
 	}
 	
-	init(signed value: Int, bits: Int = 8) {
-		self = value
-		
-		let mask = 1 << (bits - 1)
-		if value & mask == mask {
-			self -= (mask << 1)
-		}
+	init(signed value: Int) {
+		self = value[7]
+		? value - 0x100
+		: value
 	}
 }
