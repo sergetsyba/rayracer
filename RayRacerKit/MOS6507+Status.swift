@@ -6,7 +6,7 @@
 //
 
 extension MOS6507 {
-	public struct Status: OptionSet {
+	public struct Status: OptionSet, ExpressibleByIntegerLiteral {
 		public static let carry = Status(rawValue: 1 << 0)
 		public static let zero = Status(rawValue: 1 << 1)
 		public static let interruptDisabled = Status(rawValue: 1 << 2)
@@ -19,6 +19,10 @@ extension MOS6507 {
 		
 		public init(rawValue: Int) {
 			self.rawValue = rawValue
+		}
+		
+		public init(integerLiteral value: Int) {
+			self.rawValue = value
 		}
 	}
 }

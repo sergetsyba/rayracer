@@ -82,7 +82,7 @@ extension Atari2600 {
 	}
 	
 	/// Resumes emulation when it is suspended with a priority lower or equal to the specified one.
-	// TODO: explaing suspension context
+	// TODO: explain suspension context
 	public func resume(priority: SuspensionPriority = .normal, until suspension: (condition: () -> Bool, callback: () -> Void)? = nil) {
 		// do not resume emulation when current suspension priority is higher
 		guard case .suspended(let currentPriority) = self.state,
