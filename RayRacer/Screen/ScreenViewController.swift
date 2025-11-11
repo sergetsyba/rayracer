@@ -10,6 +10,8 @@ import MetalKit
 import RayRacerKit
 
 class ScreenViewController: NSViewController {
+	public let frameCounter = FrameCounter()
+	
 	private let console: Atari2600
 	private let joystick = Joystick()
 	
@@ -158,6 +160,8 @@ extension ScreenViewController: MTKViewDelegate {
 		
 		// begin preparing next field once command buffer work finishes
 		commandBuffer.addCompletedHandler() { [unowned self] _ in
+			self.frameCounter.increment()
+			
 			DispatchQueue.global(qos: .userInitiated)
 				.async() { [unowned self] in
 					self.console.resume()
