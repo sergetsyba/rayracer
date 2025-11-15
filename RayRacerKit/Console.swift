@@ -151,7 +151,7 @@ extension Atari2600: Addressable {
 	
 	public func write(_ data: Int, at address: Int) {
 		if address & 0xf000 == 0xf000 {
-			print(format: "Ignoring write at ROM address $%04x.", address)
+			// print(format: "Ignoring write at ROM address $%04x.", address)
 		} else if address & 0x280 == 0x280 {
 			self.riot.write(data, at: address & 0x1f)
 		} else if address & 0x80 == 0x80 {
