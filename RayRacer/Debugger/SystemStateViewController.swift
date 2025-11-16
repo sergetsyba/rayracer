@@ -421,7 +421,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			return view
 			
 		case .secondHalf:
-			let formatted = playfield.control.contains(.reflected) ? "Reflect" : "Duplicate"
+			let formatted = playfield.options.contains(.reflected) ? "Reflect" : "Duplicate"
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.stringValue = (item.rawValue, formatted)
 			return view
@@ -547,7 +547,7 @@ private extension SystemStateViewController {
 	}
 	
 	private func formatGraphics(of playfield: TIA.Playfield) -> String {
-		let values = playfield.graphics
+		let values = playfield.graphics2
 			.map({ String(format: "%02x", $0) })
 			.joined(separator: " ")
 		
@@ -827,3 +827,15 @@ private extension Int {
 		}
 	}
 }
+
+extension TIA.Playfield {
+	var graphics2: [UInt8] {
+		return [
+			UInt8((self.graphics >> 0) & 0xff),
+			UInt8((self.graphics >> 8) & 0xff),
+			UInt8((self.graphics >> 16) & 0xff)
+		]
+	}
+
+}
+

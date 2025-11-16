@@ -203,7 +203,7 @@ extension TIA {
 		if self.playfield.draws(at: point) {
 			options.insert(.playfield)
 		}
-		if self.playfield.control.contains(.scoreMode) {
+		if self.playfield.options.contains(.scoreMode) {
 			options.insert(.scoreMode)
 		}
 		if point < 80 {
@@ -374,20 +374,36 @@ extension TIA: Addressable {
 			self.colors[0] = data
 		case 0x07:	// MARK: COLUP1
 			self.colors[1] = data
-		case 0x08:	// MARK: COLUPF
+		case 0x08:	// MARK: colupf
 			self.colors[2] = data
-		case 0x09:	// MARK: COLUBK
+		case 0x09:	// MARK: colubk
 			self.colors[3] = data
 			
-		case 0x0a:	// MARK: CTRLPF
-			self.playfield.control = Playfield.Control(rawValue: data & 0x3)
-			self.ball.size = 1 << ((data >> 4) & 0x3)
-		case 0x0d:	// MARK: PF0
-			self.playfield.graphics[0] = UInt8(data)
-		case 0x0e:	// MARK: PF1
-			self.playfield.graphics[1] = UInt8(Int(reversingBits: data))
-		case 0x0f:	// MARK: PF2
-			self.playfield.graphics[2] = UInt8(data)
+		case 0x0a:	// MARK: ctrlpf
+			let options = data & 0x3
+			self.playfield.options = Playfield.Options(rawValue: options)
+			
+			let scale = (data >> 4) & 0x3
+			self.ball.size = 1 << scale
+			
+		case 0x0d:	// MARK: pf0
+			let data = UInt64(data)
+			self.playfield.graphics &= 0x0ffff_0ffff
+			self.playfield.graphics |= data >> 4
+			self.playfield.graphics |= data << (20-4)
+			
+		case 0x0e:	// MARK: pf1
+			let data = UInt64(Self.reflections[data])
+			self.playfield.graphics &= 0xf00ff_f00ff
+			self.playfield.graphics |= data << 4
+			self.playfield.graphics |= data << (20+4)
+			
+		case 0x0f:	// MARK: pf2
+			let data = UInt64(data)
+			self.playfield.graphics &= 0xfff00_fff00
+			self.playfield.graphics |= data << 12
+			self.playfield.graphics |= data << (20+12)
+			
 		case 0x0b:	// MARK: REFP0
 			self.players.0.reflected = data[3]
 		case 0x0c:	// MARK: REFP1
@@ -517,4 +533,10 @@ private struct NoPeripheral: TIA.Peripheral {
 	func read() -> Int {
 		return .random(in: 0x00...0xff)
 	}
+}
+
+extension TIA {
+	static let reflections = (0x00...0xff)
+		.map({ Int(reversingBits: $0) })
+		.map({ UInt8($0) })
 }
