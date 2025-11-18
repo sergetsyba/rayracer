@@ -105,11 +105,11 @@ public class TIA {
 			// reset missile position counters if it is reset to player
 			// TODO: account for extra 1 pixel offset in player drawing
 			// TODO: account for player width
-			if self.missiles.0.isResetToPlayer
+			if self.missiles.0.options[.resetToPlayer]
 				&& self.players.0.position == 0 {
 				self.missiles.0.reset()
 			}
-			if self.missiles.1.isResetToPlayer
+			if self.missiles.1.options[.resetToPlayer]
 				&& self.players.1.position == 0 {
 				self.missiles.1.reset()
 			}
@@ -200,7 +200,7 @@ extension TIA {
 		if self.ball.needsDrawing {
 			options.insert(.ball)
 		}
-		if self.playfield.draws(at: point) {
+		if self.playfield.needsDrawing(at: point) {
 			options.insert(.playfield)
 		}
 		if self.playfield.options.contains(.scoreMode) {
@@ -361,14 +361,20 @@ extension TIA: Addressable {
 			self.colorClock = 0
 			
 		case 0x04:	// MARK: NUSIZ0
-			self.players.0.copies = data & 0x7
-			self.missiles.0.copies = data & 0x7
-			self.missiles.0.size = 1 << ((data >> 4) & 0x3)
+			let copyMode = data & 0x7
+			self.players.0.copies = copyMode
+			
+			let scale = (data >> 4) & 0x3
+			self.missiles.0.copyMode = copyMode
+			self.missiles.0.size = 1 << scale
 			
 		case 0x05:	// MARK: NUSIZ1
-			self.players.1.copies = data & 0x7
-			self.missiles.1.copies = data & 0x7
-			self.missiles.1.size = 1 << ((data >> 4) & 0x3)
+			let copyMode = data & 0x7
+			self.players.1.copies = copyMode
+			
+			let scale = (data >> 4) & 0x3
+			self.missiles.1.copyMode = copyMode
+			self.missiles.1.size = 1 << scale
 			
 		case 0x06:	// MARK: COLUP0
 			self.colors[0] = data
@@ -429,9 +435,9 @@ extension TIA: Addressable {
 			self.ball.enabled.1 = self.ball.enabled.0
 			
 		case 0x1d:	// MARK: ENAM0
-			self.missiles.0.isEnabled = data[1]
+			self.missiles.0.options[.enabled] = data[1]
 		case 0x1e:	// MARK: ENAM1
-			self.missiles.1.isEnabled = data[1]
+			self.missiles.1.options[.enabled] = data[1]
 		case 0x1f:	// MARK: ENABL
 			self.ball.enabled.0 = data[1]
 			
@@ -454,9 +460,9 @@ extension TIA: Addressable {
 			self.ball.delayed = data[0]
 			
 		case 0x28:	// MARK: RESMP0
-			self.missiles.0.isResetToPlayer = data[1]
+			self.missiles.0.options[.resetToPlayer] = data[1]
 		case 0x29:	// MARK: RESMP1
-			self.missiles.1.isResetToPlayer = data[1]
+			self.missiles.1.options[.resetToPlayer] = data[1]
 			
 		case 0x2a:	// MARK: HMOVE
 			self.horizontalBlankResetColorClock = 68+8
@@ -480,15 +486,6 @@ extension TIA: Addressable {
 
 // MARK: -
 // MARK: Convenience functionality
-public extension Int {
-	init(reversingBits value: Int) {
-		self = 0
-		for bit in 0..<8 {
-			self[bit] = value[7-bit]
-		}
-	}
-}
-
 private extension TIA.MovableObject {
 	/// Resets position counter of this object.
 	mutating func reset() {
@@ -536,7 +533,27 @@ private struct NoPeripheral: TIA.Peripheral {
 }
 
 extension TIA {
+	/// A look-up table of reflections for all possible 8-bit graphics values.
 	static let reflections = (0x00...0xff)
-		.map({ Int(reversingBits: $0) })
-		.map({ UInt8($0) })
+		.map() {
+			var value: UInt8 = 0
+			for bit in 0...7 {
+				value[bit] = $0[7-bit]
+			}
+			
+			return value
+		}
+	
+	/// A look-up table of 8 color clock wide screen sections, where a player or a missile can be drawn,
+	/// based on the value in a corresponding NUSIZ register.
+	static let copyMasks = [
+		0x001, // ●○○○○○○○○○
+		0x005, // ●○●○○○○○○○
+		0x011, // ●○○●○○○○○○
+		0x015, // ●○●○●○○○○○
+		0x101, // ●○○○○○○○●○
+		0x001, // ●○○○○○○○○○
+		0x111, // ●○○○●○○○●○
+		0x001  // ●○○○○○○○○○
+	]
 }

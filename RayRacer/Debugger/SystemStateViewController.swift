@@ -319,7 +319,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		switch item {
 		case .enabled:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, missile.isEnabled)
+			view?.boolValue = (item.rawValue, missile.options[.enabled])
 			return view
 			
 		case .graphics:
@@ -350,7 +350,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		switch item {
 		case .enabled:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, missile.isEnabled)
+			view?.boolValue = (item.rawValue, missile.options[.enabled])
 			return view
 			
 		case .graphics:

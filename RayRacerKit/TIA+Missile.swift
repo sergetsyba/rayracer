@@ -7,39 +7,61 @@
 
 extension TIA {
 	public struct Missile: MovableObject {
+		public var size: Int
+		public var copyMode: Int
+		public var options: Options
+		
 		public var position: Int = 0 {
-			didSet { self.position %= 160 }
+			didSet {
+				if self.position == 160 {
+					self.position = 0
+				}
+			}
 		}
 		public var motion: Int = 0
 		
-		public var isEnabled: Bool = false
-		public var isResetToPlayer: Bool = false
-		
-		public var copies: Int = 1
-		public var size: Int = 1
-		
-		var needsDrawing: Bool {
-			if !self.isEnabled || self.isResetToPlayer {
-				return false
-			} else {
-				return Self.sections[self.copies][self.position / 8]
-				&& self.position < self.size
-			}
+		public init(size: Int = 1, copyMode: Int = 0, options: Options = []) {
+			self.size = size
+			self.copyMode = copyMode
+			self.options = options
 		}
 	}
 }
 
-private extension TIA.Missile {
-	/// A look-up table of 8 color clock wide screen sections, where a missile can or cannot be drawn,
-	/// based on the value in a corresponding NUSIZ register.
-	static let sections = [
-		0x001, // ●○○○○○○○○○
-		0x005, // ●○●○○○○○○○
-		0x011, // ●○○●○○○○○○
-		0x015, // ●○●○●○○○○○
-		0x101, // ●○○○○○○○●○
-		0x001, // ●○○○○○○○○○
-		0x111, // ●○○○●○○○●○
-		0x001  // ●○○○○○○○○○
-	]
+extension TIA.Missile {
+	public struct Options: OptionSet {
+		public static let enabled = Options(rawValue: 1 << 0)
+		public static let resetToPlayer = Options(rawValue: 1 << 1)
+		
+		public var rawValue: Int
+		
+		public init(rawValue: Int) {
+			self.rawValue = rawValue
+		}
+	}
+}
+
+
+// MARK: -
+// MARK: Drawing
+extension TIA.Missile {
+	var needsDrawing: Bool {
+		// ensure missile is enabled and not reset to player
+		guard self.options == [.enabled] else {
+			return false
+		}
+		
+		// NOTE: performance measurements showed no difference between storing
+		// copyMask directly as a property and looking it up each time
+		let copyMask = TIA.copyMasks[self.copyMode]
+		let section = self.position >> 3	// position / 8
+		
+		// ensure position counter is within any of the sections where
+		// a missile can be drawn
+		guard copyMask[section] else {
+			return false
+		}
+		
+		return self.position < self.size
+	}
 }

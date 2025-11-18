@@ -35,7 +35,7 @@ extension TIA.Playfield {
 // MARK: -
 // MARK: Drawing
 extension TIA.Playfield {
-	func draws(at position: Int) -> Bool {
+	public func needsDrawing(at position: Int) -> Bool {
 		// each bit of playfield graphics draws for 4 color clocks
 		var bit = position >> 2		// position / 4
 		
