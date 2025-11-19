@@ -6,6 +6,8 @@
 //
 
 extension OptionSet {
+	@inlinable
+	@inline(__always)
 	subscript (option: Self.Element) -> Bool {
 		get {
 			return self.contains(option)

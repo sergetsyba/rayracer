@@ -16,9 +16,7 @@ public class TIA {
 	
 	public var peripheral: Peripheral = .none
 	public var output: GraphicsOutput?
-	
 	private var input = 0x0
-	private var buffer = Array(repeating: 0, count: 4*20)
 	
 	/// Indicates whether vertical sync is enabled.
 	/// TIA outputs vertical sync signal when enabled, which is done by writing VSYNC register.
@@ -101,18 +99,6 @@ public class TIA {
 			self.missiles.0.position += 1
 			self.missiles.1.position += 1
 			self.ball.position += 1
-			
-			// reset missile position counters if it is reset to player
-			// TODO: account for extra 1 pixel offset in player drawing
-			// TODO: account for player width
-			if self.missiles.0.isResetToPlayer
-				&& self.players.0.position == 0 {
-				self.missiles.0.reset()
-			}
-			if self.missiles.1.isResetToPlayer
-				&& self.players.1.position == 0 {
-				self.missiles.1.reset()
-			}
 		}
 		
 		self.colorClock += 1
@@ -200,10 +186,10 @@ extension TIA {
 		if self.ball.needsDrawing {
 			options.insert(.ball)
 		}
-		if self.playfield.draws(at: point) {
+		if self.playfield.needsDrawing(at: point) {
 			options.insert(.playfield)
 		}
-		if self.playfield.control.contains(.scoreMode) {
+		if self.playfield.options.contains(.scoreMode) {
 			options.insert(.scoreMode)
 		}
 		if point < 80 {
@@ -360,38 +346,62 @@ extension TIA: Addressable {
 		case 0x03:	// MARK: RSYNC
 			self.colorClock = 0
 			
-		case 0x04:	// MARK: NUSIZ0
-			self.players.0.copies = data & 0x7
-			self.missiles.0.copies = data & 0x7
-			self.missiles.0.size = 1 << ((data >> 4) & 0x3)
+		case 0x04:	// MARK: nusiz0
+			var (copyMask, scale) = Self.copyModes[data & 0x7]
+			self.players.0.copyMask = copyMask
+			self.players.0.scale = scale
 			
-		case 0x05:	// MARK: NUSIZ1
-			self.players.1.copies = data & 0x7
-			self.missiles.1.copies = data & 0x7
-			self.missiles.1.size = 1 << ((data >> 4) & 0x3)
+			scale = (data >> 4) & 0x3
+			self.missiles.0.copyMask = copyMask
+			self.missiles.0.size = 1 << scale
 			
-		case 0x06:	// MARK: COLUP0
+		case 0x05:	// MARK: nusiz1
+			var (copyMask, scale) = Self.copyModes[data & 0x7]
+			self.players.1.copyMask = copyMask
+			self.players.1.scale = scale
+			
+			scale = (data >> 4) & 0x3
+			self.missiles.1.copyMask = copyMask
+			self.missiles.1.size = 1 << scale
+			
+		case 0x06:	// MARK: colup0
 			self.colors[0] = data
-		case 0x07:	// MARK: COLUP1
+		case 0x07:	// MARK: colup1
 			self.colors[1] = data
-		case 0x08:	// MARK: COLUPF
+		case 0x08:	// MARK: colupf
 			self.colors[2] = data
-		case 0x09:	// MARK: COLUBK
+		case 0x09:	// MARK: colubk
 			self.colors[3] = data
 			
-		case 0x0a:	// MARK: CTRLPF
-			self.playfield.control = Playfield.Control(rawValue: data & 0x3)
-			self.ball.size = 1 << ((data >> 4) & 0x3)
-		case 0x0d:	// MARK: PF0
-			self.playfield.graphics[0] = UInt8(data)
-		case 0x0e:	// MARK: PF1
-			self.playfield.graphics[1] = UInt8(Int(reversingBits: data))
-		case 0x0f:	// MARK: PF2
-			self.playfield.graphics[2] = UInt8(data)
-		case 0x0b:	// MARK: REFP0
-			self.players.0.reflected = data[3]
-		case 0x0c:	// MARK: REFP1
-			self.players.1.reflected = data[3]
+		case 0x0a:	// MARK: ctrlpf
+			let options = data & 0x3
+			self.playfield.options = Playfield.Options(rawValue: options)
+			
+			let scale = (data >> 4) & 0x3
+			self.ball.size = 1 << scale
+			
+		case 0x0d:	// MARK: pf0
+			let data = UInt64(data)
+			self.playfield.graphics &= 0x0ffff_0ffff
+			self.playfield.graphics |= data >> 4
+			self.playfield.graphics |= data << (20-4)
+			
+		case 0x0e:	// MARK: pf1
+			let data = UInt64(Self.reflections[data])
+			self.playfield.graphics &= 0xf00ff_f00ff
+			self.playfield.graphics |= data << 4
+			self.playfield.graphics |= data << (20+4)
+			
+		case 0x0f:	// MARK: pf2
+			let data = UInt64(data)
+			self.playfield.graphics &= 0xfff00_fff00
+			self.playfield.graphics |= data << 12
+			self.playfield.graphics |= data << (20+12)
+			
+		case 0x0b:	// MARK: refp0
+			self.players.0.options[.reflected] = data[3]
+		case 0x0c:	// MARK: refp1
+			self.players.1.options[.reflected] = data[3]
 			
 		case 0x10:	// MARK: RESP0
 			self.players.0.reset()
@@ -404,20 +414,21 @@ extension TIA: Addressable {
 		case 0x14:	// MARK: RESBL
 			self.ball.reset()
 			
-		case 0x1b:	// MARK: GRP0
+		case 0x1b:	// MARK: grp0
 			self.players.0.graphics.0 = UInt8(data)
 			self.players.1.graphics.1 = self.players.1.graphics.0
-		case 0x1c:	// MARK: GRP1
+			
+		case 0x1c:	// MARK: grp1
 			self.players.1.graphics.0 = UInt8(data)
 			self.players.0.graphics.1 = self.players.0.graphics.0
-			self.ball.enabled.1 = self.ball.enabled.0
+			self.ball.options[.enabled1] = self.ball.options[.enabled0]
 			
-		case 0x1d:	// MARK: ENAM0
-			self.missiles.0.isEnabled = data[1]
-		case 0x1e:	// MARK: ENAM1
-			self.missiles.1.isEnabled = data[1]
-		case 0x1f:	// MARK: ENABL
-			self.ball.enabled.0 = data[1]
+		case 0x1d:	// MARK: enam0
+			self.missiles.0.options[.enabled] = data[1]
+		case 0x1e:	// MARK: enam1
+			self.missiles.1.options[.enabled] = data[1]
+		case 0x1f:	// MARK: enabl
+			self.ball.options[.enabled0] = data[1]
 			
 		case 0x20:	// MARK: HMP0
 			self.players.0.motion = (data >> 4) ^ 0x8
@@ -430,17 +441,20 @@ extension TIA: Addressable {
 		case 0x24:	// MARK: HMBL
 			self.ball.motion = (data >> 4) ^ 0x8
 			
-		case 0x25:	// MARK: VDELP0
-			self.players.0.delayed = data[0]
-		case 0x26:	// MARK: VDELP1
-			self.players.1.delayed = data[0]
-		case 0x27:	// MARK: VDELBL
-			self.ball.delayed = data[0]
+		case 0x25:	// MARK: vdelp0
+			self.players.0.options[.delayed] = data[0]
+		case 0x26:	// MARK: vdelp1
+			self.players.1.options[.delayed] = data[0]
+		case 0x27:	// MARK: vdelbl
+			self.ball.options[.delayed] = data[0]
 			
-		case 0x28:	// MARK: RESMP0
-			self.missiles.0.isResetToPlayer = data[1]
-		case 0x29:	// MARK: RESMP1
-			self.missiles.1.isResetToPlayer = data[1]
+		case 0x28:	// MARK: resmp0
+			self.missiles.0.options[.resetToPlayer] = data[1]
+			self.updateMissile(&self.missiles.0, in: &self.players.0)
+			
+		case 0x29:	// MARK: resmp1
+			self.missiles.1.options[.resetToPlayer] = data[1]
+			self.updateMissile(&self.missiles.1, in: &self.players.1)
 			
 		case 0x2a:	// MARK: HMOVE
 			self.horizontalBlankResetColorClock = 68+8
@@ -459,20 +473,42 @@ extension TIA: Addressable {
 			break
 		}
 	}
+	
+	/// A look-up table of 8 color clock wide screen sections, where a player or a missile can be drawn,
+	/// based on the value in a corresponding NUSIZ register.
+	private static let copyModes = [
+		(0x001, 0),	// ●○○○○○○○○○
+		(0x005, 0),	// ●○●○○○○○○○
+		(0x011, 0),	// ●○○●○○○○○○
+		(0x015, 0),	// ●○●○●○○○○○
+		(0x101, 0),	// ●○○○○○○○●○
+		(0x001, 1),	// ●●○○○○○○○○
+		(0x111, 0),	// ●○○○●○○○●○
+		(0x001, 2)	// ●●●●○○○○○○
+	]
+	
+	/// A look-up table of reflections for all possible 8-bit graphics values.
+	private static let reflections = (0x00...0xff)
+		.map() {
+			var value: UInt8 = 0
+			for bit in 0...7 {
+				value[bit] = $0[7-bit]
+			}
+			return value
+		}
+	
+	private func updateMissile(_ missile: inout Missile, in player: inout Player) {
+		if missile.options[.resetToPlayer] {
+			withUnsafeMutablePointer(to: &missile) { player.missile = $0 }
+		} else {
+			player.missile = nil
+		}
+	}
 }
 
 
 // MARK: -
 // MARK: Convenience functionality
-public extension Int {
-	init(reversingBits value: Int) {
-		self = 0
-		for bit in 0..<8 {
-			self[bit] = value[7-bit]
-		}
-	}
-}
-
 private extension TIA.MovableObject {
 	/// Resets position counter of this object.
 	mutating func reset() {
@@ -516,5 +552,17 @@ private extension TIA.Peripheral where Self == NoPeripheral {
 private struct NoPeripheral: TIA.Peripheral {
 	func read() -> Int {
 		return .random(in: 0x00...0xff)
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+extension Array where Element == UInt8 {
+	@inlinable
+	@inline(__always)
+	subscript (index: Element) -> Element {
+		let index = Int(index)
+		return self[index]
 	}
 }

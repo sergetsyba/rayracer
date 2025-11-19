@@ -10,6 +10,8 @@ import MetalKit
 import RayRacerKit
 
 class ScreenViewController: NSViewController {
+	public let frameCounter = FrameCounter()
+	
 	private let console: Atari2600
 	private let joystick = Joystick()
 	
@@ -25,6 +27,8 @@ class ScreenViewController: NSViewController {
 	private let imageSize: MTLSize = .ntscImage
 	private let imageOrigin: MTLOrigin = .ntscImage
 	
+	private var isDrawComplete = false
+	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
@@ -33,7 +37,7 @@ class ScreenViewController: NSViewController {
 		self.console = console
 		self.console.controllers.0 = self.joystick
 		
-		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count * 2)
+		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count * 10)
 		self.screenIndex = 0
 		
 		let device = commandQueue.device
@@ -86,6 +90,11 @@ extension ScreenViewController {
 		super.viewDidAppear()
 		self.view.window?
 			.makeFirstResponder(self)
+		
+		DispatchQueue.global(qos: .userInitiated)
+			.async() { [unowned self] in
+				self.console.resume()
+			}
 	}
 	
 	override func keyDown(with event: NSEvent) {
@@ -129,9 +138,9 @@ extension ScreenViewController: MTKViewDelegate {
 	
 	func draw(in view: MTKView) {
 		// skip frame when console is in the middle of producing field data
-		guard self.screenIndex == 0 else {
-			return
-		}
+//		guard self.screenIndex == 0 else {
+//			return
+//		}
 		
 		guard let commandBuffer = self.commandQueue.makeCommandBuffer(),
 			  let blitEncoder = commandBuffer.makeBlitCommandEncoder() else {
@@ -158,10 +167,7 @@ extension ScreenViewController: MTKViewDelegate {
 		
 		// begin preparing next field once command buffer work finishes
 		commandBuffer.addCompletedHandler() { [unowned self] _ in
-			DispatchQueue.global(qos: .userInitiated)
-				.async() { [unowned self] in
-					self.console.resume()
-				}
+			self.isDrawComplete = true
 		}
 		
 		commandBuffer.present(view.currentDrawable!)
@@ -183,8 +189,14 @@ extension ScreenViewController: TIA.GraphicsOutput {
 		case .vertical:
 			// suspend emulation and notify renderer console has finished
 			// producing field data
-			self.console.suspend()
-			self.screenIndex = 0
+			// self.console.suspend()
+			
+			if self.isDrawComplete {
+				self.isDrawComplete = false
+				self.screenIndex = 0
+			}
+			
+			self.frameCounter.increment()
 		}
 	}
 	

@@ -7,30 +7,59 @@
 
 extension TIA {
 	public struct Playfield {
-		public var graphics: [UInt8] = [0, 0, 0]
-		public var control: Control = []
+		public var graphics: UInt64
+		public var options: Options
 		
-		func draws(at position: Int) -> Bool {
-			let position = self.control[.reflected] && position >= 80
-			? 23 - (position % 80) / 4
-			: (position % 80) / 4 + 4
-			
-			return self.graphics[position / 8][position % 8]
+		public init(graphics: UInt64 = 0x00000_00000, options: Options = []) {
+			self.graphics = graphics
+			self.options = options
 		}
 	}
 }
 
 extension TIA.Playfield {
-	public struct Control: OptionSet {
-		public static let reflected = Control(rawValue: 1 << 0)
-		public static let scoreMode = Control(rawValue: 1 << 1)
-		public static let priority = Control(rawValue: 1 << 2)
+	public struct Options: OptionSet {
+		public static let reflected = Options(rawValue: 1 << 0)
+		public static let scoreMode = Options(rawValue: 1 << 1)
+		public static let priority = Options(rawValue: 1 << 2)
 		
 		public var rawValue: Int
 		
 		public init(rawValue: Int) {
 			self.rawValue = rawValue
 		}
+	}
+}
+
+
+// MARK: -
+// MARK: Drawing
+extension TIA.Playfield {
+	public func needsDrawing(at position: Int) -> Bool {
+		// each bit of playfield graphics draws for 4 color clocks
+		var bit = position >> 2		// position / 4
+		
+		// NOTE: performance measurements showed that looking up playfield
+		// graphics bit in 2 halves stored together is about 3% faster than
+		// looking it up in left half and re-calulating bit for the right
+		// half
+		if bit >= 20 && self.options[.reflected] {
+			bit = 39 - bit
+		}
+		
+		return self.graphics[bit]
+	}
+}
+
+
+// MARK: -
+// MARK: Convenience functionality
+extension UInt64 {
+	@inlinable
+	@inline(__always)
+	subscript(bit: Int) -> Bool {
+		let mask: Self = 1 << bit
+		return self & mask != 0
 	}
 }
 

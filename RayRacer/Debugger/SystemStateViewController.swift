@@ -242,7 +242,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .reflect:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, player.reflected)
+			view?.boolValue = (item.rawValue, player.options[.reflected])
 			return view
 			
 		case .copies:
@@ -262,7 +262,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .delay:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, player.delayed)
+			view?.boolValue = (item.rawValue, player.options[.delayed])
 			return view
 			
 		case .collisions:
@@ -283,7 +283,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .reflect:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, player.reflected)
+			view?.boolValue = (item.rawValue, player.options[.reflected])
 			return view
 			
 		case .copies:
@@ -303,7 +303,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .delay:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, player.delayed)
+			view?.boolValue = (item.rawValue, player.options[.delayed])
 			return view
 			
 		case .collisions:
@@ -319,7 +319,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		switch item {
 		case .enabled:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, missile.isEnabled)
+			view?.boolValue = (item.rawValue, missile.options[.enabled])
 			return view
 			
 		case .graphics:
@@ -350,7 +350,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		switch item {
 		case .enabled:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, missile.isEnabled)
+			view?.boolValue = (item.rawValue, missile.options[.enabled])
 			return view
 			
 		case .graphics:
@@ -401,7 +401,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			
 		case .verticalDelay:
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-			view?.boolValue = (item.rawValue, ball.delayed)
+			view?.boolValue = (item.rawValue, ball.options[.delayed])
 			return view
 			
 		case .collisions:
@@ -421,7 +421,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 			return view
 			
 		case .secondHalf:
-			let formatted = playfield.control.contains(.reflected) ? "Reflect" : "Duplicate"
+			let formatted = playfield.options.contains(.reflected) ? "Reflect" : "Duplicate"
 			let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
 			view?.stringValue = (item.rawValue, formatted)
 			return view
@@ -487,11 +487,11 @@ private extension SystemStateViewController {
 	
 	private func formatGraphics(of player: TIA.Player) -> NSAttributedString {
 		let formatted = (
-			self.formatPlayerGraphics(Int(player.graphics.0), reflected: player.reflected),
-			self.formatPlayerGraphics(Int(player.graphics.1), reflected: player.reflected))
+			self.formatPlayerGraphics(Int(player.graphics.0), reflected: player.options[.reflected]),
+			self.formatPlayerGraphics(Int(player.graphics.1), reflected: player.options[.reflected]))
 		
 		let string = NSMutableAttributedString(string: formatted.0 + "  " + formatted.1)
-		let range = player.delayed
+		let range = player.options[.delayed]
 		? NSRange(location: 0, length: formatted.0.count)
 		: NSRange(location: formatted.0.count + 2, length: formatted.1.count)
 		
@@ -513,7 +513,7 @@ private extension SystemStateViewController {
 	}
 	
 	private func formatCopies(of player: TIA.Player) -> String {
-		switch player.copies {
+		switch player.copyMask {
 		case 0: return "1, single size"
 		case 1: return "2, close"
 		case 2: return "2, medium"
@@ -534,11 +534,11 @@ private extension SystemStateViewController {
 	
 	private func formatEnabled(of ball: TIA.Ball) -> NSAttributedString {
 		let formatted = (
-			ball.enabled.0 ? "Yes" : "No",
-			ball.enabled.1 ? "Yes" : "No")
+			ball.options[.enabled0] ? "Yes" : "No",
+			ball.options[.enabled1] ? "Yes" : "No")
 		
 		let string = NSMutableAttributedString(string: "\(formatted.0)  \(formatted.1)")
-		let range = ball.delayed
+		let range = ball.options[.delayed]
 		? NSRange(location: 0, length: formatted.0.count)
 		: NSRange(location: formatted.0.count + 2, length: formatted.1.count)
 		
@@ -547,7 +547,7 @@ private extension SystemStateViewController {
 	}
 	
 	private func formatGraphics(of playfield: TIA.Playfield) -> String {
-		let values = playfield.graphics
+		let values = playfield.graphics2
 			.map({ String(format: "%02x", $0) })
 			.joined(separator: " ")
 		
@@ -827,3 +827,15 @@ private extension Int {
 		}
 	}
 }
+
+extension TIA.Playfield {
+	var graphics2: [UInt8] {
+		return [
+			UInt8((self.graphics >> 0) & 0xff),
+			UInt8((self.graphics >> 8) & 0xff),
+			UInt8((self.graphics >> 16) & 0xff)
+		]
+	}
+
+}
+

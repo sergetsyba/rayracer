@@ -21,6 +21,12 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	
 	private(set) var console = Atari2600()
 	
+	private var frameRateTimer: Timer?
+	private var rates = Array<Int>(repeating: 0, count: 200)
+	private var rateIndex = 0
+	
+	private var program: String = ""
+	
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		guard let device = MTLCreateSystemDefaultDevice(),
 			  let commandQueue = device.makeCommandQueue(),
@@ -202,6 +208,20 @@ extension RayRacerDelegate {
 			
 			windowController = NSWindowController(windowNibName: "ScreenWindow")
 			windowController.contentViewController = viewController
+			
+			self.frameRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [unowned viewController, windowController] _ in
+				let rate = viewController.frameCounter.value()
+				viewController.frameCounter.reset()
+				
+				self.rates[self.rateIndex] = rate
+				self.rateIndex += 1
+				let avgRate = self.rates[0..<self.rateIndex]
+					.reduce(0, +) / self.rateIndex
+				
+				windowController?.window?
+					.title = [self.program, "(\(rate) f/s, avg: \(avgRate))"]
+					.joined(separator: " ")
+			}
 		}
 		
 		guard let data = try? Data(contentsOfSecurityScopedResourceAt: url) else {
@@ -216,7 +236,10 @@ extension RayRacerDelegate {
 		NotificationCenter.default.post(name: .reset, object: self)
 		UserDefaults.standard.addOpenedFileURL(url)
 		
-		windowController.window?.title = url.lastPathComponent
+		self.program = url.lastPathComponent
+		windowController.window?
+			.title = self.program
+		
 		self.showWindow(of: windowController)
 	}
 	
