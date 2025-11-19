@@ -7,33 +7,48 @@
 
 extension TIA {
 	public struct Player: MovableObject {
+		public var graphics: (UInt8, UInt8)
+		public var copyMask: Int
+		public var scale: Int
+		public var options: Options
+		
 		public var position: Int = 0 {
-			didSet { self.position %= 160 }
+			didSet {
+				if self.position == 160 {
+					self.position = 0
+					self.missile?.pointee
+						.position = 0
+				}
+			}
 		}
 		public var motion: Int = 0
 		
-		public var graphics: (UInt8, UInt8) = (0, 0)
-		public var delayed: Bool = false
-		public var reflected: Bool = false
-		public var copies: Int = 1
+		var missile: UnsafeMutablePointer<Missile>?
 		
-		var needsDrawing: Bool {
-			// TODO: fix player drawing, which starts at position counter 1
-			
-			// ensure player copy appears in the current 8-point section
-			guard Self.sections[self.copies][self.position / 8] else {
-				return false
-			}
-			
-			let graphics = self.delayed
-			? self.graphics.1
-			: self.graphics.0
-			
-			let bit = (self.position / self.scale) % 8
-			
-			return self.reflected
-			? graphics[bit]
-			: graphics[7 - bit]
+		init(graphics: (UInt8, UInt8) = (0x00, 0x00), copyMask: Int = 0x001, scale: Int = 0, options: Options = []) {
+			self.graphics = graphics
+			self.copyMask = copyMask
+			self.scale = scale
+			self.options = options
+		}
+		
+		mutating func reset() {
+			// player takes an extra color clock cycle to latch position
+			// counter value
+			self.position = 160-4-1
+		}
+	}
+}
+
+extension TIA.Player {
+	public struct Options: OptionSet {
+		public static let reflected = Options(rawValue: 1 << 0)
+		public static let delayed = Options(rawValue: 1 << 1)
+		
+		public var rawValue: Int
+		
+		public init(rawValue: Int) {
+			self.rawValue = rawValue
 		}
 	}
 }
@@ -42,24 +57,25 @@ extension TIA {
 // MARK: -
 // MARK: Drawing
 extension TIA.Player {
-	/// A look-up table of 8 color clock wide screen sections, where a player can or cannot be drawn,
-	/// based on the value in a corresponding NUSIZ register.
-	private static let sections = [
-		0x001, // ●○○○○○○○○○
-		0x005, // ●○●○○○○○○○
-		0x011, // ●○○●○○○○○○
-		0x015, // ●○●○●○○○○○
-		0x101, // ●○○○○○○○●○
-		0x003, // ●●○○○○○○○○
-		0x111, // ●○○○●○○○●○
-		0x00f  // ●●●●○○○○○○
-	]
-	
-	private var scale: Int {
-		switch self.copies {
-		case 5: return 2
-		case 7: return 4
-		default: return 1
+	var needsDrawing: Bool {
+		var section = self.position >> 3	// position / 8
+		section >>= self.scale				// position / size
+		
+		// ensure position counter is within any of the sections where
+		// a player can be drawn
+		guard self.copyMask[section] else {
+			return false
 		}
+		
+		let graphics = self.options[.delayed]
+		? self.graphics.1
+		: self.graphics.0
+		
+		var bit = self.position & 0x7		// position % 8
+		if self.options[.reflected] {
+			bit = 7 - bit
+		}
+		
+		return graphics[bit]
 	}
 }

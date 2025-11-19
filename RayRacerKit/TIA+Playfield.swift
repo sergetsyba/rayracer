@@ -39,13 +39,10 @@ extension TIA.Playfield {
 		// each bit of playfield graphics draws for 4 color clocks
 		var bit = position >> 2		// position / 4
 		
-		// NOTE: performance measurements showed that
-		// 	1. looking up playfield graphics bit in 2 halves stored together
-		//		is about 3% faster than looking it up in left half and
-		//		re-calulating bit for the right half
-		//	2. storing right half duplicated and re-calculating bit for when
-		//		it is reflected is about 1% faster than storing right half
-		//		reflected and looking up graphics bit directly
+		// NOTE: performance measurements showed that looking up playfield
+		// graphics bit in 2 halves stored together is about 3% faster than
+		// looking it up in left half and re-calulating bit for the right
+		// half
 		if bit >= 20 && self.options[.reflected] {
 			bit = 39 - bit
 		}

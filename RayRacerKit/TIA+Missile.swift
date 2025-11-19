@@ -8,7 +8,7 @@
 extension TIA {
 	public struct Missile: MovableObject {
 		public var size: Int
-		public var copyMode: Int
+		public var copyMask: Int
 		public var options: Options
 		
 		public var position: Int = 0 {
@@ -20,9 +20,9 @@ extension TIA {
 		}
 		public var motion: Int = 0
 		
-		public init(size: Int = 1, copyMode: Int = 0, options: Options = []) {
+		public init(size: Int = 1, copyMask: Int = 0x001, options: Options = []) {
 			self.size = size
-			self.copyMode = copyMode
+			self.copyMask = copyMask
 			self.options = options
 		}
 	}
@@ -51,14 +51,10 @@ extension TIA.Missile {
 			return false
 		}
 		
-		// NOTE: performance measurements showed no difference between storing
-		// copyMask directly as a property and looking it up each time
-		let copyMask = TIA.copyMasks[self.copyMode]
-		let section = self.position >> 3	// position / 8
-		
 		// ensure position counter is within any of the sections where
 		// a missile can be drawn
-		guard copyMask[section] else {
+		let section = self.position >> 3	// position / 8
+		guard self.copyMask[section] else {
 			return false
 		}
 		

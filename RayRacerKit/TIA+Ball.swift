@@ -7,25 +7,50 @@
 
 extension TIA {
 	public struct Ball: MovableObject {
+		public var size: Int
+		public var options: Options
+		
 		public var position: Int = 0 {
-			didSet { self.position %= 160 }
+			didSet {
+				if self.position == 160 {
+					self.position = 0
+				}
+			}
 		}
 		public var motion: Int = 0
 		
-		public var enabled: (Bool, Bool) = (false, false)
-		public var delayed: Bool = false
-		public var size: Int = 1
+		public init(size: Int = 1, options: Options = []) {
+			self.size = size
+			self.options = options
+		}
+	}
+}
+
+extension TIA.Ball {
+	public struct Options: OptionSet {
+		public static let enabled0 = Options(rawValue: 1 << 0)
+		public static let enabled1 = Options(rawValue: 1 << 1)
+		public static let delayed = Options(rawValue: 1 << 2)
 		
-		var graphics: UInt8 {
-			return (1 << self.size) - 1
+		public var rawValue: Int
+		
+		public init(rawValue: Int) {
+			self.rawValue = rawValue
+		}
+	}
+}
+
+
+// MARK: -
+// MARK: Drawing
+extension TIA.Ball {
+	var needsDrawing: Bool {
+		// ensure ball is enabled
+		guard self.options == [.enabled0]
+				|| self.options == [.delayed, .enabled1] else {
+			return false
 		}
 		
-		var needsDrawing: Bool {
-			let enabled = self.delayed
-			? self.enabled.1
-			: self.enabled.0
-			
-			return enabled && self.position < self.size
-		}
+		return self.position < self.size
 	}
 }
