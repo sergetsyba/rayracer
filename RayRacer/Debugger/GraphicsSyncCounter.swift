@@ -12,11 +12,11 @@ class GraphicsSyncCounter: TIA.GraphicsOutput {
 	var output: TIA.GraphicsOutput? = nil
 	
 	func sync(_ sync: RayRacerKit.TIA.GraphicsSync) {
-		switch sync {
-		case .vertical:
-			self.counts.0 += 1
-		case .horizontal:
-			self.counts.1 += 1
+		if sync.contains(.horizontal) {
+			self.counts.horizontal += 1
+		}
+		if sync.contains(.vertical) {
+			self.counts.vertical += 1
 		}
 		
 		self.output?

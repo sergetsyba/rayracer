@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "tia.h"
+#include "bits.h"
 #include "object.h"
 
 
@@ -33,11 +34,6 @@ rr_tia* rr_tia_init(void) {
 	}
 	
 	rr_tia* tia = (rr_tia *)malloc(sizeof(rr_tia));
-	tia->blank = 0;
-	tia->awaits_sync = 0;
-	tia->color_clock = 0;
-	tia->blank_reset_clock = 0;
-	
 	return tia;
 }
 
@@ -73,34 +69,32 @@ static int reflect(int graphics) {
 
 // MARK: -
 // MARK: Drawing
+static const int blank_color = 0x80;
 static int get_draw_state(rr_tia tia);
 
-#define output_color(color) tia->output &= (0xff00 | color)
-#define output_blank(blank) tia->output &= (0xff00)
-
 void rr_tia_advance_clock(rr_tia *tia) {
-	// update horizontal blank
-	set_bit(tia->blank, 0, tia->color_clock < 68);
+	// update horizontal blanking
+	const bool horizontal_blank = tia->color_clock < tia->blank_reset_clock;
+	set_bit(tia->is_blanking, 0, horizontal_blank);
 	
 	int color;
-	if (get_bit(tia->blank, 0)) {
+	if (horizontal_blank) {
 		// position counters of movable objects do not receive clock
-		// signals during horizontal blank
-		color = 0;
+		// signals during horizontal blanking/retrace
+		color = blank_color;
 	} else {
-		// update collisions
+		// get state of all graphics objects
 		const int state = get_draw_state(*tia);
+		
+		// update graphics objects collisions
 		tia->collisions |= collistions[state];
 		
-		// update color output
-		if (get_bit(tia->blank, 1)) {
-			color = 0;
-		} else {
-			const int index = object_indexes[state];
-			color = tia->colors[index];
-		}
+		// get output color
+		color = tia->is_blanking
+		? blank_color
+		: tia->colors[object_indexes[state]];
 		
-		// advance movable object position counters
+		// advance position counters of graphics objects
 		advance_position(tia->players[0]);
 		advance_position(tia->players[1]);
 		advance_position(tia->missiles[0]);
@@ -108,19 +102,20 @@ void rr_tia_advance_clock(rr_tia *tia) {
 		advance_position(tia->ball);
 	}
 	
+	// update output color and horizontal sync
+	tia->output &= 0xfe00;
+	tia->output |= horizontal_blank << 8;
+	tia->output |= color;
+	
 	// advance color clock
 	tia->color_clock += 1;
 	
+	// reset scan line
 	if (tia->color_clock == 228) {
+		tia->awaits_horizontal_sync = false;
 		tia->color_clock = 0;
-		tia->awaits_sync = false;
 		tia->blank_reset_clock = 68;
 	}
-	
-	// update output
-//	set_bit(tia->output, 8, tia->color_clock == 0);
-	tia->output &= 0xff00;
-	tia->output |= color;
 }
 
 static int get_draw_state(rr_tia tia) {
@@ -172,12 +167,11 @@ int rr_tia_read(rr_tia tia, int address) {
 void rr_tia_write(rr_tia *tia, int address, int data) {
 	switch (address) {
 		case 0x00:	// MARK: vsync
-			set_bit(tia->output, 1+8, get_bit(data, 1));
+			set_bit(tia->output, 8+1, get_bit(data, 1));
 			break;
 			
 		case 0x01:	// MARK: vblank
-			tia->blank &= ~(1<<1);
-			tia->blank |= (data >> 1) & 0x1;
+			set_bit(tia->is_blanking, 1, get_bit(data, 1));
 			break;
 			
 		case 0x02:	// MARK: wsync
@@ -188,7 +182,7 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			// CPU clock cycle is executed after that in console clock
 			// emulation;
 			// ensuring color clock is not reset guards against this edge case
-			tia->awaits_sync = tia->color_clock > 0;
+			tia->awaits_horizontal_sync = tia->color_clock > 0;
 			break;
 			
 		case 0x03:	// MARK: rsync

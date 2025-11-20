@@ -76,7 +76,7 @@ extension ScreenViewController {
 		let view = MTKView()
 		view.device = self.commandQueue.device
 		view.delegate = self
-		view.preferredFramesPerSecond = 30
+		view.preferredFramesPerSecond = 60
 		
 		// force view aspect ratio to 4:3
 		view.addConstraint(view.widthAnchor.constraint(
@@ -179,15 +179,7 @@ extension ScreenViewController: MTKViewDelegate {
 // MARK: -
 extension ScreenViewController: TIA.GraphicsOutput {
 	func sync(_ sync: TIA.GraphicsSync) {
-		switch sync {
-		case .horizontal:
-			// advance index to the beginning of the next scan line
-//			let offset = self.screenIndex % self.screenSize.width
-//			if offset > 0 {
-//				self.screenIndex += self.screenSize.width - offset
-//			}
-			break
-		case .vertical:
+		if sync.contains(.vertical) {
 			// suspend emulation and notify renderer console has finished
 			// producing field data
 			// self.console.suspend()
@@ -198,6 +190,12 @@ extension ScreenViewController: TIA.GraphicsOutput {
 			}
 			
 			self.frameCounter.increment()
+		} else if sync.contains(.horizontal) {
+			// advance index to the beginning of the next scan line
+			let offset = self.screenIndex % self.screenSize.width
+			if offset > 0 {
+				self.screenIndex += self.screenSize.width - offset
+			}
 		}
 	}
 	

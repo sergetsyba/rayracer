@@ -70,6 +70,7 @@
 		95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */; };
 		95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */; };
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
+		95BDE24C2ECEFB6800EC5B61 /* bits.h in Headers */ = {isa = PBXBuildFile; fileRef = 95BDE24B2ECEFB6800EC5B61 /* bits.h */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
 		95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */; };
@@ -201,6 +202,7 @@
 		95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenViewController.swift; sourceTree = "<group>"; };
 		95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ScreenWindow.xib; sourceTree = "<group>"; };
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
+		95BDE24B2ECEFB6800EC5B61 /* bits.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bits.h; sourceTree = "<group>"; };
 		95C918E82C07810000B431C4 /* SystemStateView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SystemStateView.xib; sourceTree = "<group>"; };
 		95C918EA2C07810900B431C4 /* SystemStateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStateViewController.swift; sourceTree = "<group>"; };
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
@@ -261,19 +263,20 @@
 		9500F9E12ECDA8EC00998642 /* librayracer */ = {
 			isa = PBXGroup;
 			children = (
-				9500F9DC2ECDA8E600998642 /* tia.h */,
-				9500F9DD2ECDA8E600998642 /* tia.c */,
 				9500F9E22ECDAB2500998642 /* ball.h */,
 				9500F9E32ECDAB2500998642 /* ball.c */,
+				95BDE24B2ECEFB6800EC5B61 /* bits.h */,
 				9500F9E72ECDACE500998642 /* missile.h */,
 				9500F9E82ECDACE500998642 /* missile.c */,
+				9500F9FA2ECDCAF800998642 /* module.modulemap */,
+				9500F9F62ECDC47300998642 /* object.h */,
 				9500F9EC2ECDAEC300998642 /* player.h */,
 				9500F9ED2ECDAEC300998642 /* player.c */,
 				9500F9F12ECDB2ED00998642 /* playfield.h */,
 				9500F9F22ECDB2ED00998642 /* playfield.c */,
-				9500F9F62ECDC47300998642 /* object.h */,
 				9500F9FB2ECDCE5D00998642 /* ray_racer.h */,
-				9500F9FA2ECDCAF800998642 /* module.modulemap */,
+				9500F9DC2ECDA8E600998642 /* tia.h */,
+				9500F9DD2ECDA8E600998642 /* tia.c */,
 			);
 			path = librayracer;
 			sourceTree = "<group>";
@@ -425,6 +428,7 @@
 				95A39E302ECDF3300020CEFB /* missile.h in Headers */,
 				95A39E312ECDF3300020CEFB /* player.h in Headers */,
 				95A39E322ECDF3300020CEFB /* playfield.h in Headers */,
+				95BDE24C2ECEFB6800EC5B61 /* bits.h in Headers */,
 				95A39E332ECDF3300020CEFB /* object.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -540,7 +544,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1610;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					9523FDA72C8D81DB0094A597 = {
 						CreatedOnToolsVersion = 15.4;
@@ -919,7 +923,7 @@
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -962,7 +966,7 @@
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;

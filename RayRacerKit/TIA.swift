@@ -106,9 +106,15 @@ public class TIA {
 }
 
 extension TIA {
-	public enum GraphicsSync {
-		case vertical
-		case horizontal
+	public struct GraphicsSync: OptionSet {
+		public static let horizontal = GraphicsSync(rawValue: 1 << 0)
+		public static let vertical = GraphicsSync(rawValue: 1 << 1)
+		
+		public var rawValue: Int
+		
+		public init(rawValue: Int) {
+			self.rawValue = rawValue
+		}
 	}
 	
 	public protocol GraphicsOutput {

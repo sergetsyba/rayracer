@@ -16,20 +16,17 @@ public class Atari2600 {
 	private(set) public var tia: TIA!
 	
 	private var tia0 = rr_tia_init()!;
-	private var hsync = false {
+	private var output: Int32 = 0 {
 		didSet {
-			if self.hsync && oldValue == false {
+			let sync = (~(oldValue >> 8) & (self.output >> 8)) & 0x3
+			if sync > 0 {
 				self.tia.output?
-					.sync(.horizontal)
+					.sync(TIA.GraphicsSync(rawValue: Int(sync)))
 			}
-		}
-	}
-	private var vsync = false {
-		didSet {
-			if self.vsync && oldValue == false {
-				self.tia.output?
-					.sync(.vertical)
-			}
+			
+			let color = self.output & 0x7f
+			self.tia.output?
+				.write(color: Int(color))
 		}
 	}
 	
@@ -147,28 +144,19 @@ extension Atari2600 {
 		
 		let cpuReady = self.tia0
 			.pointee
-			.awaits_sync == false
+			.awaits_horizontal_sync == false
 		
 		rr_tia_advance_clock(self.tia0)
-		self.writeOutput()
+		self.output = self.tia0.pointee.output
 		rr_tia_advance_clock(self.tia0)
-		self.writeOutput()
+		self.output = self.tia0.pointee.output
 		rr_tia_advance_clock(self.tia0)
-		self.writeOutput()
+		self.output = self.tia0.pointee.output
 		
 		self.riot.advanceClock()
 		if cpuReady {
 			self.cpu.advanceClock()
 		}
-	}
-	
-	private func writeOutput() {
-		let output = Int(self.tia0.pointee.output)
-		self.hsync = output[8]
-		self.vsync = output[9]
-		
-		self.tia.output?
-			.write(color: output & 0xff)
 	}
 }
 

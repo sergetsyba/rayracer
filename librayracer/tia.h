@@ -15,23 +15,17 @@
 #include "ball.h"
 #include "playfield.h"
 
-#define get_bit(data, bit) \
-(((data) & (1 << (bit))) != 0)
-#define set_bit(data, bit, value) \
-data = (((data) & ~(1 << (bit))) | ((value) << (bit)))
-
 typedef struct {
 	rr_player players[2];
 	rr_missile missiles[2];
 	rr_ball ball;
 	rr_playfield playfield;
 	
+	bool awaits_horizontal_sync;
 	int color_clock;
 	int blank_reset_clock;
 	
-	int blank;
-	bool awaits_sync;
-	
+	int is_blanking;
 	int colors[4];
 	int collisions;
 	
