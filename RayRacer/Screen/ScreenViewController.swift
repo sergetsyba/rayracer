@@ -138,9 +138,9 @@ extension ScreenViewController: MTKViewDelegate {
 	
 	func draw(in view: MTKView) {
 		// skip frame when console is in the middle of producing field data
-//		guard self.screenIndex == 0 else {
-//			return
-//		}
+		//		guard self.screenIndex == 0 else {
+		//			return
+		//		}
 		
 		guard let commandBuffer = self.commandQueue.makeCommandBuffer(),
 			  let blitEncoder = commandBuffer.makeBlitCommandEncoder() else {
@@ -182,10 +182,11 @@ extension ScreenViewController: TIA.GraphicsOutput {
 		switch sync {
 		case .horizontal:
 			// advance index to the beginning of the next scan line
-			let offset = self.screenIndex % self.screenSize.width
-			if offset > 0 {
-				self.screenIndex += self.screenSize.width - offset
-			}
+//			let offset = self.screenIndex % self.screenSize.width
+//			if offset > 0 {
+//				self.screenIndex += self.screenSize.width - offset
+//			}
+			break
 		case .vertical:
 			// suspend emulation and notify renderer console has finished
 			// producing field data

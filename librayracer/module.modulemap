@@ -1,0 +1,11 @@
+//
+//  module.modulemap
+//  rayracer
+//
+//  Created by Serge Tsyba on 19.11.2025.
+//
+
+module librayracer {
+	header "ray_racer.h"
+	export *
+}

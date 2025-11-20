@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "954A18632A1AEE5800EBC582"
-               BuildableName = "RayRacer.app"
-               BlueprintName = "RayRacer"
+               BlueprintIdentifier = "95A39E282ECDF3070020CEFB"
+               BuildableName = "librayracer.a"
+               BlueprintName = "rayracer"
                ReferencedContainer = "container:RayRacer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -40,16 +40,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "954A18632A1AEE5800EBC582"
-            BuildableName = "RayRacer.app"
-            BlueprintName = "RayRacer"
-            ReferencedContainer = "container:RayRacer.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -57,16 +47,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "954A18632A1AEE5800EBC582"
-            BuildableName = "RayRacer.app"
-            BlueprintName = "RayRacer"
+            BlueprintIdentifier = "95A39E282ECDF3070020CEFB"
+            BuildableName = "librayracer.a"
+            BlueprintName = "rayracer"
             ReferencedContainer = "container:RayRacer.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

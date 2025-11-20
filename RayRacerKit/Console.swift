@@ -7,10 +7,31 @@
 
 import Foundation
 
-public class Atari2600: ObservableObject {
+@_implementationOnly
+import librayracer
+
+public class Atari2600 {
 	private(set) public var cpu: MOS6507!
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
+	
+	private var tia0 = rr_tia_init()!;
+	private var hsync = false {
+		didSet {
+			if self.hsync && oldValue == false {
+				self.tia.output?
+					.sync(.horizontal)
+			}
+		}
+	}
+	private var vsync = false {
+		didSet {
+			if self.vsync && oldValue == false {
+				self.tia.output?
+					.sync(.vertical)
+			}
+		}
+	}
 	
 	public var cartridge: Data? = nil
 	public var controllers: (Controller, Controller) = (.none, .none)
@@ -87,8 +108,8 @@ extension Atari2600 {
 		// do not resume emulation when current suspension priority is higher
 		guard case .suspended(let currentPriority) = self.state,
 			  currentPriority <= priority else {
-				  return
-			  }
+			return
+		}
 		
 		if let (condition, callback) = suspension {
 			self.suspension = (condition, callback, priority)
@@ -118,16 +139,36 @@ extension Atari2600 {
 		// cycles and WSYNC switches off, CPU clock cycle should not be
 		// executed, since in hardware these happen simulatenously;
 		// so the check for CPU being ready or halted has to happen first
-		let cpuReady = !self.tia.awaitsHorizontalSync
+		//		let cpuReady = !self.tia.awaitsHorizontalSync
+		//
+		//		self.tia.advanceClock()
+		//		self.tia.advanceClock()
+		//		self.tia.advanceClock()
 		
-		self.tia.advanceClock()
-		self.tia.advanceClock()
-		self.tia.advanceClock()
+		let cpuReady = self.tia0
+			.pointee
+			.awaits_sync == false
+		
+		rr_tia_advance_clock(self.tia0)
+		self.writeOutput()
+		rr_tia_advance_clock(self.tia0)
+		self.writeOutput()
+		rr_tia_advance_clock(self.tia0)
+		self.writeOutput()
 		
 		self.riot.advanceClock()
 		if cpuReady {
 			self.cpu.advanceClock()
 		}
+	}
+	
+	private func writeOutput() {
+		let output = Int(self.tia0.pointee.output)
+		self.hsync = output[8]
+		self.vsync = output[9]
+		
+		self.tia.output?
+			.write(color: output & 0xff)
 	}
 }
 
@@ -145,7 +186,8 @@ extension Atari2600: Addressable {
 			let data = self.riot.memory[address & 0x7f]
 			return Int(data)
 		} else {
-			return self.tia.read(at: address & 0x3f)
+			//			return self.tia.read(at: address & 0x3f)
+			return Int(rr_tia_read(self.tia0.pointee, Int32(address & 0x3f)))
 		}
 	}
 	
@@ -157,7 +199,8 @@ extension Atari2600: Addressable {
 		} else if address & 0x80 == 0x80 {
 			self.riot.memory[address & 0x7f] = UInt8(data)
 		} else {
-			self.tia.write(data, at: address & 0x3f)
+			//			self.tia.write(data, at: address & 0x3f)
+			rr_tia_write(self.tia0, Int32(address & 0x3f), Int32(data))
 		}
 	}
 }
