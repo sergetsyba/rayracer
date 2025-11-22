@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 #include "tia.h"
-#include "bits.h"
+#include "flags.h"
 #include "object.h"
 
 
@@ -34,6 +34,10 @@ rr_tia* rr_tia_init(void) {
 	}
 	
 	rr_tia* tia = (rr_tia *)malloc(sizeof(rr_tia));
+	tia->color_clock = 0;
+	tia->flags = 0;
+	tia->output = 0x700;
+	
 	return tia;
 }
 
@@ -69,19 +73,25 @@ static int reflect(int graphics) {
 
 // MARK: -
 // MARK: Drawing
-static const int blank_color = 0x80;
-static int get_draw_state(rr_tia tia);
+static int get_draw_state(rr_tia tia) {
+	return (rr_player_needs_drawing(tia.players[0]) << 0)
+	| (rr_player_needs_drawing(tia.players[1]) << 1)
+	| (rr_missile_needs_drawing(tia.missiles[0]) << 2)
+	| (rr_missile_needs_drawing(tia.missiles[1]) << 3)
+	| (rr_ball_needs_drawing(tia.ball) << 4)
+	| (rr_playfield_needs_drawing(tia.playfield, tia.color_clock - 68) << 5);
+}
 
 void rr_tia_advance_clock(rr_tia *tia) {
 	// update horizontal blanking
-	const bool horizontal_blank = tia->color_clock < tia->blank_reset_clock;
-	set_bit(tia->is_blanking, 0, horizontal_blank);
+	const int reset_clock = tia->flags & TIA_APPLY_MOTION ? 68+8 : 68;
+	const bool blank = tia->color_clock < reset_clock;
+	add_flag(tia->flags, TIA_OUTPUT_BLANK, blank);
 	
-	int color;
-	if (horizontal_blank) {
+	int color = 0x00;
+	if (blank) {
 		// position counters of movable objects do not receive clock
 		// signals during horizontal blanking/retrace
-		color = blank_color;
 	} else {
 		// get state of all graphics objects
 		const int state = get_draw_state(*tia);
@@ -90,9 +100,10 @@ void rr_tia_advance_clock(rr_tia *tia) {
 		tia->collisions |= collistions[state];
 		
 		// get output color
-		color = tia->is_blanking
-		? blank_color
-		: tia->colors[object_indexes[state]];
+		if (!(tia->output & TIA_OUTPUT_BLANK)) {
+			const int index = object_indexes[state];
+			color = tia->colors[index];
+		}
 		
 		// advance position counters of graphics objects
 		advance_position(tia->players[0]);
@@ -103,34 +114,42 @@ void rr_tia_advance_clock(rr_tia *tia) {
 	}
 	
 	// update output color and horizontal sync
-	tia->output &= 0xfe00;
-	tia->output |= horizontal_blank << 8;
+	tia->output &= 0xff01;
 	tia->output |= color;
+	set_flag(tia->output, TIA_OUTPUT_HORIZONTAL_SYNC, blank);
 	
 	// advance color clock
 	tia->color_clock += 1;
 	
 	// reset scan line
 	if (tia->color_clock == 228) {
-		tia->awaits_horizontal_sync = false;
 		tia->color_clock = 0;
-		tia->blank_reset_clock = 68;
+		clear_flag(tia->flags, TIA_WAIT_ON_HORIZONTAL_SYNC | TIA_APPLY_MOTION);
 	}
-}
-
-static int get_draw_state(rr_tia tia) {
-	return (rr_player_needs_drawing(tia.players[0]) << 0)
-	| (rr_player_needs_drawing(tia.players[1]) << 1)
-	| (rr_missile_needs_drawing(tia.missiles[0]) << 2)
-	| (rr_missile_needs_drawing(tia.missiles[1]) << 3)
-	| (rr_ball_needs_drawing(tia.ball) << 4)
-	| (rr_playfield_needs_drawing(tia.playfield, tia.color_clock - 68) << 5);
 }
 
 
 // MARK: -
 // MARK: Bus integration
-static void apply_motion(rr_tia *tia);
+static void apply_motion(rr_tia *tia) {
+	const int remaining_clock = (68+8)-7 - tia->color_clock;
+	if (remaining_clock < 0) {
+		// ignore horizontal motion when HMOVE strobed late during
+		// horizontal blanking interval or during visible portion of
+		// a scan line
+		return;
+	}
+	
+	// calculate maximum amount of horizontal motion, which could be
+	// applied during horizontal blanking interval
+	const int ripples = remaining_clock >> 2;		// remaining_clock / 4;
+	move(tia->players[0], ripples);
+	move(tia->players[1], ripples);
+	move(tia->missiles[0], ripples);
+	move(tia->missiles[1], ripples);
+	move(tia->ball, ripples);
+}
+
 
 int rr_tia_read(rr_tia tia, int address) {
 	switch (address % 0x10) {
@@ -167,11 +186,11 @@ int rr_tia_read(rr_tia tia, int address) {
 void rr_tia_write(rr_tia *tia, int address, int data) {
 	switch (address) {
 		case 0x00:	// MARK: vsync
-			set_bit(tia->output, 8+1, get_bit(data, 1));
+			set_flag(tia->output, TIA_OUTPUT_VERTICAL_SYNC, data & 0x2);
 			break;
 			
 		case 0x01:	// MARK: vblank
-			set_bit(tia->is_blanking, 1, get_bit(data, 1));
+			set_flag(tia->output, TIA_OUTPUT_BLANK, data & 0x2);
 			break;
 			
 		case 0x02:	// MARK: wsync
@@ -182,7 +201,7 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			// CPU clock cycle is executed after that in console clock
 			// emulation;
 			// ensuring color clock is not reset guards against this edge case
-			tia->awaits_horizontal_sync = tia->color_clock > 0;
+			set_flag(tia->flags, TIA_WAIT_ON_HORIZONTAL_SYNC, (bool)(tia->color_clock > 0));
 			break;
 			
 		case 0x03:	// MARK: rsync
@@ -224,7 +243,7 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x0a:	// MARK: ctrlpf
-			tia->playfield.options = data & 0x3;
+			tia->playfield.flags = data & 0x3;
 			tia->ball.size = 1 << ((data >> 4) & 0x3);
 			break;
 			
@@ -249,10 +268,10 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x0b:	// MARK: refp0
-			tia->players[0].is_reflected = data & 0x8;
+			set_flag(tia->players[0].flags, PLAYER_REFLECTED, data & 0x8);
 			break;
 		case 0x0c:	// MARK: refp1
-			tia->players[1].is_reflected = data & 0x8;
+			set_flag(tia->players[1].flags, PLAYER_REFLECTED, data & 0x8);
 			break;
 		case 0x10:	// MARK: resp0
 			reset_position(tia->players[0]);
@@ -278,17 +297,18 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 		case 0x1c:	// MARK: grp1
 			tia->players[1].graphics[0] = data;
 			tia->players[0].graphics[1] = tia->players[0].graphics[0];
-			tia->ball.is_enabled[1] = tia->ball.is_enabled[0];
+			set_flag(tia->ball.flags, BALL_ENABLED_1,
+					 tia->ball.flags & BALL_ENABLED_0);
 			break;
 			
 		case 0x1d:	// MARK: enam0
-			tia->missiles[0].is_enabled = data & 0x2;
+			set_flag(tia->missiles[0].flags, MISSILE_ENABLED, data & 0x2);
 			break;
 		case 0x1e:	// MARK: enam1
-			tia->missiles[1].is_enabled = data & 0x2;
+			set_flag(tia->missiles[1].flags, MISSILE_ENABLED, data & 0x2);
 			break;
 		case 0x1f:	// MARK: enabl
-			tia->ball.is_enabled[0] = data & 0x2;
+			set_flag(tia->ball.flags, BALL_ENABLED_0, data & 0x2);
 			break;
 			
 		case 0x20:	// MARK: hmp0
@@ -308,24 +328,24 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x25:	// MARK: vdelp0
-			tia->players[0].is_delayed = data & 0x1;
+			set_flag(tia->players[0].flags, PLAYER_DELAYED, data & 0x1);
 			break;
 		case 0x26:	// MARK: vdelp1
-			tia->players[1].is_delayed = data & 0x1;
+			set_flag(tia->players[1].flags, PLAYER_DELAYED, data & 0x1);
 			break;
 		case 0x27:	// MARK: vdelbl
-			tia->ball.is_delayed = data & 0x1;
+			set_flag(tia->ball.flags, BALL_DELAYED, data & 0x1);
 			break;
 			
 		case 0x28:	// MARK: resmp0
-			tia->missiles[0].is_reset = data & 0x2;
+			set_flag(tia->missiles[0].flags, MISSILE_RESET_TO_PLAYER, data & 0x2);
 			break;
 		case 0x29:	// MARK: resmp1
-			tia->missiles[1].is_reset = data & 0x2;
+			set_flag(tia->missiles[1].flags, MISSILE_RESET_TO_PLAYER, data & 0x2);
 			break;
 			
 		case 0x2a:	// MARK: hmove
-			tia->blank_reset_clock = 68+8;
+			set_flag(tia->flags, TIA_APPLY_MOTION, 1);
 			apply_motion(tia);
 			break;
 			
@@ -344,23 +364,4 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 		default:
 			break;
 	}
-}
-
-static void apply_motion(rr_tia *tia) {
-	const int remaining_clock = (68+8)-7 - tia->color_clock;
-	if (remaining_clock < 0) {
-		// ignore horizontal motion when HMOVE strobed late during
-		// horizontal blanking interval or during visible portion of
-		// a scan line
-		return;
-	}
-	
-	// calculate maximum amount of horizontal motion, which could be
-	// applied during horizontal blanking interval
-	const int ripples = remaining_clock >> 2;		// remaining_clock / 4;
-	move(tia->players[0], ripples);
-	move(tia->players[1], ripples);
-	move(tia->missiles[0], ripples);
-	move(tia->missiles[1], ripples);
-	move(tia->ball, ripples);
 }

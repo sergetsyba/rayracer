@@ -12,15 +12,18 @@
 
 typedef struct {
 	int copy_mask;
-	int scale;
-	
 	int graphics[2];
-	bool is_reflected;
-	bool is_delayed;
+	int scale;
+	int flags;
 	
 	int position;
 	int motion;
 } rr_player;
+
+typedef enum {
+	PLAYER_REFLECTED = 1 << 0,
+	PLAYER_DELAYED = 1 << 1
+} rr_player_flag;
 
 bool rr_player_needs_drawing(rr_player player);
 

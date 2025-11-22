@@ -12,14 +12,17 @@
 
 typedef struct {
 	int copy_mask;
-	
 	int size;
-	bool is_enabled;
-	bool is_reset;
+	int flags;
 	
 	int position;
 	int motion;
 } rr_missile;
+
+typedef enum {
+	MISSILE_ENABLED = 1 << 0,
+	MISSILE_RESET_TO_PLAYER = 1 << 1
+} rr_missile_flag;
 
 bool rr_missile_needs_drawing(rr_missile missile);
 

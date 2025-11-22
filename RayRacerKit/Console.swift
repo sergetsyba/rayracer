@@ -16,17 +16,25 @@ public class Atari2600 {
 	private(set) public var tia: TIA!
 	
 	private var tia0 = rr_tia_init()!;
-	private var output: Int32 = 0 {
+	private var output: Int = 0 {
 		didSet {
-			let sync = (~(oldValue >> 8) & (self.output >> 8)) & 0x3
+			let sync = (~(oldValue >> 9) & (self.output >> 9)) & 0x3
 			if sync > 0 {
 				self.tia.output?
 					.sync(TIA.GraphicsSync(rawValue: Int(sync)))
 			}
 			
-			let color = self.output & 0x7f
+//			if self.output[8] {
+//				self.tia.output?
+//					.blank()
+//			} else {
+//				
+//			}
+			
+			let color = self.output & 0xff
 			self.tia.output?
 				.write(color: Int(color))
+			
 		}
 	}
 	
@@ -142,16 +150,18 @@ extension Atari2600 {
 		//		self.tia.advanceClock()
 		//		self.tia.advanceClock()
 		
-		let cpuReady = self.tia0
-			.pointee
-			.awaits_horizontal_sync == false
+		let flags = Int(self.tia0.pointee.flags)
+		let wait = Int(TIA_WAIT_ON_HORIZONTAL_SYNC.rawValue)
+		let cpuReady = flags & wait == 0;
 		
 		rr_tia_advance_clock(self.tia0)
-		self.output = self.tia0.pointee.output
+		self.output = Int(self.tia0.pointee.output)
+		
 		rr_tia_advance_clock(self.tia0)
-		self.output = self.tia0.pointee.output
+		self.output = Int(self.tia0.pointee.output)
+		
 		rr_tia_advance_clock(self.tia0)
-		self.output = self.tia0.pointee.output
+		self.output = Int(self.tia0.pointee.output)
 		
 		self.riot.advanceClock()
 		if cpuReady {

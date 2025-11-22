@@ -12,7 +12,7 @@ bool rr_playfield_needs_drawing(rr_playfield playfield, int position) {
 	const int bit = position >> 2;		// position / 4
 	
 	const bool is_right_half = bit > 19;
-	const bool is_reflected = playfield.options & 0x1;
+	const bool is_reflected = playfield.flags & PLAYFIELD_REFLECTED;
 	const long mask = is_right_half && is_reflected
 	? (1L << 39) >> bit
 	: 1 << bit;

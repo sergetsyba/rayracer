@@ -12,15 +12,14 @@
 
 typedef struct {
 	long int graphics;
-	
-	/**
-	 * Playfield options:
-	 * 	0. right half duplicated/reflected
-	 * 	1: score mode off/on
-	 * 	2: playefield & ball below/above players
-	 */
-	int options;
+	int flags;
 } rr_playfield;
+
+typedef enum {
+	PLAYFIELD_REFLECTED = 1 << 0,
+	PLAYFIELD_SCORE = 1 << 1,
+	PLAYFIELD_PRIORITY = 1 << 2
+} rr_playfield_flag;
 
 bool rr_playfield_needs_drawing(rr_playfield playfield, int position);
 
