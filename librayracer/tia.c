@@ -16,11 +16,19 @@
 // MARK: Initialization
 static int get_object_index(int state);
 static int object_indexes[256];
-
-static int reflect(int graphics);
-static int reflections[256];
-
 static int collistions[256];
+
+static int reflect(int graphics) {
+	int reflected = 0;
+	for (int bit = 0; bit < 8; ++bit) {
+		if (graphics & 0x1) {
+			reflected |= (1 << (7 - bit));
+		}
+		graphics >>= 1;
+	}
+	
+	return reflected;
+}
 
 rr_tia* rr_tia_init(void) {
 	// initialize object draw state/object indexes look up
@@ -56,18 +64,6 @@ static int get_object_index(int state) {
 		// background
 		return 3;
 	}
-}
-
-static int reflect(int graphics) {
-	int reflected = 0;
-	for (int bit = 0; bit < 8; ++bit) {
-		if (graphics & 0x1) {
-			reflected |= (1 << (7 - bit));
-		}
-		graphics >>= 1;
-	}
-	
-	return reflected;
 }
 
 
@@ -183,6 +179,38 @@ int rr_tia_read(rr_tia tia, int address) {
 	}
 }
 
+static void set_playfield_flags(rr_playfield *playfield, int flags) {
+	// reflect right half of playfield when relfected flag is different
+	// from the current one
+	if ((playfield->flags ^ flags) & PLAYFIELD_REFLECTED) {
+		int reflected[] = {
+			reflections[(playfield->graphics >> 0) & 0xff],
+			reflections[(playfield->graphics >> 8) & 0xff],
+			reflections[(playfield->graphics >> 16) & 0xf],
+		};
+		
+		playfield->graphics &= 0xfffff;
+		playfield->graphics |= (long)reflected[2] << (20-4);
+		playfield->graphics |= (long)reflected[1] << (20+4);
+		playfield->graphics |= (long)reflected[0] << (20+12);
+	}
+	
+	playfield->flags = flags;
+}
+
+static void set_playfield_graphics(rr_playfield* playfield, int data, int bit) {
+	playfield->graphics &= ~(0xffL << bit);
+	playfield->graphics |= data << bit;
+	
+	if (playfield->flags & PLAYFIELD_REFLECTED) {
+		data = reflections[data];
+		bit = (20-8)-bit;
+	}
+	
+	playfield->graphics &= ~(0xffL << (bit + 20));
+	playfield->graphics |= (long)data << (bit + 20);
+}
+
 void rr_tia_write(rr_tia *tia, int address, int data) {
 	switch (address) {
 		case 0x00:	// MARK: vsync
@@ -243,28 +271,18 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x0a:	// MARK: ctrlpf
-			tia->playfield.flags = data & 0x3;
+			set_playfield_flags(&tia->playfield, data & 0x3);
 			tia->ball.size = 1 << ((data >> 4) & 0x3);
 			break;
 			
 		case 0x0d: // MARK: pf0
-			tia->playfield.graphics &= 0x0ffff0ffff;
-			tia->playfield.graphics |= data >> 4;
-			tia->playfield.graphics |= (long)data << (20-4);
+			set_playfield_graphics(&tia->playfield, (data >> 4) | (tia->playfield.graphics & 0x0f), 0);
 			break;
-			
-		case 0x0e: {// MARK: pf1
-			const long reflected = reflections[data];
-			tia->playfield.graphics &= 0xf00fff00ff;
-			tia->playfield.graphics |= reflected << 4;
-			tia->playfield.graphics |= reflected << (20+4);
+		case 0x0e: // MARK: pf1
+			set_playfield_graphics(&tia->playfield, reflections[data], 4);
 			break;
-		}
-			
 		case 0x0f:	// MARK: pf2
-			tia->playfield.graphics &= 0xfff00fff00;
-			tia->playfield.graphics |= data << 12;
-			tia->playfield.graphics |= (long)data << (20+12);
+			set_playfield_graphics(&tia->playfield, data, 16);
 			break;
 			
 		case 0x0b:	// MARK: refp0

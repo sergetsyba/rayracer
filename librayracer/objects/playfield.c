@@ -6,16 +6,10 @@
 //
 
 #include "playfield.h"
+#include "object.h"
 
 bool rr_playfield_needs_drawing(rr_playfield playfield, int position) {
 	// each bit of playfield graphics draws for 4 color clocks
 	const int bit = position >> 2;		// position / 4
-	
-	const bool is_right_half = bit > 19;
-	const bool is_reflected = playfield.flags & PLAYFIELD_REFLECTED;
-	const long mask = is_right_half && is_reflected
-	? (1L << 39) >> bit
-	: 1 << bit;
-	
-	return playfield.graphics & mask;
+	return playfield.graphics & (1L << bit);
 }
