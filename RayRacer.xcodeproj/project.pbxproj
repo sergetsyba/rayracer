@@ -73,6 +73,8 @@
 		95BDE24C2ECEFB6800EC5B61 /* bits.h in Headers */ = {isa = PBXBuildFile; fileRef = 95BDE24B2ECEFB6800EC5B61 /* bits.h */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
+		95D29CE02ED3824B0059DE84 /* object.c in Sources */ = {isa = PBXBuildFile; fileRef = 95D29CDF2ED3824B0059DE84 /* object.c */; };
+		95D29CE12ED3824B0059DE84 /* object.c in Sources */ = {isa = PBXBuildFile; fileRef = 95D29CDF2ED3824B0059DE84 /* object.c */; };
 		95D471702ED05F42002AB93C /* flags.h in Headers */ = {isa = PBXBuildFile; fileRef = 95D4716F2ED05F42002AB93C /* flags.h */; };
 		95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */; };
 		95F5190A2D047F3800C5E8BC /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F519092D047F3800C5E8BC /* Controller.swift */; };
@@ -206,6 +208,7 @@
 		95BDE24B2ECEFB6800EC5B61 /* bits.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bits.h; sourceTree = "<group>"; };
 		95C918E82C07810000B431C4 /* SystemStateView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SystemStateView.xib; sourceTree = "<group>"; };
 		95C918EA2C07810900B431C4 /* SystemStateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStateViewController.swift; sourceTree = "<group>"; };
+		95D29CDF2ED3824B0059DE84 /* object.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = object.c; sourceTree = "<group>"; };
 		95D4716F2ED05F42002AB93C /* flags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = flags.h; sourceTree = "<group>"; };
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
 		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -381,6 +384,7 @@
 				9500F9E72ECDACE500998642 /* missile.h */,
 				9500F9E82ECDACE500998642 /* missile.c */,
 				9500F9F62ECDC47300998642 /* object.h */,
+				95D29CDF2ED3824B0059DE84 /* object.c */,
 				9500F9EC2ECDAEC300998642 /* player.h */,
 				9500F9ED2ECDAEC300998642 /* player.c */,
 				9500F9F12ECDB2ED00998642 /* playfield.h */,
@@ -705,6 +709,7 @@
 				9500F9EE2ECDAEC300998642 /* player.c in Sources */,
 				9500F9E62ECDAB2500998642 /* ball.c in Sources */,
 				9500F9DE2ECDA8E600998642 /* tia.c in Sources */,
+				95D29CE02ED3824B0059DE84 /* object.c in Sources */,
 				9500F9EB2ECDACE500998642 /* missile.c in Sources */,
 				9500F9F32ECDB2ED00998642 /* playfield.c in Sources */,
 			);
@@ -714,6 +719,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				95D29CE12ED3824B0059DE84 /* object.c in Sources */,
 				95A39E342ECDF33B0020CEFB /* tia.c in Sources */,
 				95A39E352ECDF33B0020CEFB /* ball.c in Sources */,
 				95A39E362ECDF33B0020CEFB /* missile.c in Sources */,

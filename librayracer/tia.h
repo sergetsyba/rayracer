@@ -8,8 +8,6 @@
 #ifndef tia_h
 #define tia_h
 
-#include <stdbool.h>
-
 #include "objects/player.h"
 #include "objects/player.h"
 #include "objects/missile.h"

@@ -8,18 +8,8 @@
 #ifndef object_h
 #define object_h
 
-static int reflections[256];
-
-static const int copy_modes[][2] = {
-	{0x001, 0},	// ●○○○○○○○○○
-	{0x005, 0},	// ●○●○○○○○○○
-	{0x011, 0},	// ●○○●○○○○○○
-	{0x015, 0},	// ●○●○●○○○○○
-	{0x101, 0},	// ●○○○○○○○●○
-	{0x001, 1},	// ●●○○○○○○○○
-	{0x111, 0},	// ●○○○●○○○●○
-	{0x001, 2}	// ●●●●○○○○○○
-};
+extern const int copy_modes[][2];
+extern int reflections[];
 
 #define min(a, b) \
 	a < b ? a : b

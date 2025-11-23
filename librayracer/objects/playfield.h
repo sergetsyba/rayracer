@@ -21,6 +21,8 @@ typedef enum {
 	PLAYFIELD_PRIORITY = 1 << 2
 } rr_playfield_flag;
 
-bool rr_playfield_needs_drawing(rr_playfield playfield, int position);
+void set_playfield_graphics(rr_playfield* playfield, int data, int bit);
+void set_playfield_flags(rr_playfield *playfield, int flags);
+bool playfield_needs_drawing(rr_playfield playfield, int position);
 
 #endif /* play_field_h */

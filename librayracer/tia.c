@@ -75,7 +75,7 @@ static int get_draw_state(rr_tia tia) {
 	| (rr_missile_needs_drawing(tia.missiles[0]) << 2)
 	| (rr_missile_needs_drawing(tia.missiles[1]) << 3)
 	| (rr_ball_needs_drawing(tia.ball) << 4)
-	| (rr_playfield_needs_drawing(tia.playfield, tia.color_clock - 68) << 5);
+	| (playfield_needs_drawing(tia.playfield, tia.color_clock - 68) << 5);
 }
 
 void rr_tia_advance_clock(rr_tia *tia) {
@@ -177,38 +177,6 @@ int rr_tia_read(rr_tia tia, int address) {
 		default:
 			return rand() & 0xff;
 	}
-}
-
-static void set_playfield_flags(rr_playfield *playfield, int flags) {
-	// reflect right half of playfield when relfected flag is different
-	// from the current one
-	if ((playfield->flags ^ flags) & PLAYFIELD_REFLECTED) {
-		int reflected[] = {
-			reflections[(playfield->graphics >> 0) & 0xff],
-			reflections[(playfield->graphics >> 8) & 0xff],
-			reflections[(playfield->graphics >> 16) & 0xf],
-		};
-		
-		playfield->graphics &= 0xfffff;
-		playfield->graphics |= (long)reflected[2] << (20-4);
-		playfield->graphics |= (long)reflected[1] << (20+4);
-		playfield->graphics |= (long)reflected[0] << (20+12);
-	}
-	
-	playfield->flags = flags;
-}
-
-static void set_playfield_graphics(rr_playfield* playfield, int data, int bit) {
-	playfield->graphics &= ~(0xffL << bit);
-	playfield->graphics |= data << bit;
-	
-	if (playfield->flags & PLAYFIELD_REFLECTED) {
-		data = reflections[data];
-		bit = (20-8)-bit;
-	}
-	
-	playfield->graphics &= ~(0xffL << (bit + 20));
-	playfield->graphics |= (long)data << (bit + 20);
 }
 
 void rr_tia_write(rr_tia *tia, int address, int data) {
