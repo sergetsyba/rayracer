@@ -10,8 +10,7 @@
 
 bool rr_missile_needs_drawing(rr_missile missile) {
 	// ensure missile is enabled and not reset to player
-	if (!(missile.flags & MISSILE_ENABLED)
-		|| (missile.flags & MISSILE_RESET_TO_PLAYER)) {
+	if (!missile.is_enabled || missile.is_reset_to_player) {
 		return false;
 	}
 	

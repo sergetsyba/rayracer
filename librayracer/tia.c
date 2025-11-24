@@ -287,10 +287,10 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x1d:	// MARK: enam0
-			set_flag(tia->missiles[0].flags, MISSILE_ENABLED, data & 0x2);
+			tia->missiles[0].is_enabled = data & 0x2;
 			break;
 		case 0x1e:	// MARK: enam1
-			set_flag(tia->missiles[1].flags, MISSILE_ENABLED, data & 0x2);
+			tia->missiles[1].is_enabled = data & 0x2;
 			break;
 		case 0x1f:	// MARK: enabl
 			tia->ball.is_enabled[0] = data & 0x2;
@@ -323,10 +323,10 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x28:	// MARK: resmp0
-			set_flag(tia->missiles[0].flags, MISSILE_RESET_TO_PLAYER, data & 0x2);
+			tia->missiles[0].is_reset_to_player = data & 0x2;
 			break;
 		case 0x29:	// MARK: resmp1
-			set_flag(tia->missiles[1].flags, MISSILE_RESET_TO_PLAYER, data & 0x2);
+			tia->missiles[1].is_reset_to_player = data & 0x2;
 			break;
 			
 		case 0x2a:	// MARK: hmove
