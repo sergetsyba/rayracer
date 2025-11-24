@@ -283,8 +283,7 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 		case 0x1c:	// MARK: grp1
 			tia->players[1].graphics[0] = data;
 			tia->players[0].graphics[1] = tia->players[0].graphics[0];
-			set_flag(tia->ball.flags, BALL_ENABLED_1,
-					 tia->ball.flags & BALL_ENABLED_0);
+			tia->ball.is_enabled[1] = tia->ball.is_enabled[0];
 			break;
 			
 		case 0x1d:	// MARK: enam0
@@ -294,7 +293,7 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			set_flag(tia->missiles[1].flags, MISSILE_ENABLED, data & 0x2);
 			break;
 		case 0x1f:	// MARK: enabl
-			set_flag(tia->ball.flags, BALL_ENABLED_0, data & 0x2);
+			tia->ball.is_enabled[0] = data & 0x2;
 			break;
 			
 		case 0x20:	// MARK: hmp0
@@ -320,7 +319,7 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			set_flag(tia->players[1].flags, PLAYER_DELAYED, data & 0x1);
 			break;
 		case 0x27:	// MARK: vdelbl
-			set_flag(tia->ball.flags, BALL_DELAYED, data & 0x1);
+			tia->ball.is_delayed = data & 0x1;
 			break;
 			
 		case 0x28:	// MARK: resmp0

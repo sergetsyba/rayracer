@@ -9,8 +9,7 @@
 
 bool rr_ball_needs_drawing(rr_ball ball) {
 	// ensure ball is enabled
-	if (!(~(ball.flags & BALL_DELAYED) && (ball.flags & BALL_ENABLED_0))
-		|| ((ball.flags & BALL_DELAYED) && ~(ball.flags & BALL_ENABLED_1))) {
+	if (!ball.is_enabled[ball.is_delayed]) {
 		return false;
 	}
 	
