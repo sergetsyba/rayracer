@@ -254,10 +254,10 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x0b:	// MARK: refp0
-			tia->players[0].is_reflected = data & 0x8;
+			set_player_reflected(&tia->players[0], data & 0x8);
 			break;
 		case 0x0c:	// MARK: refp1
-			tia->players[1].is_reflected = data & 0x8;
+			set_player_reflected(&tia->players[1], data & 0x8);
 			break;
 		case 0x10:	// MARK: resp0
 			reset_position(tia->players[0]);
@@ -276,12 +276,12 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x1b:	// MARK: grp0
-			tia->players[0].graphics[0] = data;
+			set_player_graphics(&tia->players[0], data);
 			tia->players[1].graphics[1] = tia->players[1].graphics[0];
 			break;
 			
 		case 0x1c:	// MARK: grp1
-			tia->players[1].graphics[0] = data;
+			set_player_graphics(&tia->players[1], data);
 			tia->players[0].graphics[1] = tia->players[0].graphics[0];
 			tia->ball.is_enabled[1] = tia->ball.is_enabled[0];
 			break;

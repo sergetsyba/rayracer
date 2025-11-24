@@ -6,6 +6,24 @@
 //
 
 #include "player.h"
+#include "object.h"
+
+void set_player_graphics(rr_player* player, int graphics) {
+	if (player->is_reflected) {
+		graphics = reflections[graphics];
+	}
+	player->graphics[0] = graphics;
+}
+
+void set_player_reflected(rr_player* player, bool is_reflected) {
+	if (player->is_reflected == is_reflected) {
+		return;
+	}
+	
+	player->graphics[0] = reflections[player->graphics[0]];
+	player->graphics[1] = reflections[player->graphics[1]];
+	player->is_reflected = is_reflected;
+}
 
 bool rr_player_needs_drawing(rr_player player) {
 	int section = player.position >> 3;		// position / 8
@@ -17,10 +35,7 @@ bool rr_player_needs_drawing(rr_player player) {
 		return false;
 	}
 	
+	const int graphics = player.graphics[player.is_delayed];
 	const int bit = player.position & 0x7;	// position % 8
-	const int mask = player.is_reflected
-	? (1 << 7) >> bit
-	: 1 << bit;
-	
-	return player.graphics[player.is_delayed] & mask;
+	return graphics & (1 << bit);
 }
