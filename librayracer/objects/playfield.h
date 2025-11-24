@@ -12,14 +12,10 @@
 
 typedef struct {
 	long int graphics;
-	int flags;
+	bool is_reflected;
+	bool is_score_mode_on;
+	bool has_priority;
 } rr_playfield;
-
-typedef enum {
-	PLAYFIELD_REFLECTED = 1 << 0,
-	PLAYFIELD_SCORE = 1 << 1,
-	PLAYFIELD_PRIORITY = 1 << 2
-} rr_playfield_flag;
 
 void set_playfield_graphics(rr_playfield* playfield, int data, int bit);
 void set_playfield_flags(rr_playfield *playfield, int flags);

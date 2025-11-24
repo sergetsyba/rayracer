@@ -12,7 +12,7 @@ void set_playfield_graphics(rr_playfield* playfield, int data, int bit) {
 	playfield->graphics &= ~(0xffL << bit);
 	playfield->graphics |= data << bit;
 	
-	if (playfield->flags & PLAYFIELD_REFLECTED) {
+	if (playfield->is_reflected) {
 		data = reflections[data];
 		bit = (20-8)-bit;
 	}
@@ -24,7 +24,7 @@ void set_playfield_graphics(rr_playfield* playfield, int data, int bit) {
 void set_playfield_flags(rr_playfield *playfield, int flags) {
 	// reflect right half of playfield when relfected flag is different
 	// from the current one
-	if ((playfield->flags ^ flags) & PLAYFIELD_REFLECTED) {
+	if ((playfield->is_reflected ^ (flags & 0x1))) {
 		int reflected[] = {
 			reflections[(playfield->graphics >> 0) & 0xff],
 			reflections[(playfield->graphics >> 8) & 0xff],
@@ -37,7 +37,9 @@ void set_playfield_flags(rr_playfield *playfield, int flags) {
 		playfield->graphics |= (long)reflected[0] << (20+12);
 	}
 	
-	playfield->flags = flags;
+	playfield->is_reflected = flags & 0x1;
+	playfield->is_score_mode_on = flags & 0x2;
+	playfield->has_priority = flags & 0x3;
 }
 
 bool playfield_needs_drawing(rr_playfield playfield, int position) {
