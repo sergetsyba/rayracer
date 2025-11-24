@@ -17,14 +17,10 @@ bool rr_player_needs_drawing(rr_player player) {
 		return false;
 	}
 	
-	const int graphics = player.flags & PLAYER_DELAYED
-	? player.graphics[1]
-	: player.graphics[0];
-	
 	const int bit = player.position & 0x7;	// position % 8
-	const int mask = player.flags & PLAYER_REFLECTED
+	const int mask = player.is_reflected
 	? (1 << 7) >> bit
 	: 1 << bit;
 	
-	return graphics & mask;
+	return player.graphics[player.is_delayed] & mask;
 }

@@ -254,10 +254,10 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x0b:	// MARK: refp0
-			set_flag(tia->players[0].flags, PLAYER_REFLECTED, data & 0x8);
+			tia->players[0].is_reflected = data & 0x8;
 			break;
 		case 0x0c:	// MARK: refp1
-			set_flag(tia->players[1].flags, PLAYER_REFLECTED, data & 0x8);
+			tia->players[1].is_reflected = data & 0x8;
 			break;
 		case 0x10:	// MARK: resp0
 			reset_position(tia->players[0]);
@@ -313,10 +313,10 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x25:	// MARK: vdelp0
-			set_flag(tia->players[0].flags, PLAYER_DELAYED, data & 0x1);
+			tia->players[0].is_delayed = data & 0x1;
 			break;
 		case 0x26:	// MARK: vdelp1
-			set_flag(tia->players[1].flags, PLAYER_DELAYED, data & 0x1);
+			tia->players[1].is_delayed = data & 0x1;
 			break;
 		case 0x27:	// MARK: vdelbl
 			tia->ball.is_delayed = data & 0x1;
