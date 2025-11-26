@@ -5,41 +5,43 @@
 //  Created by Serge Tsyba on 19.11.2025.
 //
 
+#include <string.h>
+
 #include "playfield.h"
 #include "object.h"
 
-void set_playfield_graphics(rr_playfield* playfield, int data, int bit) {
-	playfield->graphics &= ~(0xffL << bit);
-	playfield->graphics |= data << bit;
+static void update_playfield_graphics(rr_playfield *playfield) {
+	// copy left half graphics
+	uint8_t *graphics = (uint8_t *)&playfield->graphics;
+	memcpy(graphics, playfield->data, 3);
 	
+	// copy right half graphics
 	if (playfield->is_reflected) {
-		data = reflections[data];
-		bit = (20-8)-bit;
+		memcpy(graphics + 3, playfield->data + 3, 3);
+		playfield->graphics >>= 4;
+	} else {
+		playfield->graphics >>= 4;
+		playfield->graphics &= 0xfffff00000;
+		playfield->graphics |= playfield->graphics << 20;
 	}
-	
-	playfield->graphics &= ~(0xffL << (bit + 20));
-	playfield->graphics |= (long)data << (bit + 20);
 }
 
-void set_playfield_flags(rr_playfield *playfield, int flags) {
-	// reflect right half of playfield when relfected flag is different
+void set_playfield_graphics(rr_playfield *playfield, uint8_t data, int index) {
+	playfield->data[index] = data;
+	playfield->data[3+(2-index)] = reflections[data];
+	update_playfield_graphics(playfield);
+}
+
+void set_playfield_control(rr_playfield *playfield, uint8_t control) {
+	// update playfield when the new is_reflected option is different
 	// from the current one
-	if ((playfield->is_reflected ^ (flags & 0x1))) {
-		int reflected[] = {
-			reflections[(playfield->graphics >> 0) & 0xff],
-			reflections[(playfield->graphics >> 8) & 0xff],
-			reflections[(playfield->graphics >> 16) & 0xf],
-		};
-		
-		playfield->graphics &= 0xfffff;
-		playfield->graphics |= (long)reflected[2] << (20-4);
-		playfield->graphics |= (long)reflected[1] << (20+4);
-		playfield->graphics |= (long)reflected[0] << (20+12);
+	if ((playfield->is_reflected ^ (control & 0x1))) {
+		update_playfield_graphics(playfield);
 	}
 	
-	playfield->is_reflected = flags & 0x1;
-	playfield->is_score_mode_on = flags & 0x2;
-	playfield->has_priority = flags & 0x3;
+	playfield->is_reflected = control & 0x1;
+	playfield->is_score_mode_on = control & 0x2;
+	playfield->has_priority = control & 0x3;
 }
 
 bool playfield_needs_drawing(rr_playfield playfield, int position) {

@@ -8,17 +8,20 @@
 #ifndef play_field_h
 #define play_field_h
 
+#include <stdint.h>
 #include <stdbool.h>
 
 typedef struct {
-	long int graphics;
+	uint64_t graphics;
+	uint8_t data[6];
+	
 	bool is_reflected;
 	bool is_score_mode_on;
 	bool has_priority;
 } rr_playfield;
 
-void set_playfield_graphics(rr_playfield* playfield, int data, int bit);
-void set_playfield_flags(rr_playfield *playfield, int flags);
+void set_playfield_graphics(rr_playfield *playfield, uint8_t data, int index);
+void set_playfield_control(rr_playfield *playfield, uint8_t control);
 bool playfield_needs_drawing(rr_playfield playfield, int position);
 
 #endif /* play_field_h */

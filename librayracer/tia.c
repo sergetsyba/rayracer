@@ -239,18 +239,18 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x0a:	// MARK: ctrlpf
-			set_playfield_flags(&tia->playfield, data & 0x3);
+			set_playfield_control(&tia->playfield, data & 0x3);
 			tia->ball.size = 1 << ((data >> 4) & 0x3);
 			break;
 			
 		case 0x0d: // MARK: pf0
-			set_playfield_graphics(&tia->playfield, (data >> 4) | (tia->playfield.graphics & 0x0f), 0);
+			set_playfield_graphics(&tia->playfield, data, 0);
 			break;
 		case 0x0e: // MARK: pf1
-			set_playfield_graphics(&tia->playfield, reflections[data], 4);
+			set_playfield_graphics(&tia->playfield, reflections[data], 1);
 			break;
 		case 0x0f:	// MARK: pf2
-			set_playfield_graphics(&tia->playfield, data, 16);
+			set_playfield_graphics(&tia->playfield, data, 2);
 			break;
 			
 		case 0x0b:	// MARK: refp0

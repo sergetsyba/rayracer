@@ -16,12 +16,10 @@ void set_player_graphics(rr_player* player, int graphics) {
 }
 
 void set_player_reflected(rr_player* player, bool is_reflected) {
-	if (player->is_reflected == is_reflected) {
-		return;
+	if (player->is_reflected ^ is_reflected) {
+		player->graphics[0] = reflections[player->graphics[0]];
+		player->graphics[1] = reflections[player->graphics[1]];
 	}
-	
-	player->graphics[0] = reflections[player->graphics[0]];
-	player->graphics[1] = reflections[player->graphics[1]];
 	player->is_reflected = is_reflected;
 }
 
