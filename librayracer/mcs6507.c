@@ -1,11 +1,11 @@
 //
-//  mos6507.c
+//  mcs6507.c
 //  RayRacer
 //
 //  Created by Serge Tsyba on 26.11.2025.
 //
 
-#include "mos6507.h"
+#include "mcs6507.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -26,7 +26,7 @@
 ///
 /// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
 /// address.
-static int read_relative_address(rr_mos6507 *cpu, int address, bool condition, int *cycles) {
+static int read_relative_address(rr_mcs6507 *cpu, int address, bool condition, int *cycles) {
 	// when branch is not taken, program counter increments to +1
 	// relative to offset operand address
 	int offset_address = address + 0x1;
@@ -45,26 +45,26 @@ static int read_relative_address(rr_mos6507 *cpu, int address, bool condition, i
 }
 
 /// Reads 0-page address at the specified address in memory.
-static int read_0_page_address(rr_mos6507 *cpu, int address) {
+static int read_0_page_address(rr_mcs6507 *cpu, int address) {
 	return cpu->read_bus(address);
 }
 
 /// Reads address, using 0-page x-indexed addressing mode, reading from the specified address
 /// in memory.
-static int read_0_page_x_indexed_address(rr_mos6507 *cpu, int address) {
+static int read_0_page_x_indexed_address(rr_mcs6507 *cpu, int address) {
 	address = read_0_page_address(cpu, address);
 	return (address + cpu->x) & 0xff;
 }
 
 /// Reads address, using 0-page y-indexed addressing mode, reading from the specified address
 /// in memory.
-static int read_0_page_y_indexed_address(rr_mos6507 *cpu, int address) {
+static int read_0_page_y_indexed_address(rr_mcs6507 *cpu, int address) {
 	address = read_0_page_address(cpu, address);
 	return (address + cpu->y) & 0xff;
 }
 
 /// Reads address at the specified address in memory.
-static int read_address(rr_mos6507 *cpu, int address) {
+static int read_address(rr_mcs6507 *cpu, int address) {
 	const int low = cpu->read_bus(address);
 	const int high = cpu->read_bus(address + 0x1);
 	
@@ -75,7 +75,7 @@ static int read_address(rr_mos6507 *cpu, int address) {
 ///
 /// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
 /// address.
-static int read_x_indexed_address(rr_mos6507 *cpu, int address, int *cycles) {
+static int read_x_indexed_address(rr_mcs6507 *cpu, int address, int *cycles) {
 	address = read_address(cpu, address);
 	int indexed_address = address + cpu->x;
 	
@@ -87,7 +87,7 @@ static int read_x_indexed_address(rr_mos6507 *cpu, int address, int *cycles) {
 ///
 /// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
 /// address.
-static int read_y_indexed_address(rr_mos6507 *cpu, int address, int *cycles) {
+static int read_y_indexed_address(rr_mcs6507 *cpu, int address, int *cycles) {
 	address = read_address(cpu, address);
 	int indexed_address = address + cpu->y;
 	
@@ -96,14 +96,14 @@ static int read_y_indexed_address(rr_mos6507 *cpu, int address, int *cycles) {
 }
 
 /// Reads address, using indirect addressing mode, at the specified address in memory.
-static int read_indirect_address(rr_mos6507 *cpu, int address) {
+static int read_indirect_address(rr_mcs6507 *cpu, int address) {
 	address = read_address(cpu, address);
 	address = read_address(cpu, address);
 	return address;
 }
 
 /// Reads address, using x-indexed indirect addressing mode, at the specified address in memory.
-static int read_indirect_x_indexed_address(rr_mos6507 *cpu, int address) {
+static int read_indirect_x_indexed_address(rr_mcs6507 *cpu, int address) {
 	address = read_0_page_x_indexed_address(cpu, address);
 	address = read_address(cpu, address);
 	return address;
@@ -113,7 +113,7 @@ static int read_indirect_x_indexed_address(rr_mos6507 *cpu, int address) {
 ///
 /// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
 /// address.
-static int read_indirect_y_indexed_address(rr_mos6507 *cpu, int address, int *cycles) {
+static int read_indirect_y_indexed_address(rr_mcs6507 *cpu, int address, int *cycles) {
 	address = read_0_page_address(cpu, address);
 	address = read_address(cpu, address);
 	int indexed_address = address + cpu->y;
@@ -127,14 +127,14 @@ static int read_indirect_y_indexed_address(rr_mos6507 *cpu, int address, int *cy
 // MARK: Stack management
 
 /// Pushes the specified value onto stack and updates the stack pointer.
-static void push_stack(rr_mos6507 *cpu, int data) {
+static void push_stack(rr_mcs6507 *cpu, int data) {
 	const int address = cpu->stack_pointer + 0x0100;
 	cpu->write_bus(data, address);
 	cpu->stack_pointer -= 0x1;
 }
 
 /// Pulls the last pushed value from the stack and updates the stack pointer.
-static int pull_stack(rr_mos6507 *cpu) {
+static int pull_stack(rr_mcs6507 *cpu) {
 	cpu->stack_pointer += 0x1;
 	
 	const int address = cpu->stack_pointer + 0x0100;
@@ -146,7 +146,7 @@ static int pull_stack(rr_mos6507 *cpu) {
 // MARK: Operation execution
 
 /// Decodes operation at the specified address.
-static void decode_operation(rr_mos6507 *cpu) {
+static void decode_operation(rr_mcs6507 *cpu) {
 	const int opcode = cpu->read_bus(cpu->program_counter);
 	int address = cpu->program_counter + 0x1;
 	int cycles = 0;
@@ -333,7 +333,7 @@ static void decode_operation(rr_mos6507 *cpu) {
 }
 
 /// Executes currently decoded operation.
-static void execute_decoded_operation(rr_mos6507 *cpu) {
+static void execute_decoded_operation(rr_mcs6507 *cpu) {
 	const int operand_address = cpu->operation.address;
 	switch (cpu->operation.code) {
 			// MARK: adc
@@ -789,15 +789,15 @@ static void execute_decoded_operation(rr_mos6507 *cpu) {
 	}
 }
 
-rr_mos6507 *rr_create_mos6507(void) {
-	rr_mos6507 *cpu = (rr_mos6507 *)malloc(sizeof(rr_mos6507));
+rr_mcs6507 *rr_create_mcs6507(void) {
+	rr_mcs6507 *cpu = (rr_mcs6507 *)malloc(sizeof(rr_mcs6507));
 	cpu->clock = 0;
 	
 	decode_operation(cpu);
 	return cpu;
 }
 
-void rr_advance_clock(rr_mos6507 *cpu) {
+void rr_advance_clock(rr_mcs6507 *cpu) {
 	cpu->clock += 1;
 	
 	if (cpu->clock == cpu->operation.duration) {
