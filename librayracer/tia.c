@@ -16,6 +16,7 @@
 // MARK: Initialization
 static int get_object_index(int state);
 static int object_indexes[256];
+static int get_collisions(int state);
 static int collistions[256];
 
 static int reflect(int graphics) {
@@ -31,14 +32,19 @@ static int reflect(int graphics) {
 }
 
 rr_tia* rr_tia_init(void) {
+	// initialize graphics reflections look up
+	for (int graphics = 0x00; graphics <= 0xff; ++graphics) {
+		reflections[graphics] = reflect(graphics);
+	}
+	
 	// initialize object draw state/object indexes look up
 	for (int state = 0x00; state <= 0xff; ++state) {
 		object_indexes[state] = get_object_index(state);
 	}
 	
-	// initialize graphics reflections look up
-	for (int graphics = 0x00; graphics <= 0xff; ++graphics) {
-		reflections[graphics] = reflect(graphics);
+	// initialize collisions look up
+	for (int state = 0x00; state < 0x40; ++state) {
+		collistions[state] = get_collisions(state);
 	}
 	
 	rr_tia* tia = (rr_tia *)malloc(sizeof(rr_tia));
@@ -49,21 +55,63 @@ rr_tia* rr_tia_init(void) {
 	return tia;
 }
 
+#define state_player_0 (1 << 0)
+#define state_missile_0 (1 << 1)
+#define state_player_1 (1 << 2)
+#define state_missile_1 (1 << 3)
+#define state_ball (1 << 4)
+#define state_playfield (1 << 5)
+#define state_score_mode (1 << 6)
+#define state_playfield_priority (1 << 7)
+#define state_right_half (1 << 8)
+
 static int get_object_index(int state) {
-	if (state & 0b0101) {
+	if (state & (state_playfield | state_playfield_priority)
+		&& !(state & state_score_mode)) {
+		// playfield priority (score mode off)
+		return 2;
+	} else if (state & (state_player_0 | state_missile_0)) {
 		// player 0/missile 0
 		return 0;
-	} else if (state & 0b1010) {
+	} else if (state & (state_player_1 | state_missile_1)) {
 		// player 1/missile 1
 		return 1;
-	} else if (state & 0x30) {
-		// ball/playefield
-		// TODO: check priority
+	} else if (state & state_ball) {
+		// ball
 		return 2;
+	} else if (state & state_playfield) {
+		// playefield
+		if (state & state_score_mode) {
+			// score mode
+			return (state & state_right_half) ? 1 : 0;
+		} else {
+			return 2;
+		}
 	} else {
 		// background
 		return 3;
 	}
+}
+
+#define is_set(data, mask) (((data) & (mask)) == (mask))
+
+static int get_collisions(int state) {
+	return 0x00
+	| is_set(state, state_missile_0 | state_player_0) << 0
+	| is_set(state, state_missile_0 | state_player_1) << 1
+	| is_set(state, state_missile_1 | state_player_0) << 2
+	| is_set(state, state_missile_1 | state_player_1) << 3
+	| is_set(state, state_player_0 | state_ball) << 4
+	| is_set(state, state_player_0 | state_playfield) << 5
+	| is_set(state, state_player_1 | state_ball) << 6
+	| is_set(state, state_player_1 | state_playfield) << 7
+	| is_set(state, state_missile_0 | state_ball) << 8
+	| is_set(state, state_missile_0 | state_playfield) << 9
+	| is_set(state, state_missile_1 | state_ball) << 10
+	| is_set(state, state_missile_1 | state_playfield) << 11
+	| is_set(state, state_ball | state_playfield) << 12
+	| is_set(state, state_missile_0 | state_missile_1) << 13
+	| is_set(state, state_player_0 | state_player_1) << 14;
 }
 
 
@@ -149,22 +197,38 @@ static void apply_motion(rr_tia *tia) {
 
 int rr_tia_read(rr_tia tia, int address) {
 	switch (address % 0x10) {
-		case 0x00: // MARK: cxm0p
-			return ((tia.collisions & 0x3) << 6) | address;
-		case 0x01: // MARK: cxm1p
-			return ((tia.collisions & 0xc) << 4) | address;
-		case 0x02: // MARK: cxp0fb
-			return ((tia.collisions & 0x30) << 2) | address;
-		case 0x03: // MARK: cxp1fb
-			return (tia.collisions & 0xc0) | address;
-		case 0x04: // MARK: cxm0fb
-			return ((tia.collisions & 0x300) >> 2) | address;
-		case 0x05: // MARK: cxm1fb
-			return ((tia.collisions & 0xc00) >> 4) | address;
-		case 0x06: // MARK: cxblpf
-			return ((tia.collisions & 0x1000) >> 5) | address;
-		case 0x07: // MARK: cxppmm
-			return ((tia.collisions & 0x6000) >> 7) | address;
+		case 0x00: {// MARK: cxm0p
+			const int data = (tia.collisions >> 0) & 0x3;
+			return (data << 6) | address;
+		}
+		case 0x01: {// MARK: cxm1p
+			const int data = (tia.collisions >> 2) & 0x3;
+			return (data << 6) | address;
+		}
+		case 0x02: {// MARK: cxp0fb
+			const int data = (tia.collisions >> 4) & 0x3;
+			return (data << 6) | address;
+		}
+		case 0x03: {// MARK: cxp1fb
+			const int data = (tia.collisions >> 6) & 0x3;
+			return (data << 6) | address;
+		}
+		case 0x04: {// MARK: cxm0fb
+			const int data = (tia.collisions >> 8) & 0x3;
+			return (data << 6) | address;
+		}
+		case 0x05: {// MARK: cxm1fb
+			const int data = (tia.collisions >> 10) & 0x3;
+			return (data << 6) | address;
+		}
+		case 0x06: {// MARK: cxblpf
+			const int data = (tia.collisions >> 12) & 0x1;
+			return (data << 7) | address;
+		}
+		case 0x07: {// MARK: cxppmm
+			const int data = (tia.collisions >> 13) & 0x3;
+			return (data << 6) | address;
+		}
 			
 		case 0x08: // MARK: inpt0
 			return (tia.input << 7) & 0x80;

@@ -41,7 +41,7 @@ typedef enum {
 } rr_tia_output_flag;
 
 
-rr_tia* rr_tia_init(void);
+rr_tia *rr_tia_init(void);
 void rr_tia_advance_clock(rr_tia *tia);
 
 int rr_tia_read(rr_tia tia, int address);
