@@ -21,6 +21,10 @@
 		9512A7F42D0F0A5E009EB065 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
 		9512A7F52D0F0A5E009EB065 /* RayRacerKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9515FD372EC3DCAE00490D74 /* FrameCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9515FD362EC3DCAE00490D74 /* FrameCounter.swift */; };
+		951746E82ED7052800D346CD /* mcs6507.h in Headers */ = {isa = PBXBuildFile; fileRef = 951746E62ED7052800D346CD /* mcs6507.h */; };
+		951746E92ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
+		951746EA2ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
+		951746EB2ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
 		9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */; };
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
 		9523FDAB2C8D81DB0094A597 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */; };
@@ -67,6 +71,10 @@
 		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
+		95AE0B732EDB22EB0039E328 /* mcs6532.c in Sources */ = {isa = PBXBuildFile; fileRef = 95AE0B722EDB22EB0039E328 /* mcs6532.c */; };
+		95AE0B742EDB22EB0039E328 /* mcs6532.c in Sources */ = {isa = PBXBuildFile; fileRef = 95AE0B722EDB22EB0039E328 /* mcs6532.c */; };
+		95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */ = {isa = PBXBuildFile; fileRef = 95AE0B722EDB22EB0039E328 /* mcs6532.c */; };
+		95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE0B712EDB22EB0039E328 /* mcs6532.h */; };
 		95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */; };
 		95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */; };
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
@@ -165,6 +173,8 @@
 		950641E22A39CDAB00938403 /* BreakpointToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakpointToggle.swift; sourceTree = "<group>"; };
 		950A64A02C4BCD3C007D4362 /* Addressable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Addressable.swift; sourceTree = "<group>"; };
 		9515FD362EC3DCAE00490D74 /* FrameCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameCounter.swift; sourceTree = "<group>"; };
+		951746E62ED7052800D346CD /* mcs6507.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcs6507.h; sourceTree = "<group>"; };
+		951746E72ED7052800D346CD /* mcs6507.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mcs6507.c; sourceTree = "<group>"; };
 		9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Preferences.swift"; sourceTree = "<group>"; };
 		951CC4FD2A58723300537CD1 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		9523FDA82C8D81DB0094A597 /* RayRacerKitPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RayRacerKitPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -202,6 +212,8 @@
 		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
 		95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindowController.swift; sourceTree = "<group>"; };
 		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
+		95AE0B712EDB22EB0039E328 /* mcs6532.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcs6532.h; sourceTree = "<group>"; };
+		95AE0B722EDB22EB0039E328 /* mcs6532.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mcs6532.c; sourceTree = "<group>"; };
 		95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenViewController.swift; sourceTree = "<group>"; };
 		95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ScreenWindow.xib; sourceTree = "<group>"; };
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
@@ -268,10 +280,14 @@
 		9500F9E12ECDA8EC00998642 /* librayracer */ = {
 			isa = PBXGroup;
 			children = (
-				9500F9FA2ECDCAF800998642 /* module.modulemap */,
-				9500F9FB2ECDCE5D00998642 /* ray_racer.h */,
 				95D4716F2ED05F42002AB93C /* flags.h */,
+				951746E62ED7052800D346CD /* mcs6507.h */,
+				951746E72ED7052800D346CD /* mcs6507.c */,
+				95AE0B712EDB22EB0039E328 /* mcs6532.h */,
+				95AE0B722EDB22EB0039E328 /* mcs6532.c */,
+				9500F9FA2ECDCAF800998642 /* module.modulemap */,
 				95D4716E2ED04DA0002AB93C /* objects */,
+				9500F9FB2ECDCE5D00998642 /* ray_racer.h */,
 				9500F9DC2ECDA8E600998642 /* tia.h */,
 				9500F9DD2ECDA8E600998642 /* tia.c */,
 			);
@@ -437,11 +453,13 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				951746E82ED7052800D346CD /* mcs6507.h in Headers */,
 				95A39E2D2ECDF3230020CEFB /* ray_racer.h in Headers */,
 				95A39E2E2ECDF3300020CEFB /* tia.h in Headers */,
 				95A39E2F2ECDF3300020CEFB /* ball.h in Headers */,
 				95A39E302ECDF3300020CEFB /* missile.h in Headers */,
 				95A39E312ECDF3300020CEFB /* player.h in Headers */,
+				95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */,
 				95A39E322ECDF3300020CEFB /* playfield.h in Headers */,
 				95D471702ED05F42002AB93C /* flags.h in Headers */,
 				95BDE24C2ECEFB6800EC5B61 /* bits.h in Headers */,
@@ -571,6 +589,7 @@
 					};
 					954A18632A1AEE5800EBC582 = {
 						CreatedOnToolsVersion = 14.3;
+						LastSwiftMigration = 2610;
 					};
 					95A2FEA42CE8AB480058F393 = {
 						CreatedOnToolsVersion = 16.1;
@@ -688,6 +707,7 @@
 				957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */,
 				950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */,
 				9515FD372EC3DCAE00490D74 /* FrameCounter.swift in Sources */,
+				951746EB2ED7052800D346CD /* mcs6507.c in Sources */,
 				954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */,
 				955B4BEB2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift in Sources */,
 				950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */,
@@ -698,6 +718,7 @@
 				9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */,
 				9593159E2C72175000DC50A9 /* Screen.metal in Sources */,
 				95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */,
+				95AE0B732EDB22EB0039E328 /* mcs6532.c in Sources */,
 				95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -710,6 +731,8 @@
 				9500F9E62ECDAB2500998642 /* ball.c in Sources */,
 				9500F9DE2ECDA8E600998642 /* tia.c in Sources */,
 				95D29CE02ED3824B0059DE84 /* object.c in Sources */,
+				951746EA2ED7052800D346CD /* mcs6507.c in Sources */,
+				95AE0B742EDB22EB0039E328 /* mcs6532.c in Sources */,
 				9500F9EB2ECDACE500998642 /* missile.c in Sources */,
 				9500F9F32ECDB2ED00998642 /* playfield.c in Sources */,
 			);
@@ -719,12 +742,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */,
 				95D29CE12ED3824B0059DE84 /* object.c in Sources */,
 				95A39E342ECDF33B0020CEFB /* tia.c in Sources */,
 				95A39E352ECDF33B0020CEFB /* ball.c in Sources */,
 				95A39E362ECDF33B0020CEFB /* missile.c in Sources */,
 				95A39E372ECDF33B0020CEFB /* player.c in Sources */,
 				95A39E382ECDF33B0020CEFB /* playfield.c in Sources */,
+				951746E92ED7052800D346CD /* mcs6507.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1026,6 +1051,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = RayRacer/RayRacer.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
@@ -1053,6 +1079,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INCLUDE_PATHS = "";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -1062,6 +1089,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = RayRacer/RayRacer.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;

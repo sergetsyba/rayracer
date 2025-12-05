@@ -15,7 +15,8 @@ public class Atari2600 {
 	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
 	
-	private var tia0 = rr_tia_init()!;
+	private var tia0 = rr_tia_init()!
+	
 	private var output: Int = 0 {
 		didSet {
 			let sync = (~(oldValue >> 9) & (self.output >> 9)) & 0x3
@@ -174,6 +175,10 @@ extension Atari2600 {
 // MARK: -
 // MARK: Bus routing
 extension Atari2600: Addressable {
+	func read_bus(_ address: Int32) -> Int32 {
+		return Int32(read(at: Int(address)))
+	}
+	
 	public func read(at address: Int) -> Int {
 		if address & 0xf000 == 0xf000 {
 			let data = self.cartridge?[address & 0x0fff] ?? 0xea

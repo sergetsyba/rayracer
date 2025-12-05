@@ -179,42 +179,42 @@ static void decode_operation(rr_mcs6507 *cpu) {
 			
 			// MARK: relative addressing
 		case 0x10: {
-			address = read_relative_address(cpu, address, !is_negative(cpu), &cycles);
+			address = read_relative_address(cpu, address, !is_negative_set(cpu), &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0x30: {
-			address = read_relative_address(cpu, address, is_negative(cpu), &cycles);
+			address = read_relative_address(cpu, address, is_negative_set(cpu), &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0x50: {
-			address = read_relative_address(cpu, address, !is_overflow(cpu), &cycles);
+			address = read_relative_address(cpu, address, !is_overflow_set(cpu), &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0x70: {
-			address = read_relative_address(cpu, address, is_overflow(cpu), &cycles);
+			address = read_relative_address(cpu, address, is_overflow_set(cpu), &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0x90: {
-			address = read_relative_address(cpu, address, !is_carry(cpu), &cycles);
+			address = read_relative_address(cpu, address, !is_carry_set(cpu), &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0xb0: {
-			address = read_relative_address(cpu, address, is_carry(cpu), &cycles);
+			address = read_relative_address(cpu, address, is_carry_set(cpu), &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0xd0: {
-			address = read_relative_address(cpu, address, !is_zero(cpu), &cycles);
+			address = read_relative_address(cpu, address, !is_zero_set(cpu), &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0xf0: {
-			address = read_relative_address(cpu, address, is_zero(cpu), &cycles);
+			address = read_relative_address(cpu, address, is_zero_set(cpu), &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
@@ -341,9 +341,9 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 			int operand = cpu->read_bus(operand_address);
 			int result;
 			
-			if (is_decimal_mode(cpu)) {
+			if (is_decimal_mode_set(cpu)) {
 				int high = (cpu->accumulator / 0x10) + (operand / 0x10);
-				int low = (cpu->accumulator % 0x10) + (operand % 0x10) + is_carry(cpu);
+				int low = (cpu->accumulator % 0x10) + (operand % 0x10) + is_carry_set(cpu);
 				
 				if (low > 0x9) {
 					high += 0x1;
@@ -358,10 +358,10 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 					set_carry(cpu, false);
 				}
 			} else {
-				result = cpu->accumulator + operand + is_carry(cpu);
+				result = cpu->accumulator + operand + is_carry_set(cpu);
 				if (result > 0xff) {
 					result -= 0x100;
-					set_carry(cpu, true)
+					set_carry(cpu, true);
 				} else {
 					set_carry(cpu, false);
 				}
@@ -400,8 +400,8 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 			break;
 		}
 			
-			// MARK: bcc, bcs, beq, bmi, bne, bpl
-		case 0x90: case 0xb0: case 0xf0: case 0x30: case 0xd0: case 0x10:
+			// MARK: bcc, bcs, beq, bmi, bne, bpl, bvc, bvs
+		case 0x90: case 0xb0: case 0xf0: case 0x30: case 0xd0: case 0x10: case 0x50: case 0x70:
 			cpu->program_counter = operand_address;
 			break;
 			
@@ -428,19 +428,6 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 			break;
 		}
 			
-			// MARK: bvc
-		case 0x50:
-			//			if self.status[.overflow] == false {
-			//				self.programCounter = operand_address
-			//			}
-			break;
-			// MARK: bvs
-		case 0x70:
-			//				if self.status[.overflow] {
-			//					self.programCounter = operand_address
-			//				}
-			break;
-			
 			// MARK: clc
 		case 0x18:
 			set_carry(cpu, false);
@@ -451,7 +438,7 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 			break;
 			// MARK: cli
 		case 0x58:
-			set_interrupt_disabled(cpu, false);
+			set_interrupt_disable(cpu, false);
 			break;
 			// MARK: clv
 		case 0xb8:
@@ -637,7 +624,7 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 		case 0x26: case 0x2e: case 0x36: case 0x3e: {
 			int operand = cpu->read_bus(operand_address);
 			operand <<= 1;
-			operand |= is_carry(cpu);
+			operand |= is_carry_set(cpu);
 			cpu->write_bus(operand & 0xff, operand_address);
 			
 			set_carry(cpu, operand & 0x80);
@@ -650,7 +637,7 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 		case 0x6a: {
 			const bool carry = cpu->accumulator & 0x1;
 			cpu->accumulator >>= 1;
-			cpu->accumulator |= is_carry(cpu) << 7;
+			cpu->accumulator |= is_carry_set(cpu) << 7;
 			
 			set_carry(cpu, carry);
 			break;
@@ -660,7 +647,7 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 		case 0x66: case 0x6e: case 0x76: case 0x7e: {
 			int operand = cpu->read_bus(operand_address);
 			operand >>= 1;
-			operand |= is_carry(cpu) << 7;
+			operand |= is_carry_set(cpu) << 7;
 			cpu->write_bus(operand, operand_address);
 			
 			set_carry(cpu, operand & 0x1);
@@ -692,9 +679,9 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 			int operand = cpu->read_bus(operand_address);
 			
 			int result;
-			if is_decimal_mode(cpu) {
+			if is_decimal_mode_set(cpu) {
 				int high = (cpu->accumulator / 0x10) - (operand / 0x10);
-				int low = (cpu->accumulator % 0x10) - (operand % 0x10) - is_carry(cpu);
+				int low = (cpu->accumulator % 0x10) - (operand % 0x10) - is_carry_set(cpu);
 				
 				if (low < 0x0) {
 					high -= 0x1;
@@ -709,7 +696,7 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 					set_carry(cpu, true);
 				}
 			} else {
-				result = cpu->accumulator - operand - is_carry(cpu);
+				result = cpu->accumulator - operand - is_carry_set(cpu);
 				if (result < 0x0) {
 					result += 0x100;
 					set_carry(cpu, false);
@@ -735,7 +722,7 @@ static void execute_decoded_operation(rr_mcs6507 *cpu) {
 			
 			// MARK: sei
 		case 0x78:
-			set_interrupt_disabled(cpu, true);
+			set_interrupt_disable(cpu, true);
 			break;
 			
 			// MARK: sta
