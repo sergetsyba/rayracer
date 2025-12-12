@@ -9,7 +9,6 @@
 #define mcs6507_h
 
 #include <stdbool.h>
-#include "flags.h"
 
 typedef struct {
 	int code;
@@ -17,7 +16,6 @@ typedef struct {
 	int duration;
 	int length;
 } decoded;
-
 
 typedef struct {
 	int accumulator;
@@ -30,46 +28,34 @@ typedef struct {
 	int stack_pointer;
 	int program_counter;
 	
-	int (*read_bus)(int);
-	void (*write_bus)(int, int);
+	void *bus;
+	int (*read_bus)(void *bus, int address);
+	void (*write_bus)(void *bus, int address, int data);
 	
 	decoded operation;
-	int clock;
-} rr_mcs6507;
+	int operation_clock;
+} racer_mcs6507;
 
-rr_mcs6507 *rr_create_mcs6507(void);
-void rr_advance_clock(rr_mcs6507 *cpu);
+/// Resets the specified MCS6507 chip.
+///
+/// Resetting the chip sets Interrupt Disable status flag, stack pointer to 0xfd and progam counter
+/// to 0xfffc. All other internal state is assumed unpredictable.
+///
+/// This function is equivalent to pulling RES line low for 6 clock cycles in actual hardware.
+void racer_mcs6507_reset(racer_mcs6507 *cpu);
+
+/// Advanced MCS6507 chip clock by 1 full (2-phase) cycle.
+void racer_mcs6507_advance_clock(racer_mcs6507 *cpu);
+
 
 // MARK: -
 // MARK: Status flags
-#define is_carry_set(cpu) \
-	is_bit_set(cpu->status, 0)
-#define is_zero_set(cpu) \
-	is_bit_set(cpu->status, 1)
-#define is_interrupt_disable_set(cpu) \
-	is_bit_set(cpu->status, 2)
-#define is_decimal_mode_set(cpu) \
-	is_bit_set(cpu->status, 3)
-#define is_break_set(cpu) \
-	is_bit_set(cpu->status, 4)
-#define is_overflow_set(cpu) \
-	is_bit_set(cpu->status, 6)
-#define is_negative_set(cpu) \
-	is_bit_set(cpu->status, 7)
-
-#define set_carry(cpu, on) \
-	set_bit(cpu->status, 0, on)
-#define set_zero(cpu, on) \
-	set_bit(cpu->status, 1, on)
-#define set_interrupt_disable(cpu, on) \
-	set_bit(cpu->status, 2, on)
-#define set_decimal_mode(cpu, on) \
-	set_bit(cpu->status, 3, on)
-#define set_break(cpu, on) \
-	set_bit(cpu->status, 4, on)
-#define set_overflow(cpu, on) \
-	set_bit(cpu->status, 6, on)
-#define set_negative(cpu, on) \
-	set_bit(cpu->status, 7, on)
+#define MCS6507_STATUS_CARRY (1<<0)
+#define MCS6507_STATUS_ZERO (1<<1)
+#define MCS6507_STATUS_INTERRUPT_DISABLE (1<<2)
+#define MCS6507_STATUS_DECIMAL_MODE (1<<3)
+#define MCS6507_STATUS_BREAK (1<<4)
+#define MCS6507_STATUS_OVERFLOW (1<<6)
+#define MCS6507_STATUS_NEGATIVE (1<<7)
 
 #endif /* mcs6507_h */
