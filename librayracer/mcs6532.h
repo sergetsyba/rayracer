@@ -43,8 +43,9 @@ typedef struct {
 	int interrupt_flags;
 	void (*interrupt)(void);
 	
-	int (*read_port[2])(void);
-	void (*write_port[2])(int data);
+	void *peripherals[2];
+	int (*read_port[2])(void *peripheral);
+	void (*write_port[2])(void *peripheral, int data);
 } racer_mcs6532;
 
 /**

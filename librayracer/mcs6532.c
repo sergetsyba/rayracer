@@ -9,8 +9,14 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void racer_mcs6532_reset(racer_mcs6532 *riot) {
+	// randomize memory
+	for (int index = 0; index < 128; ++index) {
+		riot->memory[index] = arc4random_uniform(0x100);
+	}
+	
 	// clear both data and data direction registers
 	riot->data[0] = 0x00;
 	riot->data_direction[0] = 0x00;
@@ -47,7 +53,7 @@ void racer_mcs6532_advance_clock(racer_mcs6532 *riot) {
 // MARK: Port integration
 static int get_port_data(racer_mcs6532 riot, int index) {
 	// read pins driven by a connected peripheral
-	int input = riot.read_port[index]();
+	int input = riot.read_port[index](riot.peripherals[index]);
 	input &= ~riot.data_direction[index];
 	
 	// read data for pins driven by MCS6532
@@ -147,7 +153,7 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			edge_detect_bit7(riot, data);
 			
 			// update peripheral on port A
-			riot->write_port[0](data);
+			riot->write_port[0](riot->peripherals[0], data);
 			break;
 		}
 			
@@ -160,7 +166,7 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			edge_detect_bit7(riot, data);
 			
 			// update peripheral on port A
-			riot->write_port[0](data);
+			riot->write_port[0](riot->peripherals[0], data);
 			break;
 		}
 			
@@ -170,7 +176,7 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			
 			// update peripheral on port B
 			const int data = get_port_data(*riot, 1);
-			riot->write_port[1](data);
+			riot->write_port[1](riot->peripherals[0], data);
 			break;
 		}
 			
@@ -180,7 +186,7 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			
 			// update peripheral on port B
 			const int data = get_port_data(*riot, 1);
-			riot->write_port[1](data);
+			riot->write_port[1](riot->peripherals[0], data);
 			break;
 		}
 			
