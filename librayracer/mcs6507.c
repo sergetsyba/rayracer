@@ -386,7 +386,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			const bool overflow = (cpu->accumulator ^ result) & (operand ^ result);
 			
 			cpu->accumulator = result;
-			set_status(cpu, MCS6507_STATUS_CARRY, overflow);
+			set_status(cpu, MCS6507_STATUS_OVERFLOW, overflow);
 			set_status(cpu, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
 			set_status(cpu, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
 			break;
