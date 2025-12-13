@@ -22,7 +22,7 @@
 
 /// `true` when both of the specified memory addresses are on the same page; `false` otherwise.
 #define is_same_page(address1, address2) \
-	(((address1) & 0xff) == ((address2) & 0xff))
+	(((address1) >> 8) == ((address2) >> 8))
 
 
 // MARK: -
