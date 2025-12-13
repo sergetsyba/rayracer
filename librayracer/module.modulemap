@@ -6,6 +6,6 @@
 //
 
 module librayracer {
-	header "ray_racer.h"
+	header "atari2600.h"
 	export *
 }
