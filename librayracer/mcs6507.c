@@ -228,7 +228,7 @@ static void decode_operation(racer_mcs6507 *cpu) {
 			break;
 		}
 		case 0xf0: {
-			const bool condition = cpu->status & MCS6507_STATUS_NEGATIVE;
+			const bool condition = cpu->status & MCS6507_STATUS_ZERO;
 			address = read_relative_address(cpu, address, condition, &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
