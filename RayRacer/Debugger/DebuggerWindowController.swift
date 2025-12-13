@@ -234,9 +234,8 @@ extension DebuggerWindowController {
 				var remaining = count
 				console.resume(priority: .high, until: (
 					{ [unowned console] in
-						if condition(console)
-							&& console.cpu.sync
-							&& !console.tia.awaitsHorizontalSync {
+						if console.cpu.sync && console.cpu.isReady
+							&& condition(console) {
 							remaining -= 1
 						}
 						return remaining == 0
@@ -259,17 +258,16 @@ extension DebuggerWindowController {
 		DispatchQueue.global(qos: .userInitiated)
 			.async() { [unowned console] in
 				let counter = GraphicsSyncCounter()
-				counter.output = console.tia.output
+				counter.output = console.output
 				
-				console.tia.output = counter
+				console.output = counter
 				console.resume(priority: .high, until: (
 					{ [unowned console] in
 						return condition(counter.counts.0, counter.counts.1)
-						&& console.cpu.sync
-						&& !console.tia.awaitsHorizontalSync
+						&& console.cpu.sync && console.cpu.isReady
 					},
 					{ [unowned console, self] in
-						console.tia.output = counter.output
+						console.output = counter.output
 						
 						DispatchQueue.main.async() { [unowned self] in
 							NotificationCenter.default

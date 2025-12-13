@@ -172,7 +172,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forCPUDebugItem item: CPUDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-		let cpu = self.console.cpu!
+		let cpu = self.console.cpu
 		
 		switch item {
 		case .accumulator:
@@ -201,7 +201,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forTimerDebugItem item: TimerDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-		let riot = self.console.riot!
+		let riot = self.console.riot
 		
 		switch item {
 		case .value:

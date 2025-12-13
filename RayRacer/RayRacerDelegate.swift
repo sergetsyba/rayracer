@@ -204,7 +204,7 @@ extension RayRacerDelegate {
 		
 		if windowController == nil {
 			let viewController = ScreenViewController(console: self.console, commandQueue: self.commandQueue, pipelineState: self.pipelineState)
-			self.console.tia.output = viewController
+			self.console.output = viewController
 			
 			windowController = NSWindowController(windowNibName: "ScreenWindow")
 			windowController.contentViewController = viewController

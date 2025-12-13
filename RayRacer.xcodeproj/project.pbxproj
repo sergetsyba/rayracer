@@ -26,6 +26,10 @@
 		951746EA2ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
 		951746EB2ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
 		9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */; };
+		9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */ = {isa = PBXBuildFile; fileRef = 9519F9D02EE2C5B6007D1626 /* atari2600.h */; };
+		9519F9D32EE2C5B6007D1626 /* atari2600.c in Sources */ = {isa = PBXBuildFile; fileRef = 9519F9D12EE2C5B6007D1626 /* atari2600.c */; };
+		9519F9D42EE2C5B6007D1626 /* atari2600.c in Sources */ = {isa = PBXBuildFile; fileRef = 9519F9D12EE2C5B6007D1626 /* atari2600.c */; };
+		9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */ = {isa = PBXBuildFile; fileRef = 9519F9D12EE2C5B6007D1626 /* atari2600.c */; };
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
 		9523FDAB2C8D81DB0094A597 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */; };
 		9523FDAC2C8D81DB0094A597 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
@@ -55,7 +59,6 @@
 		95A222182C8A000D008176F7 /* TIA+Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A222142C8A000D008176F7 /* TIA+Player.swift */; };
 		95A2FEA02CE8A5D40058F393 /* Joystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A2FE9F2CE8A5D40058F393 /* Joystick.swift */; };
 		95A2FEA92CE8AB480058F393 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
-		95A39E2D2ECDF3230020CEFB /* ray_racer.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9FB2ECDCE5D00998642 /* ray_racer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		95A39E2E2ECDF3300020CEFB /* tia.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9DC2ECDA8E600998642 /* tia.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		95A39E2F2ECDF3300020CEFB /* ball.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9E22ECDAB2500998642 /* ball.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		95A39E302ECDF3300020CEFB /* missile.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9E72ECDACE500998642 /* missile.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -165,7 +168,6 @@
 		9500F9F22ECDB2ED00998642 /* playfield.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = playfield.c; sourceTree = "<group>"; };
 		9500F9F62ECDC47300998642 /* object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = object.h; sourceTree = "<group>"; };
 		9500F9FA2ECDCAF800998642 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
-		9500F9FB2ECDCE5D00998642 /* ray_racer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ray_racer.h; sourceTree = "<group>"; };
 		9502E5962A423296007A32DA /* MOS6507+Assembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MOS6507+Assembly.swift"; sourceTree = "<group>"; };
 		9503F0D52CB1B16700C71436 /* MultiStepperView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MultiStepperView.xib; sourceTree = "<group>"; };
 		9503F0D72CB1B2BA00C71436 /* MultiStepperViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiStepperViewController.swift; sourceTree = "<group>"; };
@@ -176,6 +178,8 @@
 		951746E62ED7052800D346CD /* mcs6507.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcs6507.h; sourceTree = "<group>"; };
 		951746E72ED7052800D346CD /* mcs6507.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mcs6507.c; sourceTree = "<group>"; };
 		9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Preferences.swift"; sourceTree = "<group>"; };
+		9519F9D02EE2C5B6007D1626 /* atari2600.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atari2600.h; sourceTree = "<group>"; };
+		9519F9D12EE2C5B6007D1626 /* atari2600.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = atari2600.c; sourceTree = "<group>"; };
 		951CC4FD2A58723300537CD1 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		9523FDA82C8D81DB0094A597 /* RayRacerKitPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RayRacerKitPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
@@ -280,6 +284,8 @@
 		9500F9E12ECDA8EC00998642 /* librayracer */ = {
 			isa = PBXGroup;
 			children = (
+				9519F9D02EE2C5B6007D1626 /* atari2600.h */,
+				9519F9D12EE2C5B6007D1626 /* atari2600.c */,
 				95D4716F2ED05F42002AB93C /* flags.h */,
 				951746E62ED7052800D346CD /* mcs6507.h */,
 				951746E72ED7052800D346CD /* mcs6507.c */,
@@ -287,7 +293,6 @@
 				95AE0B722EDB22EB0039E328 /* mcs6532.c */,
 				9500F9FA2ECDCAF800998642 /* module.modulemap */,
 				95D4716E2ED04DA0002AB93C /* objects */,
-				9500F9FB2ECDCE5D00998642 /* ray_racer.h */,
 				9500F9DC2ECDA8E600998642 /* tia.h */,
 				9500F9DD2ECDA8E600998642 /* tia.c */,
 			);
@@ -454,7 +459,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				951746E82ED7052800D346CD /* mcs6507.h in Headers */,
-				95A39E2D2ECDF3230020CEFB /* ray_racer.h in Headers */,
+				9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */,
 				95A39E2E2ECDF3300020CEFB /* tia.h in Headers */,
 				95A39E2F2ECDF3300020CEFB /* ball.h in Headers */,
 				95A39E302ECDF3300020CEFB /* missile.h in Headers */,
@@ -710,6 +715,7 @@
 				951746EB2ED7052800D346CD /* mcs6507.c in Sources */,
 				954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */,
 				955B4BEB2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift in Sources */,
+				9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */,
 				950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* RayRacerDelegate.swift in Sources */,
 				954E3CD22C285184009218CB /* DebugSectionTableCellView.swift in Sources */,
@@ -732,6 +738,7 @@
 				9500F9DE2ECDA8E600998642 /* tia.c in Sources */,
 				95D29CE02ED3824B0059DE84 /* object.c in Sources */,
 				951746EA2ED7052800D346CD /* mcs6507.c in Sources */,
+				9519F9D42EE2C5B6007D1626 /* atari2600.c in Sources */,
 				95AE0B742EDB22EB0039E328 /* mcs6532.c in Sources */,
 				9500F9EB2ECDACE500998642 /* missile.c in Sources */,
 				9500F9F32ECDB2ED00998642 /* playfield.c in Sources */,
@@ -744,6 +751,7 @@
 			files = (
 				95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */,
 				95D29CE12ED3824B0059DE84 /* object.c in Sources */,
+				9519F9D32EE2C5B6007D1626 /* atari2600.c in Sources */,
 				95A39E342ECDF33B0020CEFB /* tia.c in Sources */,
 				95A39E352ECDF33B0020CEFB /* ball.c in Sources */,
 				95A39E362ECDF33B0020CEFB /* missile.c in Sources */,

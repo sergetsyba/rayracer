@@ -205,6 +205,10 @@ extension ScreenViewController: TIA.GraphicsOutput {
 	}
 	
 	func write(color: Int) {
+		if self.screenIndex >= self.screenData.count {
+			self.sync(.vertical)
+		}
+		
 		self.screenData[self.screenIndex] = UInt8(color)
 		self.screenIndex += 1
 	}

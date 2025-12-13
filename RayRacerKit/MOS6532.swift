@@ -24,6 +24,14 @@ public class MOS6532 {
 		self.timer = (1024 * .random(), 1024)
 	}
 	
+	public init(peripherals: (a: Peripheral, b: Peripheral), memory: Data, data: (a: Int, b: Int), dataDirection: (a: Int, b: Int), timer: (Int, interval: Int)) {
+		self.peripherals = peripherals
+		self.memory = memory
+		self.data = data
+		self.dataDirection = dataDirection
+		self.timer = timer
+	}
+	
 	/// Resets internal state.
 	public func reset() {
 		self.memory = .random(count: 128)

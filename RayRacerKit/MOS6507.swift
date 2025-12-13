@@ -29,10 +29,26 @@ public struct MOS6507 {
 	private(set) public var stackPointer: Int
 	private(set) public var programCounter: Int
 	
+	public var isReady: Bool
+	
 	private var bus: Addressable
 	
 	private var decoded: (opcode: Int, address: Int, duration: Int, length: Int) = (0, 0, 0, 0)
 	private var elapsedCycles = 0
+	
+	public init(accumulator: Int, x: Int, y: Int, status: Status, stackPointer: Int, programCounter: Int, isReady: Bool, bus: Addressable, decoded: (opcode: Int, address: Int, duration: Int, length: Int), elapsedCycles: Int = 0) {
+		self.accumulator = accumulator
+		self.x = x
+		self.y = y
+		self.status = status
+		self.stackPointer = stackPointer
+		self.programCounter = programCounter
+		self.isReady = isReady
+		
+		self.bus = bus
+		self.decoded = decoded
+		self.elapsedCycles = elapsedCycles
+	}
 	
 	public init(bus: Addressable) {
 		self.accumulator = .random(in: 0x00...0xff)
@@ -43,6 +59,7 @@ public struct MOS6507 {
 		self.stackPointer = .random(in: 0x00...0xff)
 		self.programCounter = .random(in: 0x0000...0xffff)
 		
+		self.isReady = true
 		self.bus = bus
 	}
 	
