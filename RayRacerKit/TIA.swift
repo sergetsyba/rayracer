@@ -15,7 +15,7 @@ public class TIA {
 	private var collisions = 0
 	
 	public var peripheral: Peripheral = .none
-	public var output: GraphicsOutput?
+	var output: GraphicsOutput?
 	private var input = 0x0
 	
 	/// Indicates whether vertical sync is enabled.
@@ -107,8 +107,9 @@ public class TIA {
 
 extension TIA {
 	public struct GraphicsSync: OptionSet {
-		public static let horizontal = GraphicsSync(rawValue: 1 << 0)
-		public static let vertical = GraphicsSync(rawValue: 1 << 1)
+		public static let vertical = GraphicsSync(rawValue: 1 << 0)
+		public static let horizontal = GraphicsSync(rawValue: 1 << 1)
+		
 		
 		public var rawValue: Int
 		

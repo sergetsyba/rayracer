@@ -9,8 +9,15 @@
 #include <stdio.h>
 
 #include "tia.h"
-#include "flags.h"
 #include "object.h"
+
+// MARK: Convenience functionality
+
+/// Sets the specified output control flag flag to the specified value.
+#define set_output_control(tia, flag, on) \
+	tia->output_control = on \
+		? (tia->output_control | (flag)) \
+		: (tia->output_control & ~(flag))
 
 
 // MARK: Initialization
@@ -31,7 +38,7 @@ static int reflect(int graphics) {
 	return reflected;
 }
 
-rr_tia* rr_tia_init(void) {
+void racer_tia_init(void) {
 	// initialize graphics reflections look up
 	for (int graphics = 0x00; graphics <= 0xff; ++graphics) {
 		reflections[graphics] = reflect(graphics);
@@ -46,13 +53,13 @@ rr_tia* rr_tia_init(void) {
 	for (int state = 0x00; state < 0x40; ++state) {
 		collistions[state] = get_collisions(state);
 	}
-	
-	rr_tia* tia = (rr_tia *)malloc(sizeof(rr_tia));
+}
+
+void racer_tia_reset(racer_tia *tia) {
 	tia->color_clock = 0;
-	tia->flags = 0;
-	tia->output = 0x700;
-	
-	return tia;
+	tia->blank_reset_clock = 68;
+	*tia->is_ready = true;
+	tia->output_control = 0x000;
 }
 
 #define state_player_0 (1 << 0)
@@ -117,7 +124,7 @@ static int get_collisions(int state) {
 
 // MARK: -
 // MARK: Drawing
-static int get_draw_state(rr_tia tia) {
+static int get_draw_state(racer_tia tia) {
 	return (rr_player_needs_drawing(tia.players[0]) << 0)
 	| (rr_player_needs_drawing(tia.players[1]) << 1)
 	| (rr_missile_needs_drawing(tia.missiles[0]) << 2)
@@ -126,27 +133,31 @@ static int get_draw_state(rr_tia tia) {
 	| (playfield_needs_drawing(tia.playfield, tia.color_clock - 68) << 5);
 }
 
-void rr_tia_advance_clock(rr_tia *tia) {
-	// update horizontal blanking
-	const int reset_clock = tia->flags & TIA_APPLY_MOTION ? 68+8 : 68;
-	const bool blank = tia->color_clock < reset_clock;
-	add_flag(tia->flags, TIA_OUTPUT_BLANK, blank);
+void racer_tia_advance_clock(racer_tia *tia) {
+	// set horizontal sync to output control
+	const bool horizontal_sync = tia->color_clock < 68;
+	set_output_control(tia, TIA_OUTPUT_HORIZONTAL_SYNC << 8, horizontal_sync);
 	
-	int color = 0x00;
-	if (blank) {
-		// position counters of movable objects do not receive clock
-		// signals during horizontal blanking/retrace
+	// copy video output signal from output control
+	int signal = tia->output_control;
+	
+	const bool horizontal_blank = tia->color_clock < tia->blank_reset_clock;
+	if (horizontal_blank) {
+		// append horizontal blank to output signal
+		signal |= horizontal_blank;
+		
+		// position counters of movable objects do not receive clock signals
+		// during horizontal blanking/retrace
 	} else {
 		// get state of all graphics objects
 		const int state = get_draw_state(*tia);
-		
 		// update graphics objects collisions
 		tia->collisions |= collistions[state];
 		
-		// get output color
-		if (!(tia->output & TIA_OUTPUT_BLANK)) {
+		// set output color unless TIA ouputs blank
+		if (!(tia->output_control & TIA_OUTPUT_BLANK)) {
 			const int index = object_indexes[state];
-			color = tia->colors[index];
+			signal |= tia->colors[index];
 		}
 		
 		// advance position counters of graphics objects
@@ -157,25 +168,24 @@ void rr_tia_advance_clock(rr_tia *tia) {
 		advance_position(tia->ball);
 	}
 	
-	// update output color and horizontal sync
-	tia->output &= 0xff01;
-	tia->output |= color;
-	set_flag(tia->output, TIA_OUTPUT_HORIZONTAL_SYNC, blank);
-	
-	// advance color clock
+	tia->write_video_output(tia->output, signal);
 	tia->color_clock += 1;
 	
 	// reset scan line
 	if (tia->color_clock == 228) {
 		tia->color_clock = 0;
-		clear_flag(tia->flags, TIA_WAIT_ON_HORIZONTAL_SYNC | TIA_APPLY_MOTION);
+		tia->blank_reset_clock = 68;
+		*tia->is_ready = true;
+		
+		// notify video output horizontal sync started
+		tia->sync_video_output(tia->output, TIA_OUTPUT_HORIZONTAL_SYNC);
 	}
 }
 
 
 // MARK: -
 // MARK: Bus integration
-static void apply_motion(rr_tia *tia) {
+static void apply_motion(racer_tia *tia) {
 	const int remaining_clock = (68+8)-7 - tia->color_clock;
 	if (remaining_clock < 0) {
 		// ignore horizontal motion when HMOVE strobed late during
@@ -195,7 +205,7 @@ static void apply_motion(rr_tia *tia) {
 }
 
 
-int rr_tia_read(rr_tia tia, int address) {
+int racer_tia_read(racer_tia tia, int address) {
 	switch (address % 0x10) {
 		case 0x00: {// MARK: cxm0p
 			const int data = (tia.collisions >> 0) & 0x3;
@@ -243,29 +253,32 @@ int rr_tia_read(rr_tia tia, int address) {
 	}
 }
 
-void rr_tia_write(rr_tia *tia, int address, int data) {
+void racer_tia_write(racer_tia *tia, int address, int data) {
 	switch (address) {
 		case 0x00:	// MARK: vsync
-			set_flag(tia->output, TIA_OUTPUT_VERTICAL_SYNC, data & 0x2);
+			set_output_control(tia, TIA_OUTPUT_VERTICAL_SYNC << 8, data & 0x2);
+			if (data & 0x2) {
+				// notify video output vertical sync started
+				tia->sync_video_output(tia->output, TIA_OUTPUT_VERTICAL_SYNC);
+			}
 			break;
 			
 		case 0x01:	// MARK: vblank
-			set_flag(tia->output, TIA_OUTPUT_BLANK, data & 0x2);
+			set_output_control(tia, TIA_OUTPUT_BLANK, data & 0x2);
 			break;
 			
 		case 0x02:	// MARK: wsync
-			// NOTE: when last CPU clock cycle of a write instruction coincides
-			// with last three TIA color clocks in a scan line, WSYNC will
-			// incorrectly stay on for an extra scanline, since it is reset at
-			// the end of each TIA color clock cycle emulation, but the writing
-			// CPU clock cycle is executed after that in console clock
-			// emulation;
-			// ensuring color clock is not reset guards against this edge case
-			set_flag(tia->flags, TIA_WAIT_ON_HORIZONTAL_SYNC, (bool)(tia->color_clock > 0));
+			// when the last clock cycle of WSYNC write instruction coincides
+			// with the last color clock of a scan line (which resets color
+			// clock to 0), WSYNC should not be enabled
+			if (tia->color_clock != 0) {
+				*tia->is_ready = false;
+			}
 			break;
 			
 		case 0x03:	// MARK: rsync
-			tia->color_clock = 0;
+			// FIXME: RSYNC
+			tia->color_clock = -6;
 			break;
 			
 		case 0x04: {// MARK: nusiz0
@@ -394,7 +407,7 @@ void rr_tia_write(rr_tia *tia, int address, int data) {
 			break;
 			
 		case 0x2a:	// MARK: hmove
-			set_flag(tia->flags, TIA_APPLY_MOTION, 1);
+			tia->blank_reset_clock = 68+8;
 			apply_motion(tia);
 			break;
 			
