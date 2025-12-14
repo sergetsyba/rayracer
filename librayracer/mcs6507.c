@@ -739,13 +739,13 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			
 			// MARK: sbc
 		case 0xe1: case 0xe5: case 0xe9: case 0xed: case 0xf1: case 0xf5: case 0xf9: case 0xfd: {
-			const bool carry = cpu->status & MCS6507_STATUS_CARRY;
+			const bool borrow = !(cpu->status & MCS6507_STATUS_CARRY);
 			int operand = cpu->read_bus(cpu->bus, operand_address);
 			int result;
 			
 			if (cpu->status & MCS6507_STATUS_DECIMAL_MODE) {
 				int high = (cpu->accumulator / 0x10) - (operand / 0x10);
-				int low = (cpu->accumulator % 0x10) - (operand % 0x10) - carry;
+				int low = (cpu->accumulator % 0x10) - (operand % 0x10) - borrow;
 				
 				if (low < 0x0) {
 					high -= 0x1;
@@ -760,7 +760,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 					set_status(cpu, MCS6507_STATUS_CARRY, true);
 				}
 			} else {
-				result = cpu->accumulator - operand - carry;
+				result = cpu->accumulator - operand - borrow;
 				if (result < 0x0) {
 					result += 0x100;
 					set_status(cpu, MCS6507_STATUS_CARRY, false);
