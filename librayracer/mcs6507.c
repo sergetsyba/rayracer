@@ -150,12 +150,12 @@ static int read_indirect_y_indexed_address(racer_mcs6507 *cpu, int address, int 
 static void push_stack(racer_mcs6507 *cpu, int data) {
 	const int address = cpu->stack_pointer + 0x0100;
 	cpu->write_bus(cpu->bus, address, data);
-	cpu->stack_pointer -= 0x1;
+	cpu->stack_pointer = (cpu->stack_pointer - 0x1) & 0xff;
 }
 
 /// Pulls the last pushed value from the stack and updates the stack pointer.
 static int pull_stack(racer_mcs6507 *cpu) {
-	cpu->stack_pointer += 0x1;
+	cpu->stack_pointer = (cpu->stack_pointer + 0x1) & 0xff;
 	
 	const int address = cpu->stack_pointer + 0x0100;
 	return cpu->read_bus(cpu->bus, address);
