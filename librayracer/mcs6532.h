@@ -8,14 +8,12 @@
 #ifndef mcs6532_h
 #define mcs6532_h
 
-#include <stdint.h>
-#include "flags.h"
-
 typedef struct {
 	char memory[128];
 	
 	int data[2];
 	int data_direction[2];
+	int data_latch;
 	
 	int timer;
 	int timer_scale;
@@ -23,12 +21,11 @@ typedef struct {
 	/**
 	 * Interrupt control holds options for edge detection and interrupt behavior.
 	 *
-	 * Bit 4 denotes polarity of transition to be detected on line 7 of port A. When set, edge detction will
+	 * Bit 0 denotes polarity of transition to be detected on line 7 of port A. When set, edge detction will
 	 * target positive transition (i.e. 0→1); when clear - negative (i.e. 1→0).
-	 * Bit 5 denotes whether interrupt should be asserted once active transition occurrs on line 7 of
+	 * Bit 6 denotes whether interrupt should be asserted once active transition occurrs on line 7 of
 	 * port A.
-	 * Bit 6 denotes whether interrupt should be asserted on the next clock cycle after timer reaches 0.
-	 * Bit 7 holds the last observed value of line 7 of port A.
+	 * Bit 7 denotes whether interrupt should be asserted on the next clock cycle after timer reaches 0.
 	 */
 	int interrupt_control;
 	
@@ -40,8 +37,7 @@ typedef struct {
 	 * Bit 7 is set on the next clock cycle after timer counts down to 0. This bit is cleared once timer is
 	 * read or written to.
 	 */
-	int interrupt_flags;
-	void (*interrupt)(void);
+	int interrupt;
 	
 	void *peripherals[2];
 	int (*read_port[2])(void *peripheral);
@@ -80,38 +76,9 @@ int racer_mcs6532_read(racer_mcs6532 *riot, int address);
 void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data);
 
 // MARK: -
-// MARK: Convenience definitions
-#define get_timer(riot) \
-	riot->timer < 0 \
-		? 0x100 + riot->timer \
-		: riot->timer >> riot->timer_scale
-
-#define get_edge_detect_polarity(riot) \
-	is_bit_set(riot->interrupt_control, 4)
-#define set_edge_detect_polarity(riot, on) \
-	set_bit(riot->interrupt_control, 4, on)
-
-#define is_edge_detect_interrupt_enabled(riot) \
-	is_bit_set(riot->interrupt_control, 5)
-#define set_edge_detect_interrupt_enabled(riot, on) \
-	set_bit(riot->interrupt_control, 5, on)
-
-#define set_edge_detect_interrupt_flag(riot, on) \
-	set_bit(riot->interrupt_flags, 6, on)
-#define clear_edge_detect_interrupt_flag(riot) \
-	clear_bit(riot->interrupt_flags, 6)
-
-#define set_edge_detect_value(riot, on) \
-	set_bit(riot->interrupt_control, 7, on)
-
-#define is_timer_interrupt_enabled(riot) \
-	is_bit_set(riot->interrupt_control, 6)
-#define set_timer_interrupt_enabled(riot, on) \
-	set_bit(riot->interrupt_control, 6, on)
-
-#define set_timer_interrupt_flag(riot, on) \
-	set_bit(riot->interrupt_flags, 7, on)
-#define clear_timer_interrupt_flag(riot) \
-	clear_bit(riot->interrupt_flags, 7)
+// MARK: Interrupt control flags
+#define MCS6532_EDGE_DETECT_POLARITY (1<<0)
+#define MCS6532_EDGE_DETECT_INTERRUPT (1<<6)
+#define MCS6532_TIMER_INTERRUPT (1<<7)
 
 #endif /* mcs6532_h */

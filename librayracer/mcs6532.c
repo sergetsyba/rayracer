@@ -6,10 +6,11 @@
 //
 
 #include "mcs6532.h"
+#include "flags.h"
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 void racer_mcs6532_reset(racer_mcs6532 *riot) {
 	// randomize memory
@@ -22,11 +23,12 @@ void racer_mcs6532_reset(racer_mcs6532 *riot) {
 	riot->data_direction[0] = 0x00;
 	riot->data[1] = 0x00;
 	riot->data_direction[1] = 0x00;
+	riot->data_latch = 0x0;
 	
 	// disable interrupt for edge detect and set it to detect negative
 	// transition
-	set_edge_detect_interrupt_enabled(riot, false);
-	set_edge_detect_polarity(riot, 0);
+	clear_flag(riot->interrupt_control, MCS6532_EDGE_DETECT_INTERRUPT);
+	clear_flag(riot->interrupt_control, MCS6532_EDGE_DETECT_POLARITY);
 }
 
 void racer_mcs6532_advance_clock(racer_mcs6532 *riot) {
@@ -38,12 +40,11 @@ void racer_mcs6532_advance_clock(racer_mcs6532 *riot) {
 	riot->timer -= 1;
 	
 	if (riot->timer == -1) {
-		// set timer interrupt flag after timer expires
-		set_timer_interrupt_flag(riot, true);
+		// set timer interrupt flag once timer expires
+		riot->interrupt |= MCS6532_TIMER_INTERRUPT;
 		
-		// call interrupt if enabled in interrupt control
-		if (is_timer_interrupt_enabled(riot)) {
-			riot->interrupt();
+		if (riot->interrupt_control & MCS6532_TIMER_INTERRUPT) {
+			// TODO: call interrupt
 		}
 	}
 }
@@ -51,25 +52,20 @@ void racer_mcs6532_advance_clock(racer_mcs6532 *riot) {
 
 // MARK: -
 // MARK: Port integration
-static int get_port_data(racer_mcs6532 riot, int index) {
+static int get_port_data(const racer_mcs6532 *riot, int index) {
 	// read pins driven by a connected peripheral
-	int input = riot.read_port[index](riot.peripherals[index]);
-	input &= ~riot.data_direction[index];
+	int input = riot->read_port[index](riot->peripherals[index]);
+	input &= ~riot->data_direction[index];
 	
 	// read data for pins driven by MCS6532
-	int output = riot.data[index];
-	output &= riot.data_direction[index];
+	int output = riot->data[index];
+	output &= riot->data_direction[index];
 	
 	return input | output;
 }
 
 static void edge_detect_bit7(racer_mcs6532 *riot, int data) {
-	const int last_data = riot->interrupt_control;
-	set_edge_detect_value(riot, data);
-	
-	// check whether bit 7 differs from last observed value
-	// and save new observed value
-	const bool is_active = (last_data ^ data) & 0x80;
+	const bool is_active = (riot->data_latch ^ data) & 0x80;
 	if (!is_active) {
 		// do nothing when there no active transition
 		return;
@@ -77,15 +73,15 @@ static void edge_detect_bit7(racer_mcs6532 *riot, int data) {
 	
 	// 0 - negative transition 1->0
 	// 1 - positive transition 0->1
-	const int polarity = get_edge_detect_polarity(riot);
+	const int polarity = (riot->interrupt_control & MCS6532_EDGE_DETECT_POLARITY) ? 0x1 : 0x0;
 	if (polarity == (data >> 7)) {
 		// set edge detect interrupt flag when transition polarity
 		// matches one in interrupt control
-		set_edge_detect_interrupt_flag(riot, true);
+		riot->interrupt |= MCS6532_EDGE_DETECT_INTERRUPT;
 		
 		// call interrupt if enabled in interrupt control
-		if (is_edge_detect_interrupt_enabled(riot)) {
-			riot->interrupt();
+		if (riot->interrupt_control & MCS6532_EDGE_DETECT_INTERRUPT) {
+			// TODO: call interrupt
 		}
 	}
 }
@@ -97,10 +93,11 @@ int racer_mcs6532_read(racer_mcs6532 *riot, int address) {
 			// MARK: output a
 		case 0x0: {
 			// perform edge detection for line 7
-			const int data = get_port_data(*riot, 0);
-			edge_detect_bit7(riot, data);
+			const int port_data = get_port_data(riot, 0);
+			edge_detect_bit7(riot, port_data);
 			
-			return data;
+			riot->data_latch = port_data;
+			return port_data;
 		}
 			
 			// MARK: data direction a
@@ -109,7 +106,7 @@ int racer_mcs6532_read(racer_mcs6532 *riot, int address) {
 			
 			// MARK: output b
 		case 0x2:
-			return get_port_data(*riot, 1);
+			return get_port_data(riot, 1);
 			
 			// MARK: data direction b
 		case 0x3:
@@ -117,23 +114,27 @@ int racer_mcs6532_read(racer_mcs6532 *riot, int address) {
 			
 			// MARK: timer
 		case 0x4:
-			// reading or writing timer sets timer interrupt
-			set_timer_interrupt_enabled(riot, address & (1<<2));
+			// reading or writing timer enables timer interrupt
+			set_flag(riot->interrupt_control, MCS6532_TIMER_INTERRUPT, address & 0x8);
 			
-			// reading or writing timer clears timer interrupt flag, unless
-			// reading happens on the same cycle as timer expires
-			if (riot->timer != 0) {
-				clear_timer_interrupt_flag(riot);
+			// reading or writing timer while it has not yet expired clears
+			// timer interrupt flag, unless reading happens on the same cycle
+			// as timer expires
+			if (riot->timer > 0) {
+				clear_flag(riot->interrupt, MCS6532_TIMER_INTERRUPT);
 			}
-			return get_timer(riot);
+			
+			return riot->timer < 0
+			? riot->timer + 0x100
+			: riot->timer >> riot->timer_scale;
 			
 			// MARK: interrupt flag
 		case 0x5: {
-			const int interrupts = riot->interrupt_flags;
+			const int interrupt = riot->interrupt;
 			
 			// reading interrupt flag clears edge detect interrupt flag
-			clear_edge_detect_interrupt_flag(riot);
-			return interrupts;
+			clear_flag(riot->interrupt, MCS6532_EDGE_DETECT_INTERRUPT);
+			return interrupt;
 		}
 			
 		default:
@@ -149,11 +150,12 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			riot->data[0] = data;
 			
 			// perform edge detection for line 7
-			const int data = get_port_data(*riot, 0);
-			edge_detect_bit7(riot, data);
+			const int port_data = get_port_data(riot, 0);
+			edge_detect_bit7(riot, port_data);
 			
-			// update peripheral on port A
-			riot->write_port[0](riot->peripherals[0], data);
+			// update peripheral on port A and latch port data
+			riot->write_port[0](riot->peripherals[0], port_data);
+			riot->data_latch = port_data;
 			break;
 		}
 			
@@ -162,11 +164,12 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			riot->data_direction[0] = data;
 			
 			// perform edge detection for line 7
-			const int data = get_port_data(*riot, 1);
-			edge_detect_bit7(riot, data);
+			const int port_data = get_port_data(riot, 0);
+			edge_detect_bit7(riot, port_data);
 			
-			// update peripheral on port A
-			riot->write_port[0](riot->peripherals[0], data);
+			// update peripheral on port A and latch port data
+			riot->write_port[0](riot->peripherals[0], port_data);
+			riot->data_latch = port_data;
 			break;
 		}
 			
@@ -175,8 +178,8 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			riot->data[1] = data;
 			
 			// update peripheral on port B
-			const int data = get_port_data(*riot, 1);
-			riot->write_port[1](riot->peripherals[0], data);
+			const int port_data = get_port_data(riot, 1);
+			riot->write_port[1](riot->peripherals[1], port_data);
 			break;
 		}
 			
@@ -185,21 +188,21 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			riot->data_direction[1] = data;
 			
 			// update peripheral on port B
-			const int data = get_port_data(*riot, 1);
-			riot->write_port[1](riot->peripherals[0], data);
+			const int port_data = get_port_data(riot, 1);
+			riot->write_port[1](riot->peripherals[1], port_data);
 			break;
 		}
 			
 		case 0x4: case 0x5: case 0x6: case 0x7:
 			// MARK: edge detect
-			set_edge_detect_polarity(riot, address & (1<<0));
-			set_edge_detect_interrupt_enabled(riot, address & (1<<1));
+			set_flag(riot->interrupt_control, MCS6532_EDGE_DETECT_POLARITY, address & 0x1);
+			set_flag(riot->interrupt_control, MCS6532_EDGE_DETECT_INTERRUPT, address & 0x2);
 			break;
 			
 			// MARK: timer x1
 		case 0x14: case 0x1c:
-			set_timer_interrupt_enabled(riot, address & (1<<4));
-			clear_timer_interrupt_flag(riot);
+			set_flag(riot->interrupt_control, MCS6532_TIMER_INTERRUPT, address & 0x8);
+			clear_flag(riot->interrupt, MCS6532_TIMER_INTERRUPT);
 			
 			riot->timer_scale = 0;
 			riot->timer = data << riot->timer_scale;
@@ -207,8 +210,8 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			
 			// MARK: timer x8
 		case 0x15: case 0x1d:
-			set_timer_interrupt_enabled(riot, address & (1<<4));
-			clear_timer_interrupt_flag(riot);
+			set_flag(riot->interrupt_control, MCS6532_TIMER_INTERRUPT, address & 0x8);
+			clear_flag(riot->interrupt, MCS6532_TIMER_INTERRUPT);
 			
 			riot->timer_scale = 3;
 			riot->timer = data << riot->timer_scale;
@@ -216,8 +219,8 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			
 			// MARK: timer x64
 		case 0x16: case 0x1e:
-			set_timer_interrupt_enabled(riot, address & (1<<4));
-			clear_timer_interrupt_flag(riot);
+			set_flag(riot->interrupt_control, MCS6532_TIMER_INTERRUPT, address & 0x8);
+			clear_flag(riot->interrupt, MCS6532_TIMER_INTERRUPT);
 			
 			riot->timer_scale = 6;
 			riot->timer = data << riot->timer_scale;
@@ -225,8 +228,8 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			
 			// MARK: timer x1024
 		case 0x17: case 0x1f:
-			set_timer_interrupt_enabled(riot, address & (1<<4));
-			clear_timer_interrupt_flag(riot);
+			set_flag(riot->interrupt_control, MCS6532_TIMER_INTERRUPT, address & 0x8);
+			clear_flag(riot->interrupt, MCS6532_TIMER_INTERRUPT);
 			
 			riot->timer_scale = 10;
 			riot->timer = data << riot->timer_scale;
