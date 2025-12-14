@@ -105,8 +105,21 @@ static int read_y_indexed_address(racer_mcs6507 *cpu, int address, int *cycles) 
 /// Reads address, using indirect addressing mode, at the specified address in memory.
 static int read_indirect_address(racer_mcs6507 *cpu, int address) {
 	address = read_address(cpu, address);
-	address = read_address(cpu, address);
-	return address;
+	const int low = cpu->read_bus(cpu->bus, address);
+	
+	// NOTE: MCS6507 has a bug in indirect addressing mode; this mode is used
+	// only in JMP instruction;
+	// when resolved jump address is at the end of a memory page, high byte of
+	// the effective jump address will not be read from (low byte address + 1),
+	// but from the beginning of that memory page instead;
+	// for instance, when jump address is at address $4aff, MCS6507 will read
+	// effective jump address:
+	//	- low byte from $4aff
+	//	- high byte from $4a00 instead of ($4aff + 1) = $4b00
+	address = (address & 0xff00) | ((address + 0x1) & 0xff);
+	const int high = cpu->read_bus(cpu->bus, address);
+	
+	return address(low, high);
 }
 
 /// Reads address, using x-indexed indirect addressing mode, at the specified address in memory.
