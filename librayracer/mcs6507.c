@@ -625,10 +625,11 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// MARK: lsr
 		case 0x46: case 0x4e: case 0x56: case 0x5e: {
 			int operand = cpu->read_bus(cpu->bus, operand_address);
+			const bool carry = operand & 0x1;
 			operand >>= 1;
 			
 			cpu->write_bus(cpu->bus, operand_address, operand & 0xff);
-			set_status(cpu, MCS6507_STATUS_CARRY, operand & 0x100);
+			set_status(cpu, MCS6507_STATUS_CARRY, carry);
 			set_status(cpu, MCS6507_STATUS_ZERO, operand == 0);
 			set_status(cpu, MCS6507_STATUS_NEGATIVE, operand & 0x80);
 			break;
