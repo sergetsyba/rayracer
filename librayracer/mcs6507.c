@@ -435,10 +435,10 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 		case 0x24: case 0x2c: {
 			int operand = cpu->read_bus(cpu->bus, operand_address);
 			set_status(cpu, MCS6507_STATUS_OVERFLOW, operand & 0x40);
+			set_status(cpu, MCS6507_STATUS_NEGATIVE, operand & 0x80);
 			
 			operand &= cpu->accumulator;
 			set_status(cpu, MCS6507_STATUS_ZERO, operand == 0);
-			set_status(cpu, MCS6507_STATUS_NEGATIVE, operand & 0x80);
 			break;
 		}
 			
