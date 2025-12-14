@@ -618,8 +618,8 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			
 			cpu->write_bus(cpu->bus, operand_address, result);
 			set_status(cpu, MCS6507_STATUS_CARRY, operand & 0x1);
-			set_status(cpu, MCS6507_STATUS_ZERO, operand == 0);
-			set_status(cpu, MCS6507_STATUS_NEGATIVE, operand & 0x80);
+			set_status(cpu, MCS6507_STATUS_ZERO, result == 0);
+			set_status(cpu, MCS6507_STATUS_NEGATIVE, result & 0x80);
 			break;
 		}
 			
@@ -650,6 +650,8 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// MARK: pla
 		case 0x68:
 			cpu->accumulator = pull_stack(cpu);
+			set_status(cpu, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
+			set_status(cpu, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
 			break;
 			
 			// MARK: plp
@@ -753,9 +755,9 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 				}
 			}
 			
-			const int overflow = (cpu->accumulator ^ result) & (operand ^ result);
+			const int overflow = (cpu->accumulator ^ operand) & (cpu->accumulator ^ result);
 			
-			cpu->accumulator = result;
+			cpu->accumulator = result & 0xff;
 			set_status(cpu, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
 			set_status(cpu, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
 			set_status(cpu, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
