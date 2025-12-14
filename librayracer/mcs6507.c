@@ -688,7 +688,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			operand |= (cpu->status & MCS6507_STATUS_CARRY);
 			
 			cpu->write_bus(cpu->bus, operand_address, operand & 0xff);
-			set_status(cpu, MCS6507_STATUS_CARRY, operand & 0x80);
+			set_status(cpu, MCS6507_STATUS_CARRY, operand & 0x100);
 			set_status(cpu, MCS6507_STATUS_ZERO, operand == 0);
 			set_status(cpu, MCS6507_STATUS_NEGATIVE, operand & 0x80);
 			break;
