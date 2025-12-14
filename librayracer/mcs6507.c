@@ -328,14 +328,14 @@ static void decode_operation(racer_mcs6507 *cpu) {
 			
 			// MARK: indirect x-indexed addressing
 		case 0x61: case 0x21: case 0xc1: case 0x41: case 0xa1: case 0x01: case 0xe1: case 0x81: {
-			address = read_x_indexed_address(cpu, address, &cycles);
+			address = read_indirect_x_indexed_address(cpu, address);
 			cpu->operation = (decoded){opcode, address, 6, 2};
 			break;
 		}
 			
 			// MARK: indirect y-indexed addressing
 		case 0x11: case 0x31: case 0x51: case 0x71: case 0x91: case 0xb1: case 0xd1: case 0xf1: {
-			address = read_y_indexed_address(cpu, address, &cycles);
+			address = read_indirect_y_indexed_address(cpu, address, &cycles);
 			cpu->operation = (decoded){opcode, address, 5 + cycles, 2};
 			break;
 		}
