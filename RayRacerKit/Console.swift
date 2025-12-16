@@ -7,95 +7,26 @@
 
 import Foundation
 
-@_implementationOnly
-import librayracer
-
 public class Atari2600 {
-	//	private var cpu: MOS6507!
-	//	private(set) public var riot: MOS6532!
+	private(set) public var cpu: MOS6507!
+	private(set) public var riot: MOS6532!
 	private(set) public var tia: TIA!
 	
-	private var console: UnsafeMutablePointer<racer_atari2600>!
-	public var output: TIA.GraphicsOutput?
-	
-	public var colorClock: Int {
-		let tia = self.console.pointee
-			.tia.pointee
-		
-		return Int(tia.color_clock)
-	}
-	
-	public var cpu: MOS6507 {
-		let cpu = self.console.pointee.mpu.pointee
-		
-		return MOS6507(
-			accumulator: Int(cpu.accumulator),
-			x: Int(cpu.x),
-			y: Int(cpu.y),
-			status: MOS6507.Status(rawValue: Int(cpu.status)),
-			stackPointer: Int(cpu.stack_pointer),
-			programCounter: Int(cpu.program_counter),
-			isReady: cpu.is_ready,
-			bus: self,
-			decoded: (
-				Int(cpu.operation.code),
-				Int(cpu.operation.address),
-				Int(cpu.operation.duration),
-				Int(cpu.operation.length)
-			),
-			elapsedCycles: Int(cpu.operation_clock))
-	}
-	
-	public var riot: MOS6532 {
-		let riot = self.console.pointee.riot.pointee
-		let memory = withUnsafePointer(to: riot.memory) {
-			return Data(bytes: $0, count: 128)
-		}
-		
-		return MOS6532(
-			peripherals: (a: self, b: self),
-			memory: memory,
-			data: (Int(riot.data.0), Int(riot.data.1)),
-			dataDirection: (Int(riot.data_direction.0), Int(riot.data_direction.1)),
-			timer: (Int(riot.timer), Int(1<<riot.timer_scale)))
-	}
-	
-	public var cartridge: Data? = nil {
-		didSet {
-			self.cartridge?.withUnsafeMutableBytes() {
-				self.console.pointee
-					.cartridge = $0.baseAddress?
-					.assumingMemoryBound(to: UInt8.self)
-			}
-		}
-	}
+	public var cartridge: Data? = nil
 	public var controllers: (Controller, Controller) = (.none, .none)
 	
 	private var state: State = .suspended(.normal)
 	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
 	
 	public init(switches: Atari2600.Switches = [.color]) {
-		//		self.cpu = MOS6507(bus: self)
+		self.cpu = MOS6507(bus: self)
 		
-		//		self.riot = MOS6532()
-		//		self.riot.peripherals.a = self
-		//		self.riot.peripherals.b = switches
+		self.riot = MOS6532()
+		self.riot.peripherals.a = self
+		self.riot.peripherals.b = switches
 		
 		self.tia = TIA()
 		self.tia.peripheral = self
-		
-		self.console = racer_atari2600_create()
-		self.console.pointee
-			.tia.pointee
-			.output = Unmanaged.passUnretained(self)
-			.toOpaque()
-		self.console.pointee
-			.tia.pointee
-			.sync_video_output = syncOutput(output:sync:)
-		self.console.pointee
-			.tia.pointee
-			.write_video_output = writeOutput(output:signal:)
-		
 	}
 	
 	public var switches: Switches {
@@ -105,38 +36,10 @@ public class Atari2600 {
 	
 	/// Resets internal state of all console components.
 	public func reset() {
-		racer_atari2600_reset(&self.console.pointee)
-		
-		//		self.cpu.reset()
+		self.cpu.reset()
 		self.riot.reset()
 		self.tia.reset()
 	}
-}
-
-func syncOutput(output: UnsafeRawPointer?, sync: Int32) {
-	guard let output = output else {
-		return
-	}
-	
-	let console = Unmanaged<Atari2600>
-		.fromOpaque(output)
-		.takeUnretainedValue()
-	
-	console.output?
-		.sync(TIA.GraphicsSync(rawValue: Int(sync)))
-}
-
-func writeOutput(output: UnsafeRawPointer?, signal: Int32) {
-	guard let output = output else {
-		return
-	}
-	
-	let console = Unmanaged<Atari2600>
-		.fromOpaque(output)
-		.takeUnretainedValue()
-	
-	console.output?
-		.write(color: Int(signal & 0xff));
 }
 
 // MARK: - Suspend/resume functionality
@@ -184,8 +87,8 @@ extension Atari2600 {
 		// do not resume emulation when current suspension priority is higher
 		guard case .suspended(let currentPriority) = self.state,
 			  currentPriority <= priority else {
-			return
-		}
+				  return
+			  }
 		
 		if let (condition, callback) = suspension {
 			self.suspension = (condition, callback, priority)
@@ -211,48 +114,27 @@ extension Atari2600 {
 	
 	/// Advances TIA clock by 3 units and RIOT and CPU clock by 1, unless CPU is halted by the TIA.
 	private func advanceCycle() {
-		racer_atari2600_advance_clock(self.console)
+		// NOTE: even when color clock resets during any of the three TIA clock
+		// cycles and WSYNC switches off, CPU clock cycle should not be
+		// executed, since in hardware these happen simulatenously;
+		// so the check for CPU being ready or halted has to happen first
+		let cpuReady = !self.tia.awaitsHorizontalSync
+		
+		self.tia.advanceClock()
+		self.tia.advanceClock()
+		self.tia.advanceClock()
+		
+		self.riot.advanceClock()
+		if cpuReady {
+			self.cpu.advanceClock()
+		}
 	}
-	
-	//	private func advanceCycle() {
-	//		// NOTE: even when color clock resets during any of the three TIA clock
-	//		// cycles and WSYNC switches off, CPU clock cycle should not be
-	//		// executed, since in hardware these happen simulatenously;
-	//		// so the check for CPU being ready or halted has to happen first
-	//		//		let cpuReady = !self.tia.awaitsHorizontalSync
-	//		//
-	//		//		self.tia.advanceClock()
-	//		//		self.tia.advanceClock()
-	//		//		self.tia.advanceClock()
-	//
-	//		let flags = Int(self.tia0.pointee.flags)
-	//		let wait = Int(TIA_WAIT_ON_HORIZONTAL_SYNC.rawValue)
-	//		let cpuReady = flags & wait == 0;
-	//
-	//		rr_tia_advance_clock(self.tia0)
-	//		self.output = Int(self.tia0.pointee.output)
-	//
-	//		rr_tia_advance_clock(self.tia0)
-	//		self.output = Int(self.tia0.pointee.output)
-	//
-	//		rr_tia_advance_clock(self.tia0)
-	//		self.output = Int(self.tia0.pointee.output)
-	//
-	//		self.riot.advanceClock()
-	//		if cpuReady {
-	//			self.cpu.advanceClock()
-	//		}
-	//	}
 }
 
 
 // MARK: -
 // MARK: Bus routing
 extension Atari2600: Addressable {
-	func read_bus(_ address: Int32) -> Int32 {
-		return Int32(read(at: Int(address)))
-	}
-	
 	public func read(at address: Int) -> Int {
 		if address & 0xf000 == 0xf000 {
 			let data = self.cartridge?[address & 0x0fff] ?? 0xea

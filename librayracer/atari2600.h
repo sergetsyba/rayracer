@@ -14,12 +14,21 @@
 #include "mcs6532.h"
 #include "tia.h"
 
+typedef enum {
+	ATARI2600_SWITCH_RESET = 1<<0,
+	ATARI2600_SWITCH_SELECT = 1<<1,
+	ATARI2600_SWITCH_COLOR = 1<<3,
+	ATARI2600_SWITCH_DIFFICULTY_0 = 1<<6,
+	ATARI2600_SWITCH_DIFFICULTY_1 = 1<<7
+} racer_atari2600_switch;
+
 typedef struct {
 	racer_mcs6507 *mpu;
 	racer_mcs6532 *riot;
 	racer_tia *tia;
 	
-	unsigned char *program;
+	uint8_t switches;
+	uint8_t *program;
 } racer_atari2600;
 
 racer_atari2600 *racer_atari2600_create(void);

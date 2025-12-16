@@ -12,8 +12,10 @@ extension UserDefaults {
 		get {
 			// by default, TV type is set to `color` and both difficulties
 			// to `advanced`
-			let value = self.object(forKey: .consoleSwitches) as? Int ?? 0xc8
-			return Switches(rawValue: value)
+			guard let rawValue = self.object(forKey: .consoleSwitches) as? UInt32 else {
+				return [.color, .difficulty0, .difficulty1]
+			}
+			return Switches(rawValue: rawValue)
 		}
 		set {
 			self.setValue(newValue.rawValue, forKey: .consoleSwitches)

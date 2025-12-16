@@ -14,7 +14,6 @@ class Atari2600 {
 	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
 	private var state: State = .suspended(.normal)
 	
-	var switches: Switches = []
 	var controllers: (Controller, Controller) = (.none, .none)
 	var output: VideoOutput?
 	
@@ -146,20 +145,30 @@ extension Atari2600 {
 
 
 // MARK: -
-// MARK: Input
+// MARK: Console switches
 struct Switches: OptionSet {
-	static let reset = Switches(rawValue: 1 << 0)
-	static let select = Switches(rawValue: 1 << 1)
-	static let color = Switches(rawValue: 1 << 3)
-	static let difficulty0 = Switches(rawValue: 1 << 6)
-	static let difficulty1 = Switches(rawValue: 1 << 7)
+	static let reset = Switches(rawValue: ATARI2600_SWITCH_RESET.rawValue)
+	static let select = Switches(rawValue: ATARI2600_SWITCH_SELECT.rawValue)
+	static let color = Switches(rawValue: ATARI2600_SWITCH_COLOR.rawValue)
+	static let difficulty0 = Switches(rawValue: ATARI2600_SWITCH_DIFFICULTY_0.rawValue)
+	static let difficulty1 = Switches(rawValue: ATARI2600_SWITCH_DIFFICULTY_0.rawValue)
 	
-	var rawValue: Int
-	init(rawValue: Int) {
-		self.rawValue = rawValue | 0x34
+	var rawValue: UInt32
+	init(rawValue: UInt32) {
+		self.rawValue = rawValue
 	}
 }
 
+extension Atari2600 {
+	var switches: Switches {
+		get { Switches(rawValue: UInt32(self.ref.pointee.switches)) }
+		set { self.ref.pointee.switches = UInt8(newValue.rawValue) }
+	}
+}
+
+
+// MARK: -
+// MARK: Controllerss
 protocol Controller {
 	var output: Int { get }
 }

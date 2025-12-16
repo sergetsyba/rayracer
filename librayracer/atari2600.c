@@ -38,22 +38,36 @@ static void write_bus(void *bus, int address, int data) {
 	}
 }
 
-static int read_port_a(void *peripheral) {
+
+// MARK: -
+// MARK: MCS6532 peripherals
+static uint8_t read_controllers(const void *peripheral) {
 	return 0;
 }
 
-static int read_port_b(void *peripheral) {
-	return 0;
-}
-
-static void write_port_a(void *peripheral, int data) {
+static void write_controllers(void *peripheral, uint8_t data) {
 	
 }
 
-static void write_port_b(void *peripheral, int data) {
+static uint8_t read_switches(const void *peripheral) {
+	const racer_atari2600 *console = (racer_atari2600 *)peripheral;
 	
+	// when switches for `select` and `reset` are on, corresponding
+	// bits are 0
+	return console->switches ^ 0x3;
 }
 
+static void write_switches(void *peripheral, uint8_t data) {
+	racer_atari2600 *console = (racer_atari2600 *)peripheral;
+	
+	// switches are supposed to be read-only, but can be written to
+	// nonetheless; writing sets the 3 unused bits
+	console->switches &= ~0x34;
+	console->switches |= data & 0x34;
+}
+
+
+// MARK: -
 racer_atari2600 *racer_atari2600_create(void) {
 	racer_atari2600 *console = (racer_atari2600 *)malloc(sizeof(racer_atari2600));
 	
@@ -65,18 +79,17 @@ racer_atari2600 *racer_atari2600_create(void) {
 	
 	// create and wire RIOT
 	console->riot = (racer_mcs6532 *)malloc(sizeof(racer_mcs6532));
-	
 	memcpy(console->riot->peripherals, (void *[]){
 		console,
 		console
 	}, sizeof(console->riot->peripherals));
-	memcpy(console->riot->read_port, (int (*[])(void *)){
-		read_port_a,
-		read_port_b
+	memcpy(console->riot->read_port, (uint8_t (*[])(const void *)){
+		read_controllers,
+		read_switches
 	}, sizeof(console->riot->read_port));
-	memcpy(console->riot->write_port, (void (*[])(void *, int)){
-		write_port_a,
-		write_port_b
+	memcpy(console->riot->write_port, (void (*[])(void *, uint8_t)){
+		write_controllers,
+		write_switches
 	}, sizeof(console->riot->write_port));
 	
 	// create and wire TIA
