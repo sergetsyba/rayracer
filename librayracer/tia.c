@@ -10,21 +10,13 @@
 
 #include "tia.h"
 #include "object.h"
-
-// MARK: Convenience functionality
-
-/// Sets the specified output control flag flag to the specified value.
-#define set_output_control(tia, flag, on) \
-	tia->output_control = on \
-		? (tia->output_control | (flag)) \
-		: (tia->output_control & ~(flag))
-
+#include "flags.h"
 
 // MARK: Initialization
 static int get_object_index(int state);
-static int object_indexes[256];
+static int object_indexes[0x100];
 static int get_collisions(int state);
-static int collistions[256];
+static int collisions[0x200];
 
 static int reflect(int graphics) {
 	int reflected = 0;
@@ -50,8 +42,8 @@ void racer_tia_init(void) {
 	}
 	
 	// initialize collisions look up
-	for (int state = 0x00; state < 0x40; ++state) {
-		collistions[state] = get_collisions(state);
+	for (int state = 0x00; state < 0x1ff; ++state) {
+		collisions[state] = get_collisions(state);
 	}
 }
 
@@ -136,7 +128,7 @@ static int get_draw_state(racer_tia tia) {
 void racer_tia_advance_clock(racer_tia *tia) {
 	// set horizontal sync to output control
 	const bool horizontal_sync = tia->color_clock < 68;
-	set_output_control(tia, TIA_OUTPUT_HORIZONTAL_SYNC << 8, horizontal_sync);
+	set_flag(tia->output_control, TIA_OUTPUT_HORIZONTAL_SYNC << 8, horizontal_sync);
 	
 	// copy video output signal from output control
 	int signal = tia->output_control;
@@ -152,10 +144,10 @@ void racer_tia_advance_clock(racer_tia *tia) {
 		// get state of all graphics objects
 		const int state = get_draw_state(*tia);
 		// update graphics objects collisions
-		tia->collisions |= collistions[state];
+		tia->collisions |= collisions[state];
 		
 		// set output color unless TIA ouputs blank
-		if (!(tia->output_control & TIA_OUTPUT_BLANK)) {
+		if (!is_flag_set(tia->output_control, TIA_OUTPUT_BLANK)) {
 			const int index = object_indexes[state];
 			signal |= tia->colors[index];
 		}
@@ -256,7 +248,7 @@ int racer_tia_read(racer_tia tia, int address) {
 void racer_tia_write(racer_tia *tia, int address, int data) {
 	switch (address) {
 		case 0x00:	// MARK: vsync
-			set_output_control(tia, TIA_OUTPUT_VERTICAL_SYNC << 8, data & 0x2);
+			set_flag(tia->output_control, TIA_OUTPUT_VERTICAL_SYNC << 8, data & 0x2);
 			if (data & 0x2) {
 				// notify video output vertical sync started
 				tia->sync_video_output(tia->output, TIA_OUTPUT_VERTICAL_SYNC);
@@ -264,7 +256,7 @@ void racer_tia_write(racer_tia *tia, int address, int data) {
 			break;
 			
 		case 0x01:	// MARK: vblank
-			set_output_control(tia, TIA_OUTPUT_BLANK, data & 0x2);
+			set_flag(tia->output_control, TIA_OUTPUT_BLANK, data & 0x2);
 			break;
 			
 		case 0x02:	// MARK: wsync

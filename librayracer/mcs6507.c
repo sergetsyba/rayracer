@@ -195,49 +195,49 @@ static void decode_operation(racer_mcs6507 *cpu) {
 			
 			// MARK: relative addressing
 		case 0x10: {
-			const bool condition = !(cpu->status & MCS6507_STATUS_NEGATIVE);
+			const bool condition = !is_flag_set(cpu->status, MCS6507_STATUS_NEGATIVE);
 			address = read_relative_address(cpu, address, condition, &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0x30: {
-			const bool condition = cpu->status & MCS6507_STATUS_NEGATIVE;
+			const bool condition = is_flag_set(cpu->status, MCS6507_STATUS_NEGATIVE);
 			address = read_relative_address(cpu, address, condition, &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0x50: {
-			const bool condition = !(cpu->status & MCS6507_STATUS_OVERFLOW);
+			const bool condition = !is_flag_set(cpu->status, MCS6507_STATUS_OVERFLOW);
 			address = read_relative_address(cpu, address, condition, &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0x70: {
-			const bool condition = cpu->status & MCS6507_STATUS_OVERFLOW;
+			const bool condition = is_flag_set(cpu->status, MCS6507_STATUS_OVERFLOW);
 			address = read_relative_address(cpu, address, condition, &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0x90: {
-			const bool condition = !(cpu->status & MCS6507_STATUS_CARRY);
+			const bool condition = !is_flag_set(cpu->status, MCS6507_STATUS_CARRY);
 			address = read_relative_address(cpu, address, condition, &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0xb0: {
-			const bool condition = cpu->status & MCS6507_STATUS_CARRY;
+			const bool condition = is_flag_set(cpu->status, MCS6507_STATUS_CARRY);
 			address = read_relative_address(cpu, address, condition, &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0xd0: {
-			const bool condition = !(cpu->status & MCS6507_STATUS_ZERO);
+			const bool condition = !is_flag_set(cpu->status, MCS6507_STATUS_ZERO);
 			address = read_relative_address(cpu, address, condition, &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
 		}
 		case 0xf0: {
-			const bool condition = cpu->status & MCS6507_STATUS_ZERO;
+			const bool condition = is_flag_set(cpu->status, MCS6507_STATUS_ZERO);
 			address = read_relative_address(cpu, address, condition, &cycles);
 			cpu->operation = (decoded){opcode, address, 2 + cycles, 2};
 			break;
@@ -363,10 +363,10 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// MARK: adc
 		case 0x61: case 0x65: case 0x69: case 0x6d: case 0x71: case 0x75: case 0x7d: case 0x79: {
 			const int operand = cpu->read_bus(cpu->bus, operand_address);
-			const bool carry = cpu->status & MCS6507_STATUS_CARRY;
+			const bool carry = is_flag_set(cpu->status, MCS6507_STATUS_CARRY);
 			
 			int result;
-			if (cpu->status & MCS6507_STATUS_DECIMAL_MODE) {
+			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
 				int high = (cpu->accumulator / 0x10) + (operand / 0x10);
 				int low = (cpu->accumulator % 0x10) + (operand % 0x10) + carry;
 				
@@ -378,7 +378,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 				result = high * 0x10 + low;
 				if (result > 0x99) {
 					result -= 0xa0;
-					cpu->status |= MCS6507_STATUS_CARRY;
+					add_flag(cpu->status, MCS6507_STATUS_CARRY);
 				} else {
 					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
 				}
@@ -672,7 +672,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 		case 0x2a: {
 			const bool carry = cpu->accumulator & 0x80;
 			
-			cpu->accumulator = ((cpu->accumulator << 1) | (cpu->status & MCS6507_STATUS_CARRY)) & 0xff;
+			cpu->accumulator = ((cpu->accumulator << 1) | is_flag_set(cpu->status, MCS6507_STATUS_CARRY)) & 0xff;
 			set_flag(cpu->status, MCS6507_STATUS_CARRY, carry);
 			set_flag(cpu->status, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
 			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
@@ -682,7 +682,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// MARK: rol
 		case 0x26: case 0x2e: case 0x36: case 0x3e: {
 			const int operand = cpu->read_bus(cpu->bus, operand_address);
-			const int result = ((operand << 1) | (cpu->status & MCS6507_STATUS_CARRY)) & 0xff;
+			const int result = ((operand << 1) | is_flag_set(cpu->status, MCS6507_STATUS_CARRY)) & 0xff;
 			
 			cpu->write_bus(cpu->bus, operand_address, result);
 			set_flag(cpu->status, MCS6507_STATUS_CARRY, operand & 0x80);
@@ -694,7 +694,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// MARK: ror (accumulator)
 		case 0x6a: {
 			const bool carry = cpu->accumulator & 0x1;
-			cpu->accumulator = (cpu->accumulator >> 1) | ((cpu->status & MCS6507_STATUS_CARRY) << 7);
+			cpu->accumulator = (cpu->accumulator >> 1) | (is_flag_set(cpu->status, MCS6507_STATUS_CARRY) << 7);
 			
 			set_flag(cpu->status, MCS6507_STATUS_CARRY, carry);
 			set_flag(cpu->status, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
@@ -705,7 +705,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// MARK: ror
 		case 0x66: case 0x6e: case 0x76: case 0x7e: {
 			const int operand = cpu->read_bus(cpu->bus, operand_address);
-			const int result = (operand >> 1) | ((cpu->status & MCS6507_STATUS_CARRY) << 7);
+			const int result = (operand >> 1) | (is_flag_set(cpu->status, MCS6507_STATUS_CARRY) << 7);
 			
 			cpu->write_bus(cpu->bus, operand_address, result);
 			set_flag(cpu->status, MCS6507_STATUS_CARRY, operand & 0x1);
@@ -735,10 +735,10 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// MARK: sbc
 		case 0xe1: case 0xe5: case 0xe9: case 0xed: case 0xf1: case 0xf5: case 0xf9: case 0xfd: {
 			const int operand = cpu->read_bus(cpu->bus, operand_address);
-			const bool borrow = !(cpu->status & MCS6507_STATUS_CARRY);
+			const bool borrow = !is_flag_set(cpu->status, MCS6507_STATUS_CARRY);
 			
 			int result;
-			if (cpu->status & MCS6507_STATUS_DECIMAL_MODE) {
+			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
 				int high = (cpu->accumulator / 0x10) - (operand / 0x10);
 				int low = (cpu->accumulator % 0x10) - (operand % 0x10) - borrow;
 				
@@ -752,7 +752,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 					result += 0xa0;
 					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
 				} else {
-					cpu->status |= MCS6507_STATUS_CARRY;
+					add_flag(cpu->status, MCS6507_STATUS_CARRY);
 				}
 			} else {
 				result = cpu->accumulator - operand - borrow;
@@ -760,7 +760,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 					result += 0x100;
 					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
 				} else {
-					cpu->status |= MCS6507_STATUS_CARRY;
+					add_flag(cpu->status, MCS6507_STATUS_CARRY);
 				}
 			}
 			
@@ -851,7 +851,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 
 void racer_mcs6507_reset(racer_mcs6507 *cpu) {
 	// reset internal state
-	cpu->status |= MCS6507_STATUS_INTERRUPT_DISABLE;
+	add_flag(cpu->status, MCS6507_STATUS_INTERRUPT_DISABLE);
 	cpu->stack_pointer = 0xfd;
 	cpu->program_counter = read_address(cpu, 0xfffc);
 	

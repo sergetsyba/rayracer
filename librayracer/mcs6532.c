@@ -41,9 +41,9 @@ void racer_mcs6532_advance_clock(racer_mcs6532 *riot) {
 	
 	if (riot->timer == -1) {
 		// set timer interrupt flag once timer expires
-		riot->interrupt |= MCS6532_TIMER_INTERRUPT;
-		
-		if (riot->interrupt_control & MCS6532_TIMER_INTERRUPT) {
+		add_flag(riot->interrupt, MCS6532_TIMER_INTERRUPT);
+		// call interrupt if enabled in interrupt control
+		if (is_flag_set(riot->interrupt_control, MCS6532_TIMER_INTERRUPT)) {
 			// TODO: call interrupt
 		}
 	}
@@ -73,14 +73,13 @@ static void edge_detect_bit7(racer_mcs6532 *riot, int data) {
 	
 	// 0 - negative transition 1->0
 	// 1 - positive transition 0->1
-	const int polarity = (riot->interrupt_control & MCS6532_EDGE_DETECT_POLARITY) ? 0x1 : 0x0;
+	const int polarity = is_flag_set(riot->interrupt_control, MCS6532_EDGE_DETECT_POLARITY) ? 0x1 : 0x0;
 	if (polarity == (data >> 7)) {
 		// set edge detect interrupt flag when transition polarity
 		// matches one in interrupt control
-		riot->interrupt |= MCS6532_EDGE_DETECT_INTERRUPT;
-		
+		add_flag(riot->interrupt, MCS6532_EDGE_DETECT_INTERRUPT);
 		// call interrupt if enabled in interrupt control
-		if (riot->interrupt_control & MCS6532_EDGE_DETECT_INTERRUPT) {
+		if (is_flag_set(riot->interrupt_control, MCS6532_EDGE_DETECT_INTERRUPT)) {
 			// TODO: call interrupt
 		}
 	}

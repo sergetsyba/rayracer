@@ -8,8 +8,10 @@
 #ifndef mcs6532_h
 #define mcs6532_h
 
+#include <stdint.h>
+
 typedef struct {
-	char memory[128];
+	unsigned char memory[128];
 	
 	int data[2];
 	int data_direction[2];
