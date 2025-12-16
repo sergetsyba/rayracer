@@ -7,13 +7,12 @@
 
 import Cocoa
 import MetalKit
-import RayRacerKit
 
 class ScreenViewController: NSViewController {
 	public let frameCounter = FrameCounter()
 	
 	private let console: Atari2600
-	private let joystick = Joystick()
+	private var joystick = Joystick()
 	
 	private var screenData: Array<UInt8>
 	private var screenIndex: Int
@@ -37,7 +36,7 @@ class ScreenViewController: NSViewController {
 		self.console = console
 		self.console.controllers.0 = self.joystick
 		
-		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count * 10)
+		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count * 50)
 		self.screenIndex = 0
 		
 		let device = commandQueue.device
@@ -177,8 +176,8 @@ extension ScreenViewController: MTKViewDelegate {
 
 
 // MARK: -
-extension ScreenViewController: TIA.GraphicsOutput {
-	func sync(_ sync: TIA.GraphicsSync) {
+extension ScreenViewController: VideoOutput {
+	func sync(_ sync: VideoSync) {
 		if sync.contains(.vertical) {
 			// suspend emulation and notify renderer console has finished
 			// producing field data
@@ -205,10 +204,6 @@ extension ScreenViewController: TIA.GraphicsOutput {
 	}
 	
 	func write(color: Int) {
-		if self.screenIndex >= self.screenData.count {
-			self.sync(.vertical)
-		}
-		
 		self.screenData[self.screenIndex] = UInt8(color)
 		self.screenIndex += 1
 	}

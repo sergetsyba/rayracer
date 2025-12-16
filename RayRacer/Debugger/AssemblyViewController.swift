@@ -6,7 +6,7 @@
 //
 
 import Cocoa
-import RayRacerKit
+import librayracer
 
 typealias Program = [(Int, MOS6507Assembly.Instruction)]
 typealias Breakpoint = Int
@@ -26,7 +26,7 @@ class AssemblyViewController: NSViewController {
 	@Published
 	private(set) var breakpoints: [Int] = [] {
 		didSet {
-			if let identifier = self.console.gameIdentifier {
+			if let identifier = self.console.programId {
 				UserDefaults.standard
 					.setBreakpoints(self.breakpoints, forGameIdentifier: identifier)
 			}
@@ -85,10 +85,10 @@ private extension AssemblyViewController {
 	}
 	
 	func updateView() {
-		if let data = self.console.cartridge {
+		if let data = self.console.program {
 			self.program = MOS6507Assembly.disassemble(data)
 			self.breakpoints = UserDefaults.standard
-				.breakpoints(forGameIdentifier: self.console.gameIdentifier!)
+				.breakpoints(forGameIdentifier: self.console.programId!)
 			
 			// switch to program view
 			self.view.setContentView(self.programView, layout: .fill)
@@ -108,8 +108,9 @@ private extension AssemblyViewController {
 	}
 	
 	func updateProgramAddressTableRow() {
-		if let row = self.program?
-			.firstIndex(where: { $0.0 == self.console.cpu.programCounter }) {
+		if let cpu = self.console.ref.pointee.mpu,
+		   let row = self.program?
+			.firstIndex(where: { $0.0 == Int(cpu.pointee.program_counter) }) {
 			
 			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
 			self.tableView.ensureRowVisible(row)
@@ -224,13 +225,14 @@ private extension AssemblyViewController {
 			// for instructions with indexed addressing, return formatted
 			// operand address target only when program is currently at
 			// that instruction
-			if self.program?[row].0 == self.console.cpu.programCounter,
-			   let address = self.console.cpu.operandAddress {
-				let address = self.unmirror(address)
-				return self.formatTarget(at: address)
-			} else {
+			let cpu = self.console.ref.pointee.mpu.pointee
+			guard let program = self.program,
+				  program[row].0 == Int(cpu.program_counter) else {
 				return nil
 			}
+			
+			let address = self.unmirror(Int(cpu.operation.address))
+			return self.formatTarget(at: address)
 		}
 	}
 	

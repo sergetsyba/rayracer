@@ -6,7 +6,6 @@
 //
 
 import Cocoa
-import RayRacerKit
 import simd
 
 class DebugColorTableCellView: NSTableCellView {

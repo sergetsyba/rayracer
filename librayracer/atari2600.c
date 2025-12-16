@@ -13,26 +13,22 @@
 
 static int read_bus(void *bus, int address) {
 	racer_atari2600 *console = (racer_atari2600 *)bus;
-	
 	if (address & (1<<12)) {
-		return console->cartridge[address & 0x0fff];
+		return console->program[address & 0x0fff];
 	} else if ((address & 0x280) == 0x280) {
 		return racer_mcs6532_read(console->riot, address & 0x1f);
 	} else if ((address & 0x80) == 0x80) {
 		return console->riot->memory[address & 0x7f];
 	} else {
-		racer_tia_read(*console->tia, address & 0x3f);
+		return racer_tia_read(*console->tia, address & 0x3f);
 	}
-	
-	printf("read_bus: unknown address $%04x\n", address);
-	return 0;
 }
 
 static void write_bus(void *bus, int address, int data) {
 	racer_atari2600 *console = (racer_atari2600 *)bus;
 	
 	if ((address & 0xf000) == 0xf000) {
-		printf("write_bus: ignoring write at rom address $%04x.", address);
+		printf("write_bus: ignoring write at rom address $%04x.\n", address);
 	} else if ((address & 0x280) == 0x280) {
 		racer_mcs6532_write(console->riot, address & 0x1f, data);
 	} else if ((address & 0x80) == 0x80) {
@@ -58,10 +54,6 @@ static void write_port_b(void *peripheral, int data) {
 	
 }
 
-static void no_operation(void) {
-	
-}
-
 racer_atari2600 *racer_atari2600_create(void) {
 	racer_atari2600 *console = (racer_atari2600 *)malloc(sizeof(racer_atari2600));
 	
@@ -73,7 +65,6 @@ racer_atari2600 *racer_atari2600_create(void) {
 	
 	// create and wire RIOT
 	console->riot = (racer_mcs6532 *)malloc(sizeof(racer_mcs6532));
-	console->riot->interrupt = no_operation;
 	
 	memcpy(console->riot->peripherals, (void *[]){
 		console,

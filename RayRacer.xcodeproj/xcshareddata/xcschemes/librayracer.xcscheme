@@ -17,7 +17,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "95A39E282ECDF3070020CEFB"
                BuildableName = "librayracer.a"
-               BlueprintName = "rayracer"
+               BlueprintName = "librayracer"
                ReferencedContainer = "container:RayRacer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -52,7 +52,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "95A39E282ECDF3070020CEFB"
             BuildableName = "librayracer.a"
-            BlueprintName = "rayracer"
+            BlueprintName = "librayracer"
             ReferencedContainer = "container:RayRacer.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

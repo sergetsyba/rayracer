@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import RayRacerKit
 
 extension UserDefaults {
 	func preferences(forGameIdentifier identifier: String) -> [String: Any] {

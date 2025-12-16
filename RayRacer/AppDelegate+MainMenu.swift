@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import RayRacerKit
 
 extension RayRacerDelegate {
 	@IBAction func didSelectInsertCartridgeMenuItem(_ sender: AnyObject) {
@@ -58,7 +57,7 @@ extension RayRacerDelegate {
 			.post(name: .reset, object: self)
 	}
 	
-	private func setConsoleSwitch(_ `switch`: Atari2600.Switches, on: Bool) {
+	private func setConsoleSwitch(_ `switch`: Switches, on: Bool) {
 		self.console.switches[`switch`] = on
 		
 		// save updated switches setup
@@ -66,7 +65,7 @@ extension RayRacerDelegate {
 			.consoleSwitches = self.console.switches
 	}
 	
-	private func holdConsoleSwitch(_ `switch`: Atari2600.Switches, for interval: Int = UserDefaults.standard.consoleSwitchHoldInterval) {
+	private func holdConsoleSwitch(_ `switch`: Switches, for interval: Int = UserDefaults.standard.consoleSwitchHoldInterval) {
 		// set switch to `on`
 		self.console.switches[`switch`] = true
 		

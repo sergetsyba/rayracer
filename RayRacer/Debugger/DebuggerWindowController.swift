@@ -7,7 +7,7 @@
 
 import AppKit
 import Combine
-import RayRacerKit
+import librayracer
 
 class DebuggerWindowController: NSWindowController {
 	@IBOutlet private var toolbar: NSToolbar!
@@ -67,9 +67,10 @@ private extension DebuggerWindowController {
 	
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
 		self.resume(until: {
+			let programAddress = $0.ref.pointee.mpu.pointee.program_counter
 			return self.assemblyViewController
 				.breakpoints
-				.contains($0.cpu.programCounter)
+				.contains(Int(programAddress))
 		})
 	}
 	
@@ -199,7 +200,7 @@ extension DebuggerWindowController: NSToolbarItemValidation {
 				.stepCPUInstructionToolbarItem,
 				.stepTVScanLineToolbarItem,
 				.stepTVFieldToolbarItem:
-			return self.console.cartridge != nil
+			return self.console.program != nil
 			&& self.console.isSuspended(withPriority: .high)
 		default:
 			return false
@@ -234,7 +235,7 @@ extension DebuggerWindowController {
 				var remaining = count
 				console.resume(priority: .high, until: (
 					{ [unowned console] in
-						if console.cpu.sync && console.cpu.isReady
+						if console.ref.pointee.mpu.pointee.is_sync
 							&& condition(console) {
 							remaining -= 1
 						}
@@ -252,7 +253,7 @@ extension DebuggerWindowController {
 	
 	/// Resumes emulation until the specified condition, which receives vertical and horizontal sync
 	/// counts, is satisified.
-	private func resume(until condition: @escaping (Int, Int) -> Bool) {
+	private func resume(until condition: @escaping (_ syncCount: (Int, Int)) -> Bool) {
 		let console = self.console
 		
 		DispatchQueue.global(qos: .userInitiated)
@@ -263,8 +264,8 @@ extension DebuggerWindowController {
 				console.output = counter
 				console.resume(priority: .high, until: (
 					{ [unowned console] in
-						return condition(counter.counts.0, counter.counts.1)
-						&& console.cpu.sync && console.cpu.isReady
+						return console.ref.pointee.mpu.pointee.is_sync
+						&& condition(counter.counts)
 					},
 					{ [unowned console, self] in
 						console.output = counter.output
@@ -286,6 +287,12 @@ extension Notification.Name {
 
 // MARK: -
 // MARK: Convenience functionality
+private extension racer_mcs6507 {
+	var is_sync: Bool {
+		return self.is_ready && self.operation_clock == 0
+	}
+}
+
 private extension NSView {
 	func maskLayerToBounds(cornerRadius: CGFloat) {
 		self.wantsLayer = true

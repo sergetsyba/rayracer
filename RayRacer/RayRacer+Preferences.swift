@@ -6,15 +6,14 @@
 //
 
 import Foundation
-import RayRacerKit
 
 extension UserDefaults {
-	var consoleSwitches: Atari2600.Switches {
+	var consoleSwitches: Switches {
 		get {
 			// by default, TV type is set to `color` and both difficulties
 			// to `advanced`
 			let value = self.object(forKey: .consoleSwitches) as? Int ?? 0xc8
-			return Atari2600.Switches(rawValue: value)
+			return Switches(rawValue: value)
 		}
 		set {
 			self.setValue(newValue.rawValue, forKey: .consoleSwitches)

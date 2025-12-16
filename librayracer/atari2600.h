@@ -19,7 +19,7 @@ typedef struct {
 	racer_mcs6532 *riot;
 	racer_tia *tia;
 	
-	uint8_t *cartridge;
+	unsigned char *program;
 } racer_atari2600;
 
 racer_atari2600 *racer_atari2600_create(void);

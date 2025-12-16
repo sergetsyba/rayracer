@@ -5,13 +5,11 @@
 //  Created by Serge Tsyba on 1.7.2025.
 //
 
-import RayRacerKit
-
-class GraphicsSyncCounter: TIA.GraphicsOutput {
+class GraphicsSyncCounter: VideoOutput {
 	private(set) var counts: (vertical: Int, horizontal: Int) = (0, 0)
-	var output: TIA.GraphicsOutput? = nil
+	var output: VideoOutput? = nil
 	
-	func sync(_ sync: RayRacerKit.TIA.GraphicsSync) {
+	func sync(_ sync: VideoSync) {
 		if sync.contains(.horizontal) {
 			self.counts.horizontal += 1
 		}
