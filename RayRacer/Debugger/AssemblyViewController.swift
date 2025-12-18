@@ -108,7 +108,7 @@ private extension AssemblyViewController {
 	}
 	
 	func updateProgramAddressTableRow() {
-		if let cpu = self.console.ref.pointee.mpu,
+		if let cpu = self.console.console.pointee.mpu,
 		   let row = self.program?
 			.firstIndex(where: { $0.0 == Int(cpu.pointee.program_counter) }) {
 			
@@ -225,7 +225,7 @@ private extension AssemblyViewController {
 			// for instructions with indexed addressing, return formatted
 			// operand address target only when program is currently at
 			// that instruction
-			let cpu = self.console.ref.pointee.mpu.pointee
+			let cpu = self.console.console.pointee.mpu.pointee
 			guard let program = self.program,
 				  program[row].0 == Int(cpu.program_counter) else {
 				return nil

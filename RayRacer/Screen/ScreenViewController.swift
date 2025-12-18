@@ -12,7 +12,6 @@ class ScreenViewController: NSViewController {
 	public let frameCounter = FrameCounter()
 	
 	private let console: Atari2600
-	private var joystick = Joystick()
 	
 	private var screenData: Array<UInt8>
 	private var screenIndex: Int
@@ -34,7 +33,6 @@ class ScreenViewController: NSViewController {
 	
 	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
 		self.console = console
-		self.console.controllers.0 = self.joystick
 		
 		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count * 50)
 		self.screenIndex = 0
@@ -97,19 +95,21 @@ extension ScreenViewController {
 	}
 	
 	override func keyDown(with event: NSEvent) {
-		if let button = Joystick.Buttons(keyCode: event.keyCode) {
-			self.joystick.press(button)
-		} else {
+		guard let button = Joystick.Buttons(keyCode: event.keyCode) else {
 			super.keyDown(with: event)
+			return
 		}
+		self.console.controllers
+			.0?.press(button)
 	}
 	
 	override func keyUp(with event: NSEvent) {
-		if let button = Joystick.Buttons(keyCode: event.keyCode) {
-			self.joystick.release(button)
-		} else {
-			super.keyUp(with: event)
+		guard let button = Joystick.Buttons(keyCode: event.keyCode) else {
+			super.keyDown(with: event)
+			return
 		}
+		self.console.controllers
+			.0?.release(button)
 	}
 }
 

@@ -7,5 +7,6 @@
 
 module librayracer {
 	header "atari2600.h"
+	header "controller.h"
 	export *
 }

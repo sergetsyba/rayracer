@@ -67,7 +67,7 @@ private extension DebuggerWindowController {
 	
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
 		self.resume(until: {
-			let programAddress = $0.ref.pointee.mpu.pointee.program_counter
+			let programAddress = $0.console.pointee.mpu.pointee.program_counter
 			return self.assemblyViewController
 				.breakpoints
 				.contains(Int(programAddress))
@@ -235,7 +235,7 @@ extension DebuggerWindowController {
 				var remaining = count
 				console.resume(priority: .high, until: (
 					{ [unowned console] in
-						if console.ref.pointee.mpu.pointee.is_sync
+						if console.console.pointee.mpu.pointee.is_sync
 							&& condition(console) {
 							remaining -= 1
 						}
@@ -264,7 +264,7 @@ extension DebuggerWindowController {
 				console.output = counter
 				console.resume(priority: .high, until: (
 					{ [unowned console] in
-						return console.ref.pointee.mpu.pointee.is_sync
+						return console.console.pointee.mpu.pointee.is_sync
 						&& condition(counter.counts)
 					},
 					{ [unowned console, self] in

@@ -27,8 +27,9 @@ typedef struct {
 	racer_mcs6532 *riot;
 	racer_tia *tia;
 	
-	uint8_t switches;
 	uint8_t *program;
+	uint8_t switches[2];
+	uint8_t input;
 } racer_atari2600;
 
 racer_atari2600 *racer_atari2600_create(void);

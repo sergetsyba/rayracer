@@ -49,9 +49,12 @@ void racer_tia_init(void) {
 
 void racer_tia_reset(racer_tia *tia) {
 	tia->color_clock = 0;
-	tia->blank_reset_clock = 68;
 	*tia->is_ready = true;
-	tia->output_control = 0x000;
+	tia->blank_reset_clock = 68;
+	
+	tia->output_control = 0x00;
+	tia->input_control = 0x00;
+	tia->input_latch = 0xc0;
 }
 
 #define state_player_0 (1 << 0)
@@ -126,30 +129,23 @@ static int get_draw_state(racer_tia tia) {
 }
 
 void racer_tia_advance_clock(racer_tia *tia) {
-	// set horizontal sync to output control
-	const bool horizontal_sync = tia->color_clock < 68;
-	set_flag(tia->output_control, TIA_OUTPUT_HORIZONTAL_SYNC << 8, horizontal_sync);
-	
-	// copy video output signal from output control
-	int signal = tia->output_control;
-	
 	const bool horizontal_blank = tia->color_clock < tia->blank_reset_clock;
-	if (horizontal_blank) {
-		// append horizontal blank to output signal
-		signal |= horizontal_blank;
-		
-		// position counters of movable objects do not receive clock signals
-		// during horizontal blanking/retrace
-	} else {
-		// get state of all graphics objects
-		const int state = get_draw_state(*tia);
-		// update graphics objects collisions
+	uint8_t color = horizontal_blank;
+	
+	// position counters of movable objects do not receive clock signals
+	// during horizontal blanking/retrace; no need to re-calculate draw state
+	// and update object collisions
+	if (!horizontal_blank) {
+		const uint8_t state = get_draw_state(*tia);
 		tia->collisions |= collisions[state];
 		
 		// set output color unless TIA ouputs blank
-		if (!is_flag_set(tia->output_control, TIA_OUTPUT_BLANK)) {
+		const bool vertical_blank = tia->output_control & TIA_OUTPUT_VERTICAL_BLANK;
+		color |= vertical_blank;
+		
+		if (!vertical_blank) {
 			const int index = object_indexes[state];
-			signal |= tia->colors[index];
+			color |= tia->colors[index];
 		}
 		
 		// advance position counters of graphics objects
@@ -160,20 +156,34 @@ void racer_tia_advance_clock(racer_tia *tia) {
 		advance_position(tia->ball);
 	}
 	
+	const uint8_t horizontal_sync = tia->color_clock < 68;
+	const uint8_t vertical_sync = tia->output_control & 0x2;
+	const uint16_t signal = ((horizontal_sync | vertical_sync) << 8) | color;
+	
 	tia->write_video_output(tia->output, signal);
 	tia->color_clock += 1;
 	
 	// reset scan line
 	if (tia->color_clock == 228) {
 		tia->color_clock = 0;
-		tia->blank_reset_clock = 68;
 		*tia->is_ready = true;
+		tia->blank_reset_clock = 68;
 		
 		// notify video output horizontal sync started
-		tia->sync_video_output(tia->output, TIA_OUTPUT_HORIZONTAL_SYNC);
+		const u_int8_t sync = TIA_OUTPUT_HORIZONTAL_SYNC | vertical_sync;
+		tia->sync_video_output(tia->output, sync);
 	}
 }
 
+
+// MARK: -
+// MARK: Input port
+void racer_tia_write_port(racer_tia *tia, uint8_t data) {
+	// latch 0 on pins 4,5 when port latch enabled
+	if (!is_flag_set(tia->input_control, TIA_INPUT_PORT_LATCH)) {
+		tia->input_latch &= (data & 0xc0);
+	}
+}
 
 // MARK: -
 // MARK: Bus integration
@@ -196,68 +206,104 @@ static void apply_motion(racer_tia *tia) {
 	move(tia->ball, ripples);
 }
 
-
-int racer_tia_read(racer_tia tia, int address) {
+uint8_t racer_tia_read(const racer_tia *tia, uint8_t address) {
 	switch (address % 0x10) {
 		case 0x00: {// MARK: cxm0p
-			const int data = (tia.collisions >> 0) & 0x3;
+			const uint8_t data = (tia->collisions >> 0) & 0x3;
 			return (data << 6) | address;
 		}
 		case 0x01: {// MARK: cxm1p
-			const int data = (tia.collisions >> 2) & 0x3;
+			const uint8_t data = (tia->collisions >> 2) & 0x3;
 			return (data << 6) | address;
 		}
 		case 0x02: {// MARK: cxp0fb
-			const int data = (tia.collisions >> 4) & 0x3;
+			const uint8_t data = (tia->collisions >> 4) & 0x3;
 			return (data << 6) | address;
 		}
 		case 0x03: {// MARK: cxp1fb
-			const int data = (tia.collisions >> 6) & 0x3;
+			const uint8_t data = (tia->collisions >> 6) & 0x3;
 			return (data << 6) | address;
 		}
 		case 0x04: {// MARK: cxm0fb
-			const int data = (tia.collisions >> 8) & 0x3;
+			const uint8_t data = (tia->collisions >> 8) & 0x3;
 			return (data << 6) | address;
 		}
 		case 0x05: {// MARK: cxm1fb
-			const int data = (tia.collisions >> 10) & 0x3;
+			const uint8_t data = (tia->collisions >> 10) & 0x3;
 			return (data << 6) | address;
 		}
 		case 0x06: {// MARK: cxblpf
-			const int data = (tia.collisions >> 12) & 0x1;
+			const uint8_t data = (tia->collisions >> 12) & 0x1;
 			return (data << 7) | address;
 		}
 		case 0x07: {// MARK: cxppmm
-			const int data = (tia.collisions >> 13) & 0x3;
+			const uint8_t data = (tia->collisions >> 13) & 0x3;
 			return (data << 6) | address;
 		}
 			
-		case 0x08: // MARK: inpt0
-			return (tia.input << 7) & 0x80;
-		case 0x09: // MARK: inpt1
-			return (tia.input << 6) & 0x80;
-		case 0x0a: // MARK: inpt2
-			return (tia.input << 5) & 0x80;
-		case 0x0b: // MARK: inpt3
-			return (tia.input << 4) & 0x80;
+		case 0x08: {// MARK: inpt0
+			const uint8_t data = tia->read_port(tia->peripheral);
+			return (data << 7) & 0x80;
+		}
+		case 0x09: {// MARK: inpt1
+			const uint8_t data = tia->read_port(tia->peripheral);
+			return (data << 6) & 0x80;
+		}
+		case 0x0a: {// MARK: inpt2
+			const uint8_t data = tia->read_port(tia->peripheral);
+			return (data << 5) & 0x80;
+		}
+		case 0x0b: {// MARK: inpt3
+			const uint8_t data = tia->read_port(tia->peripheral);
+			return (data << 4) & 0x80;
+		}
+		case 0x0c: {// MARK: inpt4
+			const uint8_t data = is_flag_set(tia->input_control, TIA_INPUT_PORT_LATCH)
+			? tia->input_latch
+			: tia->read_port(tia->peripheral);
+			
+			return (data << 3) & 0x80;
+		}
+		case 0x0d: {// MARK: inpt5
+			const uint8_t data = is_flag_set(tia->input_control, TIA_INPUT_PORT_LATCH)
+			? tia->input_latch
+			: tia->read_port(tia->peripheral);
+			
+			return (data << 2) & 0x80;
+		}
 		default:
-			return rand() & 0xff;
+			return arc4random_uniform(0x100);
 	}
 }
 
-void racer_tia_write(racer_tia *tia, int address, int data) {
+void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 	switch (address) {
-		case 0x00:	// MARK: vsync
-			set_flag(tia->output_control, TIA_OUTPUT_VERTICAL_SYNC << 8, data & 0x2);
-			if (data & 0x2) {
-				// notify video output vertical sync started
-				tia->sync_video_output(tia->output, TIA_OUTPUT_VERTICAL_SYNC);
+		case 0x00:	{// MARK: vsync
+			const bool vertical_sync = data & 0x2;
+			set_flag(tia->output_control, TIA_OUTPUT_VERTICAL_SYNC, vertical_sync);
+			
+			// notify video output when vertical sync enabled
+			if (vertical_sync) {
+				const uint8_t sync = vertical_sync | (tia->color_clock < 68);
+				tia->sync_video_output(tia->output, sync);
 			}
 			break;
+		}
 			
-		case 0x01:	// MARK: vblank
-			set_flag(tia->output_control, TIA_OUTPUT_BLANK, data & 0x2);
+		case 0x01: {// MARK: vblank
+			// vertical blanking
+			const bool vertical_blank = data & 0x2;
+			set_flag(tia->output_control, TIA_OUTPUT_VERTICAL_BLANK, vertical_blank);
+			
+			// input control
+			tia->input_control = data & 0xc0;
+			// reset input latches when input port I4-I5 latching is disabled;
+			// both values are reset to 1
+			if (!is_flag_set(tia->input_control, TIA_INPUT_PORT_LATCH)) {
+				tia->input_latch = 0x30;
+			}
 			break;
+		}
 			
 		case 0x02:	// MARK: wsync
 			// when the last clock cycle of WSYNC write instruction coincides

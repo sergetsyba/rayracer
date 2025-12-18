@@ -172,7 +172,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forCPUDebugItem item: CPUDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-		let cpu = self.console.ref.pointee.mpu.pointee
+		let cpu = self.console.console.pointee.mpu.pointee
 		
 		switch item {
 		case .accumulator:
@@ -194,7 +194,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forMemoryDebugItem item: MemoryDebugItem) -> NSView? {
-		var riot = self.console.ref.pointee.riot.pointee
+		var riot = self.console.console.pointee.riot.pointee
 		let data = withUnsafeBytes(of: &riot.memory) {
 			let bytes = $0.bindMemory(to: UInt8.self)
 			return Data(bytes)
@@ -208,7 +208,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forTimerDebugItem item: TimerDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-		let riot = self.console.ref.pointee.riot.pointee
+		let riot = self.console.console.pointee.riot.pointee
 		
 		switch item {
 		case .value:
