@@ -19,8 +19,8 @@ typedef struct {
 	
 	int position;
 	int motion;
-} rr_missile;
+} racer_missile;
 
-bool rr_missile_needs_drawing(rr_missile missile);
+bool missile_needs_drawing(racer_missile missile);
 
 #endif /* missile_h */

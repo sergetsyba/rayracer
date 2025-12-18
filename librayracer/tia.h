@@ -19,10 +19,10 @@ typedef enum {
 } racer_tia_output_sync;
 
 typedef struct {
-	rr_player players[2];
-	rr_missile missiles[2];
-	rr_ball ball;
-	rr_playfield playfield;
+	racer_player players[2];
+	racer_missile missiles[2];
+	racer_ball ball;
+	racer_playfield playfield;
 	
 	int color_clock;
 	uint8_t colors[4];

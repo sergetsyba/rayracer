@@ -17,8 +17,8 @@ typedef struct {
 	
 	int position;
 	int motion;
-} rr_ball;
+} racer_ball;
 
-bool rr_ball_needs_drawing(rr_ball ball);
+bool ball_needs_drawing(racer_ball ball);
 
 #endif /* ball_h */

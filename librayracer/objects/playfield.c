@@ -10,7 +10,7 @@
 #include "playfield.h"
 #include "object.h"
 
-static void update_playfield_graphics(rr_playfield *playfield) {
+static void update_playfield_graphics(racer_playfield *playfield) {
 	// copy left half graphics
 	uint8_t *graphics = (uint8_t *)&playfield->graphics;
 	memcpy(graphics, playfield->data, 3);
@@ -26,13 +26,13 @@ static void update_playfield_graphics(rr_playfield *playfield) {
 	}
 }
 
-void set_playfield_graphics(rr_playfield *playfield, uint8_t data, int index) {
+void set_playfield_graphics(racer_playfield *playfield, uint8_t data, int index) {
 	playfield->data[index] = data;
 	playfield->data[3+(2-index)] = reflections[data];
 	update_playfield_graphics(playfield);
 }
 
-void set_playfield_control(rr_playfield *playfield, uint8_t control) {
+void set_playfield_control(racer_playfield *playfield, uint8_t control) {
 	// update playfield when the new is_reflected option is different
 	// from the current one
 	if ((playfield->is_reflected ^ (control & 0x1))) {
@@ -44,7 +44,7 @@ void set_playfield_control(rr_playfield *playfield, uint8_t control) {
 	playfield->has_priority = control & 0x3;
 }
 
-bool playfield_needs_drawing(rr_playfield playfield, int position) {
+bool playfield_needs_drawing(racer_playfield playfield, int position) {
 	// each bit of playfield graphics draws for 4 color clocks
 	const int bit = position >> 2;		// position / 4
 	return playfield.graphics & (1L << bit);

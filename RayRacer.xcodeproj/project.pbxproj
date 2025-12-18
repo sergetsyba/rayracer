@@ -83,7 +83,6 @@
 		95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */; };
 		95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */; };
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
-		95BDE24C2ECEFB6800EC5B61 /* bits.h in Headers */ = {isa = PBXBuildFile; fileRef = 95BDE24B2ECEFB6800EC5B61 /* bits.h */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
 		95D29CE02ED3824B0059DE84 /* object.c in Sources */ = {isa = PBXBuildFile; fileRef = 95D29CDF2ED3824B0059DE84 /* object.c */; };
@@ -221,7 +220,6 @@
 		95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenViewController.swift; sourceTree = "<group>"; };
 		95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ScreenWindow.xib; sourceTree = "<group>"; };
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
-		95BDE24B2ECEFB6800EC5B61 /* bits.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bits.h; sourceTree = "<group>"; };
 		95C918E82C07810000B431C4 /* SystemStateView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SystemStateView.xib; sourceTree = "<group>"; };
 		95C918EA2C07810900B431C4 /* SystemStateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStateViewController.swift; sourceTree = "<group>"; };
 		95D29CDF2ED3824B0059DE84 /* object.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = object.c; sourceTree = "<group>"; };
@@ -406,7 +404,6 @@
 			children = (
 				9500F9E22ECDAB2500998642 /* ball.h */,
 				9500F9E32ECDAB2500998642 /* ball.c */,
-				95BDE24B2ECEFB6800EC5B61 /* bits.h */,
 				9500F9E72ECDACE500998642 /* missile.h */,
 				9500F9E82ECDACE500998642 /* missile.c */,
 				9500F9F62ECDC47300998642 /* object.h */,
@@ -473,7 +470,6 @@
 				95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */,
 				95A39E322ECDF3300020CEFB /* playfield.h in Headers */,
 				95D471702ED05F42002AB93C /* flags.h in Headers */,
-				95BDE24C2ECEFB6800EC5B61 /* bits.h in Headers */,
 				95A39E332ECDF3300020CEFB /* object.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

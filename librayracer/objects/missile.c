@@ -6,9 +6,8 @@
 //
 
 #include "missile.h"
-#include "bits.h"
 
-bool rr_missile_needs_drawing(rr_missile missile) {
+bool missile_needs_drawing(racer_missile missile) {
 	// ensure missile is enabled and not reset to player
 	if (!missile.is_enabled || missile.is_reset_to_player) {
 		return false;

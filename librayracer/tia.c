@@ -120,11 +120,11 @@ static int get_collisions(int state) {
 // MARK: -
 // MARK: Drawing
 static int get_draw_state(racer_tia tia) {
-	return (rr_player_needs_drawing(tia.players[0]) << 0)
-	| (rr_player_needs_drawing(tia.players[1]) << 1)
-	| (rr_missile_needs_drawing(tia.missiles[0]) << 2)
-	| (rr_missile_needs_drawing(tia.missiles[1]) << 3)
-	| (rr_ball_needs_drawing(tia.ball) << 4)
+	return (player_needs_drawing(tia.players[0]) << 0)
+	| (player_needs_drawing(tia.players[1]) << 1)
+	| (missile_needs_drawing(tia.missiles[0]) << 2)
+	| (missile_needs_drawing(tia.missiles[1]) << 3)
+	| (ball_needs_drawing(tia.ball) << 4)
 	| (playfield_needs_drawing(tia.playfield, tia.color_clock - 68) << 5);
 }
 

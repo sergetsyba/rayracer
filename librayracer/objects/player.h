@@ -20,10 +20,10 @@ typedef struct {
 	
 	int position;
 	int motion;
-} rr_player;
+} racer_player;
 
-void set_player_graphics(rr_player* player, int graphics);
-void set_player_reflected(rr_player* player, bool is_reflected);
-bool rr_player_needs_drawing(rr_player player);
+void set_player_graphics(racer_player* player, int graphics);
+void set_player_reflected(racer_player* player, bool is_reflected);
+bool player_needs_drawing(racer_player player);
 
 #endif /* player_h */
