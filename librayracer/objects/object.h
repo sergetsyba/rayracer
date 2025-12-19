@@ -8,12 +8,6 @@
 #ifndef object_h
 #define object_h
 
-extern const int copy_modes[][2];
-extern int reflections[];
-
-#define min(a, b) \
-	a < b ? a : b
-
 #define reset_position(object) \
 	object.position = 160-4
 #define advance_position(object) \
@@ -21,6 +15,9 @@ extern int reflections[];
 	if (object.position == 160) { \
 		object.position = 0; \
 	}
+
+#define min(a, b) \
+	a < b ? a : b
 
 #define move(object, limit) \
 	object.position += min(object.motion, limit)

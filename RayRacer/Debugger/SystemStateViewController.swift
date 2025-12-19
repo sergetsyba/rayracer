@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import librayracer
 
 class SystemStateViewController: NSViewController {
 	@IBOutlet private var outlineView: NSOutlineView!
@@ -131,36 +132,35 @@ extension SystemStateViewController: NSOutlineViewDataSource {
 
 extension SystemStateViewController: NSOutlineViewDelegate {
 	func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
-		//		if let section = item as? DebugSection {
-		//			return self.makeView(outlineView, forSectionItem: section)
-		//		} else if let item = item as? CPUDebugItem {
-		//			return self.makeView(outlineView, forCPUDebugItem: item)
-		//		} else if let item = item as? MemoryDebugItem {
-		//			return self.makeView(outlineView, forMemoryDebugItem: item)
-		//		} else if let item = item as? TimerDebugItem {
-		//			return self.makeView(outlineView, forTimerDebugItem: item)
-		//		} else if let section = item as? GraphicsDebugSection {
-		//			return self.makeView(outlineView, forSectionItem: section)
-		//		} else if let item = item as? ScreenDebugItem {
-		//			return self.makeView(outlineView, forScreenDebugItem: item)
-		//		} else if let item = item as? Player0DebugItem {
-		//			return self.makeView(outlineView, forPlayer0DebugItem: item)
-		//		} else if let item = item as? Player1DebugItem {
-		//			return self.makeView(outlineView, forPlayer1DebugItem: item)
-		//		} else if let item = item as? Missile0DebugItem {
-		//			return self.makeView(outlineView, forMissile0DebugItem: item)
-		//		} else if let item = item as? Missile1DebugItem {
-		//			return self.makeView(outlineView, forMissile1DebugItem: item)
-		//		} else if let item = item as? BallDebugItem {
-		//			return self.makeView(outlineView, forBallDebugItem: item)
-		//		} else if let item = item as? PlayfieldDebugItem {
-		//			return self.makeView(outlineView, forPlayfieldDebugItem: item)
-		//		} else if let item = item as? BackgroundDebugItem {
-		//			return self.makeView(outlineView, forBackgroundDebugItem: item)
-		//		} else {
-		//			return nil
-		//		}
-		return nil
+		if let section = item as? DebugSection {
+			return self.makeView(outlineView, forSectionItem: section)
+		} else if let item = item as? CPUDebugItem {
+			return self.makeView(outlineView, forCPUDebugItem: item)
+		} else if let item = item as? MemoryDebugItem {
+			return self.makeView(outlineView, forMemoryDebugItem: item)
+		} else if let item = item as? TimerDebugItem {
+			return self.makeView(outlineView, forTimerDebugItem: item)
+		} else if let section = item as? GraphicsDebugSection {
+			return self.makeView(outlineView, forSectionItem: section)
+			//				} else if let item = item as? ScreenDebugItem {
+			//					return self.makeView(outlineView, forScreenDebugItem: item)
+			//				} else if let item = item as? Player0DebugItem {
+			//					return self.makeView(outlineView, forPlayer0DebugItem: item)
+			//				} else if let item = item as? Player1DebugItem {
+			//					return self.makeView(outlineView, forPlayer1DebugItem: item)
+			//				} else if let item = item as? Missile0DebugItem {
+			//					return self.makeView(outlineView, forMissile0DebugItem: item)
+			//				} else if let item = item as? Missile1DebugItem {
+			//					return self.makeView(outlineView, forMissile1DebugItem: item)
+			//				} else if let item = item as? BallDebugItem {
+			//					return self.makeView(outlineView, forBallDebugItem: item)
+			//				} else if let item = item as? PlayfieldDebugItem {
+			//					return self.makeView(outlineView, forPlayfieldDebugItem: item)
+			//				} else if let item = item as? BackgroundDebugItem {
+			//					return self.makeView(outlineView, forBackgroundDebugItem: item)
+		} else {
+			return nil
+		}
 	}
 	
 	private func makeView(_ outlineView: NSOutlineView, forSectionItem item: any RawRepresentable<String>) -> NSView? {
@@ -182,7 +182,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		case .indexY:
 			view?.wordValue = (item.rawValue, cpu.y)
 		case .status:
-			let status = MCS6507.Status(rawValue: cpu.status)
+			let status = MCS6507.Status(rawValue: UInt32(cpu.status))
 			view?.attributedStringValue = (item.rawValue, self.format(mcs6507Status: status))
 		case .stackPointer:
 			view?.wordValue = (item.rawValue, cpu.stack_pointer)
@@ -471,6 +471,7 @@ private extension SystemStateViewController {
 	private func format(mcs6507Status status: MCS6507.Status) -> NSAttributedString {
 		let string = NSMutableAttributedString(string: "N V B D I Z C")
 		let values = MCS6507.Status.allCases
+			.reversed()
 		
 		for (index, value) in values.enumerated() {
 			if status.contains(value) == false {
@@ -685,35 +686,34 @@ private extension SystemStateViewController {
 // MARK: -
 // MARK: Convenience functionality
 struct MCS6507 {
-	struct Status: OptionSet, CaseIterable {
-		static let carry = Status(rawValue: 1 << 0)
-		static let zero = Status(rawValue: 1 << 1)
-		static let interruptDisabled = Status(rawValue: 1 << 2)
-		static let decimalMode = Status(rawValue: 1 << 3)
-		static let `break` = Status(rawValue: 1 << 4)
-		static let overflow = Status(rawValue: 1 << 6)
-		static let negative = Status(rawValue: 1 << 7)
-		
-		static var allCases: [Self] {
-			return [
-				.carry,
-				.zero,
-				.interruptDisabled,
-				.decimalMode,
-				.break,
-				.overflow,
-				.negative
-			]
-		}
-		
-		var rawValue: Int32
-		init(rawValue: Int32) {
-			self.rawValue = rawValue
-		}
-	}
+	typealias Status = racer_mcs6507_status
 }
 
+extension racer_mcs6507_status: @retroactive SetAlgebra {}
+extension racer_mcs6507_status: @retroactive ExpressibleByArrayLiteral {}
+extension MCS6507.Status: @retroactive OptionSet {
+	static let carry = MCS6507_STATUS_CARRY
+	static let zero = MCS6507_STATUS_ZERO
+	static let interruptDisabled = MCS6507_STATUS_INTERRUPT_DISABLE
+	static let decimalMode = MCS6507_STATUS_DECIMAL_MODE
+	static let `break` = MCS6507_STATUS_BREAK
+	static let overflow = MCS6507_STATUS_OVERFLOW
+	static let negative = MCS6507_STATUS_NEGATIVE
+}
 
+extension MCS6507.Status: @retroactive CaseIterable {
+	public static var allCases: [racer_mcs6507_status] {
+		return [
+			.carry,
+			.zero,
+			.interruptDisabled,
+			.decimalMode,
+			.break,
+			.overflow,
+			.negative
+		]
+	}
+}
 
 //private extension TIA {
 //	enum GraphicsObject: String {

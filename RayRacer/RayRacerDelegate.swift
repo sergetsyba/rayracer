@@ -61,8 +61,6 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 // MARK: -
 // MARK: Target actions
 extension RayRacerDelegate {
-	
-	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
 		self.showDebugger()
 	}

@@ -19,6 +19,8 @@ class Atari2600 {
 	
 	init() {
 		self.console = racer_atari2600_create()!
+		racer_init()
+		
 		self.console.pointee
 			.tia.pointee
 			.output = Unmanaged.passUnretained(self)
@@ -225,7 +227,7 @@ extension VideoSync: @retroactive OptionSet {
 	static let vertical = TIA_OUTPUT_VERTICAL_SYNC
 }
 
-func syncVideoOutput(output: UnsafeRawPointer?, sync: UInt8) {
+func syncVideoOutput(output: UnsafeRawPointer?, sync: VideoSync) {
 	guard let output = output else {
 		return
 	}
@@ -234,7 +236,6 @@ func syncVideoOutput(output: UnsafeRawPointer?, sync: UInt8) {
 		.fromOpaque(output)
 		.takeUnretainedValue()
 	
-	let sync = VideoSync(rawValue: UInt32(sync))
 	console.output?
 		.sync(sync)
 }

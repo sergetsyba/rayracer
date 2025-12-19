@@ -17,6 +17,16 @@ typedef struct {
 	int length;
 } decoded;
 
+typedef enum {
+	MCS6507_STATUS_CARRY = 1<<0,
+	MCS6507_STATUS_ZERO = 1<<1,
+	MCS6507_STATUS_INTERRUPT_DISABLE = 1<<2,
+	MCS6507_STATUS_DECIMAL_MODE = 1<<3,
+	MCS6507_STATUS_BREAK = 1<<4,
+	MCS6507_STATUS_OVERFLOW = 1<<6,
+	MCS6507_STATUS_NEGATIVE = 1<<7
+} racer_mcs6507_status;
+
 typedef struct {
 	int accumulator;
 	int x;
@@ -46,16 +56,5 @@ void racer_mcs6507_reset(racer_mcs6507 *cpu);
 
 /// Advanced MCS6507 chip clock by 1 full (2-phase) cycle.
 void racer_mcs6507_advance_clock(racer_mcs6507 *cpu);
-
-
-// MARK: -
-// MARK: Status flags
-#define MCS6507_STATUS_CARRY (1<<0)
-#define MCS6507_STATUS_ZERO (1<<1)
-#define MCS6507_STATUS_INTERRUPT_DISABLE (1<<2)
-#define MCS6507_STATUS_DECIMAL_MODE (1<<3)
-#define MCS6507_STATUS_BREAK (1<<4)
-#define MCS6507_STATUS_OVERFLOW (1<<6)
-#define MCS6507_STATUS_NEGATIVE (1<<7)
 
 #endif /* mcs6507_h */

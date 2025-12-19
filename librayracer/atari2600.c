@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <string.h>
 
+
+// MARK: -
+// MARK: Bus
 static int read_bus(void *bus, int address) {
 	racer_atari2600 *console = (racer_atari2600 *)bus;
 	if (address & (1<<12)) {
@@ -43,7 +46,7 @@ static void write_bus(void *bus, int address, int data) {
 // MARK: MCS6532 and TIA peripherals
 static uint8_t riot_read_controllers(const void *peripheral) {
 	const racer_atari2600 *console = (racer_atari2600 *)peripheral;
-	return console->switches[0];
+	return ~(console->switches[0]);
 }
 
 static void riot_write_controllers(void *peripheral, uint8_t data) {
@@ -68,7 +71,7 @@ static void riot_write_switches(void *peripheral, uint8_t data) {
 
 static uint8_t tia_read_controllers(const void *peripheral) {
 	const racer_atari2600 *console = (racer_atari2600 *)peripheral;
-	return console->input;
+	return ~(console->input);
 }
 
 
@@ -103,7 +106,6 @@ racer_atari2600 *racer_atari2600_create(void) {
 	console->tia->peripheral = console;
 	console->tia->read_port = tia_read_controllers;
 	
-	racer_tia_init();
 	return console;
 }
 
@@ -112,8 +114,8 @@ void racer_atari2600_reset(racer_atari2600 *console) {
 	racer_mcs6532_reset(console->riot);
 	racer_tia_reset(console->tia);
 	
-	memset(console->switches, 0xff, 2);
-	console->input = 0xff;
+	console->switches[0] = 0x00;
+	console->input = 0x00;
 }
 
 void racer_atari2600_advance_clock(racer_atari2600 *console) {

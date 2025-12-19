@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "playfield.h"
-#include "object.h"
+#include "../graphics.h"
 
 static void update_playfield_graphics(racer_playfield *playfield) {
 	// copy left half graphics
@@ -40,8 +40,8 @@ void set_playfield_control(racer_playfield *playfield, uint8_t control) {
 	}
 	
 	playfield->is_reflected = control & 0x1;
-	playfield->is_score_mode_on = control & 0x2;
-	playfield->has_priority = control & 0x3;
+	playfield->is_score_mode_on = (control & 0x6) == 0x2;
+	playfield->has_priority = control & 0x4;
 }
 
 bool playfield_needs_drawing(racer_playfield playfield, int position) {

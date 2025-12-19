@@ -9,43 +9,10 @@
 #include <stdio.h>
 
 #include "tia.h"
-#include "object.h"
+#include "graphics.h"
+#include "objects/object.h"
 #include "flags.h"
 
-// MARK: Initialization
-static int get_object_index(int state);
-static int object_indexes[0x100];
-static int get_collisions(int state);
-static int collisions[0x200];
-
-static int reflect(int graphics) {
-	int reflected = 0;
-	for (int bit = 0; bit < 8; ++bit) {
-		if (graphics & 0x1) {
-			reflected |= (1 << (7 - bit));
-		}
-		graphics >>= 1;
-	}
-	
-	return reflected;
-}
-
-void racer_tia_init(void) {
-	// initialize graphics reflections look up
-	for (int graphics = 0x00; graphics <= 0xff; ++graphics) {
-		reflections[graphics] = reflect(graphics);
-	}
-	
-	// initialize object draw state/object indexes look up
-	for (int state = 0x00; state <= 0xff; ++state) {
-		object_indexes[state] = get_object_index(state);
-	}
-	
-	// initialize collisions look up
-	for (int state = 0x00; state < 0x1ff; ++state) {
-		collisions[state] = get_collisions(state);
-	}
-}
 
 void racer_tia_reset(racer_tia *tia) {
 	tia->color_clock = 0;
@@ -57,77 +24,6 @@ void racer_tia_reset(racer_tia *tia) {
 	tia->input_latch = 0xc0;
 }
 
-#define state_player_0 (1 << 0)
-#define state_missile_0 (1 << 1)
-#define state_player_1 (1 << 2)
-#define state_missile_1 (1 << 3)
-#define state_ball (1 << 4)
-#define state_playfield (1 << 5)
-#define state_score_mode (1 << 6)
-#define state_playfield_priority (1 << 7)
-#define state_right_half (1 << 8)
-
-static int get_object_index(int state) {
-	if (state & (state_playfield | state_playfield_priority)
-		&& !(state & state_score_mode)) {
-		// playfield priority (score mode off)
-		return 2;
-	} else if (state & (state_player_0 | state_missile_0)) {
-		// player 0/missile 0
-		return 0;
-	} else if (state & (state_player_1 | state_missile_1)) {
-		// player 1/missile 1
-		return 1;
-	} else if (state & state_ball) {
-		// ball
-		return 2;
-	} else if (state & state_playfield) {
-		// playefield
-		if (state & state_score_mode) {
-			// score mode
-			return (state & state_right_half) ? 1 : 0;
-		} else {
-			return 2;
-		}
-	} else {
-		// background
-		return 3;
-	}
-}
-
-#define is_set(data, mask) (((data) & (mask)) == (mask))
-
-static int get_collisions(int state) {
-	return 0x00
-	| is_set(state, state_missile_0 | state_player_0) << 0
-	| is_set(state, state_missile_0 | state_player_1) << 1
-	| is_set(state, state_missile_1 | state_player_0) << 2
-	| is_set(state, state_missile_1 | state_player_1) << 3
-	| is_set(state, state_player_0 | state_ball) << 4
-	| is_set(state, state_player_0 | state_playfield) << 5
-	| is_set(state, state_player_1 | state_ball) << 6
-	| is_set(state, state_player_1 | state_playfield) << 7
-	| is_set(state, state_missile_0 | state_ball) << 8
-	| is_set(state, state_missile_0 | state_playfield) << 9
-	| is_set(state, state_missile_1 | state_ball) << 10
-	| is_set(state, state_missile_1 | state_playfield) << 11
-	| is_set(state, state_ball | state_playfield) << 12
-	| is_set(state, state_missile_0 | state_missile_1) << 13
-	| is_set(state, state_player_0 | state_player_1) << 14;
-}
-
-
-// MARK: -
-// MARK: Drawing
-static int get_draw_state(racer_tia tia) {
-	return (player_needs_drawing(tia.players[0]) << 0)
-	| (player_needs_drawing(tia.players[1]) << 1)
-	| (missile_needs_drawing(tia.missiles[0]) << 2)
-	| (missile_needs_drawing(tia.missiles[1]) << 3)
-	| (ball_needs_drawing(tia.ball) << 4)
-	| (playfield_needs_drawing(tia.playfield, tia.color_clock - 68) << 5);
-}
-
 void racer_tia_advance_clock(racer_tia *tia) {
 	const bool horizontal_blank = tia->color_clock < tia->blank_reset_clock;
 	uint8_t color = horizontal_blank;
@@ -136,17 +32,28 @@ void racer_tia_advance_clock(racer_tia *tia) {
 	// during horizontal blanking/retrace; no need to re-calculate draw state
 	// and update object collisions
 	if (!horizontal_blank) {
-		const uint8_t state = get_draw_state(*tia);
-		tia->collisions |= collisions[state];
+		const uint16_t state = 0x000
+		| (player_needs_drawing(tia->players[0]) << 0)
+		| (player_needs_drawing(tia->players[1]) << 1)
+		| (missile_needs_drawing(tia->missiles[0]) << 2)
+		| (missile_needs_drawing(tia->missiles[1]) << 3)
+		| (ball_needs_drawing(tia->ball) << 4)
+		| (playfield_needs_drawing(tia->playfield, tia->color_clock - 68) << 5)
+		| ((tia->playfield.is_score_mode_on ? 1 : 0) << 6)
+		| ((tia->playfield.has_priority ? 1 : 0) << 7)
+		| (tia->color_clock >= (68+80) << 8);
 		
 		// set output color unless TIA ouputs blank
 		const bool vertical_blank = tia->output_control & TIA_OUTPUT_VERTICAL_BLANK;
 		color |= vertical_blank;
 		
 		if (!vertical_blank) {
-			const int index = object_indexes[state];
-			color |= tia->colors[index];
+			const int index = draw_priorities[state];
+			color = tia->colors[index];
 		}
+		
+		// update collisions
+		tia->collisions |= collisions[state & 0x1f];
 		
 		// advance position counters of graphics objects
 		advance_position(tia->players[0]);
@@ -156,11 +63,8 @@ void racer_tia_advance_clock(racer_tia *tia) {
 		advance_position(tia->ball);
 	}
 	
-	const uint8_t horizontal_sync = tia->color_clock < 68;
-	const uint8_t vertical_sync = tia->output_control & 0x2;
-	const uint16_t signal = ((horizontal_sync | vertical_sync) << 8) | color;
-	
-	tia->write_video_output(tia->output, signal);
+	const uint16_t sync = (tia->output_control & 0x2) | (tia->color_clock < 68);
+	tia->write_video_output(tia->output, (sync << 8) | color);
 	tia->color_clock += 1;
 	
 	// reset scan line
@@ -170,8 +74,7 @@ void racer_tia_advance_clock(racer_tia *tia) {
 		tia->blank_reset_clock = 68;
 		
 		// notify video output horizontal sync started
-		const u_int8_t sync = TIA_OUTPUT_HORIZONTAL_SYNC | vertical_sync;
-		tia->sync_video_output(tia->output, sync);
+		tia->sync_video_output(tia->output, TIA_OUTPUT_HORIZONTAL_SYNC);
 	}
 }
 
@@ -234,10 +137,10 @@ uint8_t racer_tia_read(const racer_tia *tia, uint8_t address) {
 		}
 		case 0x06: {// MARK: cxblpf
 			const uint8_t data = (tia->collisions >> 12) & 0x1;
-			return (data << 7) | address;
+			return (data << 6) | address;
 		}
 		case 0x07: {// MARK: cxppmm
-			const uint8_t data = (tia->collisions >> 13) & 0x3;
+			const uint8_t data = (tia->collisions >> 14) & 0x3;
 			return (data << 6) | address;
 		}
 			
@@ -284,8 +187,7 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			
 			// notify video output when vertical sync enabled
 			if (vertical_sync) {
-				const uint8_t sync = vertical_sync | (tia->color_clock < 68);
-				tia->sync_video_output(tia->output, sync);
+				tia->sync_video_output(tia->output, TIA_OUTPUT_VERTICAL_SYNC);
 			}
 			break;
 		}
@@ -320,7 +222,7 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			break;
 			
 		case 0x04: {// MARK: nusiz0
-			const int *mode = copy_modes[data & 0x7];
+			const uint16_t *mode = copy_modes[data & 0x7];
 			tia->players[0].copy_mask = mode[0];
 			tia->players[0].scale = mode[1];
 			
@@ -330,7 +232,7 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			break;
 		}
 		case 0x05: {// MARK: nusiz1
-			const int *mode = copy_modes[data & 0x7];
+			const uint16_t *mode = copy_modes[data & 0x7];
 			tia->players[1].copy_mask = mode[0];
 			tia->players[1].scale = mode[1];
 			
@@ -369,10 +271,10 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			break;
 			
 		case 0x0b:	// MARK: refp0
-			set_player_reflected(&tia->players[0], data & 0x8);
+			set_player_reflected(&tia->players[0], !(data & 0x8));
 			break;
 		case 0x0c:	// MARK: refp1
-			set_player_reflected(&tia->players[1], data & 0x8);
+			set_player_reflected(&tia->players[1], !(data & 0x8));
 			break;
 		case 0x10:	// MARK: resp0
 			reset_position(tia->players[0]);

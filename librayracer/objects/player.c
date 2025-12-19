@@ -6,7 +6,7 @@
 //
 
 #include "player.h"
-#include "object.h"
+#include "../graphics.h"
 
 void set_player_graphics(racer_player* player, int graphics) {
 	if (player->is_reflected) {

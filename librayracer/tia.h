@@ -36,7 +36,7 @@ typedef struct {
 	 *
 	 * This function is always called before writing the first signal of a field or scan line.
 	 */
-	void (*sync_video_output)(const void *output, uint8_t sync);
+	void (*sync_video_output)(const void *output, racer_tia_output_sync sync);
 	
 	/**
 	 * Writes the specified video signal value to the video output.
@@ -82,7 +82,6 @@ typedef struct {
 	uint8_t input_latch;
 } racer_tia;
 
-void racer_tia_init(void);
 void racer_tia_reset(racer_tia *tia);
 void racer_tia_advance_clock(racer_tia *tia);
 

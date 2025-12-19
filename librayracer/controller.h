@@ -15,7 +15,7 @@ typedef enum {
 	JOYSTICK_BUTTON_DOWN = 1<<1,
 	JOYSTICK_BUTTON_LEFT = 1<<2,
 	JOYSTICK_BUTTON_RIGHT = 1<<3,
-	JOYSTICK_BUTTON_FIRE = 1<<5,
+	JOYSTICK_BUTTON_FIRE = 1<<4,
 } racer_joystick_button;
 
 void racer_joysticks_write_output(racer_atari2600 *console, const uint8_t buttons[2]);
