@@ -12,107 +12,6 @@
 #include "flags.h"
 
 // MARK: -
-// MARK: Drawing
-static uint16_t get_graphics_state(const racer_tia *tia) {
-	// right screen half
-	const int position = tia->color_clock - 68;
-	uint16_t state = position >= 80;
-	
-	// playfield score mode and priority
-	state |= (tia->playfield.control & 0x6);
-	
-	// graphics objects
-	state |= player_needs_drawing(&tia->players[0]) << 3;
-	state |= player_needs_drawing(&tia->players[1]) << 4;
-	state |= missile_needs_drawing(&tia->missiles[0]) << 5;
-	state |= missile_needs_drawing(&tia->missiles[1]) << 6;
-	state |= ball_needs_drawing(&tia->ball) << 7;
-	state |= playfield_needs_drawing(&tia->playfield, position) << 8;
-	
-	return state;
-}
-
-#define RIGHT_SCREEN_HALF (1<<0)
-#define PLAYER_0 (1<<3)
-#define PLAYER_1 (1<<4)
-#define MISSILE_0 (1<<5)
-#define MISSILE_1 (1<<6)
-#define BALL (1<<7)
-#define PLAYFIELD (1<<8)
-
-static int get_color_index(uint16_t state) {
-	if ((state & (PLAYFIELD | PLAYFIELD_SCORE_MODE | PLAYFIELD_PRIORITY)) ==
-		(PLAYFIELD | PLAYFIELD_PRIORITY)) {
-		// playfield priority (score mode off)
-		return 2;
-	} else if (state & (PLAYER_0 | MISSILE_0)) {
-		// player 0/missile 0
-		return 0;
-	} else if (state & (PLAYER_1 | MISSILE_1)) {
-		// player 1/missile 1
-		return 1;
-	} else if (state & BALL) {
-		// ball
-		return 2;
-	} else if (state & PLAYFIELD) {
-		if (state & PLAYFIELD_SCORE_MODE) {
-			// score mode (players)
-			return (state & RIGHT_SCREEN_HALF) ? 1 : 0;
-		} else {
-			// playefield
-			return 2;
-		}
-	} else {
-		// background
-		return 3;
-	}
-}
-
-#define collide(state, object1, object2) \
-((state & (object1 | object2)) == (object1 | object2))
-
-static uint16_t get_collisions(uint16_t state) {
-	// cxm0p
-	return collide(state, MISSILE_0, PLAYER_0)
-	| collide(state, MISSILE_0, PLAYER_1) << 1
-	// cxm1p
-	| collide(state, MISSILE_1, PLAYER_1) << 2
-	| collide(state, MISSILE_1, PLAYER_0) << 3
-	// cxp0fb
-	| collide(state, PLAYER_0, BALL) << 4
-	| collide(state, PLAYER_0, PLAYFIELD) << 5
-	// cxp1fb
-	| collide(state, PLAYER_1, BALL) << 6
-	| collide(state, PLAYER_1, PLAYFIELD) << 7
-	// cxm0fb
-	| collide(state, MISSILE_0, BALL) << 8
-	| collide(state, MISSILE_0, PLAYFIELD) << 9
-	// cxm1fb
-	| collide(state, MISSILE_1, BALL) << 10
-	| collide(state, MISSILE_1, PLAYFIELD) << 11
-	// cxblpf
-	| collide(state, BALL, PLAYFIELD) << 12
-	// cxppmm
-	| collide(state, MISSILE_0, MISSILE_1) << 14
-	| collide(state, PLAYER_0, PLAYER_1) << 15;
-}
-
-static uint8_t color_indexes[0x200];
-static uint16_t collisions[0x40];
-static uint8_t reflections[0x100];
-
-static const uint16_t copy_modes[][2] = {
-	{0x001, 0},	// ●○○○○○○○○○
-	{0x005, 0},	// ●○●○○○○○○○
-	{0x011, 0},	// ●○○●○○○○○○
-	{0x015, 0},	// ●○●○●○○○○○
-	{0x101, 0},	// ●○○○○○○○●○
-	{0x001, 1},	// ●●○○○○○○○○
-	{0x111, 0},	// ●○○○●○○○●○
-	{0x001, 2}	// ●●●●○○○○○○
-};
-
-// MARK: -
 // MARK: Input port
 void racer_tia_write_port(racer_tia *tia, uint8_t data) {
 	// latch 0 on pins 4,5 when port latch enabled
@@ -120,6 +19,7 @@ void racer_tia_write_port(racer_tia *tia, uint8_t data) {
 		tia->input_latch &= (data & 0xc0);
 	}
 }
+
 
 // MARK: -
 // MARK: Bus
@@ -144,6 +44,9 @@ static void apply_motion(racer_tia *tia) {
 	move(tia->missiles[1], ripples);
 	move(tia->ball, ripples);
 }
+
+static uint8_t color_indexes[0x200];
+static uint16_t collisions[0x40];
 
 uint8_t racer_tia_read(const racer_tia *tia, uint8_t address) {
 	switch (address % 0x10) {
@@ -214,6 +117,18 @@ uint8_t racer_tia_read(const racer_tia *tia, uint8_t address) {
 			return arc4random_uniform(0x100);
 	}
 }
+
+static uint8_t reflections[0x100];
+static uint16_t copy_modes[][2] = {
+	{0x001, 0},	// ●○○○○○○○○○
+	{0x005, 0},	// ●○●○○○○○○○
+	{0x011, 0},	// ●○○●○○○○○○
+	{0x015, 0},	// ●○●○●○○○○○
+	{0x101, 0},	// ●○○○○○○○●○
+	{0x001, 1},	// ●●○○○○○○○○
+	{0x111, 0},	// ●○○○●○○○●○
+	{0x001, 2}	// ●●●●○○○○○○
+};
 
 void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 	switch (address) {
@@ -436,6 +351,94 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			break;
 	}
 }
+
+
+// MARK: -
+// MARK: Drawing
+static uint16_t get_graphics_state(const racer_tia *tia) {
+	// right screen half
+	const int position = tia->color_clock - 68;
+	uint16_t state = position >= 80;
+	
+	// playfield score mode and priority
+	state |= (tia->playfield.control & 0x6);
+	
+	// graphics objects
+	state |= player_needs_drawing(&tia->players[0]) << 3;
+	state |= player_needs_drawing(&tia->players[1]) << 4;
+	state |= missile_needs_drawing(&tia->missiles[0]) << 5;
+	state |= missile_needs_drawing(&tia->missiles[1]) << 6;
+	state |= ball_needs_drawing(&tia->ball) << 7;
+	state |= playfield_needs_drawing(&tia->playfield, position) << 8;
+	
+	return state;
+}
+
+#define RIGHT_SCREEN_HALF (1<<0)
+#define PLAYER_0 (1<<3)
+#define PLAYER_1 (1<<4)
+#define MISSILE_0 (1<<5)
+#define MISSILE_1 (1<<6)
+#define BALL (1<<7)
+#define PLAYFIELD (1<<8)
+
+static int get_color_index(uint16_t state) {
+	if ((state & (PLAYFIELD | PLAYFIELD_SCORE_MODE | PLAYFIELD_PRIORITY)) ==
+		(PLAYFIELD | PLAYFIELD_PRIORITY)) {
+		// playfield priority (score mode off)
+		return 2;
+	} else if (state & (PLAYER_0 | MISSILE_0)) {
+		// player 0/missile 0
+		return 0;
+	} else if (state & (PLAYER_1 | MISSILE_1)) {
+		// player 1/missile 1
+		return 1;
+	} else if (state & BALL) {
+		// ball
+		return 2;
+	} else if (state & PLAYFIELD) {
+		if (state & PLAYFIELD_SCORE_MODE) {
+			// score mode (players)
+			return (state & RIGHT_SCREEN_HALF) ? 1 : 0;
+		} else {
+			// playefield
+			return 2;
+		}
+	} else {
+		// background
+		return 3;
+	}
+}
+
+#define collide(state, object1, object2) \
+((state & (object1 | object2)) == (object1 | object2))
+
+static uint16_t get_collisions(uint16_t state) {
+	// cxm0p
+	return collide(state, MISSILE_0, PLAYER_0)
+	| collide(state, MISSILE_0, PLAYER_1) << 1
+	// cxm1p
+	| collide(state, MISSILE_1, PLAYER_1) << 2
+	| collide(state, MISSILE_1, PLAYER_0) << 3
+	// cxp0fb
+	| collide(state, PLAYER_0, BALL) << 4
+	| collide(state, PLAYER_0, PLAYFIELD) << 5
+	// cxp1fb
+	| collide(state, PLAYER_1, BALL) << 6
+	| collide(state, PLAYER_1, PLAYFIELD) << 7
+	// cxm0fb
+	| collide(state, MISSILE_0, BALL) << 8
+	| collide(state, MISSILE_0, PLAYFIELD) << 9
+	// cxm1fb
+	| collide(state, MISSILE_1, BALL) << 10
+	| collide(state, MISSILE_1, PLAYFIELD) << 11
+	// cxblpf
+	| collide(state, BALL, PLAYFIELD) << 12
+	// cxppmm
+	| collide(state, MISSILE_0, MISSILE_1) << 14
+	| collide(state, PLAYER_0, PLAYER_1) << 15;
+}
+
 
 // MARK: -
 void racer_tia_reset(racer_tia *tia) {
