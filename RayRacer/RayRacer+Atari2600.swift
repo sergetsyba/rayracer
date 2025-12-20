@@ -19,7 +19,7 @@ class Atari2600 {
 	
 	init() {
 		self.console = racer_atari2600_create()!
-		racer_init()
+		racer_init_graphics();
 		
 		self.console.pointee
 			.tia.pointee

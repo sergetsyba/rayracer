@@ -8,10 +8,7 @@
 #ifndef tia_h
 #define tia_h
 
-#include "objects/player.h"
-#include "objects/missile.h"
-#include "objects/ball.h"
-#include "objects/playfield.h"
+#include "graphics.h"
 
 typedef enum {
 	TIA_OUTPUT_HORIZONTAL_SYNC = 1<<0,
@@ -30,6 +27,27 @@ typedef struct {
 	
 	bool *is_ready;
 	int blank_reset_clock;
+	
+	/**
+	 * Reads data from the specified peripheral, connected to input port (pins I0-I5).
+	 *
+	 * When bit 6 of VBLANK register is set to 0, reading data at addresses $0x8-$0xd will read
+	 * peripheral and return value from the corresponding pin.
+	 * Otherwise, values on pins I4-I5 are latched whenever peripheral writes to input port. In this case,
+	 * reading data at addresses $0x8-$0xb reads peripheral on pins I0-I3, and reading data at
+	 * addresses $0x8-$0xb returns latched values.
+	 */
+	uint8_t (*read_port)(const void *peripheral);
+	void *peripheral;
+	
+	/**
+	 * Peripheral input control flags.
+	 *
+	 * Bit 6 denotes whether input on pins I4-I5 is latched.
+	 * Bit 7 denotes whether pins I0-I3 are grounded.
+	 */
+	uint8_t input_control;
+	uint8_t input_latch;
 	
 	/**
 	 * Notifies video output once TIA begins vertical or horizontal sync.
@@ -59,31 +77,11 @@ typedef struct {
 	 * Bit 1 denotes whether vertical sync is on.
 	 */
 	uint8_t output_control;
-	
-	/**
-	 * Reads data from the specified peripheral, connected to input port (pins I0-I5).
-	 *
-	 * When bit 6 of VBLANK register is set to 0, reading data at addresses $0x8-$0xd will read
-	 * peripheral and return value from the corresponding pin.
-	 * Otherwise, values on pins I4-I5 are latched whenever peripheral writes to input port. In this case,
-	 * reading data at addresses $0x8-$0xb reads peripheral on pins I0-I3, and reading data at
-	 * addresses $0x8-$0xb returns latched values.
-	 */
-	uint8_t (*read_port)(const void *peripheral);
-	void *peripheral;
-	
-	/**
-	 * Peripheral input control flags.
-	 *
-	 * Bit 6 denotes whether input on pins I4-I5 is latched.
-	 * Bit 7 denotes whether pins I0-I3 are grounded.
-	 */
-	uint8_t input_control;
-	uint8_t input_latch;
 } racer_tia;
 
-void racer_tia_reset(racer_tia *tia);
-void racer_tia_advance_clock(racer_tia *tia);
+#define TIA_INPUT_PORT_LATCH (1<<6)
+#define TIA_INPUT_PORT_DUMP (1<<7)
+#define TIA_OUTPUT_VERTICAL_BLANK (1<<0)
 
 /**
  * Writes the specified data to the TIA input port (pins I0-I5).
@@ -96,12 +94,9 @@ void racer_tia_write_port(racer_tia *tia, uint8_t data);
 uint8_t racer_tia_read(const racer_tia *tia, uint8_t address);
 void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data);
 
+void racer_tia_reset(racer_tia *tia);
+void racer_tia_advance_clock(racer_tia *tia);
 
-// MARK: -
-// MARK: Output control flags
-#define TIA_INPUT_PORT_LATCH (1<<6)
-#define TIA_INPUT_PORT_DUMP (1<<7)
-
-#define TIA_OUTPUT_VERTICAL_BLANK (1<<0)
+void racer_init_graphics(void);
 
 #endif /* tia_h */

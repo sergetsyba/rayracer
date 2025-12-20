@@ -41,16 +41,7 @@
 		9593159E2C72175000DC50A9 /* Screen.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9593159D2C72175000DC50A9 /* Screen.metal */; };
 		959E104F2C2314AE00E02CE6 /* DebugColorTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959E104E2C2314AE00E02CE6 /* DebugColorTableCellView.swift */; };
 		95A39E2E2ECDF3300020CEFB /* tia.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9DC2ECDA8E600998642 /* tia.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		95A39E2F2ECDF3300020CEFB /* ball.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9E22ECDAB2500998642 /* ball.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		95A39E302ECDF3300020CEFB /* missile.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9E72ECDACE500998642 /* missile.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		95A39E312ECDF3300020CEFB /* player.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9EC2ECDAEC300998642 /* player.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		95A39E322ECDF3300020CEFB /* playfield.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9F12ECDB2ED00998642 /* playfield.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		95A39E332ECDF3300020CEFB /* object.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9F62ECDC47300998642 /* object.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		95A39E342ECDF33B0020CEFB /* tia.c in Sources */ = {isa = PBXBuildFile; fileRef = 9500F9DD2ECDA8E600998642 /* tia.c */; };
-		95A39E352ECDF33B0020CEFB /* ball.c in Sources */ = {isa = PBXBuildFile; fileRef = 9500F9E32ECDAB2500998642 /* ball.c */; };
-		95A39E362ECDF33B0020CEFB /* missile.c in Sources */ = {isa = PBXBuildFile; fileRef = 9500F9E82ECDACE500998642 /* missile.c */; };
-		95A39E372ECDF33B0020CEFB /* player.c in Sources */ = {isa = PBXBuildFile; fileRef = 9500F9ED2ECDAEC300998642 /* player.c */; };
-		95A39E382ECDF33B0020CEFB /* playfield.c in Sources */ = {isa = PBXBuildFile; fileRef = 9500F9F22ECDB2ED00998642 /* playfield.c */; };
 		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
@@ -94,15 +85,6 @@
 /* Begin PBXFileReference section */
 		9500F9DC2ECDA8E600998642 /* tia.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tia.h; sourceTree = "<group>"; };
 		9500F9DD2ECDA8E600998642 /* tia.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tia.c; sourceTree = "<group>"; };
-		9500F9E22ECDAB2500998642 /* ball.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ball.h; sourceTree = "<group>"; };
-		9500F9E32ECDAB2500998642 /* ball.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ball.c; sourceTree = "<group>"; };
-		9500F9E72ECDACE500998642 /* missile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = missile.h; sourceTree = "<group>"; };
-		9500F9E82ECDACE500998642 /* missile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = missile.c; sourceTree = "<group>"; };
-		9500F9EC2ECDAEC300998642 /* player.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = player.h; sourceTree = "<group>"; };
-		9500F9ED2ECDAEC300998642 /* player.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = player.c; sourceTree = "<group>"; };
-		9500F9F12ECDB2ED00998642 /* playfield.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = playfield.h; sourceTree = "<group>"; };
-		9500F9F22ECDB2ED00998642 /* playfield.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = playfield.c; sourceTree = "<group>"; };
-		9500F9F62ECDC47300998642 /* object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = object.h; sourceTree = "<group>"; };
 		9500F9FA2ECDCAF800998642 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		9503F0D52CB1B16700C71436 /* MultiStepperView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MultiStepperView.xib; sourceTree = "<group>"; };
 		9503F0D72CB1B2BA00C71436 /* MultiStepperViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiStepperViewController.swift; sourceTree = "<group>"; };
@@ -187,7 +169,6 @@
 				95AE0B712EDB22EB0039E328 /* mcs6532.h */,
 				95AE0B722EDB22EB0039E328 /* mcs6532.c */,
 				9500F9FA2ECDCAF800998642 /* module.modulemap */,
-				95D4716E2ED04DA0002AB93C /* objects */,
 				9500F9DC2ECDA8E600998642 /* tia.h */,
 				9500F9DD2ECDA8E600998642 /* tia.c */,
 			);
@@ -256,22 +237,6 @@
 			path = Debugger;
 			sourceTree = "<group>";
 		};
-		95D4716E2ED04DA0002AB93C /* objects */ = {
-			isa = PBXGroup;
-			children = (
-				9500F9E22ECDAB2500998642 /* ball.h */,
-				9500F9E32ECDAB2500998642 /* ball.c */,
-				9500F9E72ECDACE500998642 /* missile.h */,
-				9500F9E82ECDACE500998642 /* missile.c */,
-				9500F9F62ECDC47300998642 /* object.h */,
-				9500F9EC2ECDAEC300998642 /* player.h */,
-				9500F9ED2ECDAEC300998642 /* player.c */,
-				9500F9F12ECDB2ED00998642 /* playfield.h */,
-				9500F9F22ECDB2ED00998642 /* playfield.c */,
-			);
-			path = objects;
-			sourceTree = "<group>";
-		};
 		95F23A682C8455D70074E4DF /* Screen */ = {
 			isa = PBXGroup;
 			children = (
@@ -296,14 +261,9 @@
 				9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */,
 				95AE89E42EF143870019AEED /* controller.h in Headers */,
 				95A39E2E2ECDF3300020CEFB /* tia.h in Headers */,
-				95A39E2F2ECDF3300020CEFB /* ball.h in Headers */,
 				950D71642EF42C05008D18BD /* graphics.h in Headers */,
-				95A39E302ECDF3300020CEFB /* missile.h in Headers */,
-				95A39E312ECDF3300020CEFB /* player.h in Headers */,
 				95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */,
-				95A39E322ECDF3300020CEFB /* playfield.h in Headers */,
 				95D471702ED05F42002AB93C /* flags.h in Headers */,
-				95A39E332ECDF3300020CEFB /* object.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -448,11 +408,7 @@
 				950D71632EF42C05008D18BD /* graphics.c in Sources */,
 				9519F9D32EE2C5B6007D1626 /* atari2600.c in Sources */,
 				95A39E342ECDF33B0020CEFB /* tia.c in Sources */,
-				95A39E352ECDF33B0020CEFB /* ball.c in Sources */,
-				95A39E362ECDF33B0020CEFB /* missile.c in Sources */,
-				95A39E372ECDF33B0020CEFB /* player.c in Sources */,
 				95F8B1162EF3070600A637FA /* controller.c in Sources */,
-				95A39E382ECDF33B0020CEFB /* playfield.c in Sources */,
 				951746E92ED7052800D346CD /* mcs6507.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
