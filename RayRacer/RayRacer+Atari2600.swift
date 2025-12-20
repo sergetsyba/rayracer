@@ -14,6 +14,27 @@ class Atari2600 {
 	var controllers: (Joystick?, Joystick?)
 	var output: VideoOutput?
 	
+	var cartridge: Data! {
+		didSet {
+			self.cartridge.withUnsafeBytes() {
+				let size = self.cartridge.count
+				if let data = $0.bindMemory(to: UInt8.self).baseAddress {
+					let type: CartridgeType
+					switch size {
+					case 2048:
+						type = ._2kb
+					case 4096:
+						type = ._4kb
+					default:
+						fatalError("unsupported cartridge type")
+					}
+					
+					racer_atari2600_insert_cartridge(self.console, type, data)
+				}
+			}
+		}
+	}
+	
 	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
 	private var state: State = .suspended(.normal)
 	
@@ -117,30 +138,20 @@ extension Atari2600 {
 
 // MARK: -
 // MARK: Cartridges
+typealias CartridgeType = racer_cartridge_type
+
+extension CartridgeType: @retroactive SetAlgebra {}
+extension CartridgeType: @retroactive ExpressibleByArrayLiteral {}
+extension CartridgeType: @retroactive OptionSet {
+	static let _2kb = CARTRIDGE_2KB
+	static let _4kb = CARTRIDGE_4KB
+}
+
 extension Atari2600 {
-	var cartridge: Data? {
-		get {
-			guard let program = self.console.pointee.program else {
-				return nil
-			}
-			
-			return Data(bytesNoCopy: program, count: 4096, deallocator: .none)
-		}
-		set {
-			guard let data = newValue else {
-				fatalError("no cartridge data")
-			}
-			
-			data.withUnsafeBytes() {
-				if let pointer = $0.baseAddress?.assumingMemoryBound(to: UInt8.self) {
-					racer_atari2600_insert_cartridge(self.console, pointer, data.count)
-				}
-			}
-		}
-	}
-	
 	var programId: String? {
-		let program = self.cartridge!
+		guard let program = self.cartridge else {
+			return nil
+		}
 		return Insecure.MD5
 			.hash(data: program)
 			.map() { String(format: "%02x", $0) }

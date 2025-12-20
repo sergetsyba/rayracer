@@ -31,6 +31,9 @@
 		954E3CD22C285184009218CB /* DebugSectionTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */; };
 		954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */; };
 		955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */; };
+		95583AFD2EF6EE680000CB1B /* cartridge.c in Sources */ = {isa = PBXBuildFile; fileRef = 95583AFC2EF6EE680000CB1B /* cartridge.c */; };
+		95583AFE2EF6EE680000CB1B /* cartridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 95583AFB2EF6EE680000CB1B /* cartridge.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		95583AFF2EF6EE680000CB1B /* cartridge.c in Sources */ = {isa = PBXBuildFile; fileRef = 95583AFC2EF6EE680000CB1B /* cartridge.c */; };
 		955B4BEB2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955B4BEA2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift */; };
 		955BED7C2E13E14300577348 /* GraphicsSyncCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */; };
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
@@ -109,6 +112,8 @@
 		954E3CD12C285184009218CB /* DebugSectionTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSectionTableCellView.swift; sourceTree = "<group>"; };
 		954E3CD32C2851B6009218CB /* DebugValueTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugValueTableCellView.swift; sourceTree = "<group>"; };
 		955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSFont+Constants.swift"; sourceTree = "<group>"; };
+		95583AFB2EF6EE680000CB1B /* cartridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cartridge.h; sourceTree = "<group>"; };
+		95583AFC2EF6EE680000CB1B /* cartridge.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cartridge.c; sourceTree = "<group>"; };
 		955B4BEA2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+MainMenu.swift"; sourceTree = "<group>"; };
 		955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphicsSyncCounter.swift; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
@@ -159,6 +164,8 @@
 			children = (
 				9519F9D02EE2C5B6007D1626 /* atari2600.h */,
 				9519F9D12EE2C5B6007D1626 /* atari2600.c */,
+				95583AFB2EF6EE680000CB1B /* cartridge.h */,
+				95583AFC2EF6EE680000CB1B /* cartridge.c */,
 				95AE89E12EF143870019AEED /* controller.h */,
 				95F8B1132EF3070600A637FA /* controller.c */,
 				95D4716F2ED05F42002AB93C /* flags.h */,
@@ -259,6 +266,7 @@
 			files = (
 				9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */,
 				95AE89E42EF143870019AEED /* controller.h in Headers */,
+				95583AFE2EF6EE680000CB1B /* cartridge.h in Headers */,
 				95D471702ED05F42002AB93C /* flags.h in Headers */,
 				950D71642EF42C05008D18BD /* graphics.h in Headers */,
 				951746E82ED7052800D346CD /* mcs6507.h in Headers */,
@@ -369,6 +377,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */,
+				95583AFF2EF6EE680000CB1B /* cartridge.c in Sources */,
 				955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */,
 				958DCCCF2EEFEDA5008772F1 /* MOS6507+Assembly.swift in Sources */,
 				951CC4FE2A58723300537CD1 /* FormView.swift in Sources */,
@@ -406,6 +415,7 @@
 			files = (
 				9519F9D32EE2C5B6007D1626 /* atari2600.c in Sources */,
 				95F8B1162EF3070600A637FA /* controller.c in Sources */,
+				95583AFD2EF6EE680000CB1B /* cartridge.c in Sources */,
 				950D71632EF42C05008D18BD /* graphics.c in Sources */,
 				95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */,
 				951746E92ED7052800D346CD /* mcs6507.c in Sources */,

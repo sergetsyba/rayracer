@@ -6,6 +6,7 @@
 //
 
 #include "atari2600.h"
+#include "cartridge.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,10 +15,10 @@
 
 // MARK: -
 // MARK: Bus
-static int read_bus(void *bus, int address) {
+static uint8_t read_bus(void *bus, int address) {
 	racer_atari2600 *console = (racer_atari2600 *)bus;
-	if (address & (1<<12)) {
-		return console->program[address & 0x0fff];
+	if (address & 0x1000) {
+		return console->read_cartridge(console->cartridge, address & 0xfff);
 	} else if ((address & 0x280) == 0x280) {
 		return racer_mcs6532_read(console->riot, address & 0x1f);
 	} else if ((address & 0x80) == 0x80) {
@@ -27,7 +28,7 @@ static int read_bus(void *bus, int address) {
 	}
 }
 
-static void write_bus(void *bus, int address, int data) {
+static void write_bus(void *bus, int address, uint8_t data) {
 	racer_atari2600 *console = (racer_atari2600 *)bus;
 	
 	if ((address & 0xf000) == 0xf000) {
@@ -106,26 +107,24 @@ racer_atari2600 *racer_atari2600_create(void) {
 	console->tia->peripheral = console;
 	console->tia->read_port = tia_read_controllers;
 	
-	console->program = malloc(4096 * sizeof(uint8_t));
 	return console;
 }
 
-void racer_atari2600_insert_cartridge(racer_atari2600 *console, const uint8_t *data, size_t size) {
-	switch (size) {
-		case 2048:
-			// 2K cartridge
-			memcpy(console->program, data, size);
-			memcpy(console->program + size, data, size);
+void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_type cartridge, const uint8_t *data) {
+	switch (cartridge) {
+		case CARTRIDGE_2KB:
+			console->read_cartridge = read_2kb_cartridge;
+			console->cartridge = (void *)data;
 			break;
 			
-		case 4096:
-			// 4K cartridge
-			memcpy(console->program, data, size);
+		case CARTRIDGE_4KB:
+			console->read_cartridge = read_4kb_cartridge;
+			console->cartridge = (void *)data;
 			break;
 			
 		default:
-			printf("insert cartridge: unsupport cartridge size: %zu\n", size);
-			break;
+			printf("insert cartridge: unsupport cartridge type: %d\n", cartridge);
+			return;
 	}
 }
 

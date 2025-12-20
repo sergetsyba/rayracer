@@ -22,18 +22,25 @@ typedef enum {
 	ATARI2600_SWITCH_DIFFICULTY_1 = 1<<7
 } racer_atari2600_switch;
 
+typedef enum {
+	CARTRIDGE_2KB,
+	CARTRIDGE_4KB
+} racer_cartridge_type;
+
 typedef struct {
 	racer_mcs6507 *mpu;
 	racer_mcs6532 *riot;
 	racer_tia *tia;
 	
-	uint8_t *program;
 	uint8_t switches[2];
 	uint8_t input;
+	
+	uint8_t (*read_cartridge)(void *cartridge, int address);
+	void *cartridge;
 } racer_atari2600;
 
 racer_atari2600 *racer_atari2600_create(void);
-void racer_atari2600_insert_cartridge(racer_atari2600 *console, const uint8_t *data, size_t size);
+void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_type cartridge, const uint8_t *data);
 void racer_atari2600_reset(racer_atari2600 *console);
 void racer_atari2600_advance_clock(racer_atari2600 *console);
 

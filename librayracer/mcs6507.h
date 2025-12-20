@@ -8,6 +8,7 @@
 #ifndef mcs6507_h
 #define mcs6507_h
 
+#include <stdint.h>
 #include <stdbool.h>
 
 typedef struct {
@@ -39,8 +40,8 @@ typedef struct {
 	int program_counter;
 	
 	void *bus;
-	int (*read_bus)(void *bus, int address);
-	void (*write_bus)(void *bus, int address, int data);
+	uint8_t (*read_bus)(void *bus, int address);
+	void (*write_bus)(void *bus, int address, uint8_t data);
 	
 	decoded operation;
 	int operation_clock;
