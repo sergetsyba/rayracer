@@ -13,13 +13,13 @@
 		950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641E22A39CDAB00938403 /* BreakpointToggle.swift */; };
 		950D71612EF42C05008D18BD /* graphics.c in Sources */ = {isa = PBXBuildFile; fileRef = 950D71602EF42C05008D18BD /* graphics.c */; };
 		950D71632EF42C05008D18BD /* graphics.c in Sources */ = {isa = PBXBuildFile; fileRef = 950D71602EF42C05008D18BD /* graphics.c */; };
-		950D71642EF42C05008D18BD /* graphics.h in Headers */ = {isa = PBXBuildFile; fileRef = 950D715F2EF42C05008D18BD /* graphics.h */; };
+		950D71642EF42C05008D18BD /* graphics.h in Headers */ = {isa = PBXBuildFile; fileRef = 950D715F2EF42C05008D18BD /* graphics.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9515FD372EC3DCAE00490D74 /* FrameCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9515FD362EC3DCAE00490D74 /* FrameCounter.swift */; };
-		951746E82ED7052800D346CD /* mcs6507.h in Headers */ = {isa = PBXBuildFile; fileRef = 951746E62ED7052800D346CD /* mcs6507.h */; };
+		951746E82ED7052800D346CD /* mcs6507.h in Headers */ = {isa = PBXBuildFile; fileRef = 951746E62ED7052800D346CD /* mcs6507.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		951746E92ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
 		951746EB2ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
 		9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */; };
-		9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */ = {isa = PBXBuildFile; fileRef = 9519F9D02EE2C5B6007D1626 /* atari2600.h */; };
+		9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */ = {isa = PBXBuildFile; fileRef = 9519F9D02EE2C5B6007D1626 /* atari2600.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9519F9D32EE2C5B6007D1626 /* atari2600.c in Sources */ = {isa = PBXBuildFile; fileRef = 9519F9D12EE2C5B6007D1626 /* atari2600.c */; };
 		9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */ = {isa = PBXBuildFile; fileRef = 9519F9D12EE2C5B6007D1626 /* atari2600.c */; };
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
@@ -47,14 +47,14 @@
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
 		95AE0B732EDB22EB0039E328 /* mcs6532.c in Sources */ = {isa = PBXBuildFile; fileRef = 95AE0B722EDB22EB0039E328 /* mcs6532.c */; };
 		95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */ = {isa = PBXBuildFile; fileRef = 95AE0B722EDB22EB0039E328 /* mcs6532.c */; };
-		95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE0B712EDB22EB0039E328 /* mcs6532.h */; };
-		95AE89E42EF143870019AEED /* controller.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE89E12EF143870019AEED /* controller.h */; };
+		95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE0B712EDB22EB0039E328 /* mcs6532.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		95AE89E42EF143870019AEED /* controller.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE89E12EF143870019AEED /* controller.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */; };
 		95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */; };
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
-		95D471702ED05F42002AB93C /* flags.h in Headers */ = {isa = PBXBuildFile; fileRef = 95D4716F2ED05F42002AB93C /* flags.h */; };
+		95D471702ED05F42002AB93C /* flags.h in Headers */ = {isa = PBXBuildFile; fileRef = 95D4716F2ED05F42002AB93C /* flags.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		95F8B1142EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
 		95F8B1162EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
 /* End PBXBuildFile section */
@@ -257,13 +257,13 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				951746E82ED7052800D346CD /* mcs6507.h in Headers */,
 				9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */,
 				95AE89E42EF143870019AEED /* controller.h in Headers */,
-				95A39E2E2ECDF3300020CEFB /* tia.h in Headers */,
-				950D71642EF42C05008D18BD /* graphics.h in Headers */,
-				95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */,
 				95D471702ED05F42002AB93C /* flags.h in Headers */,
+				950D71642EF42C05008D18BD /* graphics.h in Headers */,
+				951746E82ED7052800D346CD /* mcs6507.h in Headers */,
+				95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */,
+				95A39E2E2ECDF3300020CEFB /* tia.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,7 +316,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1610;
-				LastUpgradeCheck = 2610;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					954A18632A1AEE5800EBC582 = {
 						CreatedOnToolsVersion = 14.3;
@@ -404,12 +404,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */,
-				950D71632EF42C05008D18BD /* graphics.c in Sources */,
 				9519F9D32EE2C5B6007D1626 /* atari2600.c in Sources */,
-				95A39E342ECDF33B0020CEFB /* tia.c in Sources */,
 				95F8B1162EF3070600A637FA /* controller.c in Sources */,
+				950D71632EF42C05008D18BD /* graphics.c in Sources */,
+				95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */,
 				951746E92ED7052800D346CD /* mcs6507.c in Sources */,
+				95A39E342ECDF33B0020CEFB /* tia.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -471,6 +471,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -535,6 +536,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -568,7 +570,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -606,7 +607,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -635,7 +635,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				EXECUTABLE_PREFIX = "";
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
@@ -649,7 +648,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				EXECUTABLE_PREFIX = "";
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
