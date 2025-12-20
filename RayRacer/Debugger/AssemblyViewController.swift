@@ -85,7 +85,7 @@ private extension AssemblyViewController {
 	}
 	
 	func updateView() {
-		if let data = self.console.program {
+		if let data = self.console.cartridge {
 			self.program = MOS6507Assembly.disassemble(data)
 			self.breakpoints = UserDefaults.standard
 				.breakpoints(forGameIdentifier: self.console.programId!)

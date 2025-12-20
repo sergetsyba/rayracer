@@ -106,7 +106,27 @@ racer_atari2600 *racer_atari2600_create(void) {
 	console->tia->peripheral = console;
 	console->tia->read_port = tia_read_controllers;
 	
+	console->program = malloc(4096 * sizeof(uint8_t));
 	return console;
+}
+
+void racer_atari2600_insert_cartridge(racer_atari2600 *console, const uint8_t *data, size_t size) {
+	switch (size) {
+		case 2048:
+			// 2K cartridge
+			memcpy(console->program, data, size);
+			memcpy(console->program + size, data, size);
+			break;
+			
+		case 4096:
+			// 4K cartridge
+			memcpy(console->program, data, size);
+			break;
+			
+		default:
+			printf("insert cartridge: unsupport cartridge size: %zu\n", size);
+			break;
+	}
 }
 
 void racer_atari2600_reset(racer_atari2600 *console) {

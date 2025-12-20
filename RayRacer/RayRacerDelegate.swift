@@ -160,7 +160,7 @@ extension RayRacerDelegate: NSToolbarItemValidation {
 				.stepScanLineToolbarItem,
 				.stepFieldToolbarItem,
 				.resetToolbarItem:
-			return self.console.program != nil
+			return self.console.cartridge != nil
 		default:
 			return false
 		}
@@ -226,8 +226,8 @@ extension RayRacerDelegate {
 			fatalError()
 		}
 		
-		self.console.program = data
 		self.console.switches = self.defaults.consoleSwitches
+		self.console.cartridge = data
 		self.console.reset()
 		
 		NotificationCenter.default.post(name: .reset, object: self)

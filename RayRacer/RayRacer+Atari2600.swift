@@ -118,7 +118,7 @@ extension Atari2600 {
 // MARK: -
 // MARK: Cartridges
 extension Atari2600 {
-	var program: Data? {
+	var cartridge: Data? {
 		get {
 			guard let program = self.console.pointee.program else {
 				return nil
@@ -127,20 +127,20 @@ extension Atari2600 {
 			return Data(bytesNoCopy: program, count: 4096, deallocator: .none)
 		}
 		set {
-			newValue?.withUnsafeBytes() {
-				self.console.pointee.program = malloc($0.count)
-					.assumingMemoryBound(to: CUnsignedChar.self)
-				
-				memcpy(self.console.pointee.program, $0.baseAddress, $0.count)
+			guard let data = newValue else {
+				fatalError("no cartridge data")
+			}
+			
+			data.withUnsafeBytes() {
+				if let pointer = $0.baseAddress?.assumingMemoryBound(to: UInt8.self) {
+					racer_atari2600_insert_cartridge(self.console, pointer, data.count)
+				}
 			}
 		}
 	}
 	
 	var programId: String? {
-		guard let program = self.program else {
-			return nil
-		}
-		
+		let program = self.cartridge!
 		return Insecure.MD5
 			.hash(data: program)
 			.map() { String(format: "%02x", $0) }

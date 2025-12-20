@@ -33,6 +33,7 @@ typedef struct {
 } racer_atari2600;
 
 racer_atari2600 *racer_atari2600_create(void);
+void racer_atari2600_insert_cartridge(racer_atari2600 *console, const uint8_t *data, size_t size);
 void racer_atari2600_reset(racer_atari2600 *console);
 void racer_atari2600_advance_clock(racer_atari2600 *console);
 

@@ -200,7 +200,7 @@ extension DebuggerWindowController: NSToolbarItemValidation {
 				.stepCPUInstructionToolbarItem,
 				.stepTVScanLineToolbarItem,
 				.stepTVFieldToolbarItem:
-			return self.console.program != nil
+			return self.console.cartridge != nil
 			&& self.console.isSuspended(withPriority: .high)
 		default:
 			return false
