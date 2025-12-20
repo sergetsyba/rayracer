@@ -3,26 +3,26 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9502E5972A423296007A32DA /* MOS6507+Assembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9502E5962A423296007A32DA /* MOS6507+Assembly.swift */; };
 		9503F0D62CB1B16700C71436 /* MultiStepperView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9503F0D52CB1B16700C71436 /* MultiStepperView.xib */; };
 		9503F0D82CB1B2BA00C71436 /* MultiStepperViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9503F0D72CB1B2BA00C71436 /* MultiStepperViewController.swift */; };
 		950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641DE2A39C4E700938403 /* AssemblyAddressCellView.swift */; };
 		950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950641E22A39CDAB00938403 /* BreakpointToggle.swift */; };
-		950A64A12C4BCD3C007D4362 /* Addressable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950A64A02C4BCD3C007D4362 /* Addressable.swift */; };
-		9512A7F42D0F0A5E009EB065 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
-		9512A7F52D0F0A5E009EB065 /* RayRacerKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		950D71612EF42C05008D18BD /* graphics.c in Sources */ = {isa = PBXBuildFile; fileRef = 950D71602EF42C05008D18BD /* graphics.c */; };
+		950D71632EF42C05008D18BD /* graphics.c in Sources */ = {isa = PBXBuildFile; fileRef = 950D71602EF42C05008D18BD /* graphics.c */; };
+		950D71642EF42C05008D18BD /* graphics.h in Headers */ = {isa = PBXBuildFile; fileRef = 950D715F2EF42C05008D18BD /* graphics.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9515FD372EC3DCAE00490D74 /* FrameCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9515FD362EC3DCAE00490D74 /* FrameCounter.swift */; };
+		951746E82ED7052800D346CD /* mcs6507.h in Headers */ = {isa = PBXBuildFile; fileRef = 951746E62ED7052800D346CD /* mcs6507.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		951746E92ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
+		951746EB2ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
 		9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */; };
+		9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */ = {isa = PBXBuildFile; fileRef = 9519F9D02EE2C5B6007D1626 /* atari2600.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9519F9D32EE2C5B6007D1626 /* atari2600.c in Sources */ = {isa = PBXBuildFile; fileRef = 9519F9D12EE2C5B6007D1626 /* atari2600.c */; };
+		9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */ = {isa = PBXBuildFile; fileRef = 9519F9D12EE2C5B6007D1626 /* atari2600.c */; };
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
-		9523FDAB2C8D81DB0094A597 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */; };
-		9523FDAC2C8D81DB0094A597 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
-		952C1A292C902E8D00D341D6 /* MOS6507+Status.swift in Sources */ = {isa = PBXBuildFile; fileRef = 952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */; };
-		953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92AE2A1AEB8300EC52AC /* Console.swift */; };
-		953D92B12A1AEB9E00EC52AC /* MOS6507.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953D92B02A1AEB9E00EC52AC /* MOS6507.swift */; };
 		954A18672A1AEE5800EBC582 /* RayRacerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */; };
 		954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 954A18682A1AEE5A00EBC582 /* Assets.xcassets */; };
 		954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = 954A186A2A1AEE5A00EBC582 /* Main.xib */; };
@@ -35,59 +35,37 @@
 		955BED7C2E13E14300577348 /* GraphicsSyncCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */; };
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
 		957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957AADDA2C0B22BB00692B3F /* String+Extensions.swift */; };
-		958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958691B12A4FF61D00C727C0 /* MOS6532.swift */; };
-		958738992CEC89280063C751 /* Console+Switches.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958738982CEC89280063C751 /* Console+Switches.swift */; };
+		958DCCCB2EEFEAC0008772F1 /* librayracer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 95A39E292ECDF3070020CEFB /* librayracer.a */; };
+		958DCCCD2EEFEBB8008772F1 /* RayRacer+Atari2600.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958DCCCC2EEFEBB8008772F1 /* RayRacer+Atari2600.swift */; };
+		958DCCCF2EEFEDA5008772F1 /* MOS6507+Assembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958DCCCE2EEFEDA5008772F1 /* MOS6507+Assembly.swift */; };
 		9593159E2C72175000DC50A9 /* Screen.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9593159D2C72175000DC50A9 /* Screen.metal */; };
-		9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9595FE912A4E02FE00F6F857 /* TIA.swift */; };
 		959E104F2C2314AE00E02CE6 /* DebugColorTableCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959E104E2C2314AE00E02CE6 /* DebugColorTableCellView.swift */; };
-		95A222152C8A000D008176F7 /* TIA+Missile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A222112C8A000C008176F7 /* TIA+Missile.swift */; };
-		95A222162C8A000D008176F7 /* TIA+Ball.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A222122C8A000D008176F7 /* TIA+Ball.swift */; };
-		95A222172C8A000D008176F7 /* TIA+Playfield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A222132C8A000D008176F7 /* TIA+Playfield.swift */; };
-		95A222182C8A000D008176F7 /* TIA+Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A222142C8A000D008176F7 /* TIA+Player.swift */; };
-		95A2FEA02CE8A5D40058F393 /* Joystick.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A2FE9F2CE8A5D40058F393 /* Joystick.swift */; };
-		95A2FEA92CE8AB480058F393 /* RayRacerKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */; };
+		95A39E2E2ECDF3300020CEFB /* tia.h in Headers */ = {isa = PBXBuildFile; fileRef = 9500F9DC2ECDA8E600998642 /* tia.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		95A39E342ECDF33B0020CEFB /* tia.c in Sources */ = {isa = PBXBuildFile; fileRef = 9500F9DD2ECDA8E600998642 /* tia.c */; };
 		95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95A501802A2CFCA400A59616 /* AssemblyView.xib */; };
 		95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */; };
 		95AAAC892A221D5F00B8C9FD /* DebuggerWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */; };
+		95AE0B732EDB22EB0039E328 /* mcs6532.c in Sources */ = {isa = PBXBuildFile; fileRef = 95AE0B722EDB22EB0039E328 /* mcs6532.c */; };
+		95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */ = {isa = PBXBuildFile; fileRef = 95AE0B722EDB22EB0039E328 /* mcs6532.c */; };
+		95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE0B712EDB22EB0039E328 /* mcs6532.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		95AE89E42EF143870019AEED /* controller.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE89E12EF143870019AEED /* controller.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */; };
 		95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */; };
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
-		95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */; };
-		95F5190A2D047F3800C5E8BC /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F519092D047F3800C5E8BC /* Controller.swift */; };
-		95F5190C2D04827900C5E8BC /* Console+ControllerPorts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F5190B2D04827900C5E8BC /* Console+ControllerPorts.swift */; };
-		95F5190E2D0494D400C5E8BC /* NoController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F5190D2D0494D400C5E8BC /* NoController.swift */; };
+		95D471702ED05F42002AB93C /* flags.h in Headers */ = {isa = PBXBuildFile; fileRef = 95D4716F2ED05F42002AB93C /* flags.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		95F8B1142EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
+		95F8B1162EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		9512A7F62D0F0A5E009EB065 /* PBXContainerItemProxy */ = {
+		958DCCC92EEFEA84008772F1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 951E2F7B2A18B11900E6902F /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 953D92A62A1AEB7400EC52AC;
-			remoteInfo = RayRacerKit;
-		};
-		9523FDAD2C8D81DB0094A597 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 951E2F7B2A18B11900E6902F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 953D92A62A1AEB7400EC52AC;
-			remoteInfo = RayRacerKit;
-		};
-		95A2D0052C512C7600440622 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 951E2F7B2A18B11900E6902F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 953D92A62A1AEB7400EC52AC;
-			remoteInfo = 2600Kit;
-		};
-		95A2FEAA2CE8AB480058F393 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 951E2F7B2A18B11900E6902F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 953D92A62A1AEB7400EC52AC;
-			remoteInfo = RayRacerKit;
+			remoteGlobalIDString = 95A39E282ECDF3070020CEFB;
+			remoteInfo = librayracer;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -98,7 +76,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				9512A7F52D0F0A5E009EB065 /* RayRacerKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -106,21 +83,22 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		9502E5962A423296007A32DA /* MOS6507+Assembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MOS6507+Assembly.swift"; sourceTree = "<group>"; };
+		9500F9DC2ECDA8E600998642 /* tia.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tia.h; sourceTree = "<group>"; };
+		9500F9DD2ECDA8E600998642 /* tia.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tia.c; sourceTree = "<group>"; };
+		9500F9FA2ECDCAF800998642 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		9503F0D52CB1B16700C71436 /* MultiStepperView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MultiStepperView.xib; sourceTree = "<group>"; };
 		9503F0D72CB1B2BA00C71436 /* MultiStepperViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiStepperViewController.swift; sourceTree = "<group>"; };
 		950641DE2A39C4E700938403 /* AssemblyAddressCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyAddressCellView.swift; sourceTree = "<group>"; };
 		950641E22A39CDAB00938403 /* BreakpointToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakpointToggle.swift; sourceTree = "<group>"; };
-		950A64A02C4BCD3C007D4362 /* Addressable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Addressable.swift; sourceTree = "<group>"; };
+		950D715F2EF42C05008D18BD /* graphics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphics.h; sourceTree = "<group>"; };
+		950D71602EF42C05008D18BD /* graphics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = graphics.c; sourceTree = "<group>"; };
 		9515FD362EC3DCAE00490D74 /* FrameCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameCounter.swift; sourceTree = "<group>"; };
+		951746E62ED7052800D346CD /* mcs6507.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcs6507.h; sourceTree = "<group>"; };
+		951746E72ED7052800D346CD /* mcs6507.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mcs6507.c; sourceTree = "<group>"; };
 		9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Preferences.swift"; sourceTree = "<group>"; };
+		9519F9D02EE2C5B6007D1626 /* atari2600.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atari2600.h; sourceTree = "<group>"; };
+		9519F9D12EE2C5B6007D1626 /* atari2600.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = atari2600.c; sourceTree = "<group>"; };
 		951CC4FD2A58723300537CD1 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
-		9523FDA82C8D81DB0094A597 /* RayRacerKitPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RayRacerKitPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
-		952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MOS6507+Status.swift"; sourceTree = "<group>"; };
-		953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RayRacerKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		953D92AE2A1AEB8300EC52AC /* Console.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
-		953D92B02A1AEB9E00EC52AC /* MOS6507.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6507.swift; sourceTree = "<group>"; };
 		954202232CB3BB7800AFEC6C /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 		954A18642A1AEE5800EBC582 /* RayRacer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RayRacer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RayRacerDelegate.swift; sourceTree = "<group>"; };
@@ -135,80 +113,73 @@
 		955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphicsSyncCounter.swift; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
 		957AADDA2C0B22BB00692B3F /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
-		958691B12A4FF61D00C727C0 /* MOS6532.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MOS6532.swift; sourceTree = "<group>"; };
-		958738982CEC89280063C751 /* Console+Switches.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Console+Switches.swift"; sourceTree = "<group>"; };
+		958DCCCC2EEFEBB8008772F1 /* RayRacer+Atari2600.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RayRacer+Atari2600.swift"; sourceTree = "<group>"; };
+		958DCCCE2EEFEDA5008772F1 /* MOS6507+Assembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MOS6507+Assembly.swift"; sourceTree = "<group>"; };
 		9593159D2C72175000DC50A9 /* Screen.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Screen.metal; sourceTree = "<group>"; };
-		9595FE912A4E02FE00F6F857 /* TIA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TIA.swift; sourceTree = "<group>"; };
 		959E104E2C2314AE00E02CE6 /* DebugColorTableCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugColorTableCellView.swift; sourceTree = "<group>"; };
-		95A222112C8A000C008176F7 /* TIA+Missile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TIA+Missile.swift"; sourceTree = "<group>"; };
-		95A222122C8A000D008176F7 /* TIA+Ball.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TIA+Ball.swift"; sourceTree = "<group>"; };
-		95A222132C8A000D008176F7 /* TIA+Playfield.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TIA+Playfield.swift"; sourceTree = "<group>"; };
-		95A222142C8A000D008176F7 /* TIA+Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TIA+Player.swift"; sourceTree = "<group>"; };
-		95A2FE9F2CE8A5D40058F393 /* Joystick.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Joystick.swift; sourceTree = "<group>"; };
-		95A2FEA52CE8AB480058F393 /* RayRacerKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RayRacerKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		95A39E292ECDF3070020CEFB /* librayracer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = librayracer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		95A501802A2CFCA400A59616 /* AssemblyView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AssemblyView.xib; sourceTree = "<group>"; };
 		95AAAC862A221D5500B8C9FD /* DebuggerWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggerWindowController.swift; sourceTree = "<group>"; };
 		95AAAC882A221D5F00B8C9FD /* DebuggerWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DebuggerWindow.xib; sourceTree = "<group>"; };
+		95AE0B712EDB22EB0039E328 /* mcs6532.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcs6532.h; sourceTree = "<group>"; };
+		95AE0B722EDB22EB0039E328 /* mcs6532.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mcs6532.c; sourceTree = "<group>"; };
+		95AE89E12EF143870019AEED /* controller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = controller.h; sourceTree = "<group>"; };
 		95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenViewController.swift; sourceTree = "<group>"; };
 		95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ScreenWindow.xib; sourceTree = "<group>"; };
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 		95C918E82C07810000B431C4 /* SystemStateView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SystemStateView.xib; sourceTree = "<group>"; };
 		95C918EA2C07810900B431C4 /* SystemStateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStateViewController.swift; sourceTree = "<group>"; };
+		95D4716F2ED05F42002AB93C /* flags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = flags.h; sourceTree = "<group>"; };
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
 		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
-		95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OptionSet+Subscript.swift"; sourceTree = "<group>"; };
-		95F519092D047F3800C5E8BC /* Controller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controller.swift; sourceTree = "<group>"; };
-		95F5190B2D04827900C5E8BC /* Console+ControllerPorts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Console+ControllerPorts.swift"; sourceTree = "<group>"; };
-		95F5190D2D0494D400C5E8BC /* NoController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoController.swift; sourceTree = "<group>"; };
+		95F8B1132EF3070600A637FA /* controller.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = controller.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		95A2FEA62CE8AB480058F393 /* RayRacerKitTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = RayRacerKitTests; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFrameworksBuildPhase section */
-		9523FDA52C8D81DB0094A597 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				9523FDAC2C8D81DB0094A597 /* RayRacerKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		953D92A42A1AEB7400EC52AC /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		954A18612A1AEE5800EBC582 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9512A7F42D0F0A5E009EB065 /* RayRacerKit.framework in Frameworks */,
+				958DCCCB2EEFEAC0008772F1 /* librayracer.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		95A2FEA22CE8AB480058F393 /* Frameworks */ = {
+		95A39E272ECDF3070020CEFB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				95A2FEA92CE8AB480058F393 /* RayRacerKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9500F9E12ECDA8EC00998642 /* librayracer */ = {
+			isa = PBXGroup;
+			children = (
+				9519F9D02EE2C5B6007D1626 /* atari2600.h */,
+				9519F9D12EE2C5B6007D1626 /* atari2600.c */,
+				95AE89E12EF143870019AEED /* controller.h */,
+				95F8B1132EF3070600A637FA /* controller.c */,
+				95D4716F2ED05F42002AB93C /* flags.h */,
+				950D715F2EF42C05008D18BD /* graphics.h */,
+				950D71602EF42C05008D18BD /* graphics.c */,
+				951746E62ED7052800D346CD /* mcs6507.h */,
+				951746E72ED7052800D346CD /* mcs6507.c */,
+				95AE0B712EDB22EB0039E328 /* mcs6532.h */,
+				95AE0B722EDB22EB0039E328 /* mcs6532.c */,
+				9500F9FA2ECDCAF800998642 /* module.modulemap */,
+				9500F9DC2ECDA8E600998642 /* tia.h */,
+				9500F9DD2ECDA8E600998642 /* tia.c */,
+			);
+			path = librayracer;
+			sourceTree = "<group>";
+		};
 		951E2F7A2A18B11900E6902F = {
 			isa = PBXGroup;
 			children = (
 				954A18652A1AEE5800EBC582 /* RayRacer */,
-				953D92A82A1AEB7400EC52AC /* RayRacerKit */,
-				9523FDA92C8D81DB0094A597 /* RayRacerKitPerfromanceTests */,
-				95A2FEA62CE8AB480058F393 /* RayRacerKitTests */,
-				95F563FD2A42E33E0028A90B /* Frameworks */,
+				9500F9E12ECDA8EC00998642 /* librayracer */,
 				951E2F842A18B11900E6902F /* Products */,
 				954202232CB3BB7800AFEC6C /* Readme.md */,
 			);
@@ -217,48 +188,17 @@
 		951E2F842A18B11900E6902F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */,
 				954A18642A1AEE5800EBC582 /* RayRacer.app */,
-				9523FDA82C8D81DB0094A597 /* RayRacerKitPerformanceTests.xctest */,
-				95A2FEA52CE8AB480058F393 /* RayRacerKitTests.xctest */,
+				95A39E292ECDF3070020CEFB /* librayracer.a */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		9523FDA92C8D81DB0094A597 /* RayRacerKitPerfromanceTests */ = {
-			isa = PBXGroup;
-			children = (
-				9523FDAA2C8D81DB0094A597 /* PerformanceTests.swift */,
-			);
-			path = RayRacerKitPerfromanceTests;
-			sourceTree = "<group>";
-		};
-		953D92A82A1AEB7400EC52AC /* RayRacerKit */ = {
-			isa = PBXGroup;
-			children = (
-				950A64A02C4BCD3C007D4362 /* Addressable.swift */,
-				953D92AE2A1AEB8300EC52AC /* Console.swift */,
-				95F5190B2D04827900C5E8BC /* Console+ControllerPorts.swift */,
-				958738982CEC89280063C751 /* Console+Switches.swift */,
-				95F5190F2D0494DC00C5E8BC /* Controller */,
-				953D92B02A1AEB9E00EC52AC /* MOS6507.swift */,
-				9502E5962A423296007A32DA /* MOS6507+Assembly.swift */,
-				952C1A282C902E8D00D341D6 /* MOS6507+Status.swift */,
-				958691B12A4FF61D00C727C0 /* MOS6532.swift */,
-				9595FE912A4E02FE00F6F857 /* TIA.swift */,
-				95A222122C8A000D008176F7 /* TIA+Ball.swift */,
-				95A222112C8A000C008176F7 /* TIA+Missile.swift */,
-				95A222142C8A000D008176F7 /* TIA+Player.swift */,
-				95A222132C8A000D008176F7 /* TIA+Playfield.swift */,
-				95F394282C96D71A00056A14 /* OptionSet+Subscript.swift */,
-			);
-			path = RayRacerKit;
 			sourceTree = "<group>";
 		};
 		954A18652A1AEE5800EBC582 /* RayRacer */ = {
 			isa = PBXGroup;
 			children = (
 				954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */,
+				958DCCCC2EEFEBB8008772F1 /* RayRacer+Atari2600.swift */,
 				954C4F6F2C9586E20063B170 /* RayRacer+Preferences.swift */,
 				955B4BEA2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift */,
 				954A186A2A1AEE5A00EBC582 /* Main.xib */,
@@ -272,6 +212,7 @@
 		95CE639C2A333365007BD72B /* Debugger */ = {
 			isa = PBXGroup;
 			children = (
+				958DCCCE2EEFEDA5008772F1 /* MOS6507+Assembly.swift */,
 				950641DE2A39C4E700938403 /* AssemblyAddressCellView.swift */,
 				95A501802A2CFCA400A59616 /* AssemblyView.xib */,
 				95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */,
@@ -309,72 +250,26 @@
 			path = Screen;
 			sourceTree = "<group>";
 		};
-		95F5190F2D0494DC00C5E8BC /* Controller */ = {
-			isa = PBXGroup;
-			children = (
-				95F519092D047F3800C5E8BC /* Controller.swift */,
-				95A2FE9F2CE8A5D40058F393 /* Joystick.swift */,
-				95F5190D2D0494D400C5E8BC /* NoController.swift */,
-			);
-			path = Controller;
-			sourceTree = "<group>";
-		};
-		95F563FD2A42E33E0028A90B /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
-		953D92A22A1AEB7400EC52AC /* Headers */ = {
+		95A39E252ECDF3070020CEFB /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */,
+				95AE89E42EF143870019AEED /* controller.h in Headers */,
+				95D471702ED05F42002AB93C /* flags.h in Headers */,
+				950D71642EF42C05008D18BD /* graphics.h in Headers */,
+				951746E82ED7052800D346CD /* mcs6507.h in Headers */,
+				95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */,
+				95A39E2E2ECDF3300020CEFB /* tia.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		9523FDA72C8D81DB0094A597 /* RayRacerKitPerformanceTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 9523FDB12C8D81DB0094A597 /* Build configuration list for PBXNativeTarget "RayRacerKitPerformanceTests" */;
-			buildPhases = (
-				9523FDA42C8D81DB0094A597 /* Sources */,
-				9523FDA52C8D81DB0094A597 /* Frameworks */,
-				9523FDA62C8D81DB0094A597 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				9523FDAE2C8D81DB0094A597 /* PBXTargetDependency */,
-			);
-			name = RayRacerKitPerformanceTests;
-			productName = RayRacerKitTests;
-			productReference = 9523FDA82C8D81DB0094A597 /* RayRacerKitPerformanceTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		953D92A62A1AEB7400EC52AC /* RayRacerKit */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 953D92AB2A1AEB7400EC52AC /* Build configuration list for PBXNativeTarget "RayRacerKit" */;
-			buildPhases = (
-				953D92A22A1AEB7400EC52AC /* Headers */,
-				953D92A32A1AEB7400EC52AC /* Sources */,
-				953D92A42A1AEB7400EC52AC /* Frameworks */,
-				953D92A52A1AEB7400EC52AC /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = RayRacerKit;
-			productName = Atari2600Kit;
-			productReference = 953D92A72A1AEB7400EC52AC /* RayRacerKit.framework */;
-			productType = "com.apple.product-type.framework";
-		};
 		954A18632A1AEE5800EBC582 /* RayRacer */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 954A186E2A1AEE5A00EBC582 /* Build configuration list for PBXNativeTarget "RayRacer" */;
@@ -387,36 +282,31 @@
 			buildRules = (
 			);
 			dependencies = (
-				95A2D0062C512C7600440622 /* PBXTargetDependency */,
-				9512A7F72D0F0A5E009EB065 /* PBXTargetDependency */,
+				958DCCCA2EEFEA84008772F1 /* PBXTargetDependency */,
 			);
 			name = RayRacer;
 			productName = Atari2600;
 			productReference = 954A18642A1AEE5800EBC582 /* RayRacer.app */;
 			productType = "com.apple.product-type.application";
 		};
-		95A2FEA42CE8AB480058F393 /* RayRacerKitTests */ = {
+		95A39E282ECDF3070020CEFB /* librayracer */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 95A2FEAC2CE8AB480058F393 /* Build configuration list for PBXNativeTarget "RayRacerKitTests" */;
+			buildConfigurationList = 95A39E2A2ECDF3070020CEFB /* Build configuration list for PBXNativeTarget "librayracer" */;
 			buildPhases = (
-				95A2FEA12CE8AB480058F393 /* Sources */,
-				95A2FEA22CE8AB480058F393 /* Frameworks */,
-				95A2FEA32CE8AB480058F393 /* Resources */,
+				95A39E252ECDF3070020CEFB /* Headers */,
+				95A39E262ECDF3070020CEFB /* Sources */,
+				95A39E272ECDF3070020CEFB /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				95A2FEAB2CE8AB480058F393 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				95A2FEA62CE8AB480058F393 /* RayRacerKitTests */,
-			);
-			name = RayRacerKitTests;
+			name = librayracer;
 			packageProductDependencies = (
 			);
-			productName = RayRacerKitTests;
-			productReference = 95A2FEA52CE8AB480058F393 /* RayRacerKitTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
+			productName = rayracer;
+			productReference = 95A39E292ECDF3070020CEFB /* librayracer.a */;
+			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
 
@@ -426,20 +316,14 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1610;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
-					9523FDA72C8D81DB0094A597 = {
-						CreatedOnToolsVersion = 15.4;
-					};
-					953D92A62A1AEB7400EC52AC = {
-						CreatedOnToolsVersion = 14.3;
-						LastSwiftMigration = 1430;
-					};
 					954A18632A1AEE5800EBC582 = {
 						CreatedOnToolsVersion = 14.3;
+						LastSwiftMigration = 2610;
 					};
-					95A2FEA42CE8AB480058F393 = {
-						CreatedOnToolsVersion = 16.1;
+					95A39E282ECDF3070020CEFB = {
+						CreatedOnToolsVersion = 26.1.1;
 					};
 				};
 			};
@@ -457,28 +341,12 @@
 			projectRoot = "";
 			targets = (
 				954A18632A1AEE5800EBC582 /* RayRacer */,
-				953D92A62A1AEB7400EC52AC /* RayRacerKit */,
-				9523FDA72C8D81DB0094A597 /* RayRacerKitPerformanceTests */,
-				95A2FEA42CE8AB480058F393 /* RayRacerKitTests */,
+				95A39E282ECDF3070020CEFB /* librayracer */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		9523FDA62C8D81DB0094A597 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		953D92A52A1AEB7400EC52AC /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		954A18622A1AEE5800EBC582 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -493,56 +361,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		95A2FEA32CE8AB480058F393 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		9523FDA42C8D81DB0094A597 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				9523FDAB2C8D81DB0094A597 /* PerformanceTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		953D92A32A1AEB7400EC52AC /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				950A64A12C4BCD3C007D4362 /* Addressable.swift in Sources */,
-				9502E5972A423296007A32DA /* MOS6507+Assembly.swift in Sources */,
-				95A222172C8A000D008176F7 /* TIA+Playfield.swift in Sources */,
-				95F5190C2D04827900C5E8BC /* Console+ControllerPorts.swift in Sources */,
-				95A222182C8A000D008176F7 /* TIA+Player.swift in Sources */,
-				953D92B12A1AEB9E00EC52AC /* MOS6507.swift in Sources */,
-				95F5190A2D047F3800C5E8BC /* Controller.swift in Sources */,
-				958738992CEC89280063C751 /* Console+Switches.swift in Sources */,
-				9595FE922A4E02FE00F6F857 /* TIA.swift in Sources */,
-				953D92AF2A1AEB8300EC52AC /* Console.swift in Sources */,
-				95A222162C8A000D008176F7 /* TIA+Ball.swift in Sources */,
-				952C1A292C902E8D00D341D6 /* MOS6507+Status.swift in Sources */,
-				95A222152C8A000D008176F7 /* TIA+Missile.swift in Sources */,
-				95F5190E2D0494D400C5E8BC /* NoController.swift in Sources */,
-				958691B22A4FF61D00C727C0 /* MOS6532.swift in Sources */,
-				95A2FEA02CE8A5D40058F393 /* Joystick.swift in Sources */,
-				95F394292C96D71A00056A14 /* OptionSet+Subscript.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		954A18602A1AEE5800EBC582 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				95AAAC872A221D5500B8C9FD /* DebuggerWindowController.swift in Sources */,
 				955619FD2A3C8E64002CF4F5 /* NSFont+Constants.swift in Sources */,
+				958DCCCF2EEFEDA5008772F1 /* MOS6507+Assembly.swift in Sources */,
 				951CC4FE2A58723300537CD1 /* FormView.swift in Sources */,
 				954E3CD02C283B3E009218CB /* DebugItemTableCellView.swift in Sources */,
+				958DCCCD2EEFEBB8008772F1 /* RayRacer+Atari2600.swift in Sources */,
+				950D71612EF42C05008D18BD /* graphics.c in Sources */,
 				9503F0D82CB1B2BA00C71436 /* MultiStepperViewController.swift in Sources */,
 				957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */,
 				955BED7C2E13E14300577348 /* GraphicsSyncCounter.swift in Sources */,
@@ -550,49 +382,44 @@
 				957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */,
 				950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */,
 				9515FD372EC3DCAE00490D74 /* FrameCounter.swift in Sources */,
+				951746EB2ED7052800D346CD /* mcs6507.c in Sources */,
 				954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */,
 				955B4BEB2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift in Sources */,
+				9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */,
 				950641DF2A39C4E700938403 /* AssemblyAddressCellView.swift in Sources */,
 				954A18672A1AEE5800EBC582 /* RayRacerDelegate.swift in Sources */,
 				954E3CD22C285184009218CB /* DebugSectionTableCellView.swift in Sources */,
 				959E104F2C2314AE00E02CE6 /* DebugColorTableCellView.swift in Sources */,
+				95F8B1142EF3070600A637FA /* controller.c in Sources */,
 				95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */,
 				9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */,
 				9593159E2C72175000DC50A9 /* Screen.metal in Sources */,
 				95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */,
+				95AE0B732EDB22EB0039E328 /* mcs6532.c in Sources */,
 				95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		95A2FEA12CE8AB480058F393 /* Sources */ = {
+		95A39E262ECDF3070020CEFB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9519F9D32EE2C5B6007D1626 /* atari2600.c in Sources */,
+				95F8B1162EF3070600A637FA /* controller.c in Sources */,
+				950D71632EF42C05008D18BD /* graphics.c in Sources */,
+				95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */,
+				951746E92ED7052800D346CD /* mcs6507.c in Sources */,
+				95A39E342ECDF33B0020CEFB /* tia.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		9512A7F72D0F0A5E009EB065 /* PBXTargetDependency */ = {
+		958DCCCA2EEFEA84008772F1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 953D92A62A1AEB7400EC52AC /* RayRacerKit */;
-			targetProxy = 9512A7F62D0F0A5E009EB065 /* PBXContainerItemProxy */;
-		};
-		9523FDAE2C8D81DB0094A597 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 953D92A62A1AEB7400EC52AC /* RayRacerKit */;
-			targetProxy = 9523FDAD2C8D81DB0094A597 /* PBXContainerItemProxy */;
-		};
-		95A2D0062C512C7600440622 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 953D92A62A1AEB7400EC52AC /* RayRacerKit */;
-			targetProxy = 95A2D0052C512C7600440622 /* PBXContainerItemProxy */;
-		};
-		95A2FEAB2CE8AB480058F393 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 953D92A62A1AEB7400EC52AC /* RayRacerKit */;
-			targetProxy = 95A2FEAA2CE8AB480058F393 /* PBXContainerItemProxy */;
+			target = 95A39E282ECDF3070020CEFB /* librayracer */;
+			targetProxy = 958DCCC92EEFEA84008772F1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -644,6 +471,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -708,6 +536,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -729,143 +558,22 @@
 			};
 			name = Release;
 		};
-		9523FDAF2C8D81DB0094A597 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GENERATE_INFOPLIST_FILE = YES;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerKitTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		9523FDB02C8D81DB0094A597 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_OPTIMIZATION_LEVEL = s;
-				GENERATE_INFOPLIST_FILE = YES;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerKitTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-		953D92AC2A1AEB7400EC52AC /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 1.0;
-				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
-				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
-				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerKit;
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Debug;
-		};
-		953D92AD2A1AEB7400EC52AC /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
-				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 1.0;
-				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
-				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
-				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerKit;
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Release;
-		};
 		954A186F2A1AEE5A00EBC582 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = RayRacer/RayRacer.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "${SRCROOT}/librayracer";
 				INFOPLIST_KEY_CFBundleDisplayName = RayRacer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -876,12 +584,13 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/RayRacer/Screen/RayRacer-Bridging-Header.h";
+				SWIFT_INCLUDE_PATHS = "${SRCROOT}/librayracer/module.modulemap";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -891,16 +600,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = RayRacer/RayRacer.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 7AGF9N4R2H;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "${SRCROOT}/librayracer";
 				INFOPLIST_KEY_CFBundleDisplayName = RayRacer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -911,48 +621,39 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MARKETING_VERSION = 0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/RayRacer/Screen/RayRacer-Bridging-Header.h";
+				SWIFT_INCLUDE_PATHS = "${SRCROOT}/librayracer/module.modulemap";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
-		95A2FEAD2CE8AB480058F393 /* Debug */ = {
+		95A39E2B2ECDF3070020CEFB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				EXECUTABLE_PREFIX = "";
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerKitTests;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
-		95A2FEAE2CE8AB480058F393 /* Release */ = {
+		95A39E2C2ECDF3070020CEFB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				EXECUTABLE_PREFIX = "";
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerKitTests;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
@@ -968,24 +669,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9523FDB12C8D81DB0094A597 /* Build configuration list for PBXNativeTarget "RayRacerKitPerformanceTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				9523FDAF2C8D81DB0094A597 /* Debug */,
-				9523FDB02C8D81DB0094A597 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		953D92AB2A1AEB7400EC52AC /* Build configuration list for PBXNativeTarget "RayRacerKit" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				953D92AC2A1AEB7400EC52AC /* Debug */,
-				953D92AD2A1AEB7400EC52AC /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		954A186E2A1AEE5A00EBC582 /* Build configuration list for PBXNativeTarget "RayRacer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -995,11 +678,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		95A2FEAC2CE8AB480058F393 /* Build configuration list for PBXNativeTarget "RayRacerKitTests" */ = {
+		95A39E2A2ECDF3070020CEFB /* Build configuration list for PBXNativeTarget "librayracer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				95A2FEAD2CE8AB480058F393 /* Debug */,
-				95A2FEAE2CE8AB480058F393 /* Release */,
+				95A39E2B2ECDF3070020CEFB /* Debug */,
+				95A39E2C2ECDF3070020CEFB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -7,13 +7,11 @@
 
 import Cocoa
 import MetalKit
-import RayRacerKit
 
 class ScreenViewController: NSViewController {
 	public let frameCounter = FrameCounter()
 	
 	private let console: Atari2600
-	private let joystick = Joystick()
 	
 	private var screenData: Array<UInt8>
 	private var screenIndex: Int
@@ -35,9 +33,8 @@ class ScreenViewController: NSViewController {
 	
 	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
 		self.console = console
-		self.console.controllers.0 = self.joystick
 		
-		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count * 10)
+		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count * 50)
 		self.screenIndex = 0
 		
 		let device = commandQueue.device
@@ -76,7 +73,7 @@ extension ScreenViewController {
 		let view = MTKView()
 		view.device = self.commandQueue.device
 		view.delegate = self
-		view.preferredFramesPerSecond = 30
+		view.preferredFramesPerSecond = 60
 		
 		// force view aspect ratio to 4:3
 		view.addConstraint(view.widthAnchor.constraint(
@@ -98,19 +95,21 @@ extension ScreenViewController {
 	}
 	
 	override func keyDown(with event: NSEvent) {
-		if let button = Joystick.Buttons(keyCode: event.keyCode) {
-			self.joystick.press(button)
-		} else {
+		guard let button = Joystick.Buttons(keyCode: event.keyCode) else {
 			super.keyDown(with: event)
+			return
 		}
+		self.console.controllers
+			.0?.press(button)
 	}
 	
 	override func keyUp(with event: NSEvent) {
-		if let button = Joystick.Buttons(keyCode: event.keyCode) {
-			self.joystick.release(button)
-		} else {
-			super.keyUp(with: event)
+		guard let button = Joystick.Buttons(keyCode: event.keyCode) else {
+			super.keyDown(with: event)
+			return
 		}
+		self.console.controllers
+			.0?.release(button)
 	}
 }
 
@@ -138,9 +137,9 @@ extension ScreenViewController: MTKViewDelegate {
 	
 	func draw(in view: MTKView) {
 		// skip frame when console is in the middle of producing field data
-//		guard self.screenIndex == 0 else {
-//			return
-//		}
+		//		guard self.screenIndex == 0 else {
+		//			return
+		//		}
 		
 		guard let commandBuffer = self.commandQueue.makeCommandBuffer(),
 			  let blitEncoder = commandBuffer.makeBlitCommandEncoder() else {
@@ -177,16 +176,9 @@ extension ScreenViewController: MTKViewDelegate {
 
 
 // MARK: -
-extension ScreenViewController: TIA.GraphicsOutput {
-	func sync(_ sync: TIA.GraphicsSync) {
-		switch sync {
-		case .horizontal:
-			// advance index to the beginning of the next scan line
-			let offset = self.screenIndex % self.screenSize.width
-			if offset > 0 {
-				self.screenIndex += self.screenSize.width - offset
-			}
-		case .vertical:
+extension ScreenViewController: VideoOutput {
+	func sync(_ sync: VideoSync) {
+		if sync.contains(.vertical) {
 			// suspend emulation and notify renderer console has finished
 			// producing field data
 			// self.console.suspend()
@@ -197,6 +189,12 @@ extension ScreenViewController: TIA.GraphicsOutput {
 			}
 			
 			self.frameCounter.increment()
+		} else if sync.contains(.horizontal) {
+			// advance index to the beginning of the next scan line
+			let offset = self.screenIndex % self.screenSize.width
+			if offset > 0 {
+				self.screenIndex += self.screenSize.width - offset
+			}
 		}
 	}
 	

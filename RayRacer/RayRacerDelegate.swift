@@ -8,7 +8,6 @@
 import Cocoa
 import Metal
 import CryptoKit
-import RayRacerKit
 
 @main
 class RayRacerDelegate: NSObject, NSApplicationDelegate {
@@ -62,8 +61,6 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 // MARK: -
 // MARK: Target actions
 extension RayRacerDelegate {
-	
-	
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
 		self.showDebugger()
 	}
@@ -163,7 +160,7 @@ extension RayRacerDelegate: NSToolbarItemValidation {
 				.stepScanLineToolbarItem,
 				.stepFieldToolbarItem,
 				.resetToolbarItem:
-			return self.console.cartridge != nil
+			return self.console.program != nil
 		default:
 			return false
 		}
@@ -204,7 +201,7 @@ extension RayRacerDelegate {
 		
 		if windowController == nil {
 			let viewController = ScreenViewController(console: self.console, commandQueue: self.commandQueue, pipelineState: self.pipelineState)
-			self.console.tia.output = viewController
+			self.console.output = viewController
 			
 			windowController = NSWindowController(windowNibName: "ScreenWindow")
 			windowController.contentViewController = viewController
@@ -229,7 +226,7 @@ extension RayRacerDelegate {
 			fatalError()
 		}
 		
-		self.console.cartridge = data
+		self.console.program = data
 		self.console.switches = self.defaults.consoleSwitches
 		self.console.reset()
 		
@@ -316,17 +313,4 @@ private extension Set {
 
 private extension String {
 	static let tabCharacter = String(String(utf16CodeUnits: [unichar(NSTabCharacter)], count: 1))
-}
-
-extension Atari2600 {
-	var gameIdentifier: String? {
-		guard let data = self.cartridge else {
-			return nil
-		}
-		
-		return Insecure.MD5
-			.hash(data: data)
-			.map() { String(format: "%02x", $0) }
-			.joined()
-	}
 }

@@ -6,25 +6,22 @@
 //
 
 import Foundation
-import RayRacerKit
 
 extension UserDefaults {
-	var consoleSwitches: Atari2600.Switches {
+	var consoleSwitches: Switches {
 		get {
 			// by default, TV type is set to `color` and both difficulties
 			// to `advanced`
-			let value = self.object(forKey: .consoleSwitches) as? Int ?? 0xc8
-			return Atari2600.Switches(rawValue: value)
+			return self.options(forKey: .consoleSwitches)
+			?? [.color, .difficulty0, .difficulty1]
 		}
-		set {
-			self.setValue(newValue.rawValue, forKey: .consoleSwitches)
-		}
+		set { self.setOptions(newValue, forKey: .consoleSwitches) }
 	}
 	
 	/// Number of milliseconds to simulate holding a trigger switch for (game select or game reset).
 	/// Default is 500 milliseconds.
 	var consoleSwitchHoldInterval: Int {
-		get { return self.object(forKey: .consoleSwitchHoldInterval) as? Int ?? 500 }
+		get { self.object(forKey: .consoleSwitchHoldInterval) as? Int ?? 500 }
 		set { self.setValue(newValue, forKey: .consoleSwitchHoldInterval) }
 	}
 	
@@ -101,4 +98,21 @@ private extension URL.BookmarkResolutionOptions {
 		.withSecurityScope,
 		.withoutUI
 	]
+}
+
+extension UserDefaults {
+	func options<O: OptionSet>(forKey key: String) -> O? {
+		guard let rawValue = self.object(forKey: key) as? O.RawValue else {
+			return nil
+		}
+		return O(rawValue: rawValue)
+	}
+	
+	func setOptions<O: OptionSet>(_ value: O?, forKey key: String) {
+		if let rawValue = value?.rawValue {
+			self.setValue(rawValue, forKey: key)
+		} else {
+			self.removeObject(forKey: key)
+		}
+	}
 }

@@ -201,7 +201,12 @@ extension MOS6507Assembly {
 			return high * 0x0100 + low
 			
 		case .relative:
-			let offset = Int(signed: Int(data[index]))
+			// convert offset to signed int
+			var offset = Int(data[index])
+			if offset & 0x80 == 0x80 {
+				offset -= 0x100
+			}
+			
 			return 0xf001 + index + offset
 		}
 	}

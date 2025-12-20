@@ -6,7 +6,7 @@
 //
 
 import Cocoa
-import RayRacerKit
+import simd
 
 class DebugColorTableCellView: NSTableCellView {
 	@IBOutlet var colorView: NSView?
@@ -35,17 +35,17 @@ class DebugColorTableCellView: NSTableCellView {
 // MARK: -
 // MARK: Convenience functionality
 private extension NSColor {
-	static let ntscPalette: [simd_float3] = {
-		return withUnsafePointer(to: ntsc_palette) {
-			let item = $0.pointer(to: \.0)
-			return (0..<128)
-				.compactMap({ item?[$0] })
-				.map({ simd_float3($0) / 255.0 })
-		}
-	}()
+//	static let ntscPalette: [simd_float3] = {
+//		return withUnsafePointer(to: ntsc_palette) {
+//			let item = $0.pointer(to: \.0)
+//			return (0..<128)
+//				.compactMap({ item?[$0] })
+//				.map({ simd_float3($0) / 255.0 })
+//		}
+//	}()
 	
 	convenience init(ntscColor color: Int) {
-		let components = Self.ntscPalette[color / 2]
+		let components = simd_float3()// = Self.ntscPalette[color / 2]
 		self.init(
 			red: CGFloat(components.x),
 			green: CGFloat(components.y),

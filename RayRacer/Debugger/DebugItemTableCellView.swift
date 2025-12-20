@@ -38,7 +38,7 @@ class DebugItemTableCellView: NSTableCellView {
 		}
 	}
 	
-	var wordValue: (String, Int) {
+	var wordValue: (String, Int32) {
 		get { fatalError() }
 		set {
 			let string = String(format: "%02x", newValue.1)
@@ -46,7 +46,7 @@ class DebugItemTableCellView: NSTableCellView {
 		}
 	}
 	
-	var addressValue: (String, Int) {
+	var addressValue: (String, Int32) {
 		get { fatalError() }
 		set {
 			let string = String(format: "$%04x", newValue.1)
@@ -54,7 +54,7 @@ class DebugItemTableCellView: NSTableCellView {
 		}
 	}
 	
-	var positionValue: (String, Int, Int) {
+	var positionValue: (String, Int, Int32) {
 		get { fatalError() }
 		set {
 			let string = String(format: "%d, %+d", newValue.1, newValue.2)

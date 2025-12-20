@@ -1,0 +1,12 @@
+//
+//  module.modulemap
+//  rayracer
+//
+//  Created by Serge Tsyba on 19.11.2025.
+//
+
+module librayracer {
+	header "atari2600.h"
+	header "controller.h"
+	export *
+}
