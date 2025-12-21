@@ -20,6 +20,7 @@ typedef struct {
 	
 	int position;
 	int motion;
+	int *missile_position;
 } racer_player;
 
 typedef struct {
@@ -67,6 +68,9 @@ bool playfield_needs_drawing(const racer_playfield *playfield, int position);
 #define PLAYFIELD_REFLECTED (1<<0)
 #define PLAYFIELD_SCORE_MODE (1<<1)
 #define PLAYFIELD_PRIORITY (1<<2)
+
+void advance_player_position(racer_player *player);
+extern int no_missile_position;
 
 uint8_t reflect_graphics(uint8_t graphics);
 

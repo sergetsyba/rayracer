@@ -107,6 +107,12 @@ racer_atari2600 *racer_atari2600_create(void) {
 	console->tia->peripheral = console;
 	console->tia->read_port = tia_read_controllers;
 	
+	// init graphics objects
+	console->tia->players[0]
+		.missile_position = &no_missile_position;
+	console->tia->players[1]
+		.missile_position = &no_missile_position;
+	
 	return console;
 }
 

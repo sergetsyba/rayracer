@@ -59,6 +59,17 @@ bool playfield_needs_drawing(const racer_playfield *playfield, int position) {
 	return graphics & (1L << bit);
 }
 
+void advance_player_position(racer_player *player) {
+	player->position += 1;
+	
+	if (player->position == 160) {
+		player->position = 0;
+		*player->missile_position = 0;
+	}
+}
+
+int no_missile_position = 0;
+
 #define flip(value, bit) (((value >> (bit)) & 0x1) << (7-(bit)))
 uint8_t reflect_graphics(uint8_t graphics) {
 	return 0x00

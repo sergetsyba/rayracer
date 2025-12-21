@@ -322,13 +322,26 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			set_flag(tia->ball.control, BALL_DELAYED, data & 0x1);
 			break;
 			
-		case 0x28:	// MARK: resmp0
-			set_flag(tia->missiles[0].control, MISSILE_RESET_TO_PLAYER, data & 0x2);
-			// TODO: set pointer in player
+		case 0x28: {// MARK: resmp0
+			const bool is_reset = data & 0x2;
+			set_flag(tia->missiles[0].control, MISSILE_RESET_TO_PLAYER, is_reset);
+			
+			// set or clear reference to missile position
+			tia->players[0].missile_position = is_reset
+			? &tia->missiles[0].position
+			: &no_missile_position;
 			break;
-		case 0x29:	// MARK: resmp1
-			set_flag(tia->missiles[1].control, MISSILE_RESET_TO_PLAYER, data & 0x2);
+		}
+		case 0x29: {// MARK: resmp1
+			const bool is_reset = data & 0x2;
+			set_flag(tia->missiles[1].control, MISSILE_RESET_TO_PLAYER, is_reset);
+			
+			// set or clear reference to missile position
+			tia->players[1].missile_position = is_reset
+			? &tia->missiles[1].position
+			: &no_missile_position;
 			break;
+		}
 			
 		case 0x2a:	// MARK: hmove
 			tia->blank_reset_clock = 68+8;
@@ -474,8 +487,8 @@ void racer_tia_advance_clock(racer_tia *tia) {
 		tia->collisions |= collisions[state >> 3];
 		
 		// advance position counters of graphics objects
-		advance_position(tia->players[0]);
-		advance_position(tia->players[1]);
+		advance_player_position(&tia->players[0]);
+		advance_player_position(&tia->players[1]);
 		advance_position(tia->missiles[0]);
 		advance_position(tia->missiles[1]);
 		advance_position(tia->ball);
