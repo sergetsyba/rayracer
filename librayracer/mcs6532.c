@@ -25,6 +25,11 @@ void racer_mcs6532_reset(racer_mcs6532 *riot) {
 	riot->data_direction[1] = 0x00;
 	riot->data_latch = 0x0;
 	
+	// set timer interval to 1024 and timer to a random value
+	const int timer = arc4random_uniform(0x100);
+	riot->timer_scale = 10;
+	riot->timer = timer << riot->timer_scale;
+	
 	// disable interrupt for edge detect and set it to detect negative
 	// transition
 	clear_flag(riot->interrupt_control, MCS6532_EDGE_DETECT_INTERRUPT);

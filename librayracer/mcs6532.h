@@ -51,8 +51,9 @@ typedef struct {
  *
  * This function is equivalent to pulling RES line low for 1 clock cycle in actual hardware.
  *
- * Resetting the chip clears both data and data direction registers, disables interrupt for edge detect
- * and sets it to detect negative transition. It does not reset the timer or clear interrupt registers.
+ * Resetting the chip clears both data and data direction registers, disables interrupt for edge detect and
+ * sets it to detect negative transition. Timer interval resets to 1024 and the timer is set to a random value.
+ * Interrupt registers are not cleared.
  */
 void racer_mcs6532_reset(racer_mcs6532 *riot);
 
