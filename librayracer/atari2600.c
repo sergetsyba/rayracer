@@ -77,6 +77,7 @@ static uint8_t tia_read_controllers(const void *peripheral) {
 
 
 // MARK: -
+static int null_position = 0;
 racer_atari2600 *racer_atari2600_create(void) {
 	racer_atari2600 *console = (racer_atari2600 *)malloc(sizeof(racer_atari2600));
 	
@@ -88,6 +89,9 @@ racer_atari2600 *racer_atari2600_create(void) {
 	
 	// create and wire RIOT
 	console->riot = (racer_mcs6532 *)malloc(sizeof(racer_mcs6532));
+	console->riot->timer_scale = 10;
+	console->riot->timer = 0xb8 * (1<<10);
+	
 	memcpy(console->riot->peripherals, (void *[]){
 		console,
 		console
@@ -108,11 +112,8 @@ racer_atari2600 *racer_atari2600_create(void) {
 	console->tia->read_port = tia_read_controllers;
 	
 	// init graphics objects
-	console->tia->players[0]
-		.missile_position = &no_missile_position;
-	console->tia->players[1]
-		.missile_position = &no_missile_position;
-	
+	console->tia->players[0].missile_position = &null_position;
+	console->tia->players[1].missile_position = &null_position;
 	return console;
 }
 

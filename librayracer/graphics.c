@@ -73,6 +73,19 @@ bool missile_needs_drawing(const racer_missile *missile) {
 	return bit < missile->size;
 }
 
+static int null_position = 0;
+void set_missile_reset_to_player(racer_missile *missile, racer_player *player, bool is_reset) {
+	set_flag(missile->control, MISSILE_RESET_TO_PLAYER, is_reset);
+	
+	// set or clear reference to missile position in player
+	player->missile_position = is_reset
+	? &missile->position
+	: &null_position;
+}
+
+
+// MARK: -
+// MARK: Ball
 bool ball_needs_drawing(const racer_ball *ball) {
 	// ensure ball is enabled
 	if ((ball->control != BALL_ENABLED_0) &&
@@ -83,6 +96,9 @@ bool ball_needs_drawing(const racer_ball *ball) {
 	return ball->position < ball->size;
 }
 
+
+// MARK: -
+// MARK: Playfield
 bool playfield_needs_drawing(const racer_playfield *playfield, int position) {
 	const bool is_reflected = playfield->control & PLAYFIELD_REFLECTED;
 	const uint64_t graphics = playfield->graphics[is_reflected];
@@ -91,8 +107,6 @@ bool playfield_needs_drawing(const racer_playfield *playfield, int position) {
 	const int bit = position >> 2;		// position / 4
 	return graphics & (1L << bit);
 }
-
-int no_missile_position = 0;
 
 #define flip(value, bit) (((value >> (bit)) & 0x1) << (7-(bit)))
 uint8_t reflect_graphics(uint8_t graphics) {
