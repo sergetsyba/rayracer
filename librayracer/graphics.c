@@ -6,8 +6,11 @@
 //
 
 #include "graphics.h"
+#include "flags.h"
+
 #include <stdlib.h>
 
+// MARK: Player
 bool player_needs_drawing(const racer_player *player) {
 	int section = player->position >> 3;	// position / 8
 	section >>= player->scale;				// position / size
@@ -23,6 +26,36 @@ bool player_needs_drawing(const racer_player *player) {
 	return graphics & (1 << bit);
 }
 
+void reset_player_position(racer_player *player) {
+	// it takes 4 color clock cycles to reset position counter and
+	// an extra clock cycle to latch the draw start signal
+	player->position = 160-4-1;
+	
+	// when position counter of a player is reset, main copy will not
+	// draw until position counter wraps around
+	player->control |= PLAYER_POSITION_RESET;
+	player->copy_mask &= ~0x1;
+}
+
+void advance_player_position(racer_player *player) {
+	player->position += 1;
+	
+	if (player->position == 160) {
+		player->position = 0;
+		// reset position counter of a missile, if it is reset to player
+		*player->missile_position = 0;
+		
+		// clear position reset flag and enable drawing main copy
+		if (player->control & PLAYER_POSITION_RESET) {
+			player->control &= ~PLAYER_POSITION_RESET;
+			player->copy_mask |= 0x1;
+		}
+	}
+}
+
+
+// MARK: -
+// MARK: Missile
 bool missile_needs_drawing(const racer_missile *missile) {
 	// ensure missile is enabled and not reset to player
 	if (missile->control != MISSILE_ENABLED) {
@@ -57,15 +90,6 @@ bool playfield_needs_drawing(const racer_playfield *playfield, int position) {
 	// each bit of playfield graphics draws for 4 color clocks
 	const int bit = position >> 2;		// position / 4
 	return graphics & (1L << bit);
-}
-
-void advance_player_position(racer_player *player) {
-	player->position += 1;
-	
-	if (player->position == 160) {
-		player->position = 0;
-		*player->missile_position = 0;
-	}
 }
 
 int no_missile_position = 0;

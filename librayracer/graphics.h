@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// MARK: -
 typedef struct {
 	uint8_t copy_mask;
 	
@@ -23,6 +24,12 @@ typedef struct {
 	int *missile_position;
 } racer_player;
 
+bool player_needs_drawing(const racer_player *player);
+void reset_player_position(racer_player *player);
+void advance_player_position(racer_player *player);
+
+
+// MARK: -
 typedef struct {
 	uint8_t copy_mask;
 	
@@ -50,13 +57,15 @@ typedef struct {
 	bool has_priority;
 } racer_playfield;
 
-bool player_needs_drawing(const racer_player *player);
+
+
 bool missile_needs_drawing(const racer_missile *missile);
 bool ball_needs_drawing(const racer_ball *ball);
 bool playfield_needs_drawing(const racer_playfield *playfield, int position);
 
 #define PLAYER_REFLECTED (1<<0)
 #define PLAYER_DELAYED (1<<1)
+#define PLAYER_POSITION_RESET (1<<2)
 
 #define MISSILE_ENABLED (1<<0)
 #define MISSILE_RESET_TO_PLAYER (1<<1)
@@ -69,7 +78,6 @@ bool playfield_needs_drawing(const racer_playfield *playfield, int position);
 #define PLAYFIELD_SCORE_MODE (1<<1)
 #define PLAYFIELD_PRIORITY (1<<2)
 
-void advance_player_position(racer_player *player);
 extern int no_missile_position;
 
 uint8_t reflect_graphics(uint8_t graphics);

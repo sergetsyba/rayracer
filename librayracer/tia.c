@@ -249,10 +249,10 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			set_flag(tia->players[1].control, PLAYER_REFLECTED, !(data & 0x8));
 			break;
 		case 0x10:	// MARK: resp0
-			reset_position(tia->players[0]);
+			reset_player_position(&tia->players[0]);
 			break;
 		case 0x11:	// MARK: resp1
-			reset_position(tia->players[1]);
+			reset_player_position(&tia->players[1]);
 			break;
 		case 0x12:	// MARK: resm0
 			reset_position(tia->missiles[0]);
