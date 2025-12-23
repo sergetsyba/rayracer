@@ -213,7 +213,7 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			
 		case 0x0d: {// MARK: pf0
 			const uint64_t graphics = data >> 4;
-			tia->playfield.graphics[0] &= 0x0ffff0ffff;
+			tia->playfield.graphics[0] &= 0xffff0ffff0;
 			tia->playfield.graphics[0] |= graphics | (graphics << 20);
 			
 			const uint64_t reflected = reflections[graphics];
@@ -223,7 +223,7 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 		}
 		case 0x0e: {// MARK: pf1
 			const uint64_t graphics = reflections[data];
-			tia->playfield.graphics[0] &= 0xf00fff00ff;
+			tia->playfield.graphics[0] &= 0xff00fff00f;
 			tia->playfield.graphics[0] |= (graphics << 4) | (graphics << (20+4));
 			
 			const uint64_t reflected = data;
@@ -233,11 +233,11 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 		}
 		case 0x0f: {// MARK: pf2
 			const uint64_t graphics = data;
-			tia->playfield.graphics[0] &= 0x000ff000ff;
+			tia->playfield.graphics[0] &= 0x00fff00fff;
 			tia->playfield.graphics[0] |= (graphics << 12) | (graphics << (20+12));
 			
 			const uint64_t reflected = reflections[data];
-			tia->playfield.graphics[1] &= 0x000ffff000;
+			tia->playfield.graphics[1] &= 0xfff0000fff;
 			tia->playfield.graphics[1] |= (graphics << 12) | (reflected << 20);
 			break;
 		}
