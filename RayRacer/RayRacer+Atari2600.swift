@@ -17,20 +17,11 @@ class Atari2600 {
 	var cartridge: Data! {
 		didSet {
 			self.cartridge.withUnsafeBytes() {
-				let size = self.cartridge.count
-				if let data = $0.bindMemory(to: UInt8.self).baseAddress {
-					let type: CartridgeType
-					switch size {
-					case 2048:
-						type = ._2kb
-					case 4096:
-						type = ._4kb
-					default:
-						fatalError("unsupported cartridge type")
-					}
-					
-					racer_atari2600_insert_cartridge(self.console, type, data)
+				guard let data = $0.bindMemory(to: UInt8.self).baseAddress,
+					  let type = CartridgeType(data: self.cartridge) else {
+					fatalError("unsupported cartridge type")
 				}
+				racer_atari2600_insert_cartridge(self.console, type, data)
 			}
 		}
 	}
@@ -143,8 +134,20 @@ typealias CartridgeType = racer_cartridge_type
 extension CartridgeType: @retroactive SetAlgebra {}
 extension CartridgeType: @retroactive ExpressibleByArrayLiteral {}
 extension CartridgeType: @retroactive OptionSet {
-	static let _2kb = CARTRIDGE_2KB
-	static let _4kb = CARTRIDGE_4KB
+	static let atari2KB = CARTRIDGE_ATARI_2KB
+	static let atari4KB = CARTRIDGE_ATARI_4KB
+	static let atari8KB = CARTRIDGE_ATARI_8KB
+}
+
+extension CartridgeType {
+	init?(data: Data) {
+		switch data.count {
+		case 2048: self = .atari2KB
+		case 4096: self = .atari4KB
+		case 8192: self = .atari8KB
+		default: return nil
+		}
+	}
 }
 
 extension Atari2600 {

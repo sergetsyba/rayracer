@@ -23,8 +23,9 @@ typedef enum {
 } racer_atari2600_switch;
 
 typedef enum {
-	CARTRIDGE_2KB,
-	CARTRIDGE_4KB
+	CARTRIDGE_ATARI_2KB,
+	CARTRIDGE_ATARI_4KB,
+	CARTRIDGE_ATARI_8KB
 } racer_cartridge_type;
 
 typedef struct {
@@ -35,8 +36,9 @@ typedef struct {
 	uint8_t switches[2];
 	uint8_t input;
 	
-	uint8_t (*read_cartridge)(void *cartridge, int address);
+	racer_cartridge_type cartridge_type;
 	void *cartridge;
+	uint8_t (*read_cartridge)(void *cartridge, int address);
 } racer_atari2600;
 
 racer_atari2600 *racer_atari2600_create(void);

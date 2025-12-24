@@ -117,31 +117,59 @@ racer_atari2600 *racer_atari2600_create(void) {
 	return console;
 }
 
-void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_type cartridge, const uint8_t *data) {
-	switch (cartridge) {
-		case CARTRIDGE_2KB:
-			console->read_cartridge = read_2kb_cartridge;
+void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_type type, const uint8_t *data) {
+	switch (type) {
+		case CARTRIDGE_ATARI_2KB:
+			console->cartridge_type = type;
 			console->cartridge = (void *)data;
+			console->read_cartridge = read_atari_2kb_cartridge;
 			break;
 			
-		case CARTRIDGE_4KB:
-			console->read_cartridge = read_4kb_cartridge;
+		case CARTRIDGE_ATARI_4KB:
+			console->cartridge_type = type;
 			console->cartridge = (void *)data;
+			console->read_cartridge = read_atari_4kb_cartridge;
 			break;
+			
+		case CARTRIDGE_ATARI_8KB: {
+			atari_8k_cartridge *cartridge = (atari_8k_cartridge *)malloc(sizeof(atari_8k_cartridge));
+			cartridge->data[0] = &data[0];
+			cartridge->data[1] = &data[0x1000];
+			
+			console->cartridge_type = type;
+			console->cartridge = cartridge;
+			console->read_cartridge = read_atari_8kb_cartridge;
+			break;
+		}
 			
 		default:
-			printf("insert cartridge: unsupport cartridge type: %d\n", cartridge);
+			printf("insert cartridge: unsupport cartridge type: %d\n", type);
 			return;
 	}
 }
 
+static void reset_cartridge(racer_atari2600 *console) {
+	switch (console->cartridge_type) {
+		case CARTRIDGE_ATARI_8KB: {
+			atari_8k_cartridge *cartridge = console->cartridge;
+			cartridge->bank_index = 1;
+			break;
+		}
+		default:
+			break;
+	}
+}
+
 void racer_atari2600_reset(racer_atari2600 *console) {
-	racer_mcs6507_reset(console->mpu);
-	racer_mcs6532_reset(console->riot);
-	racer_tia_reset(console->tia);
-	
+	// reset bank index in cartridge
+	reset_cartridge(console);
+	// reset controller input
 	console->switches[0] = 0x00;
 	console->input = 0x00;
+	
+	racer_tia_reset(console->tia);
+	racer_mcs6532_reset(console->riot);
+	racer_mcs6507_reset(console->mpu);
 }
 
 void racer_atari2600_advance_clock(racer_atari2600 *console) {
