@@ -8,9 +8,19 @@
 import Cocoa
 
 class AssemblyGroupRowView: NSTableRowView {
-	@IBOutlet var textField: NSTextField!
+	@IBOutlet private var textField: NSTextField?
+	
+	var objectValue: Any? {
+		didSet {
+			guard let bank = self.objectValue as? Int else {
+				self.textField?.stringValue = ""
+				return
+			}
+			self.textField?
+				.stringValue = "Bank \(bank)"
+		}
+	}
 }
-
 
 // MARK: -
 class AssemblyAddressCellView: NSTableCellView {
@@ -18,12 +28,14 @@ class AssemblyAddressCellView: NSTableCellView {
 	
 	override var objectValue: Any? {
 		didSet {
-			guard let address = self.objectValue as? Int else {
+			guard let (address, on) = self.objectValue as? (Int, Bool) else {
 				self.toggle.stringValue = ""
+				self.toggle.state = .off
 				return
 			}
-			self.toggle
-				.stringValue = String(format: "$%04x", 0xf000 + address)
+			
+			self.toggle.stringValue = String(format: "$%04x", 0xf000 + address)
+			self.toggle.state = on ? .on : .off
 		}
 	}
 	
@@ -43,7 +55,6 @@ class AssemblyAddressCellView: NSTableCellView {
 		self.toggle.insets = NSEdgeInsets(top: 2.0, left: 8.0, bottom: 2.0, right: 4.0)
 	}
 }
-
 
 // MARK: -
 class AssemblyInstructionCellView: NSTableCellView {

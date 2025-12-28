@@ -94,6 +94,9 @@
                                                     <constraint firstAttribute="width" constant="60" placeholder="YES" id="QPq-gG-El6"/>
                                                     <constraint firstAttribute="height" constant="22" placeholder="YES" id="sXG-XP-v9C"/>
                                                 </constraints>
+                                                <connections>
+                                                    <action selector="breakpointToggled:" target="-1" id="dtt-ze-mdn"/>
+                                                </connections>
                                             </customView>
                                         </subviews>
                                         <constraints>
@@ -127,7 +130,7 @@
                                             <constraint firstItem="SWt-5n-Cn4" firstAttribute="top" secondItem="qPs-IK-3AT" secondAttribute="top" constant="6" id="lCs-9y-r5X"/>
                                         </constraints>
                                         <connections>
-                                            <outlet property="textField" destination="SWt-5n-Cn4" id="MWz-fl-Pi8"/>
+                                            <outlet property="textField" destination="SWt-5n-Cn4" id="dvL-oz-pr0"/>
                                         </connections>
                                     </tableCellView>
                                 </prototypeCellViews>

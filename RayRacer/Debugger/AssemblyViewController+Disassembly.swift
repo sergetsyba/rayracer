@@ -9,18 +9,11 @@ import Foundation
 import librayracer
 
 extension AssemblyViewController {
-	func disassemble(data: Data) -> [[ProgramEntry]] {
-		stride(from: data.startIndex, to: data.endIndex, by: 4096)
-			.map() {
-				return self.disassemble(data: data, in: $0..<$0+4096)
-			}
-	}
-	
-	private func disassemble(data: Data, in range: Range<Data.Index>) -> [ProgramEntry] {
-		var decoded: [ProgramEntry] = []
-		var index = range.startIndex
+	func disassemble(data: Data) -> Program {
+		var decoded: Program = []
+		var index = data.startIndex
 		
-		while range.contains(index) {
+		while data.indices.contains(index) {
 			let instruction = self.decodeInstruction(data: data, at: index)
 			decoded.append((index, instruction))
 			index += instruction?.length ?? 1

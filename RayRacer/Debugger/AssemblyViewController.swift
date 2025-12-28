@@ -111,7 +111,7 @@ private extension AssemblyViewController {
 			.mpu.pointee
 			.program_counter)
 		
-		//		if let row = self.tableRow(forProgramEntryAt: (bank, address)) {
+		//		if let row = self.delegate?.row(forProgramOffset: (bank, address)) {
 		//			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
 		//			self.tableView.ensureRowVisible(row)
 		//
@@ -128,40 +128,173 @@ private extension AssemblyViewController {
 // MARK: -
 // MARK: Breakpoint management
 extension AssemblyViewController {
-	@IBAction func breakpointToggled(_ sender: BreakpointToggle) {
-		if sender.state == .on {
-			self.breakpointTableRows.append(sender.tag)
-		} else {
-			self.breakpointTableRows.remove(at: sender.tag)
+	func breakpointToggled(_ sender: BreakpointToggle) {
+		guard let delegate = self.delegate,
+			  let cartridge = self.console.cartridge else {
+			return
 		}
 		
-		// update user defaults
-		//		let breakpoints = self.breakpointTableRows
-		//			.map(self.programEntryAddress(forTableRow:))
-		//		UserDefaults.standard
-		//			.setBreakpoints(breakpoints, forGameIdentifier: self.console.programId!)
+		if sender.state == .on {
+			delegate.breakpoints.append(sender.tag)
+		} else {
+			delegate.breakpoints.removeAll(where: { $0 == sender.tag })
+		}
+		
+		// update defaults
+		UserDefaults.standard
+			.setBreakpoints(delegate.breakpoints, forProgramIdentifier: cartridge.id)
+		
 	}
 	
 	func clearBreakpoints() {
-		let rows = self.breakpointTableRows
-		self.breakpointTableRows = []
-		self.tableView.reloadData(in: rows)
+		guard let delegate = self.delegate,
+			  let cartridge = self.console.cartridge else {
+			return
+		}
 		
-		// update user defaults
-		//		let breakpoints = self.breakpointTableRows
-		//			.map(self.programEntryAddress(forTableRow:))
-		//		UserDefaults.standard
-		//			.setBreakpoints(breakpoints, forGameIdentifier: self.console.programId!)
+		let rows = delegate.breakpoints.map(delegate.row(forProgramOffset:))
+		delegate.breakpoints = []
+		
+		// update UI and defaults
+		self.tableView.reloadData(in: rows)
+		UserDefaults.standard
+			.setBreakpoints(delegate.breakpoints, forProgramIdentifier: cartridge.id)
 	}
 	
 	func showBreakpoint(_ breakpoint: Breakpoint) {
-		//		if let row = self.tableRow(forProgramEntryAt: breakpoint) {
-		//			self.tableView.scrollToRow(row)
-		//		}
+		if let row = self.delegate?.row(forProgramOffset: breakpoint) {
+			self.tableView.scrollToRow(row, offset: 5)
+		}
 	}
 }
 
 
+// MARK: -
+// MARK: Table view management
+protocol AssemblyViewDelegate: AnyObject, NSTableViewDataSource, NSTableViewDelegate {
+	var breakpoints: [Breakpoint] { get set }
+	func row(forProgramOffset: Int) -> Int
+}
+
+
+// MARK: -
+class SingleBankAssemblyViewDelegate: NSObject, AssemblyViewDelegate {
+	var program: Program
+	var breakpoints: [Breakpoint]
+	
+	init(program: Program, breakpoints: [Breakpoint]) {
+		self.program = program
+		self.breakpoints = breakpoints
+	}
+	
+	func row(forProgramOffset offset: Int) -> Int {
+		return self.program
+			.firstIndex(where: { $0.0 == offset })!
+	}
+	
+	// MARK: TableView management
+	func numberOfRows(in tableView: NSTableView) -> Int {
+		return self.program.count
+	}
+	
+	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+		guard let tableColumn = tableColumn,
+			  let column = tableView.tableColumns.firstIndex(of: tableColumn) else {
+			return nil
+		}
+		
+		let (offset, instruction) = self.program[row]
+		switch column {
+		case 0:
+			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
+			view.objectValue = (offset % 0x1000, self.breakpoints.contains(offset))
+			view.toggle.tag = offset
+			return view
+			
+		case 1:
+			let view = tableView.makeView(withIdentifier: .assemblyInstructionCellView, owner: nil) as! NSTableCellView
+			view.objectValue = instruction
+			return view
+			
+		case 2:
+			let view = tableView.makeView(withIdentifier: .assemblyTargetCellView, owner: nil) as! NSTableCellView
+			view.objectValue = instruction
+			return view
+			
+		default:
+			return nil
+		}
+	}
+}
+
+
+// MARK: -
+class MultiBankAssemblyViewDelegate: SingleBankAssemblyViewDelegate {
+	private var groupRows: [Int]
+	
+	override init(program: Program, breakpoints: [Breakpoint]) {
+		self.groupRows = Self.groupRows(for: program, bankSize: 0x1000)
+		super.init(program: program, breakpoints: breakpoints)
+	}
+	
+	private static func groupRows(for program: Program, bankSize: Int) -> [Int] {
+		let start = program.first!.offset
+		let end = program.last!.offset
+		var rows: [Int] = []
+		
+		for index in stride(from: start, through: end, by: bankSize) {
+			if let row = program.firstIndex(where: { $0.offset > index }) {
+				rows.append((row - 1) + rows.count)
+			}
+		}
+		return rows
+	}
+	
+	override func row(forProgramOffset offset: Int) -> Int {
+		return self.program
+			.firstIndex(where: { $0.0 == offset })!
+	}
+	
+	// MARK: TableView management
+	override func numberOfRows(in tableView: NSTableView) -> Int {
+		return self.groupRows.count + self.program.count
+	}
+	
+	func tableView(_ tableView: NSTableView, isGroupRow row: Int) -> Bool {
+		return self.groupRows.contains(where: { $0 == row })
+	}
+	
+	func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+		guard let bankIndex = self.groupRows.firstIndex(of: row) else {
+			// do not return row views for regular rows
+			return nil
+		}
+		
+		let view = tableView.makeView(withIdentifier: .assemblyGroupRowView, owner: nil) as! AssemblyGroupRowView
+		view.objectValue = bankIndex
+		return view
+	}
+	
+	override func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+		let isGroupRow = self.tableView(tableView, isGroupRow: row)
+		guard !isGroupRow else {
+			// do not return cell views for group rows
+			return nil
+		}
+		
+		let offset = self.groupRows.firstIndex(where: { row < $0 })
+		?? self.groupRows.count
+		
+		return super.tableView(tableView, viewFor: tableColumn, row: row - offset)
+	}
+}
+
+private extension NSUserInterfaceItemIdentifier {
+	static let assemblyGroupRowView = NSUserInterfaceItemIdentifier("AssemblyGroupRowView")
+	static let assemblyAddressCellView = NSUserInterfaceItemIdentifier("AssemblyAddressCellView")
+	static let assemblyInstructionCellView = NSUserInterfaceItemIdentifier("AssemblyInstructionCellView")
+	static let assemblyTargetCellView = NSUserInterfaceItemIdentifier("AssemblyTargetCellView")
+}
 
 
 // MARK: -
@@ -171,24 +304,18 @@ private extension String {
 }
 
 extension UserDefaults {
-	func breakpoints(forGameIdentifier identifier: String) -> [Breakpoint] {
+	func breakpoints(forProgramIdentifier identifier: String) -> [Breakpoint] {
 		let preferences = self.preferences(forGameIdentifier: identifier)
 		let breakpoints = preferences[.breakpoints] as? [String] ?? []
 		
 		return breakpoints
-			.compactMap() {
-				let values = $0.split(separator: "/")
-				let bankIndex = Int(values[0])
-				let address = Int(values[1].dropFirst(), radix: 16)
-				
-				return (bankIndex!, address!)
-			}
+			.compactMap() { Int($0.dropFirst(), radix: 16) }
 	}
 	
-	func setBreakpoints(_ breakpoints: [Breakpoint], forGameIdentifier identifier: String) {
+	func setBreakpoints(_ breakpoints: [Breakpoint], forProgramIdentifier identifier: String) {
 		var preferences = self.preferences(forGameIdentifier: identifier)
 		preferences[.breakpoints] = breakpoints
-			.map() { String(format: "%d/$%04x", $0.0, $0.1) }
+			.map() { String(format: "$%04x", $0) }
 		
 		self.setPreferences(preferences, forGameIdentifier: identifier)
 	}
@@ -210,12 +337,6 @@ private extension NSScrollView {
 }
 
 private extension NSTableView {
-	func ensureRowVisible(_ row: Int) {
-		if self.isRowVisible(row) == false {
-			self.scrollToRow(row)
-		}
-	}
-	
 	private func isRowVisible(_ row: Int) -> Bool {
 		let scrollView = self.enclosingScrollView!
 		let rowRect = self.rect(ofRow: row)
@@ -227,10 +348,11 @@ private extension NSTableView {
 		&& rowRect.maxY <= viewRect.maxY - insets.bottom
 	}
 	
-	func scrollToRow(_ row: Int) {
-		// scroll such that the target row ends up offset by 5 rows from
-		// the table view's top to provide some context to the row data
-		let row = min(row - 5, row)
+	func scrollToRow(_ row: Int, offset: Int) {
+		// scroll such that the target row ends up offset by the specified
+		// number of rows from the table view's top to provide some context
+		// to the row data
+		let row = min(row - offset, row)
 		
 		if let scrollView = self.enclosingScrollView {
 			let rowRect = self.rect(ofRow: row)
@@ -243,123 +365,5 @@ private extension NSTableView {
 		self.reloadData(
 			forRowIndexes: IndexSet(rows),
 			columnIndexes: IndexSet(0..<self.tableColumns.count))
-	}
-}
-
-protocol BreakpointDelegate: AnyObject {
-	func breakpointToggled(_ sender: BreakpointToggle)
-}
-
-
-// MARK: -
-// MARK: Table view management
-private extension NSUserInterfaceItemIdentifier {
-	static let assemblyGroupRowView = NSUserInterfaceItemIdentifier("AssemblyGroupRowView")
-	static let assemblyAddressCellView = NSUserInterfaceItemIdentifier("AssemblyAddressCellView")
-	static let assemblyInstructionCellView = NSUserInterfaceItemIdentifier("AssemblyInstructionCellView")
-	static let assemblyTargetCellView = NSUserInterfaceItemIdentifier("AssemblyTargetCellView")
-}
-
-class AssemblyViewDelegate: NSObject, NSTableViewDataSource, NSTableViewDelegate {
-	func tableView(_ tableView: NSTableView, viewFor entry: ProgramEntry, tableColumn: NSTableColumn?) -> NSView? {
-		guard let tableColumn = tableColumn,
-			  let column = tableView.tableColumns.firstIndex(of: tableColumn) else {
-			return nil
-		}
-		
-		let view: NSTableCellView!
-		switch column {
-		case 0:
-			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
-			view.objectValue = entry.offset
-			
-			//			view.toggle.state = self.breakpointTableRows.contains(row) ? .on : .off
-			//			view.toggle.tag = row
-			//			view.toggle.target = self
-			//			view.toggle.action = #selector(self.breakpointToggled(_:))
-			return view
-			
-		case 1:
-			view = tableView.makeView(withIdentifier: .assemblyInstructionCellView, owner: nil) as? NSTableCellView
-			view.objectValue = entry.instruction
-			
-		case 2:
-			view = tableView.makeView(withIdentifier: .assemblyTargetCellView, owner: nil) as? NSTableCellView
-			view.objectValue = entry.instruction
-			
-		default:
-			return nil
-		}
-		
-		return view
-	}
-}
-
-class SingleBankAssemblyViewDelegate: AssemblyViewDelegate {
-	var program: [ProgramEntry]!
-	
-	func numberOfRows(in tableView: NSTableView) -> Int {
-		return self.program?.count ?? 0
-	}
-	
-	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-		let entry = self.program[row]
-		return self.tableView(tableView, viewFor: entry, tableColumn: tableColumn)
-	}
-}
-
-class MultiBankAssemblyViewDelegate: AssemblyViewDelegate {
-	var program: [[ProgramEntry]]! {
-		didSet {
-			self.rowCounts = [0]
-			var count = 0
-			
-			for entries in self.program {
-				count += entries.count + 1
-				self.rowCounts.append(count)
-			}
-		}
-	}
-	
-	private var rowCounts: [Int] = []
-	
-	private func programRow(forTableRow row: Int) -> (bank: Int, Int) {
-		let bank = self.rowCounts
-			.firstIndex(where: { row < $0 })! - 1
-		
-		let row = (row - 1) - self.rowCounts[bank]
-		return (bank, row)
-	}
-	
-	func numberOfRows(in tableView: NSTableView) -> Int {
-		return self.rowCounts.last!
-	}
-	
-	func tableView(_ tableView: NSTableView, isGroupRow row: Int) -> Bool {
-		return self.rowCounts.contains(where: { $0 == row })
-	}
-	
-	func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
-		guard let bank = self.rowCounts.firstIndex(of: row),
-			  let view = tableView.makeView(withIdentifier: .assemblyGroupRowView, owner: nil) as? AssemblyGroupRowView else {
-			return nil
-		}
-		
-		view.textField.stringValue = "Bank \(bank)"
-		return view
-	}
-	
-	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-		let (bank, row) = self.programRow(forTableRow: row)
-		guard row > -1 else {
-			// do not return any cells for group rows
-			return nil
-		}
-		
-		// convert absolute program offset to relative to current bank
-		var entry = self.program[bank][row]
-		entry.offset -= bank * 0x1000
-		
-		return self.tableView(tableView, viewFor: entry, tableColumn: tableColumn)
 	}
 }
