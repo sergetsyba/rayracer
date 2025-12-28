@@ -14,14 +14,18 @@ class Atari2600 {
 	var controllers: (Joystick?, Joystick?)
 	var output: VideoOutput?
 	
-	var cartridge: Data! {
+	var cartridge: Cartridge? {
 		didSet {
-			self.cartridge.withUnsafeBytes() {
-				guard let data = $0.bindMemory(to: UInt8.self).baseAddress,
-					  let type = CartridgeType(data: self.cartridge) else {
-					fatalError("unsupported cartridge type")
-				}
-				racer_atari2600_insert_cartridge(self.console, type, data)
+			guard let cartridge = self.cartridge else {
+				// TODO: remove cartridge
+				return
+			}
+			
+			cartridge.data.withUnsafeBytes() {
+				let address = $0.bindMemory(to: UInt8.self)
+					.baseAddress
+				racer_atari2600_insert_cartridge(
+					self.console, cartridge.kind, address)
 			}
 		}
 	}
@@ -129,17 +133,17 @@ extension Atari2600 {
 
 // MARK: -
 // MARK: Cartridges
-typealias CartridgeType = racer_cartridge_type
+typealias CartridgeKind = racer_cartridge_type
 
-extension CartridgeType: @retroactive SetAlgebra {}
-extension CartridgeType: @retroactive ExpressibleByArrayLiteral {}
-extension CartridgeType: @retroactive OptionSet {
+extension CartridgeKind: @retroactive SetAlgebra {}
+extension CartridgeKind: @retroactive ExpressibleByArrayLiteral {}
+extension CartridgeKind: @retroactive OptionSet {
 	static let atari2KB = CARTRIDGE_ATARI_2KB
 	static let atari4KB = CARTRIDGE_ATARI_4KB
 	static let atari8KB = CARTRIDGE_ATARI_8KB
 }
 
-extension CartridgeType {
+extension CartridgeKind {
 	init?(data: Data) {
 		switch data.count {
 		case 2048: self = .atari2KB
@@ -150,15 +154,24 @@ extension CartridgeType {
 	}
 }
 
-extension Atari2600 {
-	var programId: String? {
-		guard let program = self.cartridge else {
-			return nil
-		}
+struct Cartridge {
+	var kind: CartridgeKind
+	var data: Data
+	
+	var id: String {
 		return Insecure.MD5
-			.hash(data: program)
+			.hash(data: self.data)
 			.map() { String(format: "%02x", $0) }
 			.joined()
+	}
+	
+	init?(data: Data) {
+		guard let kind = CartridgeKind(data: data) else {
+			return nil
+		}
+		
+		self.kind = kind
+		self.data = data
 	}
 }
 

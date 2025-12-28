@@ -13,18 +13,16 @@ class AssemblyViewController: NSViewController {
 	@IBOutlet private var programView: NSView!
 	@IBOutlet private var tableView: NSTableView!
 	
-	private var delegate: (NSTableViewDataSource & NSTableViewDelegate)? {
+	private var console: Atari2600 {
+		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
+		return delegate.console
+	}
+	
+	private var delegate: AssemblyViewDelegate? {
 		didSet {
 			self.tableView.dataSource = self.delegate
 			self.tableView.delegate = self.delegate
 		}
-	}
-	
-	private var breakpointTableRows: [Int] = []
-	
-	private var console: Atari2600 {
-		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
-		return delegate.console
 	}
 	
 	convenience init() {
@@ -49,8 +47,8 @@ class AssemblyViewController: NSViewController {
 	}
 }
 
-typealias ProgramEntry = (offset: Int, instruction: Instruction?)
-typealias Breakpoint = (bank: Int, offset: Int)
+typealias Program = [(offset: Int, instruction: Instruction?)]
+typealias Breakpoint = Int
 let tableColumnDataTemplates = ["$0000   ", "adc ($a4),y  ", "$c2 mem "]
 
 
@@ -75,31 +73,20 @@ private extension AssemblyViewController {
 	}
 	
 	func updateView() {
-		if let data = self.console.cartridge,
-		   let cartridgeType = CartridgeType(data: data),
-		   let gameId = self.console.programId {
+		if let cartridge = self.console.cartridge {
+			// disassemble program and load its breakpoints
+			let program = self.disassemble(data: cartridge.data)
+			let breakpoints = UserDefaults.standard
+				.breakpoints(forProgramIdentifier: cartridge.id)
 			
-			// disassemble program
-			let program = self.disassemble(data: data)
-			switch cartridgeType {
-			case .atari4KB:
-				let delegate = SingleBankAssemblyViewDelegate()
-				delegate.program = program.first
-				self.delegate = delegate
-				
+			switch cartridge.kind {
+			case .atari2KB, .atari4KB:
+				self.delegate = SingleBankAssemblyViewDelegate(program: program, breakpoints: breakpoints)
 			case .atari8KB:
-				let delegate = MultiBankAssemblyViewDelegate()
-				delegate.program = program
-				self.delegate = delegate
-				
+				self.delegate = MultiBankAssemblyViewDelegate(program: program, breakpoints: breakpoints)
 			default:
-				fatalError()
+				fatalError("Unsupported cartridge type: \(cartridge.kind).")
 			}
-			
-			// load breakpoints and convert to table row indexes
-			//			self.breakpointTableRows = UserDefaults.standard
-			//				.breakpoints(forGameIdentifier: gameId)
-			//				.compactMap(self.tableRow(forProgramEntryAt:))
 			
 			// switch to program view
 			self.view.setContentView(self.programView, layout: .fill)
@@ -107,7 +94,6 @@ private extension AssemblyViewController {
 				.makeFirstResponder(self.tableView)
 		} else {
 			self.delegate = nil
-			self.breakpointTableRows = []
 			
 			// switch to no program view
 			self.view.setContentView(self.noProgramView, layout: .center)
