@@ -223,14 +223,13 @@ extension RayRacerDelegate {
 		
 		guard url.startAccessingSecurityScopedResource(),
 			  let data = try? Data(contentsOf: url),
-			  let bookmark = try? url.bookmarkData(options: .securityScopeAllowOnlyReadAccess),
-			  let cartridge = Cartridge(data: data) else {
+			  let bookmark = try? url.bookmarkData(options: .securityScopeAllowOnlyReadAccess) else {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
 		}
 		
 		self.console.switches = self.defaults.consoleSwitches
-		self.console.cartridge = cartridge
+		self.console.cartridgeData = data
 		self.console.reset()
 		self.program = url.lastPathComponent
 		

@@ -132,7 +132,7 @@ void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_
 			break;
 			
 		case CARTRIDGE_ATARI_8KB: {
-			atari_8k_cartridge *cartridge = (atari_8k_cartridge *)malloc(sizeof(atari_8k_cartridge));
+			racer_atari_8k_cartridge *cartridge = (racer_atari_8k_cartridge *)malloc(sizeof(racer_atari_8k_cartridge));
 			cartridge->data[0] = &data[0];
 			cartridge->data[1] = &data[0x1000];
 			
@@ -151,7 +151,7 @@ void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_
 static void reset_cartridge(racer_atari2600 *console) {
 	switch (console->cartridge_type) {
 		case CARTRIDGE_ATARI_8KB: {
-			atari_8k_cartridge *cartridge = console->cartridge;
+			racer_atari_8k_cartridge *cartridge = console->cartridge;
 			cartridge->bank_index = 1;
 			break;
 		}

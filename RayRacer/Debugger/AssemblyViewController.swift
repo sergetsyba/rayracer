@@ -68,7 +68,7 @@ private extension AssemblyViewController {
 	func setUpNotifications() {
 		let center: NotificationCenter = .default
 		center.addObserver(forName: .break, object: nil, queue: .main) { _ in
-			self.updateProgramAddressTableRow()
+			self.updateProgramCounterRow()
 		}
 		center.addObserver(forName: .reset, object: nil, queue: .main) { _ in
 			self.updateView()
@@ -107,26 +107,31 @@ private extension AssemblyViewController {
 		}
 		
 		self.tableView.reloadData()
-		self.updateProgramAddressTableRow()
+		self.updateProgramCounterRow()
 	}
 	
-	func updateProgramAddressTableRow() {
-		let bank = 0 // TODO:
-		let address = Int(self.console
-			.console.pointee
-			.mpu.pointee
-			.program_counter)
+	private var programCounterRow: Int? {
+		guard let cartridge = self.console.cartridge,
+			  let cpu = self.console.console?.pointee.mpu,
+			  let delegate = self.delegate else {
+			return nil
+		}
 		
-		//		if let row = self.delegate?.row(forProgramOffset: (bank, address)) {
-		//			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
-		//			self.tableView.ensureRowVisible(row)
-		//
-		//			// reload data for the current program address row to update
-		//			// operand address target
-		//			self.tableView.reloadData(in: [row])
-		//		} else {
-		//			self.tableView.deselectAll(self)
-		//		}
+		let programCounter = Int(cpu.pointee.program_counter)
+		let offset = (cartridge.bankIndex * 0x1000) + programCounter % 0x1000
+		return delegate.row(forProgramOffset: offset)
+	}
+	
+	func updateProgramCounterRow() {
+		if let row = self.programCounterRow {
+			// reload data for the current program address row to update
+			// operand address target
+			self.tableView.reloadData(in: [row])
+			self.tableView.selectRowIndexes([row], byExtendingSelection: false)
+			self.tableView.scrollToRow(row, offset: 5)
+		} else {
+			self.tableView.deselectAll(self)
+		}
 	}
 }
 

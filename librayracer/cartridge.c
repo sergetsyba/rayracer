@@ -18,7 +18,7 @@ uint8_t read_atari_4kb_cartridge(void *cartridge, int address) {
 }
 
 uint8_t read_atari_8kb_cartridge(void *cartridge, int address) {
-	atari_8k_cartridge *cartridge2 = (atari_8k_cartridge *)cartridge;
+	racer_atari_8k_cartridge *cartridge2 = (racer_atari_8k_cartridge *)cartridge;
 	const uint8_t data = cartridge2->data[cartridge2->bank_index][address];
 	
 	switch (address) {

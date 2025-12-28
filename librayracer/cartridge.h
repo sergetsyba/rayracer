@@ -13,7 +13,7 @@
 typedef struct {
 	int bank_index;
 	const uint8_t *data[2];
-} atari_8k_cartridge;
+} racer_atari_8k_cartridge;
 
 uint8_t read_atari_2kb_cartridge(void *cartridge, int address);
 uint8_t read_atari_4kb_cartridge(void *cartridge, int address);

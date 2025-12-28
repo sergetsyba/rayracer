@@ -11,24 +11,9 @@ import librayracer
 
 class Atari2600 {
 	let console: UnsafeMutablePointer<racer_atari2600>!
+	var cartridge: Cartridge?
 	var controllers: (Joystick?, Joystick?)
 	var output: VideoOutput?
-	
-	var cartridge: Cartridge? {
-		didSet {
-			guard let cartridge = self.cartridge else {
-				// TODO: remove cartridge
-				return
-			}
-			
-			cartridge.data.withUnsafeBytes() {
-				let address = $0.bindMemory(to: UInt8.self)
-					.baseAddress
-				racer_atari2600_insert_cartridge(
-					self.console, cartridge.kind, address)
-			}
-		}
-	}
 	
 	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
 	private var state: State = .suspended(.normal)
@@ -50,6 +35,28 @@ class Atari2600 {
 		
 		self.controllers
 			.0 = Joystick(console: self.console)
+	}
+	
+	var cartridgeData: Data? {
+		get {
+			return self.cartridge?.data
+		}
+		set {
+			guard let data = newValue,
+				  let cartridge = Cartridge(data: data) else {
+				fatalError("Failed to resolve cartridge kind.")
+			}
+			
+			cartridge.data.withUnsafeBytes() {
+				let address = $0.bindMemory(to: UInt8.self)
+					.baseAddress
+				racer_atari2600_insert_cartridge(
+					self.console, cartridge.kind, address)
+			}
+			
+			self.cartridge = cartridge
+			self.cartridge?.ref = self.console.pointee.cartridge
+		}
 	}
 	
 	func reset() {
@@ -157,12 +164,27 @@ extension CartridgeKind {
 struct Cartridge {
 	var kind: CartridgeKind
 	var data: Data
+	var ref: UnsafeMutableRawPointer!
 	
 	var id: String {
 		return Insecure.MD5
 			.hash(data: self.data)
 			.map() { String(format: "%02x", $0) }
 			.joined()
+	}
+	
+	var bankIndex: Int {
+		switch self.kind {
+		case .atari8KB:
+			let index = self.ref
+				.assumingMemoryBound(to: racer_atari_8k_cartridge.self)
+				.pointee
+				.bank_index
+			
+			return Int(index)
+		default:
+			return 0
+		}
 	}
 	
 	init?(data: Data) {
