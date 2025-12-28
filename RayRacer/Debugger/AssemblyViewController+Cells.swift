@@ -28,14 +28,12 @@ class AssemblyAddressCellView: NSTableCellView {
 	
 	override var objectValue: Any? {
 		didSet {
-			guard let (address, on) = self.objectValue as? (Int, Bool) else {
-				self.toggle.stringValue = ""
-				self.toggle.state = .off
+			guard let address = self.objectValue as? Int else {
+				self.toggle?.stringValue = ""
 				return
 			}
-			
-			self.toggle.stringValue = String(format: "$%04x", 0xf000 + address)
-			self.toggle.state = on ? .on : .off
+			self.toggle?
+				.stringValue = String(format: "$%04x", 0xf000 + address)
 		}
 	}
 	

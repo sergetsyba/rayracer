@@ -25,6 +25,9 @@ class AssemblyViewController: NSViewController {
 		}
 	}
 	
+	@Published
+	var breakpoints: [Breakpoint] = []
+	
 	convenience init() {
 		self.init(nibName: "AssemblyView", bundle: .main)
 		self.title = "Program Assembly"
@@ -74,19 +77,22 @@ private extension AssemblyViewController {
 	
 	func updateView() {
 		if let cartridge = self.console.cartridge {
-			// disassemble program and load its breakpoints
-			let program = self.disassemble(data: cartridge.data)
-			let breakpoints = UserDefaults.standard
-				.breakpoints(forProgramIdentifier: cartridge.id)
-			
+			let delegate: AssemblyViewDelegate
 			switch cartridge.kind {
 			case .atari2KB, .atari4KB:
-				self.delegate = SingleBankAssemblyViewDelegate(program: program, breakpoints: breakpoints)
+				delegate = SingleBankAssemblyViewDelegate()
 			case .atari8KB:
-				self.delegate = MultiBankAssemblyViewDelegate(program: program, breakpoints: breakpoints)
+				delegate = MultiBankAssemblyViewDelegate()
 			default:
 				fatalError("Unsupported cartridge type: \(cartridge.kind).")
 			}
+			
+			delegate.program = self.disassemble(data: cartridge.data)
+			delegate.breakpoints = self
+			
+			self.delegate = delegate
+			self.breakpoints = UserDefaults.standard
+				.breakpoints(forProgramIdentifier: cartridge.id)
 			
 			// switch to program view
 			self.view.setContentView(self.programView, layout: .fill)
@@ -127,38 +133,35 @@ private extension AssemblyViewController {
 
 // MARK: -
 // MARK: Breakpoint management
-extension AssemblyViewController {
-	func breakpointToggled(_ sender: BreakpointToggle) {
-		guard let delegate = self.delegate,
-			  let cartridge = self.console.cartridge else {
-			return
-		}
-		
+extension AssemblyViewController: BreakpointDataSource {
+	func isSet(at offset: Int) -> Bool {
+		return self.breakpoints.contains(offset)
+	}
+	
+	@IBAction func breakpointToggled(_ sender: BreakpointToggle) {
 		if sender.state == .on {
-			delegate.breakpoints.append(sender.tag)
+			self.breakpoints.append(sender.tag)
 		} else {
-			delegate.breakpoints.removeAll(where: { $0 == sender.tag })
+			self.breakpoints.removeAll(where: { $0 == sender.tag })
 		}
 		
 		// update defaults
+		let programId = self.console.cartridge!.id
 		UserDefaults.standard
-			.setBreakpoints(delegate.breakpoints, forProgramIdentifier: cartridge.id)
-		
+			.setBreakpoints(self.breakpoints, forProgramIdentifier: programId)
 	}
 	
 	func clearBreakpoints() {
-		guard let delegate = self.delegate,
-			  let cartridge = self.console.cartridge else {
-			return
-		}
+		let rows = self.breakpoints
+			.compactMap({ self.delegate?.row(forProgramOffset: $0) })
 		
-		let rows = delegate.breakpoints.map(delegate.row(forProgramOffset:))
-		delegate.breakpoints = []
-		
-		// update UI and defaults
+		self.breakpoints = []
 		self.tableView.reloadData(in: rows)
+		
+		// update defaults
+		let programId = self.console.cartridge!.id
 		UserDefaults.standard
-			.setBreakpoints(delegate.breakpoints, forProgramIdentifier: cartridge.id)
+			.setBreakpoints(self.breakpoints, forProgramIdentifier: programId)
 	}
 	
 	func showBreakpoint(_ breakpoint: Breakpoint) {
@@ -171,21 +174,19 @@ extension AssemblyViewController {
 
 // MARK: -
 // MARK: Table view management
+protocol BreakpointDataSource {
+	func isSet(at offset: Int) -> Bool
+}
 protocol AssemblyViewDelegate: AnyObject, NSTableViewDataSource, NSTableViewDelegate {
-	var breakpoints: [Breakpoint] { get set }
+	var program: Program! { get set }
+	var breakpoints: BreakpointDataSource? { get set }
 	func row(forProgramOffset: Int) -> Int
 }
 
-
 // MARK: -
 class SingleBankAssemblyViewDelegate: NSObject, AssemblyViewDelegate {
-	var program: Program
-	var breakpoints: [Breakpoint]
-	
-	init(program: Program, breakpoints: [Breakpoint]) {
-		self.program = program
-		self.breakpoints = breakpoints
-	}
+	var program: Program!
+	var breakpoints: BreakpointDataSource?
 	
 	func row(forProgramOffset offset: Int) -> Int {
 		return self.program
@@ -207,8 +208,12 @@ class SingleBankAssemblyViewDelegate: NSObject, AssemblyViewDelegate {
 		switch column {
 		case 0:
 			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
-			view.objectValue = (offset % 0x1000, self.breakpoints.contains(offset))
+			view.objectValue = offset % 0x1000
+			
 			view.toggle.tag = offset
+			view.toggle.state = self.breakpoints?
+				.isSet(at: offset) == false ? .off : .on
+			
 			return view
 			
 		case 1:
@@ -230,29 +235,28 @@ class SingleBankAssemblyViewDelegate: NSObject, AssemblyViewDelegate {
 
 // MARK: -
 class MultiBankAssemblyViewDelegate: SingleBankAssemblyViewDelegate {
-	private var groupRows: [Int]
+	private var groupRows: [Int] = []
 	
-	override init(program: Program, breakpoints: [Breakpoint]) {
-		self.groupRows = Self.groupRows(for: program, bankSize: 0x1000)
-		super.init(program: program, breakpoints: breakpoints)
-	}
-	
-	private static func groupRows(for program: Program, bankSize: Int) -> [Int] {
-		let start = program.first!.offset
-		let end = program.last!.offset
-		var rows: [Int] = []
-		
-		for index in stride(from: start, through: end, by: bankSize) {
-			if let row = program.firstIndex(where: { $0.offset > index }) {
-				rows.append((row - 1) + rows.count)
+	override var program: Program! {
+		didSet {
+			let start = program.first!.offset
+			let end = program.last!.offset
+			
+			self.groupRows = []
+			for index in stride(from: start, through: end, by: 0x1000) {
+				if let row = program.firstIndex(where: { $0.offset > index }) {
+					self.groupRows.append((row - 1) + self.groupRows.count)
+				}
 			}
 		}
-		return rows
 	}
 	
 	override func row(forProgramOffset offset: Int) -> Int {
-		return self.program
-			.firstIndex(where: { $0.0 == offset })!
+		let bankIndex = offset / 0x1000
+		let row = self.program
+			.firstIndex(where: { $0.0 == offset })
+		
+		return (bankIndex + 1) + row!
 	}
 	
 	// MARK: TableView management
