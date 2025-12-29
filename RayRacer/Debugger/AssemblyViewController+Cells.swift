@@ -10,14 +10,10 @@ import Cocoa
 class AssemblyGroupRowView: NSTableRowView {
 	@IBOutlet private var textField: NSTextField?
 	
-	var objectValue: Any? {
+	var stringValue: String? {
 		didSet {
-			guard let bank = self.objectValue as? Int else {
-				self.textField?.stringValue = ""
-				return
-			}
 			self.textField?
-				.stringValue = "Bank \(bank)"
+				.stringValue = self.stringValue ?? ""
 		}
 	}
 }

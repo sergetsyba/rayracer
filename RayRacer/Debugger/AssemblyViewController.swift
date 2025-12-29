@@ -8,10 +8,14 @@
 import Cocoa
 import librayracer
 
-class AssemblyViewController: NSViewController {
+class AssemblyViewController: NSViewController, AssemblyViewDataSource {
 	@IBOutlet private var noProgramView: NSView!
 	@IBOutlet private var programView: NSView!
 	@IBOutlet private var tableView: NSTableView!
+	
+	@Published
+	var breakpoints: [Breakpoint] = []
+	var program: Program = []
 	
 	private var console: Atari2600 {
 		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
@@ -24,9 +28,6 @@ class AssemblyViewController: NSViewController {
 			self.tableView.delegate = self.delegate
 		}
 	}
-	
-	@Published
-	var breakpoints: [Breakpoint] = []
 	
 	convenience init() {
 		self.init(nibName: "AssemblyView", bundle: .main)
@@ -77,22 +78,13 @@ private extension AssemblyViewController {
 	
 	func updateView() {
 		if let cartridge = self.console.cartridge {
-			let delegate: AssemblyViewDelegate
-			switch cartridge.kind {
-			case .atari2KB, .atari4KB:
-				delegate = SingleBankAssemblyViewDelegate()
-			case .atari8KB:
-				delegate = MultiBankAssemblyViewDelegate()
-			default:
-				fatalError("Unsupported cartridge type: \(cartridge.kind).")
-			}
-			
-			delegate.program = self.disassemble(data: cartridge.data)
-			delegate.breakpoints = self
-			
-			self.delegate = delegate
+			// disassemble program and load its breakpoints
+			self.program = self.disassemble(data: cartridge.data)
 			self.breakpoints = UserDefaults.standard
 				.breakpoints(forProgramIdentifier: cartridge.id)
+			
+			self.delegate = self.assemblyViewDelegate(for: cartridge)
+			self.delegate?.dataSource = self
 			
 			// switch to program view
 			self.view.setContentView(self.programView, layout: .fill)
@@ -110,16 +102,17 @@ private extension AssemblyViewController {
 		self.updateProgramCounterRow()
 	}
 	
-	private var programCounterRow: Int? {
-		guard let cartridge = self.console.cartridge,
-			  let cpu = self.console.console?.pointee.mpu,
-			  let delegate = self.delegate else {
-			return nil
+	private func assemblyViewDelegate(for cartridge: Cartridge) -> AssemblyViewDelegate {
+		switch cartridge.kind {
+		case .atari2KB:
+			return HalfBankAssemblyViewDelegate()
+		case .atari4KB:
+			return SingleBankAssemblyViewDelegate()
+		case .atari8KB:
+			return MultiBankAssemblyViewDelegate()
+		default:
+			fatalError("Unsupported cartridge type: \(cartridge.kind).")
 		}
-		
-		let programCounter = Int(cpu.pointee.program_counter)
-		let offset = (cartridge.bankIndex * 0x1000) + programCounter % 0x1000
-		return delegate.row(forProgramOffset: offset)
 	}
 	
 	func updateProgramCounterRow() {
@@ -133,16 +126,24 @@ private extension AssemblyViewController {
 			self.tableView.deselectAll(self)
 		}
 	}
+	
+	private var programCounterRow: Int? {
+		guard let cartridge = self.console.cartridge,
+			  let cpu = self.console.console?.pointee.mpu,
+			  let delegate = self.delegate else {
+			return nil
+		}
+		
+		let programCounter = Int(cpu.pointee.program_counter)
+		let offset = (cartridge.bankIndex * 0x1000) + programCounter % 0x1000
+		return delegate.row(forProgramOffset: offset)
+	}
 }
 
 
 // MARK: -
 // MARK: Breakpoint management
-extension AssemblyViewController: BreakpointDataSource {
-	func isSet(at offset: Int) -> Bool {
-		return self.breakpoints.contains(offset)
-	}
-	
+extension AssemblyViewController {
 	@IBAction func breakpointToggled(_ sender: BreakpointToggle) {
 		if sender.state == .on {
 			self.breakpoints.append(sender.tag)
@@ -179,56 +180,36 @@ extension AssemblyViewController: BreakpointDataSource {
 
 // MARK: -
 // MARK: Table view management
-protocol BreakpointDataSource {
-	func isSet(at offset: Int) -> Bool
-}
-protocol AssemblyViewDelegate: AnyObject, NSTableViewDataSource, NSTableViewDelegate {
-	var program: Program! { get set }
-	var breakpoints: BreakpointDataSource? { get set }
+private protocol AssemblyViewDelegate: AnyObject, NSTableViewDataSource, NSTableViewDelegate {
+	var dataSource: AssemblyViewDataSource? { get set }
 	func row(forProgramOffset: Int) -> Int
 }
+private protocol AssemblyViewDataSource: AnyObject {
+	var program: Program { get }
+	var breakpoints: [Breakpoint] { get }
+}
 
-// MARK: -
-class SingleBankAssemblyViewDelegate: NSObject, AssemblyViewDelegate {
-	var program: Program!
-	var breakpoints: BreakpointDataSource?
-	
-	func row(forProgramOffset offset: Int) -> Int {
-		return self.program
-			.firstIndex(where: { $0.0 == offset })!
-	}
-	
-	// MARK: TableView management
-	func numberOfRows(in tableView: NSTableView) -> Int {
-		return self.program.count
-	}
-	
-	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-		guard let tableColumn = tableColumn,
-			  let column = tableView.tableColumns.firstIndex(of: tableColumn) else {
-			return nil
-		}
-		
-		let (offset, instruction) = self.program[row]
+extension AssemblyViewDelegate {
+	func tableView(_ tableView: NSTableView, viewFor entry: (offset: Int, instruction: Instruction?), column: Int) -> NSView? {
 		switch column {
 		case 0:
+			let breakpointSet = self.dataSource?
+				.breakpoints.contains(where: { $0 == entry.offset }) ?? false
+			
 			let view = tableView.makeView(withIdentifier: .assemblyAddressCellView, owner: nil) as! AssemblyAddressCellView
-			view.objectValue = offset % 0x1000
-			
-			view.toggle.tag = offset
-			view.toggle.state = self.breakpoints?
-				.isSet(at: offset) == false ? .off : .on
-			
+			view.objectValue = entry.offset % 0x1000
+			view.toggle.tag = entry.offset
+			view.toggle.state = breakpointSet ? .on : .off
 			return view
 			
 		case 1:
 			let view = tableView.makeView(withIdentifier: .assemblyInstructionCellView, owner: nil) as! NSTableCellView
-			view.objectValue = instruction
+			view.objectValue = entry.instruction
 			return view
 			
 		case 2:
 			let view = tableView.makeView(withIdentifier: .assemblyTargetCellView, owner: nil) as! NSTableCellView
-			view.objectValue = instruction
+			view.objectValue = entry.instruction
 			return view
 			
 		default:
@@ -237,16 +218,116 @@ class SingleBankAssemblyViewDelegate: NSObject, AssemblyViewDelegate {
 	}
 }
 
+// MARK: -
+// MARK: Single bank cartridge
+private class SingleBankAssemblyViewDelegate: NSObject, AssemblyViewDelegate {
+	weak var dataSource: AssemblyViewDataSource?
+	
+	func row(forProgramOffset offset: Int) -> Int {
+		return self.dataSource?
+			.program.firstIndex(where: { $0.0 == offset })
+		?? -1
+	}
+	
+	func numberOfRows(in tableView: NSTableView) -> Int {
+		return self.dataSource?
+			.program.count ?? 0
+	}
+	
+	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+		guard let entry = self.dataSource?.program[row],
+			  let tableColumn = tableColumn,
+			  let column = tableView.tableColumns.firstIndex(of: tableColumn) else {
+			return nil
+		}
+		return self.tableView(tableView, viewFor: entry, column: column)
+	}
+}
 
 // MARK: -
-class MultiBankAssemblyViewDelegate: SingleBankAssemblyViewDelegate {
-	private var groupRows: [Int] = []
-	
-	override var program: Program! {
+// MARK: Half-bank cartridge
+private class HalfBankAssemblyViewDelegate: NSObject, AssemblyViewDelegate {
+	private var groupRow: Int = -1
+	weak var dataSource: (any AssemblyViewDataSource)? {
 		didSet {
-			let start = program.first!.offset
-			let end = program.last!.offset
+			self.groupRow = self.dataSource?
+				.program.count ?? -1
+		}
+	}
+	
+	func row(forProgramOffset offset: Int) -> Int {
+		guard let program = self.dataSource?.program,
+			  let index = program.firstIndex(where: { $0.0 == offset }) else {
+			return -1
+		}
+		return index < self.groupRow ? index : index + 1
+	}
+	
+	func numberOfRows(in tableView: NSTableView) -> Int {
+		guard let program = self.dataSource?.program,
+			  program.count > 0 else {
+			return 0
+		}
+		return program.count * 2 + 1
+	}
+	
+	func tableView(_ tableView: NSTableView, isGroupRow row: Int) -> Bool {
+		return row == self.groupRow
+	}
+	
+	func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+		guard self.tableView(tableView, isGroupRow: row) else {
+			// do not return row views for regular rows
+			return nil
+		}
+		
+		let view = tableView.makeView(withIdentifier: .assemblyGroupRowView, owner: nil) as! AssemblyGroupRowView
+		view.stringValue = "Mirror"
+		return view
+	}
+	
+	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+		guard self.tableView(tableView, isGroupRow: row) == false else {
+			// do not return cell views for group rows
+			return nil
+		}
+		
+		// duplicate rows for mirrored section, excluding group row
+		var index = row
+		if row >= self.groupRow {
+			index -= self.groupRow + 1
+		}
+		
+		guard var entry = self.dataSource?.program[index],
+			  let tableColumn = tableColumn,
+			  let column = tableView.tableColumns.firstIndex(of: tableColumn) else {
+			return nil
+		}
+		
+		// adjust instruction offset for mirrored section so that program
+		// offsets are continous throughout both sections
+		if row >= self.groupRow {
+			entry.offset += 0x1000/2
+		}
+		
+		return self.tableView(tableView, viewFor: entry, column: column)
+	}
+}
+
+// MARK: -
+// MARK: Multi-bank cartridge
+private class MultiBankAssemblyViewDelegate: NSObject, AssemblyViewDelegate {
+	private var groupRows: [Int] = []
+	weak var dataSource: AssemblyViewDataSource? {
+		didSet {
+			guard let program = self.dataSource?.program,
+				  let start = program.first?.offset,
+				  let end = program.last?.offset else {
+				self.groupRows = []
+				return
+			}
 			
+			// calculate row numbers of group rows
 			self.groupRows = []
 			for index in stride(from: start, through: end, by: 0x1000) {
 				if let row = program.firstIndex(where: { $0.offset > index }) {
@@ -256,17 +337,22 @@ class MultiBankAssemblyViewDelegate: SingleBankAssemblyViewDelegate {
 		}
 	}
 	
-	override func row(forProgramOffset offset: Int) -> Int {
-		let bankIndex = offset / 0x1000
-		let row = self.program
-			.firstIndex(where: { $0.0 == offset })
+	func row(forProgramOffset offset: Int) -> Int {
+		guard let program = self.dataSource?.program,
+			  let index = program.firstIndex(where: { $0.0 == offset }) else {
+			return -1
+		}
 		
-		return (bankIndex + 1) + row!
+		let bankIndex = offset / 0x1000
+		return (bankIndex + 1) + index
 	}
 	
-	// MARK: TableView management
-	override func numberOfRows(in tableView: NSTableView) -> Int {
-		return self.groupRows.count + self.program.count
+	func numberOfRows(in tableView: NSTableView) -> Int {
+		guard let program = self.dataSource?.program,
+			  program.count > 0 else {
+			return 0
+		}
+		return self.groupRows.count + program.count
 	}
 	
 	func tableView(_ tableView: NSTableView, isGroupRow row: Int) -> Bool {
@@ -274,27 +360,31 @@ class MultiBankAssemblyViewDelegate: SingleBankAssemblyViewDelegate {
 	}
 	
 	func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
-		guard let bankIndex = self.groupRows.firstIndex(of: row) else {
+		guard self.tableView(tableView, isGroupRow: row),
+			  let groupIndex = self.groupRows.firstIndex(of: row) else {
 			// do not return row views for regular rows
 			return nil
 		}
 		
 		let view = tableView.makeView(withIdentifier: .assemblyGroupRowView, owner: nil) as! AssemblyGroupRowView
-		view.objectValue = bankIndex
+		view.stringValue = "Bank \(groupIndex)"
 		return view
 	}
 	
-	override func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-		let isGroupRow = self.tableView(tableView, isGroupRow: row)
-		guard !isGroupRow else {
+	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+		guard self.tableView(tableView, isGroupRow: row) == false else {
 			// do not return cell views for group rows
 			return nil
 		}
 		
-		let offset = self.groupRows.firstIndex(where: { row < $0 })
-		?? self.groupRows.count
+		guard let groupIndex = self.groupRows.lastIndex(where: { row > $0 }),
+			  let entry = self.dataSource?.program[row - (groupIndex + 1)],
+			  let tableColumn = tableColumn,
+			  let column = tableView.tableColumns.firstIndex(of: tableColumn) else {
+			return nil
+		}
 		
-		return super.tableView(tableView, viewFor: tableColumn, row: row - offset)
+		return self.tableView(tableView, viewFor: entry, column: column)
 	}
 }
 
@@ -333,6 +423,17 @@ extension UserDefaults {
 
 // MARK: -
 // MARK: Convenience functionality
+private extension BidirectionalCollection where Index: Strideable {
+	func lastIndex(where predicate: (Element) -> Bool) -> Index? {
+		for index in self.indices.reversed() {
+			if predicate(self[index]) {
+				return index
+			}
+		}
+		return nil
+	}
+}
+
 private extension NSScrollView {
 	func scroll(to point: NSPoint, animationDuration duration: CGFloat) {
 		NSAnimationContext.beginGrouping()
@@ -363,6 +464,7 @@ private extension NSTableView {
 		// to the row data
 		let row = min(row - offset, row)
 		
+		// FIXME: seems to scroll to incorrect row when there are group rows
 		if let scrollView = self.enclosingScrollView {
 			let rowRect = self.rect(ofRow: row)
 			let point = NSPoint(x: rowRect.minX, y: rowRect.minY + scrollView.contentInsets.top)
