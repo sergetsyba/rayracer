@@ -30,7 +30,7 @@ class AssemblyAddressCellView: NSTableCellView {
 				return
 			}
 			self.toggle?
-				.stringValue = String(format: "$%04x", 0xf000 + address)
+				.stringValue = String(format: "$%03x", address)
 		}
 	}
 	
