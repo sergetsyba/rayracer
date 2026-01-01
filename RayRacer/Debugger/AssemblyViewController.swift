@@ -53,7 +53,7 @@ class AssemblyViewController: NSViewController, AssemblyViewDataSource {
 
 typealias Program = [(offset: Int, instruction: Instruction?)]
 typealias Breakpoint = Int
-let tableColumnDataTemplates = ["$0000   ", "adc ($a4),y  ", "$c2 mem "]
+let tableColumnDataTemplates = ["$0000   ", "adc ($a4),y  ", "→ $c2 mem "]
 
 
 // MARK: -
@@ -212,7 +212,7 @@ extension AssemblyViewDelegate {
 			
 		case 2:
 			let view = tableView.makeView(withIdentifier: .assemblyTargetCellView, owner: nil) as! NSTableCellView
-			view.objectValue = entry.instruction
+			view.objectValue = entry
 			return view
 			
 		default:

@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import librayracer
 
 class AssemblyGroupRowView: NSTableRowView {
 	@IBOutlet private var textField: NSTextField?
@@ -51,7 +52,7 @@ class AssemblyAddressCellView: NSTableCellView {
 }
 
 // MARK: -
-class AssemblyInstructionCellView: NSTableCellView {
+class AssemblyInstructionCellView: DebugValueTableCellView {
 	override var objectValue: Any? {
 		didSet {
 			guard let instruction = self.objectValue as? Instruction else {
@@ -59,135 +60,171 @@ class AssemblyInstructionCellView: NSTableCellView {
 				return
 			}
 			self.textField?
-				.stringValue = self.format(instruction: instruction)
+				.stringValue = instruction.description
+		}
+	}
+}
+
+// MARK: -
+class AssemblyTargetCellView: DebugValueTableCellView {
+	override var objectValue: Any? {
+		didSet {
+			guard let (offset, instruction) = self.objectValue as? (Int, Instruction?),
+				  let instruction = instruction else {
+				self.textField?.stringValue = ""
+				return
+			}
+			self.textField?
+				.stringValue = self.formatTarget(of: instruction, at: offset)
 		}
 	}
 	
-	override func awakeFromNib() {
-		super.awakeFromNib()
-		self.textField?
-			.font = .monospacedRegular
+	private static var console: Atari2600 {
+		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
+		return delegate.console
 	}
 	
-	func format(instruction: Instruction) -> String {
-		var formatted = "\(instruction.mnemonic)"
-		if let operand = instruction.operand {
-			let operand = String(format: instruction.operandFormat, operand)
-			formatted += " \(operand)"
+	private func formatTarget(of instruction: Instruction, at offset: Int) -> String {
+		switch instruction.mode {
+		case .implied, .immediate:
+			// instructions with implied and immediate addressing do not
+			// have effective addressses
+			return ""
+			
+		case .zeroPage, .absolute:
+			// for instructions with absolute addressing, always return
+			// formatted operand address target
+			return self.formatTarget(at: instruction.operand!, access: instruction.access)
+			
+		default:
+			// for instructions with indexed addressing, return formatted
+			// operand address target only when program is currently at
+			// that instruction
+			guard let cpu = Self.console.console?.pointee.mpu?.pointee,
+				  (offset & 0xfff) == Int(cpu.program_counter & 0xfff) else {
+				return ""
+			}
+			return self.formatTarget(at: Int(cpu.operation.address), access: instruction.access)
 		}
+	}
+	
+	private func formatTarget(at address: Int, access: Instruction.DataAccess) -> String {
+		// append instruction data access symbol
+		var formatted = Self.accessArrows[access] ?? " "
+		formatted += " "
 		
+		// append access target
+		if address & 0xd000 == 0xd000 {
+			// cartridge
+			formatted += String(format: "rom $%03x", address & 0xfff)
+		} else if address & 0x280 == 0x80 {
+			// RIOT RAM
+			formatted += String(format: "ram $%02x", address & 0x7f)
+		} else if address & 0x280 == 0x280 {
+			// RIOT
+			switch access {
+			case .none:
+				return ""
+			case .read:
+				formatted += MCS6532.readRegisters[address & 0x7] ?? ""
+			case .write, .readWrite:
+				formatted += MCS6532.writeRegisters[address & 0x1f] ?? ""
+			}
+		} else if address & 0x80 == 0x00 {
+			// TIA
+			formatted += TIA.registers[address & 0x3f] ?? ""
+		} else {
+			return ""
+		}
 		return formatted
 	}
-}
-
-// MARK: -
-class AssemblyTargetCellView: NSTableCellView {
-	override var objectValue: Any? {
-		didSet {
-			guard let instruction = self.objectValue as? Instruction else {
-				self.textField?.stringValue = ""
-				return
-			}
-			self.textField?
-				.stringValue = self.format(targetOf: instruction, at: 0)
-		}
-	}
 	
-	override func awakeFromNib() {
-		super.awakeFromNib()
-		self.textField?
-			.font = .monospacedRegular
-	}
-	
-	func format(targetOf instruction: Instruction, at row: Int) -> String {
-		//		switch instruction.addressing {
-		//		case .implied:
-		//			// instructions with implied addressing do not have operands
-		//			return nil
-		//
-		//		case .zeroPage, .absolute:
-		//			// for instructions with absolute addressing, always return
-		//			// formatted operand address target
-		//			let address = self.unmirror(instruction.operand)
-		//			return self.formatTarget(at: address)
-		//
-		//		default:
-		//			// for instructions with indexed addressing, return formatted
-		//			// operand address target only when program is currently at
-		//			// that instruction
-		//			let cpu = self.console.console.pointee.mpu.pointee
-		//			guard let program = self.program,
-		//				  program[row].0 == Int(cpu.program_counter) else {
-		//				return nil
-		//			}
-		//
-		//			let address = self.unmirror(Int(cpu.operation.address))
-		//			return self.formatTarget(at: address)
-		//		}
-		return ""
-	}
-	
-	private func unmirror(_ address: Int) -> Int {
-		if (0x0040..<0x0080).contains(address) {
-			return address - 0x40
-		}
-		if (0x5000..<0x6000).contains(address) {
-			return address + 0xa000
-		}
-		return address
-	}
-	
-	private func format(targetAt address: Int) -> String? {
-		if (0x0000..<0x0040).contains(address) {
-			return Self.tiaLabels[address]
-		} else if (0x080..<0x0100).contains(address) {
-			return String(format: "ram $%02x", address)
-		} else if (0x0280..<0x0300).contains(address) {
-			return Self.riotLabels[address - 0x0280]
-		} else if (0xf000...0xffff).contains(address) {
-			return String(format: "rom $%03x", address)
-		} else {
-			return nil
-		}
-	}
+	private static let accessArrows: [Instruction.DataAccess: String] = [
+		.read: "←",
+		.write: "→",
+		.readWrite: "↔︎"
+	]
 }
 
 
 // MARK: -
-// MARK: Convenience functionality
-private extension Instruction {
-	var operandFormat: String {
-		switch self.mode {
-		case .implied:
-			return ""
-		case .immediate:
-			return "#$%02x"
-		case .zeroPage:
-			return "$%02x"
-		case .zeroPageX:
-			return "$%02x,x"
-		case .zeroPageY:
-			return "$%02x,y"
-		case .absolute:
-			return "$%04x"
-		case .absoluteX:
-			return "$%04x,x"
-		case .absoluteY:
-			return "$%04x,y"
-		case .indirect:
-			return "($%04x)"
-		case .indirectX:
-			return "($%02x,x)"
-		case .indirectY:
-			return "($%02x),y"
-		case .relative:
-			return "%+d"
+// MARK: Data formatting
+extension Instruction: CustomStringConvertible {
+	var description: String {
+		var formatted = self.mnemonic.rawValue
+		
+		// format and append operand, when present
+		if let operand = self.operand,
+		   let format = Self.operandFormats[self.mode] {
+			formatted += " "
+			formatted += String(format: format, operand)
+		}
+		return formatted
+	}
+	
+	private static let operandFormats: [Instruction.AddressingMode: String] = [
+		.immediate: "#$%02x",
+		.zeroPage: "$%02x",
+		.zeroPageX: "$%02x,x",
+		.zeroPageY: "$%02x,y",
+		.absolute: "$%04x",
+		.absoluteX: "$%04x,x",
+		.absoluteY: "$%04x,y",
+		.indirect: "($%04x)",
+		.indirectX: "($%02x,x)",
+		.indirectY: "($%02x),y",
+		.relative: "%+d"
+	]
+}
+
+extension Instruction {
+	enum DataAccess {
+		case none
+		case read
+		case write
+		case readWrite
+	}
+	
+	var access: DataAccess {
+		switch self.mnemonic {
+		case .adc, .and, .bit, .cmp, .cpx, .cpy, .eor,
+				.lda, .ldx, .ldy, .ora, .sbc:
+			return .read
+		case .jsr, .sta, .stx, .sty:
+			return .write
+		case .asl, .dec, .inc, .lsr, .rol, .ror:
+			return .readWrite
+		default:
+			return .none
 		}
 	}
 }
 
-extension AssemblyTargetCellView {
-	static let tiaLabels = [
+private typealias MCS6532 = racer_mcs6532
+private extension MCS6532 {
+	static let readRegisters = [
+		0x00: "swcha",
+		0x01: "swacnt",
+		0x02: "swchb",
+		0x03: "swbcnt",
+		0x04: "intim"
+	]
+	
+	static let writeRegisters = [
+		0x00: "swcha",
+		0x01: "swacnt",
+		0x02: "swchb",
+		0x03: "swbcnt",
+		0x14: "tim1t",
+		0x15: "tim8t",
+		0x16: "tim64t",
+		0x17: "t1024t"
+	]
+}
+
+private typealias TIA = racer_tia
+private extension TIA {
+	static let registers = [
 		0x00: "vsync",
 		0x01: "vblank",
 		0x02: "wsync",
@@ -247,18 +284,5 @@ extension AssemblyTargetCellView {
 		0x3b: "inpt3",
 		0x3c: "inpt4",
 		0x3d: "inpt5"
-	]
-	
-	static let riotLabels = [
-		0x00: "swcha",
-		0x01: "swacnt",
-		0x02: "swchb",
-		0x03: "swbcnt",
-		0x04: "intim",
-		0x06: "intim",
-		0x14: "tim1t",
-		0x15: "tim8t",
-		0x16: "tim64t",
-		0x17: "t1024t"
 	]
 }
