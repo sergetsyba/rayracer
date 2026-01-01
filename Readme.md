@@ -9,6 +9,7 @@ It does not emulate
 
 * any controller other than 1 button joystick
 * audio
-* cartridges over 4KB with bank-switching
+* Atari cartridges with Super Chip
+* 3rd party cartridges with bank switching 
 
 Follow this repo to stay up-to-date with the progress 👍.
