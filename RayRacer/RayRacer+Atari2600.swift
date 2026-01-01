@@ -11,6 +11,7 @@ import librayracer
 
 class Atari2600 {
 	let console: UnsafeMutablePointer<racer_atari2600>!
+	var cartridge: Cartridge?
 	var controllers: (Joystick?, Joystick?)
 	var output: VideoOutput?
 	
@@ -34,6 +35,28 @@ class Atari2600 {
 		
 		self.controllers
 			.0 = Joystick(console: self.console)
+	}
+	
+	var cartridgeData: Data? {
+		get {
+			return self.cartridge?.data
+		}
+		set {
+			guard let data = newValue,
+				  let cartridge = Cartridge(data: data) else {
+				fatalError("Failed to resolve cartridge kind.")
+			}
+			
+			cartridge.data.withUnsafeBytes() {
+				let address = $0.bindMemory(to: UInt8.self)
+					.baseAddress
+				racer_atari2600_insert_cartridge(
+					self.console, cartridge.kind, address)
+			}
+			
+			self.cartridge = cartridge
+			self.cartridge?.ref = self.console.pointee.cartridge
+		}
 	}
 	
 	func reset() {
@@ -117,34 +140,69 @@ extension Atari2600 {
 
 // MARK: -
 // MARK: Cartridges
-extension Atari2600 {
-	var program: Data? {
-		get {
-			guard let program = self.console.pointee.program else {
-				return nil
-			}
-			
-			return Data(bytesNoCopy: program, count: 4096, deallocator: .none)
+typealias CartridgeKind = racer_cartridge_type
+
+extension CartridgeKind: @retroactive SetAlgebra {}
+extension CartridgeKind: @retroactive ExpressibleByArrayLiteral {}
+extension CartridgeKind: @retroactive OptionSet {
+	static let atari2KB = CARTRIDGE_ATARI_2KB
+	static let atari4KB = CARTRIDGE_ATARI_4KB
+	static let atari8KB = CARTRIDGE_ATARI_8KB
+	static let atari12KB = CARTRIDGE_ATARI_12KB
+	static let atari16KB = CARTRIDGE_ATARI_16KB
+	static let atari32KB = CARTRIDGE_ATARI_32KB
+}
+
+extension CartridgeKind {
+	init?(data: Data) {
+		switch data.count {
+		case 0x1000/2: self = .atari2KB
+		case 0x1000: self = .atari4KB
+		case 0x1000*2: self = .atari8KB
+		case 0x1000*3: self = .atari12KB
+		case 0x1000*4: self = .atari16KB
+		case 0x1000*8: self = .atari32KB
+		default: return nil
 		}
-		set {
-			newValue?.withUnsafeBytes() {
-				self.console.pointee.program = malloc($0.count)
-					.assumingMemoryBound(to: CUnsignedChar.self)
-				
-				memcpy(self.console.pointee.program, $0.baseAddress, $0.count)
-			}
+	}
+}
+
+struct Cartridge {
+	var kind: CartridgeKind
+	var data: Data
+	var ref: UnsafeMutableRawPointer!
+	
+	var id: String {
+		return Insecure.MD5
+			.hash(data: self.data)
+			.map() { String(format: "%02x", $0) }
+			.joined()
+	}
+	
+	var bankIndex: Int {
+		switch self.kind {
+		case .atari8KB,
+				.atari12KB,
+				.atari16KB,
+				.atari32KB:
+			let index = self.ref
+				.assumingMemoryBound(to: racer_atari_multi_bank_cartridge.self)
+				.pointee
+				.bank_index
+			
+			return Int(index)
+		default:
+			return 0
 		}
 	}
 	
-	var programId: String? {
-		guard let program = self.program else {
+	init?(data: Data) {
+		guard let kind = CartridgeKind(data: data) else {
 			return nil
 		}
 		
-		return Insecure.MD5
-			.hash(data: program)
-			.map() { String(format: "%02x", $0) }
-			.joined()
+		self.kind = kind
+		self.data = data
 	}
 }
 

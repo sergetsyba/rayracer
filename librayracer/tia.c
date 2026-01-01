@@ -213,7 +213,7 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			
 		case 0x0d: {// MARK: pf0
 			const uint64_t graphics = data >> 4;
-			tia->playfield.graphics[0] &= 0x0ffff0ffff;
+			tia->playfield.graphics[0] &= 0xffff0ffff0;
 			tia->playfield.graphics[0] |= graphics | (graphics << 20);
 			
 			const uint64_t reflected = reflections[graphics];
@@ -223,7 +223,7 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 		}
 		case 0x0e: {// MARK: pf1
 			const uint64_t graphics = reflections[data];
-			tia->playfield.graphics[0] &= 0xf00fff00ff;
+			tia->playfield.graphics[0] &= 0xff00fff00f;
 			tia->playfield.graphics[0] |= (graphics << 4) | (graphics << (20+4));
 			
 			const uint64_t reflected = data;
@@ -233,11 +233,11 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 		}
 		case 0x0f: {// MARK: pf2
 			const uint64_t graphics = data;
-			tia->playfield.graphics[0] &= 0x000ff000ff;
+			tia->playfield.graphics[0] &= 0x00fff00fff;
 			tia->playfield.graphics[0] |= (graphics << 12) | (graphics << (20+12));
 			
 			const uint64_t reflected = reflections[data];
-			tia->playfield.graphics[1] &= 0x000ffff000;
+			tia->playfield.graphics[1] &= 0xfff0000fff;
 			tia->playfield.graphics[1] |= (graphics << 12) | (reflected << 20);
 			break;
 		}
@@ -249,10 +249,10 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			set_flag(tia->players[1].control, PLAYER_REFLECTED, !(data & 0x8));
 			break;
 		case 0x10:	// MARK: resp0
-			reset_position(tia->players[0]);
+			reset_player_position(&tia->players[0]);
 			break;
 		case 0x11:	// MARK: resp1
-			reset_position(tia->players[1]);
+			reset_player_position(&tia->players[1]);
 			break;
 		case 0x12:	// MARK: resm0
 			reset_position(tia->missiles[0]);
@@ -278,8 +278,8 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			tia->players[1].graphics[0] = data;
 			tia->players[1].graphics[1] = reflections[data];
 			// copy player 0 delayed graphics
-			tia->players[0].graphics[2] = tia->players[1].graphics[0];
-			tia->players[0].graphics[3] = tia->players[1].graphics[1];
+			tia->players[0].graphics[2] = tia->players[0].graphics[0];
+			tia->players[0].graphics[3] = tia->players[0].graphics[1];
 			
 			// copy ball delayed control flag
 			tia->ball.control &= ~BALL_ENABLED_1;
@@ -323,11 +323,10 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			break;
 			
 		case 0x28:	// MARK: resmp0
-			set_flag(tia->missiles[0].control, MISSILE_RESET_TO_PLAYER, data & 0x2);
-			// TODO: set pointer in player
+			set_missile_reset_to_player(&tia->missiles[0], &tia->players[0], data & 0x2);
 			break;
 		case 0x29:	// MARK: resmp1
-			set_flag(tia->missiles[1].control, MISSILE_RESET_TO_PLAYER, data & 0x2);
+			set_missile_reset_to_player(&tia->missiles[1], &tia->players[1], data & 0x2);
 			break;
 			
 		case 0x2a:	// MARK: hmove
@@ -474,8 +473,8 @@ void racer_tia_advance_clock(racer_tia *tia) {
 		tia->collisions |= collisions[state >> 3];
 		
 		// advance position counters of graphics objects
-		advance_position(tia->players[0]);
-		advance_position(tia->players[1]);
+		advance_player_position(&tia->players[0]);
+		advance_player_position(&tia->players[1]);
 		advance_position(tia->missiles[0]);
 		advance_position(tia->missiles[1]);
 		advance_position(tia->ball);

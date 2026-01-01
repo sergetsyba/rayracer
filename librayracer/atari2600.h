@@ -13,6 +13,7 @@
 #include "mcs6507.h"
 #include "mcs6532.h"
 #include "tia.h"
+#include "cartridge.h"
 
 typedef enum {
 	ATARI2600_SWITCH_RESET = 1<<0,
@@ -27,9 +28,13 @@ typedef struct {
 	racer_mcs6532 *riot;
 	racer_tia *tia;
 	
-	uint8_t *program;
 	uint8_t switches[2];
 	uint8_t input;
+	
+	racer_cartridge_type cartridge_type;
+	void *cartridge;
+	uint8_t (*read_cartridge)(void *cartridge, int address);
+	void (*write_cartridge)(void *cartridge, int address, uint8_t data);
 } racer_atari2600;
 
 racer_atari2600 *racer_atari2600_create(void);

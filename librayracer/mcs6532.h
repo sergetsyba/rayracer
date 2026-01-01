@@ -41,28 +41,31 @@ typedef struct {
 	 */
 	int interrupt;
 	
-	void *peripherals[2];
 	uint8_t (*read_port[2])(const void *peripheral);
 	void (*write_port[2])(void *peripheral, uint8_t data);
+	void *peripherals[2];
 } racer_mcs6532;
 
 /**
- * Resets the specified MCS6532.
+ * Resets the MCS6532.
  *
  * This function is equivalent to pulling RES line low for 1 clock cycle in actual hardware.
  *
- * Resetting the chip clears both data and data direction registers, disables interrupt for edge detect
- * and sets it to detect negative transition. It does not reset the timer or clear interrupt registers.
+ * Resetting the MCS6532
+ * 	- randomizes memory
+ * 	- clears both data and data direction registers
+ * 	- disables interrupt for edge detect and sets it to detect negative transition
+ * 	- randomizes timer and sets timer interval to 1024
  */
 void racer_mcs6532_reset(racer_mcs6532 *riot);
 
 /**
- * Advances internal clock by 1 cycle.
+ * Advances internal clock of the MCS6532 by 1 cycle.
  */
 void racer_mcs6532_advance_clock(racer_mcs6532 *riot);
 
 /**
- * Reads data from the specified MCS6532 (excluding RAM).
+ * Reads data from the MCS6532 (excluding RAM).
  *
  * This function is equivalent to pulling RS and R/W lines high, and putting the specified address onto
  * address lines A0-A7; the returned value would be put onto data lines D0-D7.
@@ -70,7 +73,7 @@ void racer_mcs6532_advance_clock(racer_mcs6532 *riot);
 int racer_mcs6532_read(racer_mcs6532 *riot, int address);
 
 /**
- * Writes data to the specified MCS6532 (excluding RAM).
+ * Writes data to the MCS6532 (excluding RAM).
  *
  * This function is equivalent to pulling RS line high, R/W line low, putting the specified address onto
  * address lines A0-A7 and the specified data onto data lines D0-D7.

@@ -14,10 +14,10 @@
 
 // MARK: -
 // MARK: Bus
-static int read_bus(void *bus, int address) {
+static uint8_t read_bus(void *bus, int address) {
 	racer_atari2600 *console = (racer_atari2600 *)bus;
-	if (address & (1<<12)) {
-		return console->program[address & 0x0fff];
+	if (address & 0x1000) {
+		return console->read_cartridge(console->cartridge, address & 0xfff);
 	} else if ((address & 0x280) == 0x280) {
 		return racer_mcs6532_read(console->riot, address & 0x1f);
 	} else if ((address & 0x80) == 0x80) {
@@ -27,11 +27,10 @@ static int read_bus(void *bus, int address) {
 	}
 }
 
-static void write_bus(void *bus, int address, int data) {
+static void write_bus(void *bus, int address, uint8_t data) {
 	racer_atari2600 *console = (racer_atari2600 *)bus;
-	
 	if ((address & 0xf000) == 0xf000) {
-		printf("write_bus: ignoring write at rom address $%04x.\n", address);
+		console->write_cartridge(console->cartridge, address & 0xfff, data);
 	} else if ((address & 0x280) == 0x280) {
 		racer_mcs6532_write(console->riot, address & 0x1f, data);
 	} else if ((address & 0x80) == 0x80) {
@@ -76,6 +75,7 @@ static uint8_t tia_read_controllers(const void *peripheral) {
 
 
 // MARK: -
+static int null_position = 0;
 racer_atari2600 *racer_atari2600_create(void) {
 	racer_atari2600 *console = (racer_atari2600 *)malloc(sizeof(racer_atari2600));
 	
@@ -87,6 +87,9 @@ racer_atari2600 *racer_atari2600_create(void) {
 	
 	// create and wire RIOT
 	console->riot = (racer_mcs6532 *)malloc(sizeof(racer_mcs6532));
+	console->riot->timer_scale = 10;
+	console->riot->timer = 0xb8 * (1<<10);
+	
 	memcpy(console->riot->peripherals, (void *[]){
 		console,
 		console
@@ -106,16 +109,22 @@ racer_atari2600 *racer_atari2600_create(void) {
 	console->tia->peripheral = console;
 	console->tia->read_port = tia_read_controllers;
 	
+	// init graphics objects
+	console->tia->players[0].missile_position = &null_position;
+	console->tia->players[1].missile_position = &null_position;
 	return console;
 }
 
 void racer_atari2600_reset(racer_atari2600 *console) {
-	racer_mcs6507_reset(console->mpu);
-	racer_mcs6532_reset(console->riot);
-	racer_tia_reset(console->tia);
-	
+	// reset bank index in cartridge
+	racer_cartridge_reset(console->cartridge_type, console->cartridge);
+	// reset controller input
 	console->switches[0] = 0x00;
 	console->input = 0x00;
+	
+	racer_tia_reset(console->tia);
+	racer_mcs6532_reset(console->riot);
+	racer_mcs6507_reset(console->mpu);
 }
 
 void racer_atari2600_advance_clock(racer_atari2600 *console) {

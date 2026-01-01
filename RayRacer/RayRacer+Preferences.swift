@@ -32,23 +32,19 @@ extension UserDefaults {
 			.map({ $0.0 })
 	}
 	
-	func addOpenedFileURL(_ url: URL) {
-		guard let data = try? url.bookmarkData(options: .readOnlySecurityScope) else {
-			return
-		}
-		
+	func addOpenedFileURL(_ url: URL, bookmark: Data) {
 		// read bookmark data in user defaults, excluding bookmark data of
 		// the new URL; read bookmark data of 9 recently opened files to
 		// limit the result to 10, once the new data is added
-		var defaultsData = self.openedFileBookmarks
+		var openedFileBookmarks = self.openedFileBookmarks
 			.filter({ $0.0 != url })
 			.prefix(9)
 			.map({ $0.1 })
 		
 		// prepend bookmark data of the new URL at the beginning and write
 		// bookmark data to user defaults
-		defaultsData.insert(data, at: 0)
-		self.setValue(defaultsData, forKey: .openedFileBookmarks)
+		openedFileBookmarks.insert(bookmark, at: 0)
+		self.setValue(openedFileBookmarks, forKey: .openedFileBookmarks)
 	}
 	
 	func clearOpenedFileURLs() {

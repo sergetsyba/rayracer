@@ -160,7 +160,7 @@ extension RayRacerDelegate: NSToolbarItemValidation {
 				.stepScanLineToolbarItem,
 				.stepFieldToolbarItem,
 				.resetToolbarItem:
-			return self.console.program != nil
+			return self.console.cartridge != nil
 		default:
 			return false
 		}
@@ -221,19 +221,22 @@ extension RayRacerDelegate {
 			}
 		}
 		
-		guard let data = try? Data(contentsOfSecurityScopedResourceAt: url) else {
+		guard url.startAccessingSecurityScopedResource(),
+			  let data = try? Data(contentsOf: url),
+			  let bookmark = try? url.bookmarkData(options: .securityScopeAllowOnlyReadAccess) else {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
 		}
 		
-		self.console.program = data
 		self.console.switches = self.defaults.consoleSwitches
+		self.console.cartridgeData = data
 		self.console.reset()
+		self.program = url.lastPathComponent
 		
 		NotificationCenter.default.post(name: .reset, object: self)
-		UserDefaults.standard.addOpenedFileURL(url)
+		UserDefaults.standard.addOpenedFileURL(url, bookmark: bookmark)
+		url.stopAccessingSecurityScopedResource()
 		
-		self.program = url.lastPathComponent
 		windowController.window?
 			.title = self.program
 		

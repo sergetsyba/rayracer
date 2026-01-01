@@ -15,6 +15,7 @@ class ScreenViewController: NSViewController {
 	
 	private var screenData: Array<UInt8>
 	private var screenIndex: Int
+	private var screenIndexLimit: Int
 	
 	private let commandQueue: MTLCommandQueue
 	private let pipelineState: MTLRenderPipelineState
@@ -25,7 +26,9 @@ class ScreenViewController: NSViewController {
 	private let imageSize: MTLSize = .ntscImage
 	private let imageOrigin: MTLOrigin = .ntscImage
 	
-	private var isDrawComplete = false
+	private let maxFieldCount = 5
+	private let fieldSize: Int
+	private var fieldIndex: Int
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
@@ -34,7 +37,12 @@ class ScreenViewController: NSViewController {
 	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
 		self.console = console
 		
-		self.screenData = Array<UInt8>(repeating: 0, count: self.screenSize.count * 50)
+		// allow extra 20 scan lines for vsync
+		self.fieldSize = self.screenSize.count + 20 * self.screenSize.width
+		self.fieldIndex = 0
+		self.screenIndexLimit = self.fieldSize
+		
+		self.screenData = Array<UInt8>(repeating: 0, count: self.fieldSize * self.maxFieldCount)
 		self.screenIndex = 0
 		
 		let device = commandQueue.device
@@ -136,21 +144,25 @@ extension ScreenViewController: MTKViewDelegate {
 	}
 	
 	func draw(in view: MTKView) {
-		// skip frame when console is in the middle of producing field data
-		//		guard self.screenIndex == 0 else {
-		//			return
-		//		}
-		
 		guard let commandBuffer = self.commandQueue.makeCommandBuffer(),
 			  let blitEncoder = commandBuffer.makeBlitCommandEncoder() else {
 			return
 		}
 		
+		let fieldOffset = self.fieldIndex * self.fieldSize
+//		if self.console.isSuspended() {
+//			fieldOffset =
+//		} else {
+//			// draw first field when ready, otherwise draw second when console
+//			// is still producing the first one
+//			fieldOffset = self.fieldIndex == 0 ? self.fieldSize : 0
+//		}
+		
 		// extract visible image from signal data, ignoring vertical and
 		// horizontal blanking regions
 		let imageOffset = self.imageOrigin.y * self.screenSize.width + self.imageOrigin.x
 		let bytesPerRow = self.screenSize.width * MemoryLayout<UInt8>.size
-		blitEncoder.copy(from: self.screenBuffer, sourceOffset: imageOffset, sourceBytesPerRow: bytesPerRow, sourceBytesPerImage: 0, sourceSize: self.imageSize, to: self.imageTexture, destinationSlice: 0, destinationLevel: 0, destinationOrigin: .zero)
+		blitEncoder.copy(from: self.screenBuffer, sourceOffset: fieldOffset + imageOffset, sourceBytesPerRow: bytesPerRow, sourceBytesPerImage: 0, sourceSize: self.imageSize, to: self.imageTexture, destinationSlice: 0, destinationLevel: 0, destinationOrigin: .zero)
 		blitEncoder.endEncoding()
 		
 		guard let renderPassDescriptor = view.currentRenderPassDescriptor,
@@ -164,11 +176,6 @@ extension ScreenViewController: MTKViewDelegate {
 		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
 		renderEncoder.endEncoding()
 		
-		// begin preparing next field once command buffer work finishes
-		commandBuffer.addCompletedHandler() { [unowned self] _ in
-			self.isDrawComplete = true
-		}
-		
 		commandBuffer.present(view.currentDrawable!)
 		commandBuffer.commit()
 	}
@@ -179,14 +186,10 @@ extension ScreenViewController: MTKViewDelegate {
 extension ScreenViewController: VideoOutput {
 	func sync(_ sync: VideoSync) {
 		if sync.contains(.vertical) {
-			// suspend emulation and notify renderer console has finished
-			// producing field data
-			// self.console.suspend()
-			
-			if self.isDrawComplete {
-				self.isDrawComplete = false
-				self.screenIndex = 0
-			}
+			// advance screen index to the beginning of the next field buffer
+			self.fieldIndex = (self.fieldIndex + 1) % self.maxFieldCount
+			self.screenIndex = self.fieldIndex * self.fieldSize
+			self.screenIndexLimit = self.screenIndex + self.fieldSize
 			
 			self.frameCounter.increment()
 		} else if sync.contains(.horizontal) {
@@ -204,6 +207,10 @@ extension ScreenViewController: VideoOutput {
 	}
 	
 	func write(color: Int) {
+		if self.screenIndex == self.screenIndexLimit {
+			self.sync(.vertical)
+		}
+		
 		self.screenData[self.screenIndex] = UInt8(color)
 		self.screenIndex += 1
 	}
