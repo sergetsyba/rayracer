@@ -108,7 +108,10 @@ private extension AssemblyViewController {
 			return HalfBankAssemblyViewDelegate()
 		case .atari4KB:
 			return SingleBankAssemblyViewDelegate()
-		case .atari8KB:
+		case .atari8KB,
+				.atari12KB,
+				.atari16KB,
+				.atari32KB:
 			return MultiBankAssemblyViewDelegate()
 		default:
 			fatalError("Unsupported cartridge type: \(cartridge.kind).")

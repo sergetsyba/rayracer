@@ -148,14 +148,20 @@ extension CartridgeKind: @retroactive OptionSet {
 	static let atari2KB = CARTRIDGE_ATARI_2KB
 	static let atari4KB = CARTRIDGE_ATARI_4KB
 	static let atari8KB = CARTRIDGE_ATARI_8KB
+	static let atari12KB = CARTRIDGE_ATARI_12KB
+	static let atari16KB = CARTRIDGE_ATARI_16KB
+	static let atari32KB = CARTRIDGE_ATARI_32KB
 }
 
 extension CartridgeKind {
 	init?(data: Data) {
 		switch data.count {
-		case 2048: self = .atari2KB
-		case 4096: self = .atari4KB
-		case 8192: self = .atari8KB
+		case 0x1000/2: self = .atari2KB
+		case 0x1000: self = .atari4KB
+		case 0x1000*2: self = .atari8KB
+		case 0x1000*3: self = .atari12KB
+		case 0x1000*4: self = .atari16KB
+		case 0x1000*8: self = .atari32KB
 		default: return nil
 		}
 	}
@@ -175,9 +181,12 @@ struct Cartridge {
 	
 	var bankIndex: Int {
 		switch self.kind {
-		case .atari8KB:
+		case .atari8KB,
+				.atari12KB,
+				.atari16KB,
+				.atari32KB:
 			let index = self.ref
-				.assumingMemoryBound(to: racer_atari_8k_cartridge.self)
+				.assumingMemoryBound(to: racer_atari_multi_bank_cartridge.self)
 				.pointee
 				.bank_index
 			

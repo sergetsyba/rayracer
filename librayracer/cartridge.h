@@ -10,13 +10,24 @@
 
 #include <stdint.h>
 
-typedef struct {
-	int bank_index;
-	const uint8_t *data[2];
-} racer_atari_8k_cartridge;
+typedef enum {
+	CARTRIDGE_ATARI_2KB,
+	CARTRIDGE_ATARI_4KB,
+	CARTRIDGE_ATARI_8KB,
+	CARTRIDGE_ATARI_12KB,
+	CARTRIDGE_ATARI_16KB,
+	CARTRIDGE_ATARI_32KB
+} racer_cartridge_type;
 
-uint8_t read_atari_2kb_cartridge(void *cartridge, int address);
-uint8_t read_atari_4kb_cartridge(void *cartridge, int address);
-uint8_t read_atari_8kb_cartridge(void *cartridge, int address);
+typedef struct {
+	int bank_count;
+	int bank_index;
+	int bank_switch_address;
+	
+	const uint8_t *data;
+} racer_atari_multi_bank_cartridge;
+
+void racer_cartridge_reset(racer_cartridge_type type, void *cartridge);
+void racer_atari2600_insert_cartridge(void *console, racer_cartridge_type type, const uint8_t *data);
 
 #endif /* cartridge_h */

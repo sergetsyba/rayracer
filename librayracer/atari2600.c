@@ -6,7 +6,6 @@
 //
 
 #include "atari2600.h"
-#include "cartridge.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,9 +29,8 @@ static uint8_t read_bus(void *bus, int address) {
 
 static void write_bus(void *bus, int address, uint8_t data) {
 	racer_atari2600 *console = (racer_atari2600 *)bus;
-	
 	if ((address & 0xf000) == 0xf000) {
-		printf("write_bus: ignoring write at rom address $%04x.\n", address);
+		console->write_cartridge(console->cartridge, address & 0xfff, data);
 	} else if ((address & 0x280) == 0x280) {
 		racer_mcs6532_write(console->riot, address & 0x1f, data);
 	} else if ((address & 0x80) == 0x80) {
@@ -117,52 +115,9 @@ racer_atari2600 *racer_atari2600_create(void) {
 	return console;
 }
 
-void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_type type, const uint8_t *data) {
-	switch (type) {
-		case CARTRIDGE_ATARI_2KB:
-			console->cartridge_type = type;
-			console->cartridge = (void *)data;
-			console->read_cartridge = read_atari_2kb_cartridge;
-			break;
-			
-		case CARTRIDGE_ATARI_4KB:
-			console->cartridge_type = type;
-			console->cartridge = (void *)data;
-			console->read_cartridge = read_atari_4kb_cartridge;
-			break;
-			
-		case CARTRIDGE_ATARI_8KB: {
-			racer_atari_8k_cartridge *cartridge = (racer_atari_8k_cartridge *)malloc(sizeof(racer_atari_8k_cartridge));
-			cartridge->data[0] = &data[0];
-			cartridge->data[1] = &data[0x1000];
-			
-			console->cartridge_type = type;
-			console->cartridge = cartridge;
-			console->read_cartridge = read_atari_8kb_cartridge;
-			break;
-		}
-			
-		default:
-			printf("insert cartridge: unsupport cartridge type: %d\n", type);
-			return;
-	}
-}
-
-static void reset_cartridge(racer_atari2600 *console) {
-	switch (console->cartridge_type) {
-		case CARTRIDGE_ATARI_8KB: {
-			racer_atari_8k_cartridge *cartridge = console->cartridge;
-			cartridge->bank_index = 1;
-			break;
-		}
-		default:
-			break;
-	}
-}
-
 void racer_atari2600_reset(racer_atari2600 *console) {
 	// reset bank index in cartridge
-	reset_cartridge(console);
+	racer_cartridge_reset(console->cartridge_type, console->cartridge);
 	// reset controller input
 	console->switches[0] = 0x00;
 	console->input = 0x00;
