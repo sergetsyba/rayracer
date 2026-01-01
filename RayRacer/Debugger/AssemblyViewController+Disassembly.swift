@@ -42,15 +42,24 @@ extension AssemblyViewController {
 		switch mode {
 		case .implied:
 			instruction.operand = nil
+			
 		case .immediate,
 				.zeroPage, .zeroPageX, .zeroPageY,
 				.indirectX, .indirectY:
+			let index = data.index(after: index)
 			instruction.operand = Int(data[index])
-		case .absolute, .absoluteX, .absoluteY:
-			instruction.operand = Int(data[index]) + 0x100 * Int(data[index + 1])
+			
+		case .absolute, .absoluteX, .absoluteY,
+				.indirect:
+			let index1 = data.index(after: index)
+			let index2 = data.index(after: index1)
+			instruction.operand = Int(data[index2]) * 0x100 + Int(data[index1])
+			
 		case .relative:
-			// convert offset to signed int
+			let index = data.index(after: index)
 			let offset = Int(data[index])
+			
+			// convert offset to signed int
 			instruction.operand = offset & 0x80 == 0x80
 			? offset - 0x100
 			: offset
@@ -81,7 +90,8 @@ struct Instruction {
 				.zeroPage, .zeroPageX, .zeroPageY,
 				.indirectX, .indirectY:
 			return 2
-		case .absolute, .absoluteX, .absoluteY:
+		case .absolute, .absoluteX, .absoluteY,
+				.indirect:
 			return 3
 		}
 	}
@@ -232,7 +242,7 @@ extension Instruction {
 		case absolute, absoluteX, absoluteY
 		case zeroPage, zeroPageX, zeroPageY
 		case relative
-		case indirectX, indirectY
+		case indirect, indirectX, indirectY
 		
 		init?(code: UInt8) {
 			switch code {
@@ -271,6 +281,9 @@ extension Instruction {
 				
 			case 0x10, 0x30, 0x50, 0x70, 0x90, 0xb0, 0xd0, 0xf0:
 				self = .relative
+				
+			case 0x6c:
+				self = .indirect
 				
 			case 0x01, 0x21, 0x41, 0x61, 0x81, 0xa1, 0xc1, 0xe1:
 				self = .indirectX

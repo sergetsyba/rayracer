@@ -174,6 +174,8 @@ private extension Instruction {
 			return "$%04x,x"
 		case .absoluteY:
 			return "$%04x,y"
+		case .indirect:
+			return "($%04x)"
 		case .indirectX:
 			return "($%02x,x)"
 		case .indirectY:
