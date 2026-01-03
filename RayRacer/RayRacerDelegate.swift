@@ -27,7 +27,10 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	private var program: String = ""
 	
 	func applicationDidFinishLaunching(_ notification: Notification) {
-		guard let device = MTLCreateSystemDefaultDevice(),
+		// pick GPU, which currenlt drives the display, instead of creating
+		// default Metal device, which would trigger GPU switching
+		let displayId = CGDirectDisplayID()
+		guard let device = CGDirectDisplayCopyCurrentMetalDevice(displayId),
 			  let commandQueue = device.makeCommandQueue(),
 			  let library = device.makeDefaultLibrary() else {
 			fatalError("Failed to initialize Metal.")
