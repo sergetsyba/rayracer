@@ -128,10 +128,18 @@ void racer_atari2600_reset(racer_atari2600 *console) {
 }
 
 void racer_atari2600_advance_clock(racer_atari2600 *console) {
+	// NOTE: in actual hardware these are executed simultaneously; MPU is
+	// the one modifying the registers of TIA and RIOT, so executing its
+	// clock cycle after the other chips simulates this correctly enough;
+	// except for the case when TIA releases RDY state of MPU after it
+	// advances to a new scan line with WSYNC being enabled;
+	// to compensate for this, TIA must check for scan line reset at the
+	// beginning of its clock cycle; this will relase RDY just in time with
+	// the 1st clock cycle of an MPU operation;
+	racer_tia_advance_clock(console->tia);
+	racer_tia_advance_clock(console->tia);
+	racer_tia_advance_clock(console->tia);
+	
 	racer_mcs6507_advance_clock(console->mpu);
 	racer_mcs6532_advance_clock(console->riot);
-	
-	racer_tia_advance_clock(console->tia);
-	racer_tia_advance_clock(console->tia);
-	racer_tia_advance_clock(console->tia);
 }

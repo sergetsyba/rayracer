@@ -235,8 +235,7 @@ extension DebuggerWindowController {
 				var remaining = count
 				console.resume(priority: .high, until: (
 					{ [unowned console] in
-						if console.console.pointee.mpu.pointee.is_sync
-							&& condition(console) {
+						if console.isSync && condition(console) {
 							remaining -= 1
 						}
 						return remaining == 0
@@ -264,8 +263,7 @@ extension DebuggerWindowController {
 				console.output = counter
 				console.resume(priority: .high, until: (
 					{ [unowned console] in
-						return console.console.pointee.mpu.pointee.is_sync
-						&& condition(counter.counts)
+						return console.isSync && condition(counter.counts)
 					},
 					{ [unowned console, self] in
 						console.output = counter.output
@@ -287,9 +285,15 @@ extension Notification.Name {
 
 // MARK: -
 // MARK: Convenience functionality
-private extension racer_mcs6507 {
-	var is_sync: Bool {
-		return self.is_ready && self.operation_clock == 0
+private extension Atari2600 {
+	var isSync: Bool {
+		// TIA releases RDY block on MPU at the same time the first clock
+		// cycle of MPU operation executes; this compensates for it by
+		// checking whether color clock is will to be reset at the next
+		// console clock cycle
+		self.console.pointee.mpu.pointee.operation_clock == 0
+		&& (self.console.pointee.mpu.pointee.is_ready
+			|| self.console.pointee.tia.pointee.color_clock > 228-3)
 	}
 }
 

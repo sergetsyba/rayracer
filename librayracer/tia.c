@@ -451,6 +451,18 @@ void racer_tia_reset(racer_tia *tia) {
 }
 
 void racer_tia_advance_clock(racer_tia *tia) {
+	// NOTE: scan line reset check needs to happen at the beginning of
+	// a color clock cycle due to simultaneous clock simulation of
+	// the console
+	if (tia->color_clock >= 228) {
+		tia->color_clock = 0;
+		*tia->is_ready = true;
+		tia->blank_reset_clock = 68;
+		
+		// notify video output horizontal sync started
+		tia->sync_video_output(tia->output, TIA_OUTPUT_HORIZONTAL_SYNC);
+	}
+	
 	const bool horizontal_blank = tia->color_clock < tia->blank_reset_clock;
 	uint8_t color = horizontal_blank;
 	
@@ -483,16 +495,6 @@ void racer_tia_advance_clock(racer_tia *tia) {
 	const uint16_t sync = (tia->output_control & 0x2) | (tia->color_clock < 68);
 	tia->write_video_output(tia->output, (sync << 8) | color);
 	tia->color_clock += 1;
-	
-	// reset scan line
-	if (tia->color_clock == 228) {
-		tia->color_clock = 0;
-		*tia->is_ready = true;
-		tia->blank_reset_clock = 68;
-		
-		// notify video output horizontal sync started
-		tia->sync_video_output(tia->output, TIA_OUTPUT_HORIZONTAL_SYNC);
-	}
 }
 
 void racer_init_graphics(void) {
