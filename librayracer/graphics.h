@@ -13,7 +13,7 @@
 
 // MARK: -
 typedef struct {
-	uint8_t copy_mask;
+	uint16_t copy_mask;
 	
 	uint8_t graphics[4];
 	int scale;
@@ -35,7 +35,7 @@ void advance_player_position(racer_player *player);
 
 // MARK: -
 typedef struct {
-	uint8_t copy_mask;
+	uint16_t copy_mask;
 	
 	int size;
 	uint8_t control;
