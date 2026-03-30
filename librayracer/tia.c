@@ -23,10 +23,13 @@ void racer_tia_write_port(racer_tia *tia, uint8_t data) {
 
 // MARK: -
 // MARK: Bus
-#define min(a, b) a < b ? a : b
-#define move(object, limit) object.position += min(object.motion, limit)
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define move(object, limit) object.position += min((object.motion ^ 0x8), limit)
 
 static void apply_motion(racer_tia *tia) {
+	// after HMOVE register is strobed, TIA starts applying horizontal
+	// motion to movable object position acounters after approximately
+	// 7 color clock cycles
 	const int remaining_clock = (68+8)-7 - tia->color_clock;
 	if (remaining_clock < 0) {
 		// ignore horizontal motion when HMOVE strobed late during
@@ -36,7 +39,8 @@ static void apply_motion(racer_tia *tia) {
 	}
 	
 	// calculate maximum amount of horizontal motion, which could be
-	// applied during horizontal blanking interval
+	// applied during horizontal blanking interval;
+	// TIA applies one unit of horizontal motion every 4 color clock cycles
 	const int ripples = remaining_clock >> 2;		// remaining_clock / 4;
 	move(tia->players[0], ripples);
 	move(tia->players[1], ripples);
@@ -297,19 +301,19 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			break;
 			
 		case 0x20:	// MARK: hmp0
-			tia->players[0].motion = (data >> 4) ^ 0x8;
+			tia->players[0].motion = data >> 4;
 			break;
 		case 0x21:	// MARK: hmp1
-			tia->players[1].motion = (data >> 4) ^ 0x8;
+			tia->players[1].motion = data >> 4;
 			break;
 		case 0x22:	// MARK: hmm0
-			tia->missiles[0].motion = (data >> 4) ^ 0x8;
+			tia->missiles[0].motion = data >> 4;
 			break;
 		case 0x23:	// MARK: hmm1
-			tia->missiles[1].motion = (data >> 4) ^ 0x8;
+			tia->missiles[1].motion = data >> 4;
 			break;
 		case 0x24:	// MARK: hmbl
-			tia->ball.motion = (data >> 4) ^ 0x8;
+			tia->ball.motion = data >> 4;
 			break;
 			
 		case 0x25:	// MARK: vdelp0
