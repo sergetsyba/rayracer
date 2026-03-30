@@ -21,7 +21,7 @@ bool player_needs_drawing(const racer_player *player) {
 		return false;
 	}
 	
-	const int graphics = player->graphics[player->control];
+	const int graphics = player->graphics[player->control & 0x3];
 	const int bit = player->position & 0x7;	// position % 8
 	return graphics & (1 << bit);
 }
