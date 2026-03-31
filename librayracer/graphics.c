@@ -12,8 +12,8 @@
 
 // MARK: Player
 bool player_needs_drawing(const racer_player *player) {
-	int section = player->position >> 3;	// position / 8
-	section >>= player->scale;				// position / size
+	int section = player->position >> 3;		// position / 8
+	section >>= player->scale;					// position / size
 	
 	// ensure position counter is within any of the 8-color clock wide
 	// sections of a scan line where a player copy can be drawn
@@ -21,8 +21,11 @@ bool player_needs_drawing(const racer_player *player) {
 		return false;
 	}
 	
+	const int size = 8 << player->scale;
+	int bit = player->position & (size - 1);	// position % size
+	bit >>= player->scale;
+	
 	const int graphics = player->graphics[player->control & 0x3];
-	const int bit = player->position & 0x7;	// position % 8
 	return graphics & (1 << bit);
 }
 
