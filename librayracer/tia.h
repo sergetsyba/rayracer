@@ -10,12 +10,15 @@
 
 #include "graphics.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef enum {
 	TIA_OUTPUT_HORIZONTAL_SYNC = 1<<0,
 	TIA_OUTPUT_VERTICAL_SYNC = 1<<1
 } racer_tia_output_sync;
 
-typedef struct {
+struct racer_tia {
 	racer_player players[2];
 	racer_missile missiles[2];
 	racer_ball ball;
@@ -77,7 +80,17 @@ typedef struct {
 	 * Bit 1 denotes whether vertical sync is on.
 	 */
 	uint8_t output_control;
-} racer_tia;
+};
+
+/**
+ * Resets the TIA.
+ */
+void racer_tia_reset(racer_tia *tia);
+
+/**
+ * Advanced TIA clock by 1 cycle.
+ */
+void racer_tia_advance_clock(racer_tia *tia);
 
 #define TIA_INPUT_PORT_LATCH (1<<6)
 #define TIA_INPUT_PORT_DUMP (1<<7)
@@ -91,12 +104,14 @@ typedef struct {
  */
 void racer_tia_write_port(racer_tia *tia, uint8_t data);
 
+/**
+ * Reads data from the TIA.
+ */
 uint8_t racer_tia_read(const racer_tia *tia, uint8_t address);
+
+/**
+ * Reads data to the TIA.
+ */
 void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data);
-
-void racer_tia_reset(racer_tia *tia);
-void racer_tia_advance_clock(racer_tia *tia);
-
-void racer_init_graphics(void);
 
 #endif /* tia_h */

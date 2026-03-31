@@ -6,6 +6,7 @@
 //
 
 #include "atari2600.h"
+#include "graphics.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -75,7 +76,6 @@ static uint8_t tia_read_controllers(const void *peripheral) {
 
 
 // MARK: -
-static int null_position = 0;
 racer_atari2600 *racer_atari2600_create(void) {
 	racer_atari2600 *console = (racer_atari2600 *)malloc(sizeof(racer_atari2600));
 	
@@ -103,15 +103,15 @@ racer_atari2600 *racer_atari2600_create(void) {
 		riot_write_switches
 	}, sizeof(console->riot->write_port));
 	
+	
+	
 	// create and wire TIA
 	console->tia = (racer_tia *)malloc(sizeof(racer_tia));
 	console->tia->is_ready = &console->mpu->is_ready;
 	console->tia->peripheral = console;
 	console->tia->read_port = tia_read_controllers;
 	
-	// init graphics objects
-	console->tia->players[0].missile_position = &null_position;
-	console->tia->players[1].missile_position = &null_position;
+	init_graphics();
 	return console;
 }
 
