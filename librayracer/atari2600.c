@@ -103,13 +103,14 @@ racer_atari2600 *racer_atari2600_create(void) {
 		riot_write_switches
 	}, sizeof(console->riot->write_port));
 	
-	
-	
 	// create and wire TIA
 	console->tia = (racer_tia *)malloc(sizeof(racer_tia));
 	console->tia->is_ready = &console->mpu->is_ready;
 	console->tia->peripheral = console;
 	console->tia->read_port = tia_read_controllers;
+	
+	console->tia->players[0].missile_position = &null_missile_position;
+	console->tia->players[1].missile_position = &null_missile_position;
 	
 	init_graphics();
 	return console;

@@ -991,7 +991,7 @@ private extension Range where Index == Int {
 	}
 }
 
-private extension BinaryInteger {
+extension BinaryInteger {
 	subscript(bit: Int) -> Bool {
 		get {
 			let mask: Self = 0x01 << bit

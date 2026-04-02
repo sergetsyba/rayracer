@@ -150,13 +150,13 @@ extension ScreenViewController: MTKViewDelegate {
 		}
 		
 		let fieldOffset = self.fieldIndex * self.fieldSize
-//		if self.console.isSuspended() {
-//			fieldOffset =
-//		} else {
-//			// draw first field when ready, otherwise draw second when console
-//			// is still producing the first one
-//			fieldOffset = self.fieldIndex == 0 ? self.fieldSize : 0
-//		}
+		//		if self.console.isSuspended() {
+		//			fieldOffset =
+		//		} else {
+		//			// draw first field when ready, otherwise draw second when console
+		//			// is still producing the first one
+		//			fieldOffset = self.fieldIndex == 0 ? self.fieldSize : 0
+		//		}
 		
 		// extract visible image from signal data, ignoring vertical and
 		// horizontal blanking regions
