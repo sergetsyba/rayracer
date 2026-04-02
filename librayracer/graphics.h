@@ -9,11 +9,10 @@
 #define graphics_h
 
 #include <stdint.h>
-#include <stdbool.h>
 
 // MARK: -
 typedef struct {
-	uint8_t copy_mask;
+	uint16_t copy_mask;
 	
 	uint8_t graphics[4];
 	int scale;
@@ -24,10 +23,6 @@ typedef struct {
 	int *missile_position;
 } racer_player;
 
-bool player_needs_drawing(const racer_player *player);
-void reset_player_position(racer_player *player);
-void advance_player_position(racer_player *player);
-
 #define PLAYER_REFLECTED (1<<0)
 #define PLAYER_DELAYED (1<<1)
 #define PLAYER_POSITION_RESET (1<<2)
@@ -35,7 +30,7 @@ void advance_player_position(racer_player *player);
 
 // MARK: -
 typedef struct {
-	uint8_t copy_mask;
+	uint16_t copy_mask;
 	
 	int size;
 	uint8_t control;
@@ -43,9 +38,6 @@ typedef struct {
 	int position;
 	int motion;
 } racer_missile;
-
-bool missile_needs_drawing(const racer_missile *missile);
-void set_missile_reset_to_player(racer_missile *missile, racer_player *player, bool is_reset);
 
 #define MISSILE_ENABLED (1<<0)
 #define MISSILE_RESET_TO_PLAYER (1<<1)
@@ -60,8 +52,6 @@ typedef struct {
 	int motion;
 } racer_ball;
 
-bool ball_needs_drawing(const racer_ball *ball);
-
 #define BALL_ENABLED_0 (1<<0)
 #define BALL_ENABLED_1 (1<<1)
 #define BALL_DELAYED (1<<2)
@@ -71,13 +61,7 @@ bool ball_needs_drawing(const racer_ball *ball);
 typedef struct {
 	uint64_t graphics[2];
 	uint8_t control;
-	
-	bool is_reflected;
-	bool is_score_mode_on;
-	bool has_priority;
 } racer_playfield;
-
-bool playfield_needs_drawing(const racer_playfield *playfield, int position);
 
 #define PLAYFIELD_REFLECTED (1<<0)
 #define PLAYFIELD_SCORE_MODE (1<<1)
@@ -85,15 +69,42 @@ bool playfield_needs_drawing(const racer_playfield *playfield, int position);
 
 
 // MARK: -
-uint8_t reflect_graphics(uint8_t graphics);
+typedef struct racer_tia racer_tia;
+extern uint8_t reflections[];
+extern uint16_t collisions[];
+extern uint8_t draw_indices[];
 
-#define reset_position(object) \
-	object.position = 160-4
+extern int null_missile_position;
 
-#define advance_position(object) \
-	object.position += 1; \
-	if (object.position == 160) { \
-		object.position = 0; \
-	}
+/**
+ * Initializes look-up tables for drawing graphics and collision detection.
+ */
+void init_graphics(void);
+
+/**
+ * Returns a bit set describing current drawing conditions of the TIA.
+ *
+ * Each bit represents the following conditiions:
+ * 	bit 0 - TIA is drawing right half of the screen
+ *	bit 1 - playfield is in score mode
+ *	bit 2 - playfiled has drawing priority over movable objects
+ *	bit 3 - player 0 is visible
+ *	bit 4 - player 1 is visible
+ *	bit 5 - missile 0 is visible
+ *	bit 6 - missile 1 is visible
+ *	bit 7 - ball is visible
+ *	bit 8 - playfield is visible
+ */
+uint16_t get_object_draw_state(const racer_tia *tia);
+
+#define TIA_DRAWS_RIGHT_HALF (1<<0)
+// PLAYFIELD_SCORE_MODE (1<<1)
+// PLAYFIELD_PRIORITY (1<<2)
+#define TIA_DRAWS_PLAYER_0 (1<<3)
+#define TIA_DRAWS_PLAYER_1 (1<<4)
+#define TIA_DRAWS_MISSILE_0 (1<<5)
+#define TIA_DRAWS_MISSILE_1 (1<<6)
+#define TIA_DRAWS_BALL (1<<7)
+#define TIA_DRAWS_PLAYFIELD (1<<8)
 
 #endif /* graphics_h */

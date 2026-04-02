@@ -6,6 +6,7 @@
 //
 
 #include "atari2600.h"
+#include "graphics.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -75,7 +76,6 @@ static uint8_t tia_read_controllers(const void *peripheral) {
 
 
 // MARK: -
-static int null_position = 0;
 racer_atari2600 *racer_atari2600_create(void) {
 	racer_atari2600 *console = (racer_atari2600 *)malloc(sizeof(racer_atari2600));
 	
@@ -109,9 +109,10 @@ racer_atari2600 *racer_atari2600_create(void) {
 	console->tia->peripheral = console;
 	console->tia->read_port = tia_read_controllers;
 	
-	// init graphics objects
-	console->tia->players[0].missile_position = &null_position;
-	console->tia->players[1].missile_position = &null_position;
+	console->tia->players[0].missile_position = &null_missile_position;
+	console->tia->players[1].missile_position = &null_missile_position;
+	
+	init_graphics();
 	return console;
 }
 
@@ -128,10 +129,18 @@ void racer_atari2600_reset(racer_atari2600 *console) {
 }
 
 void racer_atari2600_advance_clock(racer_atari2600 *console) {
+	// NOTE: in actual hardware these are executed simultaneously; MPU is
+	// the one modifying the registers of TIA and RIOT, so executing its
+	// clock cycle after the other chips simulates this correctly enough;
+	// except for the case when TIA releases RDY state of MPU after it
+	// advances to a new scan line with WSYNC being enabled;
+	// to compensate for this, TIA must check for scan line reset at the
+	// beginning of its clock cycle; this will relase RDY just in time with
+	// the 1st clock cycle of an MPU operation;
+	racer_tia_advance_clock(console->tia);
+	racer_tia_advance_clock(console->tia);
+	racer_tia_advance_clock(console->tia);
+	
 	racer_mcs6507_advance_clock(console->mpu);
 	racer_mcs6532_advance_clock(console->riot);
-	
-	racer_tia_advance_clock(console->tia);
-	racer_tia_advance_clock(console->tia);
-	racer_tia_advance_clock(console->tia);
 }

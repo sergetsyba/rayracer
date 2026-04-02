@@ -12,4 +12,15 @@ class DebugSectionTableCellView: NSTableCellView {
 		super.awakeFromNib()
 		self.textField?.font = .systemBold
 	}
+	
+	override var objectValue: Any? {
+		didSet {
+			guard let section = self.objectValue as? SystemStateViewController.DebugSection else {
+				self.textField?.stringValue = ""
+				return
+			}
+			
+			self.textField?.stringValue = section.rawValue
+		}
+	}
 }

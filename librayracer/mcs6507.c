@@ -860,17 +860,13 @@ void racer_mcs6507_reset(racer_mcs6507 *cpu) {
 	cpu->operation_clock = 0;
 }
 
-bool racer_mcs6507_is_sync(const racer_mcs6507 *cpu) {
-	return cpu->operation_clock == cpu->operation.duration;
-}
-
 void racer_mcs6507_advance_clock(racer_mcs6507 *cpu) {
 	if (!cpu->is_ready) {
 		return;
 	}
 	cpu->operation_clock += 1;
 	
-	if (racer_mcs6507_is_sync(cpu)) {
+	if (cpu->operation_clock == cpu->operation.duration) {
 		// execute current operation
 		cpu->program_counter += cpu->operation.length;
 		execute_decoded_operation(cpu);

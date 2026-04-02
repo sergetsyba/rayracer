@@ -19,9 +19,7 @@ class Atari2600 {
 	private var state: State = .suspended(.normal)
 	
 	init() {
-		self.console = racer_atari2600_create()!
-		racer_init_graphics();
-		
+		self.console = racer_atari2600_create()!		
 		self.console.pointee
 			.tia.pointee
 			.output = Unmanaged.passUnretained(self)

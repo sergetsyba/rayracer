@@ -15,6 +15,7 @@
 		950D71612EF42C05008D18BD /* graphics.c in Sources */ = {isa = PBXBuildFile; fileRef = 950D71602EF42C05008D18BD /* graphics.c */; };
 		950D71632EF42C05008D18BD /* graphics.c in Sources */ = {isa = PBXBuildFile; fileRef = 950D71602EF42C05008D18BD /* graphics.c */; };
 		950D71642EF42C05008D18BD /* graphics.h in Headers */ = {isa = PBXBuildFile; fileRef = 950D715F2EF42C05008D18BD /* graphics.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		950FFC692F7BD9BB006D98E8 /* flags.h in Headers */ = {isa = PBXBuildFile; fileRef = 950FFC682F7BD9BB006D98E8 /* flags.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		9515FD372EC3DCAE00490D74 /* FrameCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9515FD362EC3DCAE00490D74 /* FrameCounter.swift */; };
 		951746E82ED7052800D346CD /* mcs6507.h in Headers */ = {isa = PBXBuildFile; fileRef = 951746E62ED7052800D346CD /* mcs6507.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		951746E92ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
@@ -57,7 +58,6 @@
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
-		95D471702ED05F42002AB93C /* flags.h in Headers */ = {isa = PBXBuildFile; fileRef = 95D4716F2ED05F42002AB93C /* flags.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		95F8B1142EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
 		95F8B1162EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
 /* End PBXBuildFile section */
@@ -96,6 +96,7 @@
 		950A18AC2EFD9C4E001C97C3 /* AssemblyViewController+Disassembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AssemblyViewController+Disassembly.swift"; sourceTree = "<group>"; };
 		950D715F2EF42C05008D18BD /* graphics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphics.h; sourceTree = "<group>"; };
 		950D71602EF42C05008D18BD /* graphics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = graphics.c; sourceTree = "<group>"; };
+		950FFC682F7BD9BB006D98E8 /* flags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = flags.h; sourceTree = "<group>"; };
 		9515FD362EC3DCAE00490D74 /* FrameCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameCounter.swift; sourceTree = "<group>"; };
 		951746E62ED7052800D346CD /* mcs6507.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcs6507.h; sourceTree = "<group>"; };
 		951746E72ED7052800D346CD /* mcs6507.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mcs6507.c; sourceTree = "<group>"; };
@@ -115,6 +116,7 @@
 		955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSFont+Constants.swift"; sourceTree = "<group>"; };
 		95583AFB2EF6EE680000CB1B /* cartridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cartridge.h; sourceTree = "<group>"; };
 		95583AFC2EF6EE680000CB1B /* cartridge.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cartridge.c; sourceTree = "<group>"; };
+		955ABE582F07D9DF00B39CD6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		955B4BEA2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+MainMenu.swift"; sourceTree = "<group>"; };
 		955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphicsSyncCounter.swift; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
@@ -134,7 +136,6 @@
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 		95C918E82C07810000B431C4 /* SystemStateView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SystemStateView.xib; sourceTree = "<group>"; };
 		95C918EA2C07810900B431C4 /* SystemStateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStateViewController.swift; sourceTree = "<group>"; };
-		95D4716F2ED05F42002AB93C /* flags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = flags.h; sourceTree = "<group>"; };
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
 		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
 		95F8B1132EF3070600A637FA /* controller.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = controller.c; sourceTree = "<group>"; };
@@ -168,7 +169,7 @@
 				95583AFC2EF6EE680000CB1B /* cartridge.c */,
 				95AE89E12EF143870019AEED /* controller.h */,
 				95F8B1132EF3070600A637FA /* controller.c */,
-				95D4716F2ED05F42002AB93C /* flags.h */,
+				950FFC682F7BD9BB006D98E8 /* flags.h */,
 				950D715F2EF42C05008D18BD /* graphics.h */,
 				950D71602EF42C05008D18BD /* graphics.c */,
 				951746E62ED7052800D346CD /* mcs6507.h */,
@@ -204,6 +205,7 @@
 		954A18652A1AEE5800EBC582 /* RayRacer */ = {
 			isa = PBXGroup;
 			children = (
+				955ABE582F07D9DF00B39CD6 /* Info.plist */,
 				954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */,
 				958DCCCC2EEFEBB8008772F1 /* RayRacer+Atari2600.swift */,
 				954C4F6F2C9586E20063B170 /* RayRacer+Preferences.swift */,
@@ -267,10 +269,10 @@
 				9519F9D22EE2C5B6007D1626 /* atari2600.h in Headers */,
 				95AE89E42EF143870019AEED /* controller.h in Headers */,
 				95583AFE2EF6EE680000CB1B /* cartridge.h in Headers */,
-				95D471702ED05F42002AB93C /* flags.h in Headers */,
 				950D71642EF42C05008D18BD /* graphics.h in Headers */,
 				951746E82ED7052800D346CD /* mcs6507.h in Headers */,
 				95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */,
+				950FFC692F7BD9BB006D98E8 /* flags.h in Headers */,
 				95A39E2E2ECDF3300020CEFB /* tia.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -584,6 +586,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = "${SRCROOT}/librayracer";
+				INFOPLIST_FILE = RayRacer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = RayRacer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -621,6 +624,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = "${SRCROOT}/librayracer";
+				INFOPLIST_FILE = RayRacer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = RayRacer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
