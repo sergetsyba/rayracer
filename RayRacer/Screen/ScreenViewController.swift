@@ -7,56 +7,59 @@
 
 import Cocoa
 import MetalKit
+import os
 
 class ScreenViewController: NSViewController {
 	public let frameCounter = FrameCounter()
 	
-	private let console: Atari2600
+	// accomodates NTSC, PAL and SECAM field data with extra space for
+	// additional 20 scan lines
+	private static let bufferLength: Int = (625/2 + 20) * 228
+	private let buffers: [MTLBuffer]
 	
-	private var screenData: Array<UInt8>
-	private var screenIndex: Int
-	private var screenIndexLimit: Int
+	private var writeBufferIndex: Int = 0
+	private var drawBufferIndex: Int?
+	private var bufferIndexLock = OSAllocatedUnfairLock()
 	
-	private let commandQueue: MTLCommandQueue
-	private let pipelineState: MTLRenderPipelineState
-	private let screenBuffer: MTLBuffer
+	private var writePointer: UnsafeMutablePointer<UInt8>!
+	private var writeIndex: Int = 0
+	
 	private let imageTexture: MTLTexture
-	
-	private let screenSize: MTLSize = .ntsc
 	private let imageSize: MTLSize = .ntscImage
 	private let imageOrigin: MTLOrigin = .ntscImage
 	
-	private let maxFieldCount = 5
-	private let fieldSize: Int
-	private var fieldIndex: Int
+	private let commandQueue: MTLCommandQueue
+	private let pipelineState: MTLRenderPipelineState
+	private let console: Atari2600
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
 	
 	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
-		self.console = console
-		
-		// allow extra 20 scan lines for vsync
-		self.fieldSize = self.screenSize.count + 20 * self.screenSize.width
-		self.fieldIndex = 0
-		self.screenIndexLimit = self.fieldSize
-		
-		self.screenData = Array<UInt8>(repeating: 0, count: self.fieldSize * self.maxFieldCount)
-		self.screenIndex = 0
-		
+		// initialize tripple buffering for storing field data
 		let device = commandQueue.device
-		guard let screenBuffer = device.makeBuffer(bytesNoCopy: &self.screenData, length: self.screenData.count),
-			  let imageTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: self.imageSize)) else {
+		self.buffers = (0..<3).map() { _ in
+			guard let buffer = device.makeBuffer(length: Self.bufferLength, options: .storageModeShared) else {
+				fatalError("Failed to initialize screen field buffer.")
+			}
+			return buffer
+		}
+		
+		// initialize screen render texture
+		guard let imageTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: self.imageSize)) else {
 			fatalError("Failed to initialize screen render texture.")
 		}
+		self.imageTexture = imageTexture
 		
 		self.commandQueue = commandQueue
 		self.pipelineState = pipelineState
-		self.screenBuffer = screenBuffer
-		self.imageTexture = imageTexture
+		self.console = console
 		
 		super.init(nibName: nil, bundle: nil)
+		
+		// sync to reset buffer pointer and write index
+		self.sync(.vertical)
 	}
 	
 	private class func makeTextureDescriptor(size: MTLSize) -> MTLTextureDescriptor {
@@ -149,20 +152,18 @@ extension ScreenViewController: MTKViewDelegate {
 			return
 		}
 		
-		let fieldOffset = self.fieldIndex * self.fieldSize
-		//		if self.console.isSuspended() {
-		//			fieldOffset =
-		//		} else {
-		//			// draw first field when ready, otherwise draw second when console
-		//			// is still producing the first one
-		//			fieldOffset = self.fieldIndex == 0 ? self.fieldSize : 0
-		//		}
+		// lock last completed buffer for rendering
+		self.bufferIndexLock.lock()
+		self.drawBufferIndex = self.completeWriteBufferIndex
+		self.bufferIndexLock.unlock()
+		
+		let buffer = self.buffers[self.drawBufferIndex!]
+		let offset = self.imageOrigin.y * 228 + self.imageOrigin.x
+		let byteCount = 228
 		
 		// extract visible image from signal data, ignoring vertical and
 		// horizontal blanking regions
-		let imageOffset = self.imageOrigin.y * self.screenSize.width + self.imageOrigin.x
-		let bytesPerRow = self.screenSize.width * MemoryLayout<UInt8>.size
-		blitEncoder.copy(from: self.screenBuffer, sourceOffset: fieldOffset + imageOffset, sourceBytesPerRow: bytesPerRow, sourceBytesPerImage: 0, sourceSize: self.imageSize, to: self.imageTexture, destinationSlice: 0, destinationLevel: 0, destinationOrigin: .zero)
+		blitEncoder.copy(from: buffer, sourceOffset: offset, sourceBytesPerRow: byteCount, sourceBytesPerImage: 0, sourceSize: self.imageSize, to: self.imageTexture, destinationSlice: 0, destinationLevel: 0, destinationOrigin: .zero)
 		blitEncoder.endEncoding()
 		
 		guard let renderPassDescriptor = view.currentRenderPassDescriptor,
@@ -177,42 +178,66 @@ extension ScreenViewController: MTKViewDelegate {
 		renderEncoder.endEncoding()
 		
 		commandBuffer.present(view.currentDrawable!)
+		commandBuffer.addCompletedHandler() { [unowned self] _ in
+			// clear lock on completed buffer after rendering
+			self.bufferIndexLock.lock()
+			self.drawBufferIndex = nil
+			self.bufferIndexLock.unlock()
+		}
+		
 		commandBuffer.commit()
 	}
 }
 
-
 // MARK: -
 extension ScreenViewController: VideoOutput {
-	func sync(_ sync: VideoSync) {
-		if sync.contains(.vertical) {
-			// advance screen index to the beginning of the next field buffer
-			self.fieldIndex = (self.fieldIndex + 1) % self.maxFieldCount
-			self.screenIndex = self.fieldIndex * self.fieldSize
-			self.screenIndexLimit = self.screenIndex + self.fieldSize
-			
-			self.frameCounter.increment()
-		} else if sync.contains(.horizontal) {
-			// advance index to the beginning of the next scan line
-			let offset = self.screenIndex % self.screenSize.width
-			if offset > 0 {
-				self.screenIndex += self.screenSize.width - offset
-			}
+	/// Returns index of the most recent buffer with a complete field.
+	private var completeWriteBufferIndex: Int {
+		return (self.writeBufferIndex - 1 + 3) % 3
+	}
+	
+	/// Advances index of buffer for storing video output to the next available one.
+	private func advanceWriteBufferIndex() {
+		var index = (self.writeBufferIndex + 1)
+		index %= self.buffers.count
+		
+		// skip buffer when it is being rendered
+		if index == self.drawBufferIndex {
+			index += 1
+			index %= self.buffers.count
 		}
+		
+		self.writeBufferIndex = index
+		self.writeIndex = 0
+		self.writePointer = self.buffers[self.writeBufferIndex]
+			.contents()
+			.assumingMemoryBound(to: UInt8.self)
+	}
+	
+	func sync(_ sync: VideoSync) {
+		guard sync.contains(.vertical) else {
+			// do nothing on horizontal sync
+			return
+		}
+		
+		self.bufferIndexLock.lock()
+		self.advanceWriteBufferIndex()
+		self.bufferIndexLock.unlock()
+		
+		self.frameCounter.increment()
 	}
 	
 	func blank() {
-		self.screenData[self.screenIndex] = 0
-		self.screenIndex += 1
+		// does nothing
 	}
 	
 	func write(color: Int) {
-		if self.screenIndex == self.screenIndexLimit {
+		if self.writeIndex >= Self.bufferLength {
 			self.sync(.vertical)
 		}
 		
-		self.screenData[self.screenIndex] = UInt8(color)
-		self.screenIndex += 1
+		self.writePointer[self.writeIndex] = UInt8(color)
+		self.writeIndex += 1
 	}
 }
 
