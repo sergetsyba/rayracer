@@ -16,7 +16,6 @@
 		950D71632EF42C05008D18BD /* graphics.c in Sources */ = {isa = PBXBuildFile; fileRef = 950D71602EF42C05008D18BD /* graphics.c */; };
 		950D71642EF42C05008D18BD /* graphics.h in Headers */ = {isa = PBXBuildFile; fileRef = 950D715F2EF42C05008D18BD /* graphics.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		950FFC692F7BD9BB006D98E8 /* flags.h in Headers */ = {isa = PBXBuildFile; fileRef = 950FFC682F7BD9BB006D98E8 /* flags.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		9515FD372EC3DCAE00490D74 /* FrameCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9515FD362EC3DCAE00490D74 /* FrameCounter.swift */; };
 		951746E82ED7052800D346CD /* mcs6507.h in Headers */ = {isa = PBXBuildFile; fileRef = 951746E62ED7052800D346CD /* mcs6507.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		951746E92ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
 		951746EB2ED7052800D346CD /* mcs6507.c in Sources */ = {isa = PBXBuildFile; fileRef = 951746E72ED7052800D346CD /* mcs6507.c */; };
@@ -97,7 +96,6 @@
 		950D715F2EF42C05008D18BD /* graphics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphics.h; sourceTree = "<group>"; };
 		950D71602EF42C05008D18BD /* graphics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = graphics.c; sourceTree = "<group>"; };
 		950FFC682F7BD9BB006D98E8 /* flags.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = flags.h; sourceTree = "<group>"; };
-		9515FD362EC3DCAE00490D74 /* FrameCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameCounter.swift; sourceTree = "<group>"; };
 		951746E62ED7052800D346CD /* mcs6507.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcs6507.h; sourceTree = "<group>"; };
 		951746E72ED7052800D346CD /* mcs6507.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mcs6507.c; sourceTree = "<group>"; };
 		9517A47A2A486020002D1F20 /* UserDefaults+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Preferences.swift"; sourceTree = "<group>"; };
@@ -254,7 +252,6 @@
 				9593159D2C72175000DC50A9 /* Screen.metal */,
 				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
 				95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */,
-				9515FD362EC3DCAE00490D74 /* FrameCounter.swift */,
 			);
 			path = Screen;
 			sourceTree = "<group>";
@@ -392,7 +389,6 @@
 				957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */,
 				950A18AD2EFD9C4E001C97C3 /* AssemblyViewController+Disassembly.swift in Sources */,
 				950641E32A39CDAB00938403 /* BreakpointToggle.swift in Sources */,
-				9515FD372EC3DCAE00490D74 /* FrameCounter.swift in Sources */,
 				951746EB2ED7052800D346CD /* mcs6507.c in Sources */,
 				954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */,
 				955B4BEB2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift in Sources */,

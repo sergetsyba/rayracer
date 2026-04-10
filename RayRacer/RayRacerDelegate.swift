@@ -21,9 +21,6 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	private(set) var console = Atari2600()
 	
 	private var frameRateTimer: Timer?
-	private var rates = Array<Int>(repeating: 0, count: 200)
-	private var rateIndex = 0
-	
 	private var program: String = ""
 	
 	func applicationDidFinishLaunching(_ notification: Notification) {
@@ -210,16 +207,9 @@ extension RayRacerDelegate {
 			windowController.contentViewController = viewController
 			
 			self.frameRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [unowned viewController, windowController] _ in
-				let rate = viewController.frameCounter.value()
-				viewController.frameCounter.reset()
-				
-				self.rates[self.rateIndex] = rate
-				self.rateIndex += 1
-				let avgRate = self.rates[0..<self.rateIndex]
-					.reduce(0, +) / self.rateIndex
-				
+				let frameRate = Int(viewController.frameRate)
 				windowController?.window?
-					.title = [self.program, "(\(rate) f/s, avg: \(avgRate))"]
+					.title = [self.program, "(\(frameRate) FPS)"]
 					.joined(separator: " ")
 			}
 		}

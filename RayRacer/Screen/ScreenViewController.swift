@@ -10,8 +10,6 @@ import MetalKit
 import os
 
 class ScreenViewController: NSViewController {
-	public let frameCounter = FrameCounter()
-	
 	// accomodates NTSC, PAL and SECAM field data with extra space for
 	// additional 20 scan lines
 	private static let bufferLength: Int = (625/2 + 20) * 228
@@ -31,6 +29,9 @@ class ScreenViewController: NSViewController {
 	private let commandQueue: MTLCommandQueue
 	private let pipelineState: MTLRenderPipelineState
 	private let console: Atari2600
+	
+	private(set) public var frameRate: Double = 0
+	private var writeStartTime: CFTimeInterval = 0
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
@@ -214,6 +215,18 @@ extension ScreenViewController: VideoOutput {
 			.assumingMemoryBound(to: UInt8.self)
 	}
 	
+	private func updateFrameRate() {
+		let currentTime = CACurrentMediaTime()
+		let writeTime = currentTime - self.writeStartTime
+		
+		// fps = α⋅(1/time) + (1-α)⋅fps
+		// α = 0.1, smoothing factor
+		self.frameRate *= 0.9
+		self.frameRate += 0.1/writeTime
+		
+		self.writeStartTime = currentTime
+	}
+	
 	func sync(_ sync: VideoSync) {
 		guard sync.contains(.vertical) else {
 			// do nothing on horizontal sync
@@ -224,7 +237,7 @@ extension ScreenViewController: VideoOutput {
 		self.advanceWriteBufferIndex()
 		self.bufferIndexLock.unlock()
 		
-		self.frameCounter.increment()
+		self.updateFrameRate()
 	}
 	
 	func blank() {
