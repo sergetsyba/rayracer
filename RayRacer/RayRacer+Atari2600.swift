@@ -59,6 +59,8 @@ class Atari2600 {
 	
 	func reset() {
 		racer_atari2600_reset(self.console)
+		NotificationCenter.default
+			.post(name: .reset, object: self)
 	}
 }
 
