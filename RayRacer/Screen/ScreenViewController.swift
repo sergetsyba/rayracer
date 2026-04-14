@@ -30,6 +30,14 @@ class ScreenViewController: NSViewController {
 		let buffer = self.renderer.nextBuffer
 		console.setVideoBuffer(buffer)
 	}
+	
+	func syncField() {
+		var console = self.console.console!
+		
+		// reset video buffer
+		let buffer = self.renderer.nextBuffer
+		console.setVideoBuffer(buffer)
+	}
 }
 
 
@@ -66,14 +74,10 @@ func synchronize(output: UnsafeRawPointer?, sync: VideoSync) {
 		return
 	}
 	
-	let screen = Unmanaged<ScreenViewController>
+	Unmanaged<ScreenViewController>
 		.fromOpaque(output!)
 		.takeUnretainedValue()
-	
-	// reset video buffer
-	let buffer = screen.renderer.nextBuffer
-	var console = screen.console.console!
-	console.setVideoBuffer(buffer)
+		.syncField()
 }
 
 

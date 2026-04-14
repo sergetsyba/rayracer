@@ -94,7 +94,6 @@ extension Atari2600 {
 	}
 	
 	/// Resumes emulation when it is suspended with a priority lower or equal to the specified one.
-	// TODO: explain suspension context
 	func resume(priority: SuspensionPriority = .normal, until suspension: (condition: () -> Bool, callback: () -> Void)? = nil) {
 		// do not resume emulation when current suspension priority is higher
 		guard case .suspended(let currentPriority) = self.state,
@@ -255,13 +254,11 @@ extension Joystick.Buttons: @retroactive OptionSet {
 
 // MARK: -
 // MARK: Output
-protocol VideoOutput {
-	/// Signals the start of a new field or scan line.
-	func sync(_ sync: VideoSync)
-}
-
 typealias VideoSync = racer_video_sync
-extension VideoSync: @retroactive OptionSet, SetAlgebra, ExpressibleByArrayLiteral {
+
+extension VideoSync: @retroactive SetAlgebra {}
+extension VideoSync: @retroactive ExpressibleByArrayLiteral {}
+extension VideoSync: @retroactive OptionSet {
 	static let horizontal = VIDEO_HORIZONTAL_SYNC
 	static let vertical = VIDEO_VERTICAL_SYNC
 	static let buffer = VIDEO_BUFFER_SYNC
