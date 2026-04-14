@@ -13,16 +13,16 @@ class Atari2600 {
 	let console: UnsafeMutablePointer<racer_atari2600>!
 	var cartridge: Cartridge?
 	var controllers: (Joystick?, Joystick?)
-
+	
 	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
 	private var state: State = .suspended(.normal)
-
+	
 	init() {
 		self.console = racer_atari2600_create()!
 		self.controllers
 			.0 = Joystick(console: self.console)
 	}
-
+	
 	var cartridgeData: Data? {
 		get {
 			return self.cartridge?.data
@@ -32,19 +32,19 @@ class Atari2600 {
 				  let cartridge = Cartridge(data: data) else {
 				fatalError("Failed to resolve cartridge kind.")
 			}
-
+			
 			cartridge.data.withUnsafeBytes() {
 				let address = $0.bindMemory(to: UInt8.self)
 					.baseAddress
 				racer_atari2600_insert_cartridge(
 					self.console, cartridge.kind, address)
 			}
-
+			
 			self.cartridge = cartridge
 			self.cartridge?.ref = self.console.pointee.cartridge
 		}
 	}
-
+	
 	func reset() {
 		racer_atari2600_reset(self.console)
 		NotificationCenter.default
@@ -60,12 +60,12 @@ extension Atari2600 {
 		case normal
 		case high
 	}
-
+	
 	private enum State {
 		case resumed
 		case suspended(SuspensionPriority)
 	}
-
+	
 	/// Returns `true` when emulation is suspended with the specified priority; returns `false`
 	/// otherwise.
 	func isSuspended(withPriority priority: SuspensionPriority = .normal) -> Bool {
@@ -75,7 +75,7 @@ extension Atari2600 {
 			return false
 		}
 	}
-
+	
 	///	Suspends emulation.
 	///
 	///	When emualtion is already suspended with a lower priority than the specified one, updates
@@ -92,7 +92,7 @@ extension Atari2600 {
 			return
 		}
 	}
-
+	
 	/// Resumes emulation when it is suspended with a priority lower or equal to the specified one.
 	// TODO: explain suspension context
 	func resume(priority: SuspensionPriority = .normal, until suspension: (condition: () -> Bool, callback: () -> Void)? = nil) {
@@ -101,16 +101,16 @@ extension Atari2600 {
 			  currentPriority <= priority else {
 			return
 		}
-
+		
 		if let (condition, callback) = suspension {
 			self.suspension = (condition, callback, priority)
 		}
-
+		
 		self.state = .resumed
 		if let (condition, callback, priority) = self.suspension {
 			while case .resumed = self.state {
 				racer_atari2600_advance_clock(self.console)
-
+				
 				if condition() {
 					self.state = .suspended(priority)
 					self.suspension = nil
@@ -159,14 +159,14 @@ struct Cartridge {
 	var kind: CartridgeKind
 	var data: Data
 	var ref: UnsafeMutableRawPointer!
-
+	
 	var id: String {
 		return Insecure.MD5
 			.hash(data: self.data)
 			.map() { String(format: "%02x", $0) }
 			.joined()
 	}
-
+	
 	var bankIndex: Int {
 		switch self.kind {
 		case .atari8KB,
@@ -177,18 +177,18 @@ struct Cartridge {
 				.assumingMemoryBound(to: racer_atari_multi_bank_cartridge.self)
 				.pointee
 				.bank_index
-
+			
 			return Int(index)
 		default:
 			return 0
 		}
 	}
-
+	
 	init?(data: Data) {
 		guard let kind = CartridgeKind(data: data) else {
 			return nil
 		}
-
+		
 		self.kind = kind
 		self.data = data
 	}
@@ -221,7 +221,7 @@ extension Atari2600 {
 // MARK: Controllerss
 class Joystick {
 	typealias Buttons = racer_joystick_button
-
+	
 	private let console: UnsafeMutablePointer<racer_atari2600>!
 	private var pressedButtons: Buttons = [] {
 		didSet {
@@ -229,15 +229,15 @@ class Joystick {
 			racer_joysticks_write_output(self.console, [buttons, 0])
 		}
 	}
-
+	
 	init(console: UnsafeMutablePointer<racer_atari2600>!) {
 		self.console = console
 	}
-
+	
 	func press(_ buttons: Buttons) {
 		self.pressedButtons.insert(buttons)
 	}
-
+	
 	func release(_ buttons: Buttons) {
 		self.pressedButtons.remove(buttons)
 	}

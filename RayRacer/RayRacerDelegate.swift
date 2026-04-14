@@ -12,41 +12,28 @@ import CryptoKit
 @main
 class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
-	
-	private var commandQueue: MTLCommandQueue!
-	private var pipelineState: MTLRenderPipelineState!
-	
-	private(set) var console = Atari2600()
+
+	private(set) var console: Atari2600!
+	private var renderer: NoBrakesRenderer!
 	private var frameRateTimer: Timer?
-	
+
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		self.initRendering()
 	}
-	
+
 	private func initRendering() {
-		// pick GPU, which currenlt drives the display, instead of creating
+		// pick GPU, which currently drives the display, instead of creating
 		// default Metal device, which would trigger GPU switching
 		let displayId = CGDirectDisplayID()
 		guard let device = CGDirectDisplayCopyCurrentMetalDevice(displayId),
-			  let commandQueue = device.makeCommandQueue(),
-			  let library = device.makeDefaultLibrary() else {
+			  let commandQueue = device.makeCommandQueue() else {
 			fatalError("Failed to initialize Metal.")
 		}
-		
-		let descriptor = MTLRenderPipelineDescriptor()
-		descriptor.vertexFunction = library.makeFunction(name: "make_vertex")
-		descriptor.fragmentFunction = library.makeFunction(name: "shade_fragment")
-		descriptor.colorAttachments[0]
-			.pixelFormat = .bgra8Unorm
-		
-		guard let pipelineState = try? device.makeRenderPipelineState(descriptor: descriptor) else {
-			fatalError("Failed to initialize Metal.")
-		}
-		
-		self.commandQueue = commandQueue
-		self.pipelineState = pipelineState
+
+		self.console = Atari2600()
+		self.renderer = NoBrakesRenderer(queue: commandQueue)
 	}
-	
+
 	func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
 		return true
 	}
@@ -79,7 +66,7 @@ extension RayRacerDelegate: NSMenuDelegate {
 	func menuNeedsUpdate(_ menu: NSMenu) {
 		let switches = UserDefaults.standard
 			.consoleSwitches
-		
+
 		switch menu.identifier {
 		case .insertRecentCartridgeMenu:
 			self.prepareInsertRecentCartridgeMenuItems(in: menu)
@@ -93,7 +80,7 @@ extension RayRacerDelegate: NSMenuDelegate {
 			break
 		}
 	}
-	
+
 	private func prepareInsertRecentCartridgeMenuItems(in menu: NSMenu) {
 		var menuItems = UserDefaults.standard
 			.openedFileURLs
@@ -102,16 +89,16 @@ extension RayRacerDelegate: NSMenuDelegate {
 				menuItem.title = $0.lastPathComponent
 				menuItem.action = #selector(self.didSelectInsertRecentCartridgeMenuItem(_:))
 				menuItem.representedObject = $0
-				
+
 				return menuItem
 			}
-		
+
 		// when there's at least one recently opened file
 		if let menuItem = menuItems.first {
 			// add key shortcut for opening the most recently opened file
 			menuItem.keyEquivalentModifierMask = [.command, .option]
 			menuItem.keyEquivalent = "o"
-			
+
 			// add a separator and a menu item for clearing the recently
 			// opened files menu
 			menuItems.append(.separator())
@@ -120,7 +107,7 @@ extension RayRacerDelegate: NSMenuDelegate {
 				action: #selector(self.didSelectClearInsertRecentCartridgeMenuItem(_:)),
 				keyEquivalent: ""))
 		}
-		
+
 		menu.items = menuItems
 	}
 }
@@ -140,7 +127,7 @@ extension RayRacerDelegate: NSMenuItemValidation {
 private extension NSUserInterfaceItemIdentifier {
 	static let insertRecentCartridgeMenu = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenu")
 	static let insertRecentCartridgeMenuItem = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenuItem")
-	
+
 	static let leftDifficultyMenu = NSUserInterfaceItemIdentifier("LeftDifficultyMenu")
 	static let rightDifficultyMenu = NSUserInterfaceItemIdentifier("RightDifficultyMenu")
 	static let tvTypeMenu = NSUserInterfaceItemIdentifier("TVTypeMenu")
@@ -185,14 +172,14 @@ extension RayRacerDelegate {
 		panel.canCreateDirectories = false
 		panel.directoryURL = UserDefaults.standard
 			.openedFileURLs.first
-		
+
 		let response = panel.runModal()
 		if let url = panel.url,
 		   response == .OK {
 			perform(url)
 		}
 	}
-	
+
 	private func program(at url: URL) -> (Data, String) {
 		guard url.startAccessingSecurityScopedResource(),
 			  let data = try? Data(contentsOf: url),
@@ -200,49 +187,48 @@ extension RayRacerDelegate {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
 		}
-		
+
 		url.stopAccessingSecurityScopedResource()
 		UserDefaults.standard
 			.addOpenedFileURL(url, bookmark: bookmark)
-		
+
 		return (data, url.lastPathComponent)
 	}
-	
+
 	func showScreen(forProgramAt url: URL) {
 		var windowController: NSWindowController! = self.windowControllers
 			.first(where: { $0.contentViewController is ScreenViewController })
-		
+
 		if windowController == nil {
 			windowController = NSWindowController(windowNibName: "ScreenWindow")
-			windowController.contentViewController = ScreenViewController(console: self.console, commandQueue: self.commandQueue, pipelineState: self.pipelineState)
+			windowController.contentViewController = ScreenViewController(renderer: self.renderer, console: self.console)
 		}
-		
+
 		let (data, name) = self.program(at: url)
 		let viewController = windowController.contentViewController as! ScreenViewController
 		windowController.window?
 			.title = name
-		
+
 		self.console.cartridgeData = data
 		self.console.reset()
-		
 		self.showWindow(of: windowController)
-		
-		self.frameRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [unowned viewController, windowController] _ in
-			let frameRate = Int(viewController.fieldRate)
+
+		self.frameRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [unowned self, windowController] _ in
+			let frameRate = Int(self.renderer.fieldRate)
 			windowController?.window?
 				.title = [name, "(\(frameRate) FPS)"]
 				.joined(separator: " ")
 		}
 	}
-	
+
 	private func showDebugger() {
 		var windowController: NSWindowController! = self.windowControllers
 			.first(where: { $0 is DebuggerWindowController })
-		
+
 		if windowController == nil {
 			windowController = DebuggerWindowController()
 		}
-		
+
 		self.console.suspend(priority: .high)
 		self.showWindow(of: windowController)
 	}
@@ -257,7 +243,7 @@ extension RayRacerDelegate: NSWindowDelegate {
 		windowController.window?.delegate = self
 		windowController.window?.makeKeyAndOrderFront(self)
 	}
-	
+
 	func windowWillClose(_ notification: Notification) {
 		if let window = notification.object as? NSWindow {
 			self.windowControllers.remove(where: { $0.window == window })
@@ -286,7 +272,7 @@ private extension Data {
 	enum SecurityScopeError: Error {
 		case requestDenied
 	}
-	
+
 	init(contentsOfSecurityScopedResourceAt url: URL) throws {
 		guard url.startAccessingSecurityScopedResource() else {
 			throw SecurityScopeError.requestDenied
