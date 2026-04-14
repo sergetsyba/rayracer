@@ -20,13 +20,4 @@ class GraphicsSyncCounter: VideoOutput {
 		self.output?
 			.sync(sync)
 	}
-	
-	func blank() {
-		// does nothing
-	}
-	
-	func write(color: Int) {
-		self.output?
-			.write(color: color)
-	}
 }

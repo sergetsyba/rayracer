@@ -258,16 +258,11 @@ extension DebuggerWindowController {
 		DispatchQueue.global(qos: .userInitiated)
 			.async() { [unowned console] in
 				let counter = GraphicsSyncCounter()
-				counter.output = console.output
-				
-				console.output = counter
 				console.resume(priority: .high, until: (
 					{ [unowned console] in
 						return console.isSync && condition(counter.counts)
 					},
 					{ [unowned console, self] in
-						console.output = counter.output
-						
 						DispatchQueue.main.async() { [unowned self] in
 							NotificationCenter.default
 								.post(name: .break, object: self)

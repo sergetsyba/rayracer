@@ -21,7 +21,6 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		self.initRendering()
-		self.initConsole()
 	}
 	
 	private func initRendering() {
@@ -46,11 +45,6 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 		
 		self.commandQueue = commandQueue
 		self.pipelineState = pipelineState
-	}
-	
-	private func initConsole() {
-		self.console.switches = UserDefaults.standard
-			.consoleSwitches
 	}
 	
 	func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -228,14 +222,13 @@ extension RayRacerDelegate {
 		windowController.window?
 			.title = name
 		
-		self.console.output = viewController
 		self.console.cartridgeData = data
 		self.console.reset()
 		
 		self.showWindow(of: windowController)
 		
 		self.frameRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [unowned viewController, windowController] _ in
-			let frameRate = Int(viewController.frameRate)
+			let frameRate = Int(viewController.fieldRate)
 			windowController?.window?
 				.title = [name, "(\(frameRate) FPS)"]
 				.joined(separator: " ")
