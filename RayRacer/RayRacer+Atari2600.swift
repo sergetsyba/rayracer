@@ -11,7 +11,6 @@ import librayracer
 
 class Atari2600 {
 	let console: UnsafeMutablePointer<racer_atari2600>!
-	var cartridge: Cartridge?
 	var controllers: (Joystick?, Joystick?)
 	
 	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
@@ -23,25 +22,17 @@ class Atari2600 {
 			.0 = Joystick(console: self.console)
 	}
 	
-	var cartridgeData: Data? {
-		get {
-			return self.cartridge?.data
-		}
-		set {
-			guard let data = newValue,
-				  let cartridge = Cartridge(data: data) else {
-				fatalError("Failed to resolve cartridge kind.")
+	var cartridge: Cartridge? {
+		didSet {
+			guard let cartridge else {
+				self.console.pointee.cartridge = nil
+				return
 			}
 			
 			cartridge.data.withUnsafeBytes() {
-				let address = $0.bindMemory(to: UInt8.self)
-					.baseAddress
-				racer_atari2600_insert_cartridge(
-					self.console, cartridge.kind, address)
+				let data = $0.bindMemory(to: UInt8.self)
+				racer_atari2600_insert_cartridge(self.console, cartridge.kind, data.baseAddress)
 			}
-			
-			self.cartridge = cartridge
-			self.cartridge?.ref = self.console.pointee.cartridge
 		}
 	}
 	
@@ -81,7 +72,7 @@ extension Atari2600 {
 	///	When emualtion is already suspended with a lower priority than the specified one, updates
 	///	suspension priority to the specified one.
 	func suspend(priority: SuspensionPriority = .normal) {
-		// note: it seems impossible to combine first to cases into one
+		// note: it seems impossible to combine first two cases into one
 		// due to value binding on .suspended case
 		switch self.state {
 		case .resumed:
@@ -155,9 +146,21 @@ extension CartridgeKind {
 }
 
 struct Cartridge {
+	var name: String
 	var kind: CartridgeKind
 	var data: Data
 	var ref: UnsafeMutableRawPointer!
+	
+	init?(at url: URL) {
+		guard let data = try? Data(contentsOf: url),
+			  let kind = CartridgeKind(data: data) else {
+			return nil
+		}
+		
+		self.name = url.deletingPathExtension().lastPathComponent
+		self.kind = kind
+		self.data = data
+	}
 	
 	var id: String {
 		return Insecure.MD5
@@ -181,15 +184,6 @@ struct Cartridge {
 		default:
 			return 0
 		}
-	}
-	
-	init?(data: Data) {
-		guard let kind = CartridgeKind(data: data) else {
-			return nil
-		}
-		
-		self.kind = kind
-		self.data = data
 	}
 }
 

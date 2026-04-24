@@ -10,14 +10,14 @@ import AppKit
 extension RayRacerDelegate {
 	@IBAction func didSelectInsertCartridgeMenuItem(_ sender: AnyObject) {
 		self.withModalFileOpenPanel() {
-			self.showScreen(forProgramAt: $0)
+			self.runProgram(at: $0)
 		}
 	}
 	
 	@IBAction func didSelectInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
 		// TODO: show error message when representedObject is not a URL
 		if let url = sender.representedObject as? URL {
-			self.showScreen(forProgramAt: url)
+			self.runProgram(at: url)
 		}
 	}
 	

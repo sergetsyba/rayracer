@@ -12,6 +12,7 @@ import librayracer
 class ScreenViewController: NSViewController {
 	fileprivate let renderer: NoBrakesRenderer
 	fileprivate var console: Atari2600
+	private var fieldRateTimer: Timer?
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
@@ -22,7 +23,7 @@ class ScreenViewController: NSViewController {
 		self.console = console
 		super.init(nibName: nil, bundle: nil)
 		
-		// set self as video output
+		// set first video buffer and self as video output
 		var console = self.console.console!
 		console.setVideoOutput(self)
 		
@@ -30,13 +31,48 @@ class ScreenViewController: NSViewController {
 		let buffer = self.renderer.nextBuffer
 		console.setVideoBuffer(buffer)
 	}
-	
-	func syncField() {
-		var console = self.console.console!
+}
+
+
+// MARK: -
+// MARK: View lifecycle
+extension ScreenViewController {
+	override func loadView() {
+		let view = MTKView()
+		view.device = self.renderer.device
+		view.delegate = self.renderer
+		view.preferredFramesPerSecond = 60
 		
-		// reset video buffer
-		let buffer = self.renderer.nextBuffer
-		console.setVideoBuffer(buffer)
+		// force view aspect ratio to 4:3
+		view.addConstraint(view.widthAnchor.constraint(
+			equalTo: view.heightAnchor,
+			multiplier: 4.0/3.0))
+		
+		self.view = view
+	}
+	
+	override func viewDidAppear() {
+		super.viewDidAppear()
+		self.fieldRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [unowned self] _ in
+			self.showFieldRate()
+		}
+		
+		DispatchQueue.global(qos: .userInitiated)
+			.async() { [unowned self] in
+				self.console.resume()
+			}
+	}
+	
+	override func viewWillDisappear() {
+		super.viewDidDisappear()
+		self.fieldRateTimer?.invalidate()
+	}
+	
+	private func showFieldRate() {
+		let name = self.console.cartridge!.name
+		let rate = Int(self.renderer.fieldRate)
+		self.view.window?
+			.title = "\(name) (\(rate) fps)"
 	}
 }
 
@@ -67,47 +103,21 @@ extension UnsafeMutablePointer<racer_atari2600> {
 	}
 }
 
-func synchronize(output: UnsafeRawPointer?, sync: VideoSync) {
+private func synchronize(output: UnsafeRawPointer?, sync: VideoSync) {
 	guard sync.intersection([.vertical, .buffer])
 		.isEmpty == false else {
 		// do nothing on horizontal sync
 		return
 	}
 	
-	Unmanaged<ScreenViewController>
+	let viewController = Unmanaged<ScreenViewController>
 		.fromOpaque(output!)
 		.takeUnretainedValue()
-		.syncField()
-}
-
-
-// MARK: -
-// MARK: View lifecycle
-extension ScreenViewController {
-	override func loadView() {
-		let view = MTKView()
-		view.device = self.renderer.device
-		view.delegate = self.renderer
-		view.preferredFramesPerSecond = 60
-		
-		// force view aspect ratio to 4:3
-		view.addConstraint(view.widthAnchor.constraint(
-			equalTo: view.heightAnchor,
-			multiplier: 4.0/3.0))
-		
-		self.view = view
-	}
 	
-	override func viewDidAppear() {
-		super.viewDidAppear()
-		self.view.window?
-			.makeFirstResponder(self)
-		
-		DispatchQueue.global(qos: .userInitiated)
-			.async() { [unowned self] in
-				self.console.resume()
-			}
-	}
+	// reset video buffer
+	let buffer = viewController.renderer.nextBuffer
+	var console = viewController.console.console!
+	console.setVideoBuffer(buffer)
 }
 
 // MARK: -
