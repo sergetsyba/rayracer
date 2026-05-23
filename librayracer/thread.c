@@ -12,15 +12,19 @@
 #include <stdio.h>
 
 static void update_field_rate(racer_thread *thread) {
-	clock_t current_clock = clock();
-	// adding 1 guards agains 
-	long field_time = (current_clock - thread->field_start_clock) + 1;
-	
-	// fps = α⋅(1/time) + (1-α)⋅fps
+	struct timespec current_time;
+	clock_gettime(CLOCK_MONOTONIC, &current_time);
+
+	// adding 1 guards agains
+	long seconds = current_time.tv_sec - thread->field_start_time.tv_sec;
+	long nanoseconds = current_time.tv_nsec - thread->field_start_time.tv_nsec;
+	long field_time = seconds * 1000000000 + nanoseconds;
+
+	// fps = (α⋅time) + ((1-α)⋅time)
 	// α = 0.1, smoothing factor
-	thread->field_rate *= 0.9;
-	thread->field_rate += 0.1/field_time;
-	thread->field_start_clock = current_clock;
+	thread->field_time *= 0.9;
+	thread->field_time += 0.1 * (double)field_time;
+	thread->field_start_time = current_time;
 }
 
 static inline void advance_write_buffer_index(racer_thread *thread) {
@@ -79,12 +83,13 @@ racer_thread * racer_thread_create(racer_atari2600 *console, uint8_t **buffers, 
 	thread->console->tia->video_buffer = thread->buffers[0];
 	thread->console->tia->sync_video = sync_video;
 	
-	sync_video(thread, VIDEO_BUFFER_SYNC);
-	thread->field_rate = 0;
-	thread->field_start_clock = clock();
-	
+	thread->field_time = 0.0;
+	clock_gettime(CLOCK_MONOTONIC, &thread->field_start_time);
+
 	pthread_mutex_init(&thread->index_lock, NULL);
 	pthread_create(&thread->handle, NULL, run_loop, thread);
+	
+	sync_video(thread, VIDEO_BUFFER_SYNC);
 	return thread;
 }
 
@@ -107,8 +112,4 @@ void racer_thread_unlock_draw_buffer(racer_thread *thread) {
 	thread->draw_buffer_index = -1;
 	
 	pthread_mutex_unlock(&thread->index_lock);
-}
-
-int racer_thread_get_field_rate(racer_thread *thread) {
-	return (int)(thread->field_rate * CLOCKS_PER_SEC);
 }

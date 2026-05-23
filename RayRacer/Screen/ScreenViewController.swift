@@ -71,10 +71,9 @@ extension ScreenViewController {
 	}
 
 	private func showFieldRate() {
-		let name = self.console.cartridge!.name
-		let rate = Int(racer_thread_get_field_rate(self.racer))
+		let fieldRate = Int(1e9 / self.racer.pointee.field_time)
 		self.view.window?
-			.title = "\(name) (\(rate) fps)"
+			.title = "\(self.console.cartridge!.name) (\(fieldRate) fps)"
 	}
 }
 
