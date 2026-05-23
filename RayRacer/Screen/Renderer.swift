@@ -11,7 +11,7 @@ class Renderer: NSObject {
 	private let commandQueue: MTLCommandQueue = .current
 	private let pipelineState: MTLRenderPipelineState
 	private let texture: MTLTexture
-	private let buffers: [MTLBuffer]
+	let buffers: [MTLBuffer]
 	
 	var frame: MTLRegion = .ntscImage
 	var delegate: RendererDelegate!
@@ -79,7 +79,7 @@ class Renderer: NSObject {
 // MARK: -
 // MARK: Rendering
 protocol RendererDelegate {
-	func rendererWillBeginRendering(_ renderer: Renderer) -> Int
+	func rendererWillBeginRendering(_ renderer: Renderer) -> MTLBuffer?
 	func rendererDidEndRendering(_ renderer: Renderer)
 }
 
@@ -89,20 +89,17 @@ extension Renderer: MTKViewDelegate {
 	}
 	
 	func draw(in view: MTKView) {
-		guard let commandBuffer = self.commandQueue.makeCommandBuffer(),
+		guard let buffer = self.delegate.rendererWillBeginRendering(self),
+			  let commandBuffer = self.commandQueue.makeCommandBuffer(),
 			  let blitEncoder = commandBuffer.makeBlitCommandEncoder() else {
 			return
 		}
-		
-		let bufferIndex = self.delegate.rendererWillBeginRendering(self)
-		let buffer = self.buffers[bufferIndex]
-		let offset = self.frame.origin.y * 228 + self.frame.origin.x
 		
 		// extract visible image from signal data, ignoring vertical and
 		// horizontal blanking regions
 		blitEncoder.copy(
 			from: buffer,
-			sourceOffset: offset,
+			sourceOffset: self.frame.origin.y * 228 + self.frame.origin.x,
 			sourceBytesPerRow: 228 * MemoryLayout<UInt8>.size,
 			sourceBytesPerImage: 0,
 			sourceSize: self.frame.size,

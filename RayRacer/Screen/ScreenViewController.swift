@@ -9,31 +9,24 @@ import Cocoa
 import MetalKit
 import librayracer
 
-// accomodates NTSC, PAL and SECAM field data with extra space for
-// additional 20 scan lines
-let bufferLength = (625/2 + 20) * 256
 
 class ScreenViewController: NSViewController {
 	private let renderer: Renderer
-	private var bufferContents: [UnsafeMutablePointer<UInt8>?]
+	private let console: Atari2600
 	private var fieldRateTimer: Timer?
-
-	let console: Atari2600
-	let racer: UnsafeMutablePointer<racer_thread>!
 
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
 
 	init(console: Atari2600) {
-		let renderer = Renderer(bufferLength: bufferLength, bufferCount: 3)
-		self.bufferContents = renderer.bufferContents
+		// accomodates NTSC, PAL and SECAM field data with extra space for
+		// additional 20 scan lines
+		let renderer = Renderer(bufferLength: (625/2 + 20) * 256, bufferCount: 3)
+		renderer.delegate = Racer(console: console, buffers: renderer.buffers)
 
-		self.console = console
 		self.renderer = renderer
-
-		self.racer = racer_thread_create(self.console.console, &self.bufferContents, 3, bufferLength)
-		self.renderer.delegate = self.racer
+		self.console = console
 		super.init(nibName: nil, bundle: nil)
 	}
 }
@@ -69,9 +62,12 @@ extension ScreenViewController {
 	}
 
 	private func showFieldRate() {
-		let fieldRate = Int(1e9 / self.racer.pointee.field_time)
+		let racer = self.renderer.delegate as! Racer
+		let name = self.console.cartridge!.name
+		let frameRate = 1e9 / racer.pointee.field_time
+
 		self.view.window?
-			.title = "\(self.console.cartridge!.name) (\(fieldRate) fps)"
+			.title = String(format: "%@ (%.0f fps)", name, frameRate)
 	}
 }
 
@@ -115,19 +111,28 @@ private extension Joystick.Buttons {
 // MARK: -
 // MARK: Emulation
 
-typealias RacerThread = UnsafeMutablePointer<racer_thread>
+typealias Racer = UnsafeMutablePointer<racer_thread>
 
-extension RacerThread: RendererDelegate {
-	func rendererWillBeginRendering(_ renderer: Renderer) -> Int {
-		// lock last completed buffer for rendering
-		let index = racer_thread_lock_draw_buffer(self)
-		return Int(index)
+extension Racer: RendererDelegate {
+	init(console: Atari2600, buffers: [MTLBuffer]) {
+		var contents: [UnsafeMutablePointer<UInt8>?] = buffers.map() {
+			$0.contents().assumingMemoryBound(to: UInt8.self)
+		}
+		self = contents.withUnsafeMutableBufferPointer() {
+			racer_thread_create(console.console, $0.baseAddress, Int32(buffers.count), buffers[0].length)
+		}
 	}
-	
+
+	func rendererWillBeginRendering(_ renderer: Renderer) -> MTLBuffer? {
+		// suspend emulation
+		racer_thread_suspend(self)
+
+		let index = Int(self.pointee.draw_buffer_index)
+		return renderer.buffers[index]
+	}
+
 	func rendererDidEndRendering(_ renderer: Renderer) {
-		// release render buffer index once render finished and
 		// resume emulation
-		racer_thread_unlock_draw_buffer(self)
 		racer_thread_resume(self)
 	}
 }
