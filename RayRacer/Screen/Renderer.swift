@@ -183,3 +183,7 @@ extension MTLRegion {
 		// and are optionally not shown by TVs
 		size: MTLSize(width: 228-68, height: 480/2-19, depth: 1))
 }
+
+extension MTLOrigin {
+	static let zero: Self = MTLOriginMake(0, 0, 0)
+}

@@ -63,7 +63,6 @@
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
 		95F8B1142EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
 		95F8B1162EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
-		A7A77A5B2F8E826E0020A586 /* NoBrakesRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A77A5A2F8E826E0020A586 /* NoBrakesRenderer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -145,7 +144,6 @@
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
 		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
 		95F8B1132EF3070600A637FA /* controller.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = controller.c; sourceTree = "<group>"; };
-		A7A77A5A2F8E826E0020A586 /* NoBrakesRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoBrakesRenderer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -259,7 +257,6 @@
 			isa = PBXGroup;
 			children = (
 				95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */,
-				A7A77A5A2F8E826E0020A586 /* NoBrakesRenderer.swift */,
 				958E90FA2FA5FE3000312706 /* Renderer.swift */,
 				9593159D2C72175000DC50A9 /* Screen.metal */,
 				95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */,
@@ -412,7 +409,6 @@
 				9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */,
 				954A18672A1AEE5800EBC582 /* RayRacerDelegate.swift in Sources */,
 				954E3CD22C285184009218CB /* DebugSectionTableCellView.swift in Sources */,
-				A7A77A5B2F8E826E0020A586 /* NoBrakesRenderer.swift in Sources */,
 				959E104F2C2314AE00E02CE6 /* DebugColorTableCellView.swift in Sources */,
 				95F8B1142EF3070600A637FA /* controller.c in Sources */,
 				95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */,
