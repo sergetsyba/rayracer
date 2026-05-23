@@ -24,14 +24,12 @@ class Atari2600 {
 	
 	var cartridge: Cartridge? {
 		didSet {
-			guard let cartridge else {
-				self.console.pointee.cartridge = nil
-				return
-			}
-			
-			cartridge.data.withUnsafeBytes() {
-				let data = $0.bindMemory(to: UInt8.self)
-				racer_atari2600_insert_cartridge(self.console, cartridge.kind, data.baseAddress)
+			if let cartridge {
+				cartridge.data.withUnsafeBytes() {
+					racer_atari2600_insert_cartridge(self.console, cartridge.kind, $0.baseAddress)
+				}
+			} else {
+				racer_atari2600_remove_cartridge(self.console)
 			}
 		}
 	}
@@ -176,7 +174,7 @@ struct Cartridge {
 				.atari16KB,
 				.atari32KB:
 			let index = self.ref
-				.assumingMemoryBound(to: racer_atari_multi_bank_cartridge.self)
+				.assumingMemoryBound(to: atari_multi_bank_cartridge.self)
 				.pointee
 				.bank_index
 			

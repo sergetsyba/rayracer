@@ -144,3 +144,76 @@ void racer_atari2600_advance_clock(racer_atari2600 *console) {
 	racer_mcs6507_advance_clock(console->mpu);
 	racer_mcs6532_advance_clock(console->riot);
 }
+
+void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_type type, const uint8_t *data) {
+	console->cartridge_type = type;
+	
+	switch (type) {
+		case CARTRIDGE_ATARI_2KB:
+			console->cartridge = (void *)data;
+			console->read_cartridge = read_atari_2kb_cartridge;
+			console->write_cartridge = write_atari_cartridge;
+			break;
+			
+		case CARTRIDGE_ATARI_4KB:
+			console->cartridge = (void *)data;
+			console->read_cartridge = read_atari_4kb_cartridge;
+			console->write_cartridge = write_atari_cartridge;
+			break;
+			
+		case CARTRIDGE_ATARI_8KB:
+			console->cartridge = &(atari_multi_bank_cartridge){
+				.bank_count = 8/4,
+				.bank_index = 0,
+				.bank_switch_address = 0xff8,
+				.data = data
+			};
+			console->read_cartridge = read_atari_multi_bank_cartridge;
+			console->write_cartridge = write_atari_multi_bank_cartridge;
+			break;
+			
+		case CARTRIDGE_ATARI_12KB:
+			console->cartridge = &(atari_multi_bank_cartridge){
+				.bank_count = 12/4,
+				.bank_index = 0,
+				.bank_switch_address = 0xff8,
+				.data = data
+			};
+			console->read_cartridge = read_atari_multi_bank_cartridge;
+			console->write_cartridge = write_atari_multi_bank_cartridge;
+			break;
+			
+		case CARTRIDGE_ATARI_16KB:
+			console->cartridge = &(atari_multi_bank_cartridge){
+				.bank_count = 16/4,
+				.bank_index = 0,
+				.bank_switch_address = 0xff6,
+				.data = data
+			};
+			console->read_cartridge = read_atari_multi_bank_cartridge;
+			console->write_cartridge = write_atari_multi_bank_cartridge;
+			break;
+			
+		case CARTRIDGE_ATARI_32KB:
+			console->cartridge = &(atari_multi_bank_cartridge){
+				.bank_count = 32/4,
+				.bank_index = 0,
+				.bank_switch_address = 0xff4,
+				.data = data
+			};
+			console->read_cartridge = read_atari_multi_bank_cartridge;
+			console->write_cartridge = write_atari_multi_bank_cartridge;
+			break;
+			
+		default:
+			printf("%s: unsupport cartridge type: %d\n", __func__, type);
+			exit(EXIT_FAILURE);
+			break;
+	}
+}
+
+void racer_atari2600_remove_cartridge(racer_atari2600 *console) {
+	console->cartridge = NULL;
+	console->read_cartridge = NULL;
+	console->write_cartridge = NULL;
+}

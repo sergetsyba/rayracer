@@ -41,4 +41,7 @@ racer_atari2600 *racer_atari2600_create(void);
 void racer_atari2600_reset(racer_atari2600 *console);
 void racer_atari2600_advance_clock(racer_atari2600 *console);
 
+void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_type type, const uint8_t *data);
+void racer_atari2600_remove_cartridge(racer_atari2600 *console);
+
 #endif /* atari2600_h */
