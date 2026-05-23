@@ -65,8 +65,6 @@ extension ScreenViewController {
 
 	override func viewWillDisappear() {
 		super.viewDidDisappear()
-
-		self.console.suspend()
 		self.fieldRateTimer?.invalidate()
 	}
 
@@ -113,7 +111,13 @@ private extension Joystick.Buttons {
 	}
 }
 
-extension UnsafeMutablePointer<racer_thread>: RendererDelegate {
+
+// MARK: -
+// MARK: Emulation
+
+typealias RacerThread = UnsafeMutablePointer<racer_thread>
+
+extension RacerThread: RendererDelegate {
 	func rendererWillBeginRendering(_ renderer: Renderer) -> Int {
 		// lock last completed buffer for rendering
 		let index = racer_thread_lock_draw_buffer(self)

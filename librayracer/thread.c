@@ -8,6 +8,7 @@
 #include "thread.h"
 #include "tia.h"
 
+#include <float.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -63,6 +64,12 @@ static void * run_loop(void *data) {
 	racer_thread *thread = (racer_thread *)data;
 	
 	while(true) {
+		pthread_mutex_lock(&thread->suspension_lock);
+		while (thread->is_suspended) {
+			pthread_cond_wait(&thread->suspension, &thread->suspension_lock);
+		}
+
+		pthread_mutex_unlock(&thread->suspension_lock);
 		racer_atari2600_advance_clock(thread->console);
 	}
 	
@@ -82,19 +89,33 @@ racer_thread * racer_thread_create(racer_atari2600 *console, uint8_t **buffers, 
 	thread->console->tia->video_output = thread;
 	thread->console->tia->video_buffer = thread->buffers[0];
 	thread->console->tia->sync_video = sync_video;
-	
-	thread->field_time = 0.0;
+	sync_video(thread, VIDEO_BUFFER_SYNC);
+
+	thread->field_time = DBL_MIN;
 	clock_gettime(CLOCK_MONOTONIC, &thread->field_start_time);
 
+	pthread_cond_init(&thread->suspension, NULL);
+	pthread_mutex_init(&thread->suspension_lock, NULL);
 	pthread_mutex_init(&thread->index_lock, NULL);
+	thread->is_suspended = true;
+
 	pthread_create(&thread->handle, NULL, run_loop, thread);
-	
-	sync_video(thread, VIDEO_BUFFER_SYNC);
 	return thread;
 }
 
 void racer_thread_resume(racer_thread *thread) {
-	
+	pthread_mutex_lock(&thread->suspension_lock);
+	if (thread->is_suspended) {
+		thread->is_suspended = false;
+		pthread_cond_signal(&thread->suspension);
+	}
+	pthread_mutex_unlock(&thread->suspension_lock);
+}
+
+void racer_thread_suspend(racer_thread *thread) {
+	pthread_mutex_lock(&thread->suspension_lock);
+	thread->is_suspended = true;
+	pthread_mutex_unlock(&thread->suspension_lock);
 }
 
 int racer_thread_lock_draw_buffer(racer_thread *thread) {
