@@ -10,14 +10,13 @@ import MetalKit
 class Renderer: NSObject {
 	private let commandQueue: MTLCommandQueue = .current
 	private let pipelineState: MTLRenderPipelineState
-	
 	private let texture: MTLTexture
-	private let frame: MTLRegion
 	private let buffers: [MTLBuffer]
 	
+	var frame: MTLRegion = .ntscImage
 	var delegate: RendererDelegate!
 	
-	init(bufferLength: Int, bufferCount: Int = 1, frame: MTLRegion = .ntscImage) {
+	init(bufferLength: Int, bufferCount: Int = 1) {
 		let device = self.commandQueue.device
 		guard let library = device.makeDefaultLibrary() else {
 			fatalError("Failed to initialize render library.")
@@ -38,9 +37,7 @@ class Renderer: NSObject {
 		}
 		
 		self.pipelineState = pipelineState
-		
 		self.texture = texture
-		self.frame = frame
 		self.buffers = buffers
 	}
 	
