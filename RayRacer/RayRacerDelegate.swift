@@ -15,24 +15,7 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
 	
 	let console = Atari2600()
-	private(set) var renderer: Renderer!
-	
-	func applicationDidFinishLaunching(_ notification: Notification) {
-		self.initRendering()
-	}
-	
-	private func initRendering() {
-		// pick GPU, which currently drives the display, instead of creating
-		// default Metal device, which would trigger GPU switching
-		let displayId = CGDirectDisplayID()
-		guard let device = CGDirectDisplayCopyCurrentMetalDevice(displayId),
-			  let queue = device.makeCommandQueue() else {
-			fatalError("Failed to initialize Metal.")
-		}
-		
-		self.renderer = Renderer(console: self.console.console, queue: queue)
-	}
-	
+
 	func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
 		return true
 	}
@@ -200,7 +183,7 @@ extension RayRacerDelegate {
 		
 		if windowController == nil {
 			windowController = NSWindowController(windowNibName: "ScreenWindow")
-			windowController.contentViewController = ScreenViewController(renderer: self.renderer, console: self.console)
+			windowController.contentViewController = ScreenViewController(console: self.console)
 		}
 		
 		// TODO: suspend console in case it is currently resumed

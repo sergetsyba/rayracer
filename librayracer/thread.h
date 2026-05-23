@@ -31,7 +31,7 @@ typedef struct {
 	clock_t field_start_clock;
 } racer_thread;
 
-racer_thread * racer_thread_create(racer_atari2600 *console, uint8_t *buffers[3], int buffer_count, size_t buffer_size);
+racer_thread * racer_thread_create(racer_atari2600 *console, uint8_t **buffers, int buffer_count, size_t buffer_size);
 void racer_thread_suspend(racer_thread *thread);
 void racer_thread_resume(racer_thread *thread);
 
