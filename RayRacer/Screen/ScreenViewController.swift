@@ -10,26 +10,19 @@ import MetalKit
 import librayracer
 
 class ScreenViewController: NSViewController {
-	fileprivate let renderer: NoBrakesRenderer
-	fileprivate var console: Atari2600
+	private let renderer: Renderer
 	private var fieldRateTimer: Timer?
+	
+	let console: Atari2600
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
 	
-	init(renderer: NoBrakesRenderer, console: Atari2600) {
+	init(renderer: Renderer, console: Atari2600) {
 		self.renderer = renderer
 		self.console = console
 		super.init(nibName: nil, bundle: nil)
-		
-		// set first video buffer and self as video output
-		var console = self.console.console!
-		console.setVideoOutput(self)
-		
-		// set video buffer
-		let buffer = self.renderer.nextBuffer
-		console.setVideoBuffer(buffer)
 	}
 }
 
@@ -56,68 +49,21 @@ extension ScreenViewController {
 		self.fieldRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [unowned self] _ in
 			self.showFieldRate()
 		}
-		
-		DispatchQueue.global(qos: .userInitiated)
-			.async() { [unowned self] in
-				self.console.resume()
-			}
 	}
 	
 	override func viewWillDisappear() {
 		super.viewDidDisappear()
+		
+		self.console.suspend()
 		self.fieldRateTimer?.invalidate()
 	}
 	
 	private func showFieldRate() {
 		let name = self.console.cartridge!.name
-		let rate = Int(self.renderer.fieldRate)
+		let rate = Int(racer_thread_get_field_rate(self.renderer.racer))
 		self.view.window?
 			.title = "\(name) (\(rate) fps)"
 	}
-}
-
-
-// MARK: -
-// MARK: Video output
-extension UnsafeMutablePointer<racer_atari2600> {
-	mutating func setVideoOutput(_ output: ScreenViewController) {
-		self.pointee
-			.tia.pointee
-			.video_output = Unmanaged.passUnretained(output)
-			.toOpaque()
-		self.pointee
-			.tia.pointee
-			.video_sync = synchronize(output:sync:)
-	}
-	
-	mutating func setVideoBuffer(_ buffer: MTLBuffer) {
-		let contents = buffer.contents()
-			.assumingMemoryBound(to: UInt8.self)
-		
-		self.pointee
-			.tia.pointee
-			.video_buffer = contents
-		self.pointee
-			.tia.pointee
-			.video_buffer_end = contents.advanced(by: buffer.length)
-	}
-}
-
-private func synchronize(output: UnsafeRawPointer?, sync: VideoSync) {
-	guard sync.intersection([.vertical, .buffer])
-		.isEmpty == false else {
-		// do nothing on horizontal sync
-		return
-	}
-	
-	let viewController = Unmanaged<ScreenViewController>
-		.fromOpaque(output!)
-		.takeUnretainedValue()
-	
-	// reset video buffer
-	let buffer = viewController.renderer.nextBuffer
-	var console = viewController.console.console!
-	console.setVideoBuffer(buffer)
 }
 
 // MARK: -

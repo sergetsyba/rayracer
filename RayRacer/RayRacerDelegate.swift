@@ -8,31 +8,31 @@
 import Cocoa
 import Metal
 import CryptoKit
+import librayracer
 
 @main
 class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
-
-	private(set) var console: Atari2600!
-	private var renderer: NoBrakesRenderer!
-
+	
+	let console = Atari2600()
+	private(set) var renderer: Renderer!
+	
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		self.initRendering()
 	}
-
+	
 	private func initRendering() {
 		// pick GPU, which currently drives the display, instead of creating
 		// default Metal device, which would trigger GPU switching
 		let displayId = CGDirectDisplayID()
 		guard let device = CGDirectDisplayCopyCurrentMetalDevice(displayId),
-			  let commandQueue = device.makeCommandQueue() else {
+			  let queue = device.makeCommandQueue() else {
 			fatalError("Failed to initialize Metal.")
 		}
-
-		self.console = Atari2600()
-		self.renderer = NoBrakesRenderer(queue: commandQueue)
+		
+		self.renderer = Renderer(console: self.console.console, queue: queue)
 	}
-
+	
 	func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
 		return true
 	}
@@ -65,7 +65,7 @@ extension RayRacerDelegate: NSMenuDelegate {
 	func menuNeedsUpdate(_ menu: NSMenu) {
 		let switches = UserDefaults.standard
 			.consoleSwitches
-
+		
 		switch menu.identifier {
 		case .insertRecentCartridgeMenu:
 			self.prepareInsertRecentCartridgeMenuItems(in: menu)
@@ -79,7 +79,7 @@ extension RayRacerDelegate: NSMenuDelegate {
 			break
 		}
 	}
-
+	
 	private func prepareInsertRecentCartridgeMenuItems(in menu: NSMenu) {
 		var menuItems = UserDefaults.standard
 			.openedFileURLs
@@ -88,16 +88,16 @@ extension RayRacerDelegate: NSMenuDelegate {
 				menuItem.title = $0.lastPathComponent
 				menuItem.action = #selector(self.didSelectInsertRecentCartridgeMenuItem(_:))
 				menuItem.representedObject = $0
-
+				
 				return menuItem
 			}
-
+		
 		// when there's at least one recently opened file
 		if let menuItem = menuItems.first {
 			// add key shortcut for opening the most recently opened file
 			menuItem.keyEquivalentModifierMask = [.command, .option]
 			menuItem.keyEquivalent = "o"
-
+			
 			// add a separator and a menu item for clearing the recently
 			// opened files menu
 			menuItems.append(.separator())
@@ -106,7 +106,7 @@ extension RayRacerDelegate: NSMenuDelegate {
 				action: #selector(self.didSelectClearInsertRecentCartridgeMenuItem(_:)),
 				keyEquivalent: ""))
 		}
-
+		
 		menu.items = menuItems
 	}
 }
@@ -126,7 +126,7 @@ extension RayRacerDelegate: NSMenuItemValidation {
 private extension NSUserInterfaceItemIdentifier {
 	static let insertRecentCartridgeMenu = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenu")
 	static let insertRecentCartridgeMenuItem = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenuItem")
-
+	
 	static let leftDifficultyMenu = NSUserInterfaceItemIdentifier("LeftDifficultyMenu")
 	static let rightDifficultyMenu = NSUserInterfaceItemIdentifier("RightDifficultyMenu")
 	static let tvTypeMenu = NSUserInterfaceItemIdentifier("TVTypeMenu")
@@ -171,14 +171,14 @@ extension RayRacerDelegate {
 		panel.canCreateDirectories = false
 		panel.directoryURL = UserDefaults.standard
 			.openedFileURLs.first
-
+		
 		let response = panel.runModal()
 		if let url = panel.url,
 		   response == .OK {
 			perform(url)
 		}
 	}
-
+	
 	private func cartridge(at url: URL) -> Cartridge {
 		guard url.startAccessingSecurityScopedResource(),
 			  let cartridge = Cartridge(at: url),
@@ -186,42 +186,39 @@ extension RayRacerDelegate {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
 		}
-
+		
 		url.stopAccessingSecurityScopedResource()
 		UserDefaults.standard
 			.addOpenedFileURL(url, bookmark: bookmark)
-
+		
 		return cartridge
 	}
-
+	
 	func runProgram(at url: URL) {
 		var windowController: NSWindowController! = self.windowControllers
 			.first(where: { $0.contentViewController is ScreenViewController })
-
+		
 		if windowController == nil {
 			windowController = NSWindowController(windowNibName: "ScreenWindow")
 			windowController.contentViewController = ScreenViewController(renderer: self.renderer, console: self.console)
 		}
-
-		let cartridge = self.cartridge(at: url)
-		windowController.window?
-			.title = cartridge.name
-
+		
 		// TODO: suspend console in case it is currently resumed
+		let cartridge = self.cartridge(at: url)
 		self.console.cartridge = cartridge
 		self.console.reset()
-
+		
 		self.showWindow(of: windowController)
 	}
-
+	
 	private func showDebugger() {
 		var windowController: NSWindowController! = self.windowControllers
 			.first(where: { $0 is DebuggerWindowController })
-
+		
 		if windowController == nil {
 			windowController = DebuggerWindowController()
 		}
-
+		
 		self.console.suspend(priority: .high)
 		self.showWindow(of: windowController)
 	}
@@ -232,23 +229,28 @@ extension RayRacerDelegate {
 // MARK: Window management
 extension RayRacerDelegate: NSWindowDelegate {
 	func showWindow(of windowController: NSWindowController) {
+		guard let window = windowController.window else {
+			return
+		}
+		
+		window.delegate = self
+		window.makeKeyAndOrderFront(self)
+		window.makeFirstResponder(windowController.contentViewController)
+		
 		self.windowControllers.insert(windowController)
-		windowController.window?.delegate = self
-		windowController.window?.makeKeyAndOrderFront(self)
-		windowController.window?.makeFirstResponder(windowController.contentViewController)
 	}
-
+	
 	func windowWillClose(_ notification: Notification) {
 		guard let window = notification.object as? NSWindow else {
 			return
 		}
-
+		
 		if let windowController = window.windowController,
 		   windowController.contentViewController is ScreenViewController {
 			self.console.suspend()
 			self.console.cartridge = nil
 		}
-
+		
 		self.windowControllers.remove(where: { $0.window == window })
 	}
 }
