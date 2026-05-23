@@ -61,7 +61,7 @@ struct racer_tia {
 	 *
 	 * This function is always called before writing the first color value of a field or scan line.
 	 */
-	void (*video_sync)(const void *video_output, racer_video_sync sync);
+	void (*sync_video)(const void *video_output, racer_video_sync sync);
 	void *video_output;
 
 	uint8_t *video_buffer;

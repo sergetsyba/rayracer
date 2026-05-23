@@ -9,5 +9,6 @@ module librayracer {
 	header "atari2600.h"
 	header "cartridge.h"
 	header "controller.h"
+	header "thread.h"
 	export *
 }

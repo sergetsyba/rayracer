@@ -74,7 +74,7 @@ void racer_tia_advance_clock(racer_tia *tia) {
 		tia->blank_reset_clock = 68;
 
 		// notify video output horizontal sync started
-		tia->video_sync(tia->video_output, VIDEO_HORIZONTAL_SYNC);
+		tia->sync_video_output(tia->video_output, VIDEO_HORIZONTAL_SYNC);
 	}
 
 	const bool horizontal_blank = tia->color_clock < tia->blank_reset_clock;
@@ -110,7 +110,7 @@ void racer_tia_advance_clock(racer_tia *tia) {
 
 	// sync video output when buffer is filled
 	if (tia->video_buffer == tia->video_buffer_end) {
-		tia->video_sync(tia->video_output, VIDEO_BUFFER_SYNC);
+		tia->sync_video(tia->video_output, VIDEO_BUFFER_SYNC);
 	}
 
 	// write color output
@@ -209,7 +209,7 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 
 			// notify video output when vertical sync started
 			if (vertical_sync) {
-				tia->video_sync(tia->video_output, VIDEO_VERTICAL_SYNC);
+				tia->sync_video_output(tia->video_output, VIDEO_VERTICAL_SYNC);
 			}
 			break;
 		}
