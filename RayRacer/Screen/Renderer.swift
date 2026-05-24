@@ -6,17 +6,18 @@
 //
 
 import MetalKit
+import simd
 
 class Renderer: NSObject {
 	private let commandQueue: MTLCommandQueue = .current
 	private let pipelineState: MTLRenderPipelineState
-	private let texture: MTLTexture
 	let buffers: [MTLBuffer]
 	
-	var frame: MTLRegion = .ntscImage
+	private var fieldSize: SIMD2<UInt32> = .fieldSize
+	var screenRegion: Region = .ntscImage
 	var delegate: RendererDelegate!
 	
-	init(bufferLength: Int, bufferCount: Int = 1) {
+	init(bufferCount: Int = 1) {
 		let device = self.commandQueue.device
 		guard let library = device.makeDefaultLibrary() else {
 			fatalError("Failed to initialize render library.")
@@ -27,17 +28,13 @@ class Renderer: NSObject {
 			fatalError("Failed to initialize render pipeline state.")
 		}
 		
-		let textureDescriptor = Self.makeTextureDescriptor(size: frame.size)
-		guard let texture = device.makeTexture(descriptor: textureDescriptor) else {
-			fatalError("Failed to initialize screen render texture.")
-		}
 		
+		let bufferLength = Int(self.fieldSize.x * self.fieldSize.y)
 		guard let buffers = device.makeBuffers(count: bufferCount, length: bufferLength, options: .storageModeShared) else {
 			fatalError("Failed to initialize rendering buffers.")
 		}
 		
 		self.pipelineState = pipelineState
-		self.texture = texture
 		self.buffers = buffers
 	}
 	
@@ -47,19 +44,6 @@ class Renderer: NSObject {
 		descriptor.fragmentFunction = library.makeFunction(name: "shade_fragment")
 		descriptor.colorAttachments[0]
 			.pixelFormat = .bgra8Unorm
-		
-		return descriptor
-	}
-	
-	private class func makeTextureDescriptor(size: MTLSize) -> MTLTextureDescriptor {
-		let descriptor = MTLTextureDescriptor()
-		descriptor.pixelFormat = .r8Uint
-		descriptor.width = size.width
-		descriptor.height = size.height
-		
-		// mark available only on the GPU for ::read or ::sample operations
-		descriptor.storageMode = .private
-		descriptor.usage = [.shaderRead]
 		
 		return descriptor
 	}
@@ -91,33 +75,17 @@ extension Renderer: MTKViewDelegate {
 	func draw(in view: MTKView) {
 		guard let buffer = self.delegate.rendererWillBeginRendering(self),
 			  let commandBuffer = self.commandQueue.makeCommandBuffer(),
-			  let blitEncoder = commandBuffer.makeBlitCommandEncoder() else {
-			return
-		}
-		
-		// extract visible image from signal data, ignoring vertical and
-		// horizontal blanking regions
-		blitEncoder.copy(
-			from: buffer,
-			sourceOffset: self.frame.origin.y * 228 + self.frame.origin.x,
-			sourceBytesPerRow: 228 * MemoryLayout<UInt8>.size,
-			sourceBytesPerImage: 0,
-			sourceSize: self.frame.size,
-			to: self.texture,
-			destinationSlice: 0,
-			destinationLevel: 0,
-			destinationOrigin: .zero)
-		
-		blitEncoder.endEncoding()
-		
-		guard let renderPassDescriptor = view.currentRenderPassDescriptor,
+			  let renderPassDescriptor = view.currentRenderPassDescriptor,
 			  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
 			return
 		}
 		
 		// encode render pass
 		renderEncoder.setRenderPipelineState(self.pipelineState)
-		renderEncoder.setFragmentTexture(self.texture, index: 0)
+		renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+		renderEncoder.setFragmentBytes(&self.fieldSize, length: MemoryLayout<SIMD2<UInt32>>.stride, index: 1)
+		renderEncoder.setFragmentBytes(&self.screenRegion, length: MemoryLayout<Region>.stride, index: 2)
+		
 		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
 		renderEncoder.endEncoding()
 		
@@ -167,20 +135,23 @@ private struct MTLCommandQueueWrapper {
 	}()
 }
 
-extension MTLRegion {
-	static let ntscImage: Self = MTLRegion(
+extension SIMD2<UInt32> {
+	// accomodates NTSC, PAL and SECAM field data with extra space for
+	// additional 20 scan lines
+	static let fieldSize: Self = SIMD2<UInt32>(228, (625/2 + 20))
+}
+
+typealias Region = region
+extension Region {
+	static let ntscImage: Self = Region(
 		// TIA blanks each image scanline for the first 68 color clocks;
 		// first (525-480)/2 = 22 scan lines in each field are vertical blank
 		// interval in NTSC and are not shown by TVs
-		origin: MTLOrigin(x: 68, y: 22, z: 0),
+		origin: SIMD2<UInt32>(x: 68, y: 22),
 		// TIA signals a NTSC TV at 228 color clocks per scan line, but blanks
 		// each image scanline for the first 68 color clocks;
 		// NTSC visible frame consists of 480 scanlines of 2 interlaced fields,
 		// with ~8% of those scanlines ((480/2)*0.08 = 19) being in overscan,
 		// and are optionally not shown by TVs
-		size: MTLSize(width: 228-68, height: 480/2-19, depth: 1))
-}
-
-extension MTLOrigin {
-	static let zero: Self = MTLOriginMake(0, 0, 0)
+		size: SIMD2<UInt32>(x: 228-68, y: 480/2-19))
 }

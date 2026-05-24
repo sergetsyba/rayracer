@@ -108,6 +108,7 @@
 		9519F9D02EE2C5B6007D1626 /* atari2600.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atari2600.h; sourceTree = "<group>"; };
 		9519F9D12EE2C5B6007D1626 /* atari2600.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = atari2600.c; sourceTree = "<group>"; };
 		951CC4FD2A58723300537CD1 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
+		952C11FE2FC2066B008AF4CA /* region.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = region.h; sourceTree = "<group>"; };
 		954202232CB3BB7800AFEC6C /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 		954A18642A1AEE5800EBC582 /* RayRacer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RayRacer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RayRacerDelegate.swift; sourceTree = "<group>"; };
@@ -262,6 +263,7 @@
 				95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */,
 				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
 				95F23A692C84561A0074E4DF /* ntsc_palette.h */,
+				952C11FE2FC2066B008AF4CA /* region.h */,
 			);
 			path = Screen;
 			sourceTree = "<group>";
@@ -613,6 +615,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INCLUDE_PATHS = "${SRCROOT}/librayracer/module.modulemap";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/RayRacer/Screen/RayRacer-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -651,6 +654,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INCLUDE_PATHS = "${SRCROOT}/librayracer/module.modulemap";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/RayRacer/Screen/RayRacer-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
