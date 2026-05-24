@@ -12,46 +12,46 @@ class Renderer: NSObject {
 	private let commandQueue: MTLCommandQueue = .current
 	private let pipelineState: MTLRenderPipelineState
 	let buffers: [MTLBuffer]
-	
+
 	private var fieldSize: SIMD2<UInt32> = .fieldSize
 	var screenRegion: Region = .ntscImage
 	var delegate: RendererDelegate!
-	
+
 	init(bufferCount: Int = 1) {
 		let device = self.commandQueue.device
 		guard let library = device.makeDefaultLibrary() else {
 			fatalError("Failed to initialize render library.")
 		}
-		
+
 		let pipelineDescriptor = Self.makePipelineDescriptor(using: library)
 		guard let pipelineState = try? device.makeRenderPipelineState(descriptor: pipelineDescriptor) else {
 			fatalError("Failed to initialize render pipeline state.")
 		}
-		
-		
+
+
 		let bufferLength = Int(self.fieldSize.x * self.fieldSize.y)
 		guard let buffers = device.makeBuffers(count: bufferCount, length: bufferLength, options: .storageModeShared) else {
 			fatalError("Failed to initialize rendering buffers.")
 		}
-		
+
 		self.pipelineState = pipelineState
 		self.buffers = buffers
 	}
-	
+
 	private class func makePipelineDescriptor(using library: MTLLibrary) -> MTLRenderPipelineDescriptor {
 		let descriptor = MTLRenderPipelineDescriptor()
 		descriptor.vertexFunction = library.makeFunction(name: "make_vertex")
 		descriptor.fragmentFunction = library.makeFunction(name: "shade_fragment")
 		descriptor.colorAttachments[0]
 			.pixelFormat = .bgra8Unorm
-		
+
 		return descriptor
 	}
-	
+
 	var device: MTLDevice {
 		return self.commandQueue.device
 	}
-	
+
 	var bufferContents: [UnsafeMutablePointer<UInt8>?] {
 		return self.buffers.map() {
 			$0.contents()
@@ -71,29 +71,30 @@ extension Renderer: MTKViewDelegate {
 	func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
 		// does nothing
 	}
-	
+
 	func draw(in view: MTKView) {
 		guard let buffer = self.delegate.rendererWillBeginRendering(self),
 			  let commandBuffer = self.commandQueue.makeCommandBuffer(),
 			  let renderPassDescriptor = view.currentRenderPassDescriptor,
-			  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
+			  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor),
+			  let drawable = view.currentDrawable else {
 			return
 		}
-		
+
 		// encode render pass
 		renderEncoder.setRenderPipelineState(self.pipelineState)
 		renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
 		renderEncoder.setFragmentBytes(&self.fieldSize, length: MemoryLayout<SIMD2<UInt32>>.stride, index: 1)
 		renderEncoder.setFragmentBytes(&self.screenRegion, length: MemoryLayout<Region>.stride, index: 2)
-		
+
 		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
 		renderEncoder.endEncoding()
-		
-		commandBuffer.present(view.currentDrawable!)
+
+		commandBuffer.present(drawable)
 		commandBuffer.addCompletedHandler() { [unowned self] _ in
 			self.delegate.rendererDidEndRendering(self)
 		}
-		
+
 		commandBuffer.commit()
 	}
 }
@@ -110,7 +111,7 @@ extension MTLDevice {
 			}
 			buffers.append(buffer)
 		}
-		
+
 		return buffers
 	}
 }
@@ -130,7 +131,7 @@ private struct MTLCommandQueueWrapper {
 			  let queue = device.makeCommandQueue() else {
 			fatalError("Failed to initialize Metal.")
 		}
-		
+
 		return queue
 	}()
 }
