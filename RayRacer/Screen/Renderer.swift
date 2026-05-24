@@ -86,7 +86,7 @@ extension Renderer: MTKViewDelegate {
 		renderEncoder.setFragmentBytes(&self.fieldSize, length: MemoryLayout<SIMD2<UInt32>>.stride, index: 1)
 		renderEncoder.setFragmentBytes(&self.screenRegion, length: MemoryLayout<Region>.stride, index: 2)
 		
-		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
 		renderEncoder.endEncoding()
 		
 		commandBuffer.present(view.currentDrawable!)

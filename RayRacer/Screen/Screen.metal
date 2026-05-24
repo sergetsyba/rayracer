@@ -17,17 +17,15 @@ typedef struct {
 	float2 texture_position;
 }  screen_vertex;
 
-constant screen_vertex vertices[] = {
-	{{-1, -1, 0, 1}, {0, 1}},
-	{{-1,  1, 0, 1}, {0, 0}},
-	{{ 1,  1, 0, 1}, {1, 0}},
-	{{-1, -1, 0, 1}, {0, 1}},
-	{{ 1,  1, 0, 1}, {1, 0}},
-	{{ 1, -1, 0, 1}, {1, 1}}
-};
-
 vertex screen_vertex make_vertex(uint vid [[vertex_id]]) {
-	return vertices[vid];
+	// generates [0, 0], [2, 0], [0, 2]
+	const float2 texture_position = float2((vid << 1) & 2, vid & 2);
+	// generates [-1, 0], [3, 1], [-1, 3]
+	const float2 vertex_position = texture_position * float2(2.0, -2.0) + float2(-1.0, 1.0);
+	
+	// resulting vertext extends past rendered coordinate range
+	// and is clipped
+	return { float4(vertex_position, 0.0, 1.0), texture_position };
 }
 
 fragment float4 shade_fragment(screen_vertex in [[stage_in]],
