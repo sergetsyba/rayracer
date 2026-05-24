@@ -8,7 +8,7 @@
 #ifndef ntsc_palette_h
 #define ntsc_palette_h
 
-#define float4_rgb(r, g, b) { r / 255.0f, g / 255.0f, b / 250.f, 1.0 }
+#define float4_rgb(r, g, b) { r / 255.0f, g / 255.0f, b / 250.0f, 1.0 }
 
 // expose palette to Metal
 #ifdef __METAL_VERSION__

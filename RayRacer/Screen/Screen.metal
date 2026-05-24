@@ -6,7 +6,7 @@
 //
 
 #include "ntsc_palette.h"
-#include "region.h"
+#include "field.h"
 
 #include <metal_stdlib>
 
@@ -29,14 +29,13 @@ vertex screen_vertex make_vertex(uint vid [[vertex_id]]) {
 }
 
 fragment float4 shade_fragment(screen_vertex in [[stage_in]],
-							   device const uint8_t *field_data [[buffer(0)]],
-							   constant uint2 &field_size [[buffer(1)]],
-							   constant region &field_region [[buffer(2)]]) {
+							   device const uint8_t *data [[buffer(0)]],
+							   constant field_geometry &geometry [[buffer(1)]]) {
 
-	const uint2 position = uint2(in.texture_position * float2(field_region.size)) + field_region.origin;
-	const uint data_index = position.y * field_size.x + position.x;
+	const uint2 position = uint2(in.texture_position * float2(geometry.image_size)) + geometry.image_origin;
+	const uint data_index = position.y * geometry.field_size.x + position.x;
 
 	// TIA color values are in the 7 most significant bits
-	const uint color_index = field_data[data_index] >> 1;
+	const uint color_index = data[data_index] >> 1;
 	return ntsc_palette[color_index];
 }

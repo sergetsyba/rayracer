@@ -9,6 +9,6 @@
 #define RayRacer_Bridging_Header_h
 
 #include "ntsc_palette.h"
-#include "region.h"
+#include "field.h"
 
 #endif /* RayRacer_Bridging_Header_h */
