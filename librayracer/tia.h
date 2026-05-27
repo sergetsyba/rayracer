@@ -14,23 +14,24 @@
 #include <stdbool.h>
 
 typedef enum {
-	TIA_OUTPUT_HORIZONTAL_SYNC = 1<<0,
-	TIA_OUTPUT_VERTICAL_SYNC = 1<<1
-} racer_tia_output_sync;
+	VIDEO_HORIZONTAL_SYNC = 1<<0,
+	VIDEO_VERTICAL_SYNC = 1<<1,
+	VIDEO_BUFFER_SYNC = 1<<2
+} racer_video_sync;
 
 struct racer_tia {
 	racer_player players[2];
 	racer_missile missiles[2];
 	racer_ball ball;
 	racer_playfield playfield;
-	
+
 	int color_clock;
 	uint8_t colors[4];
 	uint16_t collisions;
-	
+
 	bool *is_ready;
 	int blank_reset_clock;
-	
+
 	/**
 	 * Reads data from the specified peripheral, connected to input port (pins I0-I5).
 	 *
@@ -42,7 +43,7 @@ struct racer_tia {
 	 */
 	uint8_t (*read_port)(const void *peripheral);
 	void *peripheral;
-	
+
 	/**
 	 * Peripheral input control flags.
 	 *
@@ -51,28 +52,21 @@ struct racer_tia {
 	 */
 	uint8_t input_control;
 	uint8_t input_latch;
-	
+
 	/**
-	 * Notifies video output once TIA begins vertical or horizontal sync.
+	 * Notifies video output when TIA starts vertical or horizontal sync or when video buffer is filled.
 	 *
-	 * This function is always called before writing the first signal of a field or scan line.
+	 * Video output must reset video buffer on buffer sync or TIA will write the next color value past
+	 * the video buffer end.
+	 *
+	 * This function is always called before writing the first color value of a field or scan line.
 	 */
-	void (*sync_video_output)(const void *output, racer_tia_output_sync sync);
-	
-	/**
-	 * Writes the specified video signal value to the video output.
-	 *
-	 * Lower byte of the specified signal is the output color value. Bit 0 denotes whether output is blank.
-	 * The higher 7 bits are the color value from the current palette; the color value is valid only when the
-	 * lowest bit is 0.
-	 *
-	 * Higher byte of the specified signal is video output sync. Horizontal sync is controlled by console
-	 * in the actual hardware; this simulation outputs horizontal sync for the first 68 color clocks of each
-	 * scan line. Vertical sync is controlled by the program via VSYNC register.
-	 */
-	void (*write_video_output)(const void *output, uint16_t signal);
-	void *output;
-	
+	void (*sync_video)(const void *video_output, racer_video_sync sync);
+	void *video_output;
+
+	uint8_t *video_buffer;
+	uint8_t *video_buffer_end;
+
 	/**
 	 * Video output control flags.
 	 *

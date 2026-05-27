@@ -7,80 +7,39 @@
 
 import Cocoa
 import MetalKit
+import librayracer
 
 class ScreenViewController: NSViewController {
-	public let frameCounter = FrameCounter()
-	
+	private let renderer: Renderer
+	private let racer: Racer
 	private let console: Atari2600
 	
-	private var screenData: Array<UInt8>
-	private var screenIndex: Int
-	private var screenIndexLimit: Int
-	
-	private let commandQueue: MTLCommandQueue
-	private let pipelineState: MTLRenderPipelineState
-	private let screenBuffer: MTLBuffer
-	private let imageTexture: MTLTexture
-	
-	private let screenSize: MTLSize = .ntsc
-	private let imageSize: MTLSize = .ntscImage
-	private let imageOrigin: MTLOrigin = .ntscImage
-	
-	private let maxFieldCount = 5
-	private let fieldSize: Int
-	private var fieldIndex: Int
+	private var fieldRateTimer: Timer?
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
 	
-	init(console: Atari2600, commandQueue: MTLCommandQueue, pipelineState: MTLRenderPipelineState) {
+	init(console: Atari2600) {
+		let renderer = Renderer(bufferCount: 3)
+		let racer = Racer(console: console, buffers: renderer.buffers)
+		renderer.delegate = racer
+		
+		self.renderer = renderer
+		self.racer = racer
 		self.console = console
-		
-		// allow extra 20 scan lines for vsync
-		self.fieldSize = self.screenSize.count + 20 * self.screenSize.width
-		self.fieldIndex = 0
-		self.screenIndexLimit = self.fieldSize
-		
-		self.screenData = Array<UInt8>(repeating: 0, count: self.fieldSize * self.maxFieldCount)
-		self.screenIndex = 0
-		
-		let device = commandQueue.device
-		guard let screenBuffer = device.makeBuffer(bytesNoCopy: &self.screenData, length: self.screenData.count),
-			  let imageTexture = device.makeTexture(descriptor: Self.makeTextureDescriptor(size: self.imageSize)) else {
-			fatalError("Failed to initialize screen render texture.")
-		}
-		
-		self.commandQueue = commandQueue
-		self.pipelineState = pipelineState
-		self.screenBuffer = screenBuffer
-		self.imageTexture = imageTexture
-		
 		super.init(nibName: nil, bundle: nil)
-	}
-	
-	private class func makeTextureDescriptor(size: MTLSize) -> MTLTextureDescriptor {
-		let descriptor = MTLTextureDescriptor()
-		descriptor.pixelFormat = .r8Uint
-		descriptor.width = size.width
-		descriptor.height = size.height
-		
-		// mark available only on the GPU for ::read or ::sample operations
-		descriptor.storageMode = .private
-		descriptor.usage = .shaderRead
-		
-		return descriptor
 	}
 }
 
 
 // MARK: -
-// MARK: Windows lifecycle
+// MARK: View lifecycle
 extension ScreenViewController {
 	override func loadView() {
 		let view = MTKView()
-		view.device = self.commandQueue.device
-		view.delegate = self
+		view.device = self.renderer.device
+		view.delegate = self.renderer
 		view.preferredFramesPerSecond = 60
 		
 		// force view aspect ratio to 4:3
@@ -93,15 +52,42 @@ extension ScreenViewController {
 	
 	override func viewDidAppear() {
 		super.viewDidAppear()
-		self.view.window?
-			.makeFirstResponder(self)
-		
-		DispatchQueue.global(qos: .userInitiated)
-			.async() { [unowned self] in
-				self.console.resume()
-			}
+		self.fieldRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+			self?.showFieldRate()
+		}
 	}
 	
+	override func viewWillDisappear() {
+		super.viewDidDisappear()
+		self.fieldRateTimer?.invalidate()
+		
+		let view = self.view as! MTKView
+		view.isPaused = true
+		view.delegate = nil
+		
+		// reassign pointer to racer_thread to avoid capturing self
+		// from main actor; destroy racer_thread in a detached task
+		// to give racer_thread time to break out of run loop and
+		// join its thread
+		let racer = self.racer
+		Task.detached(priority: .userInitiated) {
+			racer_thread_destroy(racer)
+		}
+	}
+	
+	private func showFieldRate() {
+		let name = self.console.cartridge!.name
+		let frameRate = 1e9 / self.racer.pointee.field_time
+		
+		self.view.window?
+			.title = String(format: "%@ (%.0f fps)", name, frameRate)
+	}
+}
+
+
+// MARK: -
+// MARK: Controller input
+extension ScreenViewController {
 	override func keyDown(with event: NSEvent) {
 		guard let button = Joystick.Buttons(keyCode: event.keyCode) else {
 			super.keyDown(with: event)
@@ -137,110 +123,28 @@ private extension Joystick.Buttons {
 
 
 // MARK: -
-// MARK: Metal support
-extension ScreenViewController: MTKViewDelegate {
-	func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-		// does nothing
-	}
-	
-	func draw(in view: MTKView) {
-		guard let commandBuffer = self.commandQueue.makeCommandBuffer(),
-			  let blitEncoder = commandBuffer.makeBlitCommandEncoder() else {
-			return
+// MARK: Field generation
+typealias Racer = UnsafeMutablePointer<racer_thread>
+extension Racer: RendererDelegate {
+	init(console: Atari2600, buffers: [MTLBuffer]) {
+		var contents: [UnsafeMutablePointer<UInt8>?] = buffers.map() {
+			$0.contents().assumingMemoryBound(to: UInt8.self)
 		}
-		
-		let fieldOffset = self.fieldIndex * self.fieldSize
-		//		if self.console.isSuspended() {
-		//			fieldOffset =
-		//		} else {
-		//			// draw first field when ready, otherwise draw second when console
-		//			// is still producing the first one
-		//			fieldOffset = self.fieldIndex == 0 ? self.fieldSize : 0
-		//		}
-		
-		// extract visible image from signal data, ignoring vertical and
-		// horizontal blanking regions
-		let imageOffset = self.imageOrigin.y * self.screenSize.width + self.imageOrigin.x
-		let bytesPerRow = self.screenSize.width * MemoryLayout<UInt8>.size
-		blitEncoder.copy(from: self.screenBuffer, sourceOffset: fieldOffset + imageOffset, sourceBytesPerRow: bytesPerRow, sourceBytesPerImage: 0, sourceSize: self.imageSize, to: self.imageTexture, destinationSlice: 0, destinationLevel: 0, destinationOrigin: .zero)
-		blitEncoder.endEncoding()
-		
-		guard let renderPassDescriptor = view.currentRenderPassDescriptor,
-			  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
-			return
-		}
-		
-		// encode render pass
-		renderEncoder.setRenderPipelineState(self.pipelineState)
-		renderEncoder.setFragmentTexture(self.imageTexture, index: 0)
-		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
-		renderEncoder.endEncoding()
-		
-		commandBuffer.present(view.currentDrawable!)
-		commandBuffer.commit()
-	}
-}
-
-
-// MARK: -
-extension ScreenViewController: VideoOutput {
-	func sync(_ sync: VideoSync) {
-		if sync.contains(.vertical) {
-			// advance screen index to the beginning of the next field buffer
-			self.fieldIndex = (self.fieldIndex + 1) % self.maxFieldCount
-			self.screenIndex = self.fieldIndex * self.fieldSize
-			self.screenIndexLimit = self.screenIndex + self.fieldSize
-			
-			self.frameCounter.increment()
-		} else if sync.contains(.horizontal) {
-			// advance index to the beginning of the next scan line
-			let offset = self.screenIndex % self.screenSize.width
-			if offset > 0 {
-				self.screenIndex += self.screenSize.width - offset
-			}
+		self = contents.withUnsafeMutableBufferPointer() {
+			racer_thread_create(console.console, $0.baseAddress, Int32(buffers.count), buffers[0].length)
 		}
 	}
 	
-	func blank() {
-		self.screenData[self.screenIndex] = 0
-		self.screenIndex += 1
-	}
-	
-	func write(color: Int) {
-		if self.screenIndex == self.screenIndexLimit {
-			self.sync(.vertical)
-		}
+	func rendererWillBeginRendering(_ renderer: Renderer) -> MTLBuffer? {
+		// pause emulation
+		racer_thread_pause(self)
 		
-		self.screenData[self.screenIndex] = UInt8(color)
-		self.screenIndex += 1
+		let index = Int(self.pointee.draw_buffer_index)
+		return renderer.buffers[index]
 	}
-}
-
-
-// MARK: -
-// MARK: Convenience functionality
-private extension MTLOrigin {
-	static let zero = MTLOrigin(x: 0, y: 0, z: 0)
 	
-	// TIA blanks each image scanline for the first 68 color clocks;
-	// first (525-480)/2 = 22 scan lines in each field are vertical blank
-	// interval in NTSC and are not shown by TVs
-	static let ntscImage = MTLOrigin(x: 68, y: 22, z: 0)
-}
-
-private extension MTLSize {
-	// TIA signals a NTSC TV at 228 color clocks per scan line;
-	// NTSC frame consists of 525 scan lines of 2 interlaced fields
-	static let ntsc = MTLSize(width: 228, height: 525/2, depth: 1)
-	
-	// TIA signals a NTSC TV at 228 color clocks per scan line, but blanks
-	// each image scanline for the first 68 color clocks;
-	// NTSC visible frame consists of 480 scanlines of 2 interlaced fields,
-	// with ~8% of those scanlines ((480/2)*0.08 = 19) being in overscan,
-	// and are optionally not shown by TVs
-	static let ntscImage = MTLSize(width: 228-68, height: 480/2-19, depth: 1)
-	
-	var count: Int {
-		return self.width * self.height * self.depth
+	func rendererDidEndRendering(_ renderer: Renderer) {
+		// resume emulation
+		racer_thread_resume(self)
 	}
 }

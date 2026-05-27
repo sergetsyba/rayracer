@@ -11,54 +11,33 @@ import librayracer
 
 class Atari2600 {
 	let console: UnsafeMutablePointer<racer_atari2600>!
-	var cartridge: Cartridge?
 	var controllers: (Joystick?, Joystick?)
-	var output: VideoOutput?
 	
 	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
 	private var state: State = .suspended(.normal)
 	
 	init() {
-		self.console = racer_atari2600_create()!		
-		self.console.pointee
-			.tia.pointee
-			.output = Unmanaged.passUnretained(self)
-			.toOpaque()
-		self.console.pointee
-			.tia.pointee
-			.sync_video_output = syncVideoOutput(output:sync:)
-		self.console.pointee
-			.tia.pointee
-			.write_video_output = writeVideoOutput(output:signal:)
-		
+		self.console = racer_atari2600_create()!
 		self.controllers
 			.0 = Joystick(console: self.console)
 	}
 	
-	var cartridgeData: Data? {
-		get {
-			return self.cartridge?.data
-		}
-		set {
-			guard let data = newValue,
-				  let cartridge = Cartridge(data: data) else {
-				fatalError("Failed to resolve cartridge kind.")
+	var cartridge: Cartridge? {
+		didSet {
+			if let cartridge {
+				cartridge.data.withUnsafeBytes() {
+					racer_atari2600_insert_cartridge(self.console, cartridge.kind, $0.baseAddress)
+				}
+			} else {
+				racer_atari2600_remove_cartridge(self.console)
 			}
-			
-			cartridge.data.withUnsafeBytes() {
-				let address = $0.bindMemory(to: UInt8.self)
-					.baseAddress
-				racer_atari2600_insert_cartridge(
-					self.console, cartridge.kind, address)
-			}
-			
-			self.cartridge = cartridge
-			self.cartridge?.ref = self.console.pointee.cartridge
 		}
 	}
 	
 	func reset() {
 		racer_atari2600_reset(self.console)
+		NotificationCenter.default
+			.post(name: .reset, object: self)
 	}
 }
 
@@ -91,7 +70,7 @@ extension Atari2600 {
 	///	When emualtion is already suspended with a lower priority than the specified one, updates
 	///	suspension priority to the specified one.
 	func suspend(priority: SuspensionPriority = .normal) {
-		// note: it seems impossible to combine first to cases into one
+		// note: it seems impossible to combine first two cases into one
 		// due to value binding on .suspended case
 		switch self.state {
 		case .resumed:
@@ -104,7 +83,6 @@ extension Atari2600 {
 	}
 	
 	/// Resumes emulation when it is suspended with a priority lower or equal to the specified one.
-	// TODO: explain suspension context
 	func resume(priority: SuspensionPriority = .normal, until suspension: (condition: () -> Bool, callback: () -> Void)? = nil) {
 		// do not resume emulation when current suspension priority is higher
 		guard case .suspended(let currentPriority) = self.state,
@@ -166,9 +144,21 @@ extension CartridgeKind {
 }
 
 struct Cartridge {
+	var name: String
 	var kind: CartridgeKind
 	var data: Data
 	var ref: UnsafeMutableRawPointer!
+	
+	init?(at url: URL) {
+		guard let data = try? Data(contentsOf: url),
+			  let kind = CartridgeKind(data: data) else {
+			return nil
+		}
+		
+		self.name = url.deletingPathExtension().lastPathComponent
+		self.kind = kind
+		self.data = data
+	}
 	
 	var id: String {
 		return Insecure.MD5
@@ -184,7 +174,7 @@ struct Cartridge {
 				.atari16KB,
 				.atari32KB:
 			let index = self.ref
-				.assumingMemoryBound(to: racer_atari_multi_bank_cartridge.self)
+				.assumingMemoryBound(to: atari_multi_bank_cartridge.self)
 				.pointee
 				.bank_index
 			
@@ -192,15 +182,6 @@ struct Cartridge {
 		default:
 			return 0
 		}
-	}
-	
-	init?(data: Data) {
-		guard let kind = CartridgeKind(data: data) else {
-			return nil
-		}
-		
-		self.kind = kind
-		self.data = data
 	}
 }
 
@@ -265,47 +246,12 @@ extension Joystick.Buttons: @retroactive OptionSet {
 
 // MARK: -
 // MARK: Output
-protocol VideoOutput {
-	/// Signals the start of a new field or scan line.
-	mutating func sync(_ sync: VideoSync)
-	/// Signals the absence of color for the next value.
-	mutating func blank()
-	/// Signals the next color value.
-	mutating func write(color: Int)
-}
-
-typealias VideoSync = racer_tia_output_sync
+typealias VideoSync = racer_video_sync
 
 extension VideoSync: @retroactive SetAlgebra {}
 extension VideoSync: @retroactive ExpressibleByArrayLiteral {}
 extension VideoSync: @retroactive OptionSet {
-	static let horizontal = TIA_OUTPUT_HORIZONTAL_SYNC
-	static let vertical = TIA_OUTPUT_VERTICAL_SYNC
-}
-
-func syncVideoOutput(output: UnsafeRawPointer?, sync: VideoSync) {
-	guard let output = output else {
-		return
-	}
-	
-	let console = Unmanaged<Atari2600>
-		.fromOpaque(output)
-		.takeUnretainedValue()
-	
-	console.output?
-		.sync(sync)
-}
-
-func writeVideoOutput(output: UnsafeRawPointer?, signal: UInt16) {
-	guard let output = output else {
-		return
-	}
-	
-	let console = Unmanaged<Atari2600>
-		.fromOpaque(output)
-		.takeUnretainedValue()
-	
-	let color = Int(signal & 0xff)
-	console.output?
-		.write(color: color);
+	static let horizontal = VIDEO_HORIZONTAL_SYNC
+	static let vertical = VIDEO_VERTICAL_SYNC
+	static let buffer = VIDEO_BUFFER_SYNC
 }

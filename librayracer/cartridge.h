@@ -19,15 +19,26 @@ typedef enum {
 	CARTRIDGE_ATARI_32KB
 } racer_cartridge_type;
 
+void racer_cartridge_reset(racer_cartridge_type type, void *cartridge);
+
+// MARK: -
+// MARK: Atari single-bank cartridge
+uint8_t read_atari_2kb_cartridge(void *cartridge, int address);
+uint8_t read_atari_4kb_cartridge(void *cartridge, int address);
+void write_atari_cartridge(void *cartridge, int address, uint8_t data);
+
+
+// MARK: -
+// MARK: Atari multi-bank cartridge
 typedef struct {
 	int bank_count;
 	int bank_index;
 	int bank_switch_address;
 	
 	const uint8_t *data;
-} racer_atari_multi_bank_cartridge;
+} atari_multi_bank_cartridge;
 
-void racer_cartridge_reset(racer_cartridge_type type, void *cartridge);
-void racer_atari2600_insert_cartridge(void *console, racer_cartridge_type type, const uint8_t *data);
+uint8_t read_atari_multi_bank_cartridge(void *cartridge, int address);
+void write_atari_multi_bank_cartridge(void *cartridge, int address, uint8_t data);
 
 #endif /* cartridge_h */

@@ -25,16 +25,16 @@ static void advance_player_position(racer_player *player) {
 }
 
 #define advance_object_position(object) \
-	(object)->position += 1; \
-	if ((object)->position == 160) { \
-		(object)->position = 0; \
-	}
+(object)->position += 1; \
+if ((object)->position == 160) { \
+(object)->position = 0; \
+}
 
 #define apply_object_motion(object) \
-	(object)->position += (object)->motion ^ 0x8
+(object)->position += (object)->motion ^ 0x8
 
 #define reset_object_motion(object) \
-	(object)->motion = 0
+(object)->motion = 0
 
 static uint16_t copy_modes[][2] = {
 	{0x001, 0},	// ●○○○○○○○○○
@@ -60,6 +60,8 @@ void racer_tia_reset(racer_tia *tia) {
 	
 	tia->players[0].missile_position = &null_missile_position;
 	tia->players[1].missile_position = &null_missile_position;
+	
+	// TODO: send composite sync
 }
 
 void racer_tia_advance_clock(racer_tia *tia) {
@@ -72,7 +74,7 @@ void racer_tia_advance_clock(racer_tia *tia) {
 		tia->blank_reset_clock = 68;
 		
 		// notify video output horizontal sync started
-		tia->sync_video_output(tia->output, TIA_OUTPUT_HORIZONTAL_SYNC);
+		tia->sync_video(tia->video_output, VIDEO_HORIZONTAL_SYNC);
 	}
 	
 	const bool horizontal_blank = tia->color_clock < tia->blank_reset_clock;
@@ -104,9 +106,16 @@ void racer_tia_advance_clock(racer_tia *tia) {
 		advance_object_position(&tia->ball);
 	}
 	
-	const uint16_t sync = (tia->output_control & 0x2) | (tia->color_clock < 68);
-	tia->write_video_output(tia->output, (sync << 8) | color);
 	tia->color_clock += 1;
+	
+	// sync video output when buffer is filled
+	if (tia->video_buffer == tia->video_buffer_end) {
+		tia->sync_video(tia->video_output, VIDEO_BUFFER_SYNC);
+	}
+	
+	// write color output
+	*tia->video_buffer = color;
+	tia->video_buffer++;
 }
 
 
@@ -196,11 +205,11 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 	switch (address) {
 		case 0x00: {// MARK: vsync
 			const bool vertical_sync = data & 0x2;
-			set_flag(tia->output_control, TIA_OUTPUT_VERTICAL_SYNC, vertical_sync);
+			set_flag(tia->output_control, VIDEO_VERTICAL_SYNC, vertical_sync);
 			
-			// notify video output when vertical sync enabled
+			// notify video output when vertical sync started
 			if (vertical_sync) {
-				tia->sync_video_output(tia->output, TIA_OUTPUT_VERTICAL_SYNC);
+				tia->sync_video(tia->video_output, VIDEO_VERTICAL_SYNC);
 			}
 			break;
 		}

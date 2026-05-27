@@ -8,53 +8,14 @@
 import Cocoa
 import Metal
 import CryptoKit
+import librayracer
 
 @main
 class RayRacerDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
-	private var defaults: UserDefaults = .standard
-	private var notifications: NotificationCenter = .default
 	
-	private var commandQueue: MTLCommandQueue!
-	private var pipelineState: MTLRenderPipelineState!
-	
-	private(set) var console = Atari2600()
-	
-	private var frameRateTimer: Timer?
-	private var rates = Array<Int>(repeating: 0, count: 200)
-	private var rateIndex = 0
-	
-	private var program: String = ""
-	
-	func applicationDidFinishLaunching(_ notification: Notification) {
-		// pick GPU, which currenlt drives the display, instead of creating
-		// default Metal device, which would trigger GPU switching
-		let displayId = CGDirectDisplayID()
-		guard let device = CGDirectDisplayCopyCurrentMetalDevice(displayId),
-			  let commandQueue = device.makeCommandQueue(),
-			  let library = device.makeDefaultLibrary() else {
-			fatalError("Failed to initialize Metal.")
-		}
-		
-		let descriptor = self.makeRenderPipelineDescriptor(library: library)
-		guard let pipelineState = try? device.makeRenderPipelineState(descriptor: descriptor) else {
-			fatalError("Failed to initialize Metal.")
-		}
-		
-		self.commandQueue = commandQueue
-		self.pipelineState = pipelineState
-	}
-	
-	private func makeRenderPipelineDescriptor(library: MTLLibrary) -> MTLRenderPipelineDescriptor {
-		let descirptor = MTLRenderPipelineDescriptor()
-		descirptor.vertexFunction = library.makeFunction(name: "make_vertex")
-		descirptor.fragmentFunction = library.makeFunction(name: "shade_fragment")
-		descirptor.colorAttachments[0]
-			.pixelFormat = .bgra8Unorm
-		
-		return descirptor
-	}
-	
+	let console = Atari2600()
+
 	func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
 		return true
 	}
@@ -103,7 +64,8 @@ extension RayRacerDelegate: NSMenuDelegate {
 	}
 	
 	private func prepareInsertRecentCartridgeMenuItems(in menu: NSMenu) {
-		var menuItems = self.defaults.openedFileURLs
+		var menuItems = UserDefaults.standard
+			.openedFileURLs
 			.map() {
 				let menuItem = NSMenuItem()
 				menuItem.title = $0.lastPathComponent
@@ -136,7 +98,8 @@ extension RayRacerDelegate: NSMenuItemValidation {
 	func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		switch menuItem.identifier {
 		case .insertRecentCartridgeMenuItem:
-			return self.defaults.openedFileURLs.count > 0
+			return UserDefaults.standard
+				.openedFileURLs.count > 0
 		default:
 			return true
 		}
@@ -189,7 +152,8 @@ extension RayRacerDelegate {
 		panel.canChooseFiles = true
 		panel.canChooseDirectories = false
 		panel.canCreateDirectories = false
-		panel.directoryURL = self.defaults.openedFileURLs.first
+		panel.directoryURL = UserDefaults.standard
+			.openedFileURLs.first
 		
 		let response = panel.runModal()
 		if let url = panel.url,
@@ -198,50 +162,34 @@ extension RayRacerDelegate {
 		}
 	}
 	
-	func showScreen(forProgramAt url: URL) {
-		var windowController: NSWindowController! = self.windowControllers
-			.first(where: { $0.contentViewController is ScreenViewController })
-		
-		if windowController == nil {
-			let viewController = ScreenViewController(console: self.console, commandQueue: self.commandQueue, pipelineState: self.pipelineState)
-			self.console.output = viewController
-			
-			windowController = NSWindowController(windowNibName: "ScreenWindow")
-			windowController.contentViewController = viewController
-			
-			self.frameRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [unowned viewController, windowController] _ in
-				let rate = viewController.frameCounter.value()
-				viewController.frameCounter.reset()
-				
-				self.rates[self.rateIndex] = rate
-				self.rateIndex += 1
-				let avgRate = self.rates[0..<self.rateIndex]
-					.reduce(0, +) / self.rateIndex
-				
-				windowController?.window?
-					.title = [self.program, "(\(rate) f/s, avg: \(avgRate))"]
-					.joined(separator: " ")
-			}
-		}
-		
+	private func cartridge(at url: URL) -> Cartridge {
 		guard url.startAccessingSecurityScopedResource(),
-			  let data = try? Data(contentsOf: url),
+			  let cartridge = Cartridge(at: url),
 			  let bookmark = try? url.bookmarkData(options: .securityScopeAllowOnlyReadAccess) else {
 			// TODO: show error when opening cartridge data fails
 			fatalError()
 		}
 		
-		self.console.switches = self.defaults.consoleSwitches
-		self.console.cartridgeData = data
-		self.console.reset()
-		self.program = url.lastPathComponent
-		
-		NotificationCenter.default.post(name: .reset, object: self)
-		UserDefaults.standard.addOpenedFileURL(url, bookmark: bookmark)
 		url.stopAccessingSecurityScopedResource()
+		UserDefaults.standard
+			.addOpenedFileURL(url, bookmark: bookmark)
 		
-		windowController.window?
-			.title = self.program
+		return cartridge
+	}
+	
+	func runProgram(at url: URL) {
+		var windowController: NSWindowController! = self.windowControllers
+			.first(where: { $0.contentViewController is ScreenViewController })
+		
+		if windowController == nil {
+			windowController = NSWindowController(windowNibName: "ScreenWindow")
+			windowController.contentViewController = ScreenViewController(console: self.console)
+		}
+		
+		// TODO: suspend console in case it is currently resumed
+		let cartridge = self.cartridge(at: url)
+		self.console.cartridge = cartridge
+		self.console.reset()
 		
 		self.showWindow(of: windowController)
 	}
@@ -264,15 +212,23 @@ extension RayRacerDelegate {
 // MARK: Window management
 extension RayRacerDelegate: NSWindowDelegate {
 	func showWindow(of windowController: NSWindowController) {
+		guard let window = windowController.window else {
+			return
+		}
+		
+		window.delegate = self
+		window.makeKeyAndOrderFront(self)
+		window.makeFirstResponder(windowController.contentViewController)
+		
 		self.windowControllers.insert(windowController)
-		windowController.window?.delegate = self
-		windowController.window?.makeKeyAndOrderFront(self)
 	}
 	
 	func windowWillClose(_ notification: Notification) {
-		if let window = notification.object as? NSWindow {
-			self.windowControllers.remove(where: { $0.window == window })
+		guard let window = notification.object as? NSWindow else {
+			return
 		}
+		
+		self.windowControllers.remove(where: { $0.window == window })
 	}
 }
 
@@ -293,30 +249,10 @@ private extension NSMenu {
 	}
 }
 
-private extension Data {
-	enum SecurityScopeError: Error {
-		case requestDenied
-	}
-	
-	init(contentsOfSecurityScopedResourceAt url: URL) throws {
-		guard url.startAccessingSecurityScopedResource() else {
-			throw SecurityScopeError.requestDenied
-		}
-		defer {
-			url.stopAccessingSecurityScopedResource()
-		}
-		try self.init(contentsOf: url)
-	}
-}
-
 private extension Set {
 	mutating func remove(where condition: (Self.Element) -> Bool) {
 		if let index = self.firstIndex(where: condition) {
 			self.remove(at: index)
 		}
 	}
-}
-
-private extension String {
-	static let tabCharacter = String(String(utf16CodeUnits: [unichar(NSTabCharacter)], count: 1))
 }
