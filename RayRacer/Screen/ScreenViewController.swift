@@ -9,10 +9,11 @@ import Cocoa
 import MetalKit
 import librayracer
 
-
 class ScreenViewController: NSViewController {
 	private let renderer: Renderer
+	private let racer: Racer
 	private let console: Atari2600
+	
 	private var fieldRateTimer: Timer?
 	
 	required init?(coder: NSCoder) {
@@ -21,9 +22,11 @@ class ScreenViewController: NSViewController {
 	
 	init(console: Atari2600) {
 		let renderer = Renderer(bufferCount: 3)
-		renderer.delegate = Racer(console: console, buffers: renderer.buffers)
+		let racer = Racer(console: console, buffers: renderer.buffers)
+		renderer.delegate = racer
 		
 		self.renderer = renderer
+		self.racer = racer
 		self.console = console
 		super.init(nibName: nil, bundle: nil)
 	}
@@ -49,25 +52,38 @@ extension ScreenViewController {
 	
 	override func viewDidAppear() {
 		super.viewDidAppear()
-		self.fieldRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [unowned self] _ in
-			self.showFieldRate()
+		self.fieldRateTimer = .scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+			self?.showFieldRate()
 		}
 	}
 	
 	override func viewWillDisappear() {
 		super.viewDidDisappear()
 		self.fieldRateTimer?.invalidate()
+		
+		let view = self.view as! MTKView
+		view.isPaused = true
+		view.delegate = nil
+		
+		// reassign pointer to racer_thread to avoid capturing self
+		// from main actor; destroy racer_thread in a detached task
+		// to give racer_thread time to break out of run loop and
+		// join its thread
+		let racer = self.racer
+		Task.detached(priority: .userInitiated) {
+			racer_thread_destroy(racer)
+		}
 	}
 	
 	private func showFieldRate() {
-		let racer = self.renderer.delegate as! Racer
 		let name = self.console.cartridge!.name
-		let frameRate = 1e9 / racer.pointee.field_time
+		let frameRate = 1e9 / self.racer.pointee.field_time
 		
 		self.view.window?
 			.title = String(format: "%@ (%.0f fps)", name, frameRate)
 	}
 }
+
 
 // MARK: -
 // MARK: Controller input
@@ -107,10 +123,8 @@ private extension Joystick.Buttons {
 
 
 // MARK: -
-// MARK: Emulation
-
+// MARK: Field generation
 typealias Racer = UnsafeMutablePointer<racer_thread>
-
 extension Racer: RendererDelegate {
 	init(console: Atari2600, buffers: [MTLBuffer]) {
 		var contents: [UnsafeMutablePointer<UInt8>?] = buffers.map() {
@@ -122,8 +136,8 @@ extension Racer: RendererDelegate {
 	}
 	
 	func rendererWillBeginRendering(_ renderer: Renderer) -> MTLBuffer? {
-		// suspend emulation
-		racer_thread_suspend(self)
+		// pause emulation
+		racer_thread_pause(self)
 		
 		let index = Int(self.pointee.draw_buffer_index)
 		return renderer.buffers[index]

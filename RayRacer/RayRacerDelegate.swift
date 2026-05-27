@@ -228,12 +228,6 @@ extension RayRacerDelegate: NSWindowDelegate {
 			return
 		}
 		
-		if let windowController = window.windowController,
-		   windowController.contentViewController is ScreenViewController {
-			self.console.suspend()
-			self.console.cartridge = nil
-		}
-		
 		self.windowControllers.remove(where: { $0.window == window })
 	}
 }

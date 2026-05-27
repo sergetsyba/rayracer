@@ -121,7 +121,7 @@
 		955619FC2A3C8E64002CF4F5 /* NSFont+Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSFont+Constants.swift"; sourceTree = "<group>"; };
 		95583AFB2EF6EE680000CB1B /* cartridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cartridge.h; sourceTree = "<group>"; };
 		95583AFC2EF6EE680000CB1B /* cartridge.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cartridge.c; sourceTree = "<group>"; };
-		955ABE582F07D9DF00B39CD6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		955ABE582F07D9DF00B39CD6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		955B4BEA2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+MainMenu.swift"; sourceTree = "<group>"; };
 		955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphicsSyncCounter.swift; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
@@ -213,11 +213,11 @@
 		954A18652A1AEE5800EBC582 /* RayRacer */ = {
 			isa = PBXGroup;
 			children = (
-				955ABE582F07D9DF00B39CD6 /* Info.plist */,
 				954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */,
 				958DCCCC2EEFEBB8008772F1 /* RayRacer+Atari2600.swift */,
 				954C4F6F2C9586E20063B170 /* RayRacer+Preferences.swift */,
 				955B4BEA2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift */,
+				955ABE582F07D9DF00B39CD6 /* Info.plist */,
 				954A186A2A1AEE5A00EBC582 /* Main.xib */,
 				95CE639C2A333365007BD72B /* Debugger */,
 				95F23A682C8455D70074E4DF /* Screen */,
@@ -664,7 +664,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				EXECUTABLE_PREFIX = "";
-				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_C_LANGUAGE_STANDARD = c11;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -677,7 +677,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				EXECUTABLE_PREFIX = "";
-				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_C_LANGUAGE_STANDARD = c11;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
