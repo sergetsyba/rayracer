@@ -193,7 +193,9 @@ static void decode_operation(racer_mcs6507 *cpu) {
 			cpu->operation = (decoded){opcode, -1, 6, 1};
 			break;
 		case 0x00:
-			cpu->operation = (decoded){opcode, -1, 7, 1};
+			// NOTE: even though BRK instruction length is 1 byte, return
+			// address on the stack is program counter + 2
+			cpu->operation = (decoded){opcode, -1, 7, 2};
 			break;
 
 			// MARK: immediate addressing
