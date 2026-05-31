@@ -13,7 +13,7 @@ class ScreenViewController: NSViewController {
 	private let renderer: Renderer
 	private let racer: Racer
 	private let console: Atari2600
-	
+
 	private var fieldRateTimer: Timer?
 	
 	required init?(coder: NSCoder) {
@@ -122,29 +122,3 @@ private extension Joystick.Buttons {
 }
 
 
-// MARK: -
-// MARK: Field generation
-typealias Racer = UnsafeMutablePointer<racer_thread>
-extension Racer: RendererDelegate {
-	init(console: Atari2600, buffers: [MTLBuffer]) {
-		var contents: [UnsafeMutablePointer<UInt8>?] = buffers.map() {
-			$0.contents().assumingMemoryBound(to: UInt8.self)
-		}
-		self = contents.withUnsafeMutableBufferPointer() {
-			racer_thread_create(console.console, $0.baseAddress, Int32(buffers.count), buffers[0].length)
-		}
-	}
-	
-	func rendererWillBeginRendering(_ renderer: Renderer) -> MTLBuffer? {
-		// pause emulation
-		racer_thread_pause(self)
-		
-		let index = Int(self.pointee.draw_buffer_index)
-		return renderer.buffers[index]
-	}
-	
-	func rendererDidEndRendering(_ renderer: Renderer) {
-		// resume emulation
-		racer_thread_resume(self)
-	}
-}

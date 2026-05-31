@@ -6,9 +6,11 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="NSWindowController">
+        <customObject id="-2" userLabel="File's Owner" customClass="ScreenWindowController" customModule="RayRacer" customModuleProvider="target">
             <connections>
-                <outlet property="window" destination="1T6-Xt-SkL" id="lpf-kR-x28"/>
+                <outlet property="label" destination="8sX-qk-jb3" id="MCG-Uy-V5L"/>
+                <outlet property="view" destination="4UU-MD-Pkh" id="p3a-Ma-I7d"/>
+                <outlet property="window" destination="1T6-Xt-SkL" id="HGf-kl-uc3"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
@@ -19,10 +21,44 @@
             <rect key="contentRect" x="398" y="444" width="320" height="240"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1025"/>
             <value key="minSize" type="size" width="320" height="240"/>
-            <view key="contentView" id="4UU-MD-Pkh">
+            <view key="contentView" id="4UU-MD-Pkh" customClass="MTKView">
                 <rect key="frame" x="0.0" y="0.0" width="320" height="240"/>
                 <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <visualEffectView blendingMode="withinWindow" material="ultraDark" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="gis-gN-nLp">
+                        <rect key="frame" x="220" y="194" width="80" height="26"/>
+                        <subviews>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="8sX-qk-jb3">
+                                <rect key="frame" x="8" y="5" width="64" height="16"/>
+                                <textFieldCell key="cell" lineBreakMode="clipping" title="0 fields/s" id="vZO-lA-mhD">
+                                    <font key="font" textStyle="headline" name=".SFNS-Bold"/>
+                                    <color key="textColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="8sX-qk-jb3" secondAttribute="bottom" constant="5" id="WC9-al-y32"/>
+                            <constraint firstItem="8sX-qk-jb3" firstAttribute="leading" secondItem="gis-gN-nLp" secondAttribute="leading" constant="10" id="dyW-dK-VkI"/>
+                            <constraint firstItem="8sX-qk-jb3" firstAttribute="top" secondItem="gis-gN-nLp" secondAttribute="top" constant="5" id="hPE-fN-99P"/>
+                            <constraint firstAttribute="trailing" secondItem="8sX-qk-jb3" secondAttribute="trailing" constant="10" id="hyS-Ix-RXi"/>
+                        </constraints>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="boolean" keyPath="wantsLayer" value="YES"/>
+                            <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                <integer key="value" value="8"/>
+                            </userDefinedRuntimeAttribute>
+                        </userDefinedRuntimeAttributes>
+                    </visualEffectView>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" secondItem="gis-gN-nLp" secondAttribute="trailing" constant="20" symbolic="YES" id="4Pt-l7-mey"/>
+                    <constraint firstItem="gis-gN-nLp" firstAttribute="top" secondItem="4UU-MD-Pkh" secondAttribute="top" constant="20" symbolic="YES" id="YPq-HN-VPy"/>
+                </constraints>
             </view>
+            <connections>
+                <outlet property="delegate" destination="-2" id="6qB-9e-5Wb"/>
+            </connections>
             <point key="canvasLocation" x="32" y="81"/>
         </window>
     </objects>

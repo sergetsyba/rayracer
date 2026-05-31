@@ -63,6 +63,7 @@
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
 		95F8B1142EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
 		95F8B1162EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
+		95FB824E2FC6C9CF00E39A27 /* ScreenWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95FB824D2FC6C9CF00E39A27 /* ScreenWindowController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -145,6 +146,7 @@
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
 		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
 		95F8B1132EF3070600A637FA /* controller.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = controller.c; sourceTree = "<group>"; };
+		95FB824D2FC6C9CF00E39A27 /* ScreenWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -261,6 +263,7 @@
 				958E90FA2FA5FE3000312706 /* Renderer.swift */,
 				9593159D2C72175000DC50A9 /* Screen.metal */,
 				95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */,
+				95FB824D2FC6C9CF00E39A27 /* ScreenWindowController.swift */,
 				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
 				95F23A692C84561A0074E4DF /* ntsc_palette.h */,
 				952C11FE2FC2066B008AF4CA /* field.h */,
@@ -407,6 +410,7 @@
 				951746EB2ED7052800D346CD /* mcs6507.c in Sources */,
 				954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */,
 				955B4BEB2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift in Sources */,
+				95FB824E2FC6C9CF00E39A27 /* ScreenWindowController.swift in Sources */,
 				950A18AB2EFD6D69001C97C3 /* AssemblyViewController+Cells.swift in Sources */,
 				9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */,
 				954A18672A1AEE5800EBC582 /* RayRacerDelegate.swift in Sources */,

@@ -9,6 +9,7 @@ import Cocoa
 import Metal
 import CryptoKit
 import librayracer
+import SwiftUI
 
 @main
 class RayRacerDelegate: NSObject, NSApplicationDelegate {
@@ -182,8 +183,7 @@ extension RayRacerDelegate {
 			.first(where: { $0.contentViewController is ScreenViewController })
 		
 		if windowController == nil {
-			windowController = NSWindowController(windowNibName: "ScreenWindow")
-			windowController.contentViewController = ScreenViewController(console: self.console)
+			windowController = ScreenWindowController(console: self.console)
 		}
 		
 		// TODO: suspend console in case it is currently resumed
