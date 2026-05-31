@@ -359,11 +359,16 @@ static void decode_operation(racer_mcs6507 *cpu) {
 		}
 
 			// MARK: indirect y-indexed addressing
-		case 0x11: case 0x31: case 0x51: case 0x71: case 0x91: case 0xb1: case 0xd1: case 0xf1: {
+		case 0x11: case 0x31: case 0x51: case 0x71: case 0xb1: case 0xd1: case 0xf1: {
+			address = read_indirect_y_indexed_address(cpu, address, &cycles);
+			cpu->operation = (decoded){opcode, address, 5 + cycles, 2};
+			break;
+		}
+			// MARK: indirect y-indexed addressing (sta-only)
+		case 0x91:
 			address = read_indirect_y_indexed_address(cpu, address, &cycles);
 			cpu->operation = (decoded){opcode, address, 6, 2};
 			break;
-		}
 
 		default:
 			printf("Unknown operation code: %d at %04x.\n", opcode, address);
