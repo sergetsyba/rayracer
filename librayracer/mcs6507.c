@@ -32,23 +32,23 @@
 static int read_relative_address(racer_mcs6507 *cpu, int address, bool condition, int *cycles) {
 	// when branch is not taken, program counter increments to +1
 	// relative to offset operand address
-	address += + 0x1;
+	int relative_address = address + 0x1;
 
 	if (condition) {
 		const int offset = cpu->read_bus(cpu->bus, address);
-		int offset_address = address;
+		int offset_address = relative_address;
 
 		// offset address using signed 8 bit offset and check if offsetting
 		// crosses page boundary
 		offset_address += (offset & 0x80) ? offset - 0x100 : offset;
-		*cycles = is_same_page(address, offset_address) ? 1 : 2;
+		*cycles = is_same_page(relative_address, offset_address) ? 1 : 2;
 
-		address = offset_address;
+		relative_address = offset_address;
 	} else {
 		*cycles = 0;
 	}
 
-	return address;
+	return relative_address;
 }
 
 /// Reads 0-page address at the specified address in memory.
