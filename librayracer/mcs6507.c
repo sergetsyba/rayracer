@@ -363,7 +363,7 @@ static void decode_operation(racer_mcs6507 *cpu) {
 
 		default:
 			printf("Unknown operation code: %d at %04x.\n", opcode, address);
-			cpu->operation = (decoded){};
+			cpu->operation = (decoded){opcode, 0x0000, 1, 1};
 			break;
 	}
 }
