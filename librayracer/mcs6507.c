@@ -121,7 +121,7 @@ static int read_indirect_address(racer_mcs6507 *cpu, int address) {
 /// Reads address, using x-indexed indirect addressing mode, at the specified address in memory.
 static int read_indirect_x_indexed_address(racer_mcs6507 *cpu, int address) {
 	// read base address and apply indexing
-	address = cpu->read_bus(cpu, address);
+	address = cpu->read_bus(cpu->bus, address);
 	address = address + cpu->x;
 
 	const int low = cpu->read_bus(cpu->bus, address & 0xff);
@@ -133,9 +133,9 @@ static int read_indirect_x_indexed_address(racer_mcs6507 *cpu, int address) {
 ///
 /// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
 /// address.
-static int read_indirect_y_indexed_address(racer_mcs6507 *cpu, int address, int *cycles) {
+static int  read_indirect_y_indexed_address(racer_mcs6507 *cpu, int address, int *cycles) {
 	// read indirect address
-	address = cpu->read_bus(cpu, address);
+	address = cpu->read_bus(cpu->bus, address);
 
 	// read base address
 	const int low = cpu->read_bus(cpu->bus, address);
@@ -377,34 +377,38 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			const int operand = cpu->read_bus(cpu->bus, operand_address);
 			const bool carry = is_flag_set(cpu->status, MCS6507_STATUS_CARRY);
 
-			int result;
-			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
-				int high = (cpu->accumulator / 0x10) + (operand / 0x10);
-				int low = (cpu->accumulator % 0x10) + (operand % 0x10) + carry;
+			int result = cpu->accumulator + operand + carry;
+			const int overflow = (cpu->accumulator ^ result) & (operand ^ result);
 
+			// NOTE: status flags are set from intermediary result, not
+			// decimal mode corrected one
+			set_flag(cpu->status, MCS6507_STATUS_CARRY, result > 0xff);
+			set_flag(cpu->status, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
+			set_flag(cpu->status, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
+			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
+
+			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
+				// (accumulator / 0x10) + (operand / 0x10)
+				int high = (cpu->accumulator >> 4) + (operand >> 4);
+				if (high > 0x9) {
+					result -= 0xa;
+					add_flag(cpu->status, MCS6507_STATUS_CARRY);
+				} else {
+					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
+				}
+
+				// (accumulator % 0x10) + (operand % 0x10)
+				int low = (cpu->accumulator & 0x0f) + (operand & 0x0f) + carry;
 				if (low > 0x9) {
 					high += 0x1;
 					low -= 0xa;
 				}
 
-				result = high * 0x10 + low;
-				if (result > 0x99) {
-					result -= 0xa0;
-					add_flag(cpu->status, MCS6507_STATUS_CARRY);
-				} else {
-					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
-				}
-			} else {
-				result = cpu->accumulator + operand + carry;
-				set_flag(cpu->status, MCS6507_STATUS_CARRY, result > 0xff);
+				// high * 0x10 + low
+				result = (high << 4) | low;
 			}
 
-			const int overflow = (cpu->accumulator ^ result) & (operand ^ result);
-
 			cpu->accumulator = result & 0xff;
-			set_flag(cpu->status, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
-			set_flag(cpu->status, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
-			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
 			break;
 		}
 
@@ -460,12 +464,14 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 
 			// MARK: brk
 		case 0x00: {
+			int status = cpu->status;
+			add_flag(status, MCS6507_STATUS_INTERRUPT_DISABLE);
+			add_flag(status, MCS6507_STATUS_BREAK);
+			add_flag(status, MCS6507_STATUS_UNUSED);
+
 			push_stack(cpu, cpu->program_counter >> 8);
 			push_stack(cpu, cpu->program_counter & 0xff);
-			push_stack(cpu, cpu->status);
-			add_flag(cpu->status, MCS6507_STATUS_INTERRUPT_DISABLE);
-			add_flag(cpu->status, MCS6507_STATUS_BREAK);
-			add_flag(cpu->status, MCS6507_STATUS_UNUSED);
+			push_stack(cpu, status);
 
 			const int low = cpu->read_bus(cpu->bus, 0xfffe);
 			const int high = cpu->read_bus(cpu->bus, 0xffff);
@@ -667,11 +673,14 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			break;
 
 			// MARK: php
-		case 0x08:
-			push_stack(cpu, cpu->status);
-			add_flag(cpu->status, MCS6507_STATUS_BREAK);
-			add_flag(cpu->status, MCS6507_STATUS_UNUSED);
+		case 0x08: {
+			int status = cpu->status;
+			add_flag(status, MCS6507_STATUS_BREAK);
+			add_flag(status, MCS6507_STATUS_UNUSED);
+
+			push_stack(cpu, status);
 			break;
+		}
 
 			// MARK: pla
 		case 0x68:
@@ -685,8 +694,8 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// pull status register from stack
 			int status = pull_stack(cpu);
 
-			// presetve break and unused flags in status register
-			const int ignored_flags = (MCS6507_STATUS_BREAK | MCS6507_STATUS_BREAK);
+			// preserve break and unused flags in status register
+			const int ignored_flags = (MCS6507_STATUS_BREAK | MCS6507_STATUS_UNUSED);
 			set_flag(status, ignored_flags, is_flag_set(cpu->status, ignored_flags));
 			cpu->status = status;
 			break;
@@ -744,7 +753,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			int status = pull_stack(cpu);
 
 			// preserve break and unused status flags
-			const int ignored_flags = (MCS6507_STATUS_BREAK | MCS6507_STATUS_BREAK);
+			const int ignored_flags = (MCS6507_STATUS_BREAK | MCS6507_STATUS_UNUSED);
 			set_flag(status, ignored_flags, is_flag_set(cpu->status, ignored_flags));
 			cpu->status = status;
 
@@ -768,39 +777,36 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			const int operand = cpu->read_bus(cpu->bus, operand_address);
 			const bool borrow = !is_flag_set(cpu->status, MCS6507_STATUS_CARRY);
 
-			int result;
-			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
-				int high = (cpu->accumulator / 0x10) - (operand / 0x10);
-				int low = (cpu->accumulator % 0x10) - (operand % 0x10) - borrow;
+			int result = cpu->accumulator - operand - borrow;
+			const int overflow = (cpu->accumulator ^ operand) & (cpu->accumulator ^ result);
 
+			set_flag(cpu->status, MCS6507_STATUS_CARRY, result >= 0x0);
+			set_flag(cpu->status, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
+			set_flag(cpu->status, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
+			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
+
+			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
+				// (accumulator / 0x10) - (operand / 0x10)
+				int high = (cpu->accumulator >> 4) - (operand >> 4);
+				if (high < 0x0) {
+					high += 0xa;
+					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
+				} else {
+					add_flag(cpu->status, MCS6507_STATUS_CARRY);
+				}
+
+				// (accumulator % 0x10) - (operand % 0x10)
+				int low = (cpu->accumulator & 0x0f) - (operand & 0x0f) - borrow;
 				if (low < 0x0) {
 					high -= 0x1;
 					low += 0xa;
 				}
 
-				result = high * 0x10 + low;
-				if (result < 0x0) {
-					result += 0xa0;
-					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
-				} else {
-					add_flag(cpu->status, MCS6507_STATUS_CARRY);
-				}
-			} else {
-				result = cpu->accumulator - operand - borrow;
-				if (result < 0x0) {
-					result += 0x100;
-					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
-				} else {
-					add_flag(cpu->status, MCS6507_STATUS_CARRY);
-				}
+				// high * 0x10 + low
+				result = (high << 4) | low;
 			}
 
-			const int overflow = (cpu->accumulator ^ operand) & (cpu->accumulator ^ result);
-
 			cpu->accumulator = result & 0xff;
-			set_flag(cpu->status, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
-			set_flag(cpu->status, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
-			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
 			break;
 		}
 
