@@ -393,7 +393,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// decimal mode corrected one
 			set_flag(cpu->status, MCS6507_STATUS_CARRY, result > 0xff);
 			set_flag(cpu->status, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
-			set_flag(cpu->status, MCS6507_STATUS_ZERO, result == 0);
+			set_flag(cpu->status, MCS6507_STATUS_ZERO, (result & 0xff) == 0);
 			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, result & 0x80);
 
 			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
@@ -784,7 +784,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 
 			set_flag(cpu->status, MCS6507_STATUS_CARRY, result >= 0x0);
 			set_flag(cpu->status, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
-			set_flag(cpu->status, MCS6507_STATUS_ZERO, result == 0);
+			set_flag(cpu->status, MCS6507_STATUS_ZERO, (result & 0xff) == 0);
 			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, result & 0x80);
 
 			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
