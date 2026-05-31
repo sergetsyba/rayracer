@@ -463,6 +463,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			push_stack(cpu, cpu->program_counter >> 8);
 			push_stack(cpu, cpu->program_counter & 0xff);
 			push_stack(cpu, cpu->status);
+			add_flag(cpu->status, MCS6507_STATUS_INTERRUPT_DISABLE);
 
 			const int low = cpu->read_bus(cpu->bus, 0xfffe);
 			const int high = cpu->read_bus(cpu->bus, 0xffff);
