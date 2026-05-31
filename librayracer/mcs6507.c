@@ -464,6 +464,8 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			push_stack(cpu, cpu->program_counter & 0xff);
 			push_stack(cpu, cpu->status);
 			add_flag(cpu->status, MCS6507_STATUS_INTERRUPT_DISABLE);
+			add_flag(cpu->status, MCS6507_STATUS_BREAK);
+			add_flag(cpu->status, MCS6507_STATUS_UNUSED);
 
 			const int low = cpu->read_bus(cpu->bus, 0xfffe);
 			const int high = cpu->read_bus(cpu->bus, 0xffff);
@@ -667,6 +669,8 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			// MARK: php
 		case 0x08:
 			push_stack(cpu, cpu->status);
+			add_flag(cpu->status, MCS6507_STATUS_BREAK);
+			add_flag(cpu->status, MCS6507_STATUS_UNUSED);
 			break;
 
 			// MARK: pla
@@ -677,9 +681,16 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			break;
 
 			// MARK: plp
-		case 0x28:
-			cpu->status = pull_stack(cpu);
+		case 0x28: {
+			// pull status register from stack
+			int status = pull_stack(cpu);
+
+			// presetve break and unused flags in status register
+			const int ignored_flags = (MCS6507_STATUS_BREAK | MCS6507_STATUS_BREAK);
+			set_flag(status, ignored_flags, is_flag_set(cpu->status, ignored_flags));
+			cpu->status = status;
 			break;
+		}
 
 			// MARK: rol (accumulator)
 		case 0x2a: {
@@ -729,8 +740,15 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 
 			// MARK: rti
 		case 0x40: {
-			cpu->status = pull_stack(cpu);
+			// pull status register from stack
+			int status = pull_stack(cpu);
 
+			// preserve break and unused status flags
+			const int ignored_flags = (MCS6507_STATUS_BREAK | MCS6507_STATUS_BREAK);
+			set_flag(status, ignored_flags, is_flag_set(cpu->status, ignored_flags));
+			cpu->status = status;
+
+			// pull program counter from stack
 			const int low = pull_stack(cpu);
 			const int high = pull_stack(cpu);
 			cpu->program_counter = address(high, low);
