@@ -14,7 +14,7 @@
 
 /// A memory address at the specified page and offset.
 #define address(high, low) \
-((high << 8) | low)
+(((high) << 8) | (low))
 
 /// `true` when both of the specified memory addresses are on the same page; `false` otherwise.
 #define is_same_page(address1, address2) \
