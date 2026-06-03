@@ -28,7 +28,7 @@
                     <visualEffectView blendingMode="withinWindow" material="ultraDark" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="gis-gN-nLp">
                         <rect key="frame" x="220" y="194" width="80" height="26"/>
                         <subviews>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="8sX-qk-jb3">
+                            <textField focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="8sX-qk-jb3">
                                 <rect key="frame" x="8" y="5" width="64" height="16"/>
                                 <textFieldCell key="cell" lineBreakMode="clipping" title="0 fields/s" id="vZO-lA-mhD">
                                     <font key="font" textStyle="headline" name=".SFNS-Bold"/>

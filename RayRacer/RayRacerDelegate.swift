@@ -216,9 +216,9 @@ extension RayRacerDelegate: NSWindowDelegate {
 			return
 		}
 		
-		window.delegate = self
+//		window.delegate = self
 		window.makeKeyAndOrderFront(self)
-		window.makeFirstResponder(windowController.contentViewController)
+//		window.makeFirstResponder(windowController.contentViewController)
 		
 		self.windowControllers.insert(windowController)
 	}
