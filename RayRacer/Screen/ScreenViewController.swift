@@ -22,7 +22,7 @@ class ScreenViewController: NSViewController {
 	
 	init(console: Atari2600) {
 		let renderer = Renderer(bufferCount: 3)
-		let racer = Racer(console: console, buffers: renderer.buffers)
+		let racer = Racer(console: console, buffer: renderer.buffers[0])
 		renderer.delegate = racer
 		
 		self.renderer = renderer
