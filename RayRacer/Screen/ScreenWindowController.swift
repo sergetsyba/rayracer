@@ -15,7 +15,7 @@ class ScreenWindowController: NSWindowController {
 	
 	private let renderer = Renderer()
 	private let console: Atari2600
-	private var racer: Racer!
+	private var racer: OpaquePointer!
 	
 	private var timer: Timer!
 	
@@ -38,19 +38,24 @@ class ScreenWindowController: NSWindowController {
 		
 		self.view.device = self.renderer.device
 		self.view.delegate = self.renderer
-		self.view.preferredFramesPerSecond = 120
+		self.view.preferredFramesPerSecond = 60
 		
-		self.racer = Racer(console: self.console, buffer: self.renderer.buffers[0])
-		self.renderer.delegate = self.racer
+		// pause rendering initially
+		// it will resume once window becomes key
+		self.view.isPaused = true
 		
 		self.timer = .scheduledTimer(
 			withTimeInterval: 1,
 			repeats: true,
 			block: self.updateFieldRate(_:))
 		
-		// pause rendering initially
-		// it will resume once window becomes key
-		self.view.isPaused = true
+		// set up emulation
+		let buffer = self.renderer.buffers[0]
+		let data = buffer.contents()
+			.assumingMemoryBound(to: UInt8.self)
+		
+		self.racer = racer_thread_create(self.console.console, data, buffer.length)
+		self.renderer.delegate = self
 	}
 	
 	func windowWillUnload() {
@@ -69,7 +74,7 @@ class ScreenWindowController: NSWindowController {
 	}
 	
 	private func updateFieldRate(_: Timer) {
-		let fieldRate = 1e9 / self.racer.pointee.field_time
+		let fieldRate = 1e9 / Double(racer_thread_get_field_time(self.racer))
 		self.label.stringValue = String(format: "%.0f fields/s", fieldRate)
 	}
 }
@@ -97,19 +102,11 @@ extension ScreenWindowController: NSWindowDelegate {
 
 
 // MARK: -
-// MARK: Field generation
-typealias Racer = UnsafeMutablePointer<racer_thread>
-extension Racer: RendererDelegate {
-	init(console: Atari2600, buffer: MTLBuffer) {
-		let contents = buffer.contents()
-			.assumingMemoryBound(to: UInt8.self)
-		
-		self = racer_thread_create(console.console, contents, buffer.length)
-	}
-	
+// MARK: Field rendering
+extension ScreenWindowController: RendererDelegate {
 	func rendererWillBeginRendering(_ renderer: Renderer) -> MTLBuffer? {
 		// ensure emulation has finished producing field data
-		guard racer_thread_is_paused(self) else {
+		guard racer_thread_is_paused(self.racer) else {
 			return nil
 		}
 		return renderer.buffers.first
@@ -117,6 +114,6 @@ extension Racer: RendererDelegate {
 	
 	func rendererDidEndRendering(_ renderer: Renderer) {
 		// resume emulation to produce next field data
-		racer_thread_resume(self)
+		racer_thread_resume(self.racer)
 	}
 }

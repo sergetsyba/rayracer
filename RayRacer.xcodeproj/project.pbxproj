@@ -57,7 +57,6 @@
 		95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */ = {isa = PBXBuildFile; fileRef = 95AE0B722EDB22EB0039E328 /* mcs6532.c */; };
 		95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE0B712EDB22EB0039E328 /* mcs6532.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		95AE89E42EF143870019AEED /* controller.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE89E12EF143870019AEED /* controller.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */; };
 		95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */; };
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
@@ -147,7 +146,6 @@
 		95AE0B712EDB22EB0039E328 /* mcs6532.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcs6532.h; sourceTree = "<group>"; };
 		95AE0B722EDB22EB0039E328 /* mcs6532.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mcs6532.c; sourceTree = "<group>"; };
 		95AE89E12EF143870019AEED /* controller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = controller.h; sourceTree = "<group>"; };
-		95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenViewController.swift; sourceTree = "<group>"; };
 		95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ScreenWindow.xib; sourceTree = "<group>"; };
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 		95C918E82C07810000B431C4 /* SystemStateView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SystemStateView.xib; sourceTree = "<group>"; };
@@ -285,7 +283,6 @@
 				95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */,
 				958E90FA2FA5FE3000312706 /* Renderer.swift */,
 				9593159D2C72175000DC50A9 /* Screen.metal */,
-				95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */,
 				95FB824D2FC6C9CF00E39A27 /* ScreenWindowController.swift */,
 				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
 				95F23A692C84561A0074E4DF /* ntsc_palette.h */,
@@ -477,7 +474,6 @@
 				95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */,
 				9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */,
 				9593159E2C72175000DC50A9 /* Screen.metal in Sources */,
-				95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */,
 				95AE0B732EDB22EB0039E328 /* mcs6532.c in Sources */,
 				95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */,
 			);

@@ -8,10 +8,32 @@
 #include "thread.h"
 #include "tia.h"
 
-#include <float.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdatomic.h>
+#include <float.h>
+#include <time.h>
+#include <pthread.h>
+
+typedef enum {
+	RACER_THREAD_RUNNING,
+	RACER_THREAD_PAUSED,
+	RACER_THREAD_STOPPED
+} racer_thread_state;
+
+struct racer_thread {
+	racer_atari2600 *console;
+	uint8_t *buffer;
+	size_t buffer_size;
+
+	_Atomic racer_thread_state state;
+	pthread_t handle;
+	pthread_mutex_t mutex;
+	pthread_cond_t pause;
+
+	double field_time;
+	struct timespec field_start_time;
+};
 
 static void update_field_rate(racer_thread *thread) {
 	struct timespec current_time;
@@ -122,6 +144,10 @@ void racer_thread_pause(racer_thread *thread) {
 }
 
 bool racer_thread_is_paused(racer_thread *thread) {
-	racer_thread state = atomic_load_explicit(&thread->state, memory_order_relaxed);
+	racer_thread_state state = atomic_load_explicit(&thread->state, memory_order_relaxed);
 	return state == RACER_THREAD_PAUSED;
+}
+
+long int racer_thread_get_field_time(racer_thread *thread) {
+	return (long int)thread->field_time;
 }

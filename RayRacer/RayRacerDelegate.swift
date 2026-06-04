@@ -180,7 +180,7 @@ extension RayRacerDelegate {
 	
 	func runProgram(at url: URL) {
 		var windowController: NSWindowController! = self.windowControllers
-			.first(where: { $0.contentViewController is ScreenViewController })
+			.first(where: { $0 is ScreenWindowController })
 		
 		if windowController == nil {
 			windowController = ScreenWindowController(console: self.console)
