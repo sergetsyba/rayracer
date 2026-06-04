@@ -120,3 +120,8 @@ void racer_thread_resume(racer_thread *thread) {
 void racer_thread_pause(racer_thread *thread) {
 	atomic_store_explicit(&thread->state, RACER_THREAD_PAUSED, memory_order_relaxed);
 }
+
+bool racer_thread_is_paused(racer_thread *thread) {
+	racer_thread state = atomic_load_explicit(&thread->state, memory_order_relaxed);
+	return state == RACER_THREAD_PAUSED;
+}

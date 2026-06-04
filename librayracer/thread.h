@@ -37,7 +37,9 @@ typedef struct {
 
 racer_thread * racer_thread_create(racer_atari2600 *console, uint8_t *buffer, size_t buffer_size);
 void racer_thread_destroy(racer_thread *thread);
+
 void racer_thread_resume(racer_thread *thread);
 void racer_thread_pause(racer_thread *thread);
+bool racer_thread_is_paused(racer_thread *thread);
 
 #endif /* thread_h */
