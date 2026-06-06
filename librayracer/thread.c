@@ -8,10 +8,32 @@
 #include "thread.h"
 #include "tia.h"
 
-#include <float.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdatomic.h>
+#include <float.h>
+#include <time.h>
+#include <pthread.h>
+
+typedef enum {
+	RACER_THREAD_RUNNING,
+	RACER_THREAD_PAUSED,
+	RACER_THREAD_STOPPED
+} racer_thread_state;
+
+struct racer_thread {
+	racer_atari2600 *console;
+	uint8_t *buffer;
+	size_t buffer_size;
+
+	_Atomic racer_thread_state state;
+	pthread_t handle;
+	pthread_mutex_t mutex;
+	pthread_cond_t pause;
+
+	double field_time;
+	struct timespec field_start_time;
+};
 
 static void update_field_rate(racer_thread *thread) {
 	struct timespec current_time;
@@ -26,18 +48,6 @@ static void update_field_rate(racer_thread *thread) {
 	// α = 0.1, smoothing factor
 	thread->field_time *= 0.9;
 	thread->field_time += 0.1 * (double)field_time;
-	thread->field_start_time = current_time;
-}
-
-static inline void advance_write_buffer_index(racer_thread *thread) {
-	thread->write_buffer_index += 1;
-	thread->write_buffer_index %= thread->buffer_count;
-
-	// skip buffer when it is being drawn
-	if (thread->write_buffer_index == thread->draw_buffer_index) {
-		thread->write_buffer_index += 1;
-		thread->write_buffer_index %= thread->buffer_count;
-	}
 }
 
 static void sync_video(const void *output, racer_video_sync sync) {
@@ -47,26 +57,33 @@ static void sync_video(const void *output, racer_video_sync sync) {
 	}
 
 	racer_thread *thread = (racer_thread *)output;
-	pthread_mutex_lock(&thread->index_lock);
-
-	// swap video output buffer in TIA
-	advance_write_buffer_index(thread);
-
-	uint8_t *buffer = thread->buffers[thread->write_buffer_index];
-	thread->console->tia->video_buffer = buffer;
-	thread->console->tia->video_buffer_end = buffer + thread->buffer_size;
-	pthread_mutex_unlock(&thread->index_lock);
-
+	racer_thread_pause(thread);
 	// update field rate
 	update_field_rate(thread);
+
+	// reset TIA video ooutput buffer
+	thread->console->tia->video_buffer = thread->buffer;
+	thread->console->tia->video_buffer_end = thread->buffer + thread->buffer_size;
+}
+
+static void await_resume(racer_thread *thread) {
+	pthread_mutex_lock(&thread->mutex);
+	while(atomic_load_explicit(&thread->state, memory_order_relaxed) == RACER_THREAD_PAUSED) {
+		pthread_cond_wait(&thread->pause, &thread->mutex);
+	}
+	pthread_mutex_unlock(&thread->mutex);
 }
 
 static void * run_loop(void *data) {
 	racer_thread *thread = (racer_thread *)data;
 	while(true) {
-		switch (atomic_load_explicit(&thread->state, memory_order_relaxed)) {
+		racer_thread_state state = atomic_load_explicit(&thread->state, memory_order_relaxed);
+		switch (state) {
 			case RACER_THREAD_RUNNING:
 				racer_atari2600_advance_clock(thread->console);
+				break;
+			case RACER_THREAD_PAUSED:
+				await_resume(thread);
 				break;
 			case RACER_THREAD_STOPPED:
 				return NULL;
@@ -78,27 +95,22 @@ static void * run_loop(void *data) {
 	return NULL;
 }
 
-racer_thread * racer_thread_create(racer_atari2600 *console, uint8_t **buffers, int buffer_count, size_t buffer_size) {
+racer_thread * racer_thread_create(racer_atari2600 *console, uint8_t *buffer, size_t buffer_size) {
 	racer_thread *thread = malloc(sizeof(racer_thread));
-	thread->buffers = malloc(buffer_count * sizeof(uint8_t *));
-	thread->buffer_count = buffer_count;
+	thread->buffer = buffer;
 	thread->buffer_size = buffer_size;
-	memcpy(thread->buffers, buffers, buffer_count * sizeof(uint8_t *));
-
-	thread->write_buffer_index = 0;
-	thread->draw_buffer_index = -1;
 
 	thread->console = console;
 	thread->console->tia->video_output = thread;
-	thread->console->tia->video_buffer = thread->buffers[0];
 	thread->console->tia->sync_video = sync_video;
 	sync_video(thread, VIDEO_BUFFER_SYNC);
 
 	thread->field_time = DBL_MIN;
 	clock_gettime(CLOCK_MONOTONIC, &thread->field_start_time);
 
-	atomic_store_explicit(&thread->state, RACER_THREAD_RUNNING, memory_order_relaxed);
-	pthread_mutex_init(&thread->index_lock, NULL);
+	atomic_store_explicit(&thread->state, RACER_THREAD_PAUSED, memory_order_relaxed);
+	pthread_mutex_init(&thread->mutex, NULL);
+	pthread_cond_init(&thread->pause, NULL);
 	pthread_create(&thread->handle, NULL, run_loop, thread);
 
 	return thread;
@@ -110,26 +122,32 @@ void racer_thread_destroy(racer_thread *thread) {
 
 	// wait for thread to stop and clean up resources
 	pthread_join(thread->handle, NULL);
-	pthread_mutex_destroy(&thread->index_lock);
-
-	free(thread->buffers);
+	pthread_mutex_destroy(&thread->mutex);
+	pthread_cond_destroy(&thread->pause);
 	free(thread);
 }
 
 void racer_thread_resume(racer_thread *thread) {
-	pthread_mutex_lock(&thread->index_lock);
+	atomic_store_explicit(&thread->state, RACER_THREAD_RUNNING, memory_order_relaxed);
 
-	// unlock draw buffer index
-	thread->draw_buffer_index = -1;
-	pthread_mutex_unlock(&thread->index_lock);
+	pthread_mutex_lock(&thread->mutex);
+	struct timespec current_time;
+	clock_gettime(CLOCK_MONOTONIC, &current_time);
+	thread->field_start_time = current_time;
+
+	pthread_cond_signal(&thread->pause);
+	pthread_mutex_unlock(&thread->mutex);
 }
 
 void racer_thread_pause(racer_thread *thread) {
-	pthread_mutex_lock(&thread->index_lock);
+	atomic_store_explicit(&thread->state, RACER_THREAD_PAUSED, memory_order_relaxed);
+}
 
-	// lock last finished write buffer for drawing
-	thread->draw_buffer_index = thread->write_buffer_index - 1;
-	thread->draw_buffer_index += thread->buffer_count;
-	thread->draw_buffer_index %= thread->buffer_count;
-	pthread_mutex_unlock(&thread->index_lock);
+bool racer_thread_is_paused(racer_thread *thread) {
+	racer_thread_state state = atomic_load_explicit(&thread->state, memory_order_relaxed);
+	return state == RACER_THREAD_PAUSED;
+}
+
+long int racer_thread_get_field_time(racer_thread *thread) {
+	return (long int)thread->field_time;
 }

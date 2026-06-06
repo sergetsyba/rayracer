@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -42,6 +42,7 @@
 		955BED7C2E13E14300577348 /* GraphicsSyncCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */; };
 		957A12892A3F4517002163C1 /* NSView+ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957A12882A3F4517002163C1 /* NSView+ContentView.swift */; };
 		957AADDB2C0B22BB00692B3F /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 957AADDA2C0B22BB00692B3F /* String+Extensions.swift */; };
+		958A20A12FCDD62C00642E04 /* librayracer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 95A39E292ECDF3070020CEFB /* librayracer.a */; };
 		958DCCCB2EEFEAC0008772F1 /* librayracer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 95A39E292ECDF3070020CEFB /* librayracer.a */; };
 		958DCCCD2EEFEBB8008772F1 /* RayRacer+Atari2600.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958DCCCC2EEFEBB8008772F1 /* RayRacer+Atari2600.swift */; };
 		958E90FB2FA5FE3000312706 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958E90FA2FA5FE3000312706 /* Renderer.swift */; };
@@ -56,16 +57,23 @@
 		95AE0B752EDB22EB0039E328 /* mcs6532.c in Sources */ = {isa = PBXBuildFile; fileRef = 95AE0B722EDB22EB0039E328 /* mcs6532.c */; };
 		95AE0B762EDB22EB0039E328 /* mcs6532.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE0B712EDB22EB0039E328 /* mcs6532.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		95AE89E42EF143870019AEED /* controller.h in Headers */ = {isa = PBXBuildFile; fileRef = 95AE89E12EF143870019AEED /* controller.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */; };
 		95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */; };
 		95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */; };
 		95C918E92C07810000B431C4 /* SystemStateView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 95C918E82C07810000B431C4 /* SystemStateView.xib */; };
 		95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95C918EA2C07810900B431C4 /* SystemStateViewController.swift */; };
 		95F8B1142EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
 		95F8B1162EF3070600A637FA /* controller.c in Sources */ = {isa = PBXBuildFile; fileRef = 95F8B1132EF3070600A637FA /* controller.c */; };
+		95FB824E2FC6C9CF00E39A27 /* ScreenWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95FB824D2FC6C9CF00E39A27 /* ScreenWindowController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		958A20A22FCDD62C00642E04 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 951E2F7B2A18B11900E6902F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 95A39E282ECDF3070020CEFB;
+			remoteInfo = librayracer;
+		};
 		958DCCC92EEFEA84008772F1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 951E2F7B2A18B11900E6902F /* Project object */;
@@ -126,6 +134,7 @@
 		955BED7B2E13E14300577348 /* GraphicsSyncCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphicsSyncCounter.swift; sourceTree = "<group>"; };
 		957A12882A3F4517002163C1 /* NSView+ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSView+ContentView.swift"; sourceTree = "<group>"; };
 		957AADDA2C0B22BB00692B3F /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
+		958A209D2FCDD62C00642E04 /* RayRacerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RayRacerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		958DCCCC2EEFEBB8008772F1 /* RayRacer+Atari2600.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RayRacer+Atari2600.swift"; sourceTree = "<group>"; };
 		958E90FA2FA5FE3000312706 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		9593159D2C72175000DC50A9 /* Screen.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Screen.metal; sourceTree = "<group>"; };
@@ -137,7 +146,6 @@
 		95AE0B712EDB22EB0039E328 /* mcs6532.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mcs6532.h; sourceTree = "<group>"; };
 		95AE0B722EDB22EB0039E328 /* mcs6532.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mcs6532.c; sourceTree = "<group>"; };
 		95AE89E12EF143870019AEED /* controller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = controller.h; sourceTree = "<group>"; };
-		95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenViewController.swift; sourceTree = "<group>"; };
 		95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ScreenWindow.xib; sourceTree = "<group>"; };
 		95BC25562A2DBECD000E9568 /* AssemblyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyViewController.swift; sourceTree = "<group>"; };
 		95C918E82C07810000B431C4 /* SystemStateView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SystemStateView.xib; sourceTree = "<group>"; };
@@ -145,7 +153,12 @@
 		95F23A692C84561A0074E4DF /* ntsc_palette.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ntsc_palette.h; sourceTree = "<group>"; };
 		95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RayRacer-Bridging-Header.h"; sourceTree = "<group>"; };
 		95F8B1132EF3070600A637FA /* controller.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = controller.c; sourceTree = "<group>"; };
+		95FB824D2FC6C9CF00E39A27 /* ScreenWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		958A209E2FCDD62C00642E04 /* RayRacerTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = RayRacerTests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		954A18612A1AEE5800EBC582 /* Frameworks */ = {
@@ -153,6 +166,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				958DCCCB2EEFEAC0008772F1 /* librayracer.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		958A209A2FCDD62C00642E04 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				958A20A12FCDD62C00642E04 /* librayracer.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,6 +217,7 @@
 			children = (
 				954A18652A1AEE5800EBC582 /* RayRacer */,
 				9500F9E12ECDA8EC00998642 /* librayracer */,
+				958A209E2FCDD62C00642E04 /* RayRacerTests */,
 				951E2F842A18B11900E6902F /* Products */,
 				954202232CB3BB7800AFEC6C /* Readme.md */,
 			);
@@ -206,6 +228,7 @@
 			children = (
 				954A18642A1AEE5800EBC582 /* RayRacer.app */,
 				95A39E292ECDF3070020CEFB /* librayracer.a */,
+				958A209D2FCDD62C00642E04 /* RayRacerTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -260,7 +283,7 @@
 				95F23A6C2C845A750074E4DF /* RayRacer-Bridging-Header.h */,
 				958E90FA2FA5FE3000312706 /* Renderer.swift */,
 				9593159D2C72175000DC50A9 /* Screen.metal */,
-				95B429D82A4EFDB100EB6A5D /* ScreenViewController.swift */,
+				95FB824D2FC6C9CF00E39A27 /* ScreenWindowController.swift */,
 				95B429DA2A4EFE1A00EB6A5D /* ScreenWindow.xib */,
 				95F23A692C84561A0074E4DF /* ntsc_palette.h */,
 				952C11FE2FC2066B008AF4CA /* field.h */,
@@ -309,6 +332,29 @@
 			productReference = 954A18642A1AEE5800EBC582 /* RayRacer.app */;
 			productType = "com.apple.product-type.application";
 		};
+		958A209C2FCDD62C00642E04 /* RayRacerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 958A20A62FCDD62C00642E04 /* Build configuration list for PBXNativeTarget "RayRacerTests" */;
+			buildPhases = (
+				958A20992FCDD62C00642E04 /* Sources */,
+				958A209A2FCDD62C00642E04 /* Frameworks */,
+				958A209B2FCDD62C00642E04 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				958A20A32FCDD62C00642E04 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				958A209E2FCDD62C00642E04 /* RayRacerTests */,
+			);
+			name = RayRacerTests;
+			packageProductDependencies = (
+			);
+			productName = RayRacerTests;
+			productReference = 958A209D2FCDD62C00642E04 /* RayRacerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		95A39E282ECDF3070020CEFB /* librayracer */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 95A39E2A2ECDF3070020CEFB /* Build configuration list for PBXNativeTarget "librayracer" */;
@@ -335,12 +381,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1610;
+				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					954A18632A1AEE5800EBC582 = {
 						CreatedOnToolsVersion = 14.3;
 						LastSwiftMigration = 2610;
+					};
+					958A209C2FCDD62C00642E04 = {
+						CreatedOnToolsVersion = 26.3;
 					};
 					95A39E282ECDF3070020CEFB = {
 						CreatedOnToolsVersion = 26.1.1;
@@ -362,6 +411,7 @@
 			targets = (
 				954A18632A1AEE5800EBC582 /* RayRacer */,
 				95A39E282ECDF3070020CEFB /* librayracer */,
+				958A209C2FCDD62C00642E04 /* RayRacerTests */,
 			);
 		};
 /* End PBXProject section */
@@ -378,6 +428,13 @@
 				95A501812A2CFCA400A59616 /* AssemblyView.xib in Resources */,
 				95B429DB2A4EFE1A00EB6A5D /* ScreenWindow.xib in Resources */,
 				954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		958A209B2FCDD62C00642E04 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,6 +464,7 @@
 				951746EB2ED7052800D346CD /* mcs6507.c in Sources */,
 				954E3CD42C2851B6009218CB /* DebugValueTableCellView.swift in Sources */,
 				955B4BEB2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift in Sources */,
+				95FB824E2FC6C9CF00E39A27 /* ScreenWindowController.swift in Sources */,
 				950A18AB2EFD6D69001C97C3 /* AssemblyViewController+Cells.swift in Sources */,
 				9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */,
 				954A18672A1AEE5800EBC582 /* RayRacerDelegate.swift in Sources */,
@@ -416,9 +474,15 @@
 				95C918EB2C07810900B431C4 /* SystemStateViewController.swift in Sources */,
 				9517A47B2A486020002D1F20 /* UserDefaults+Preferences.swift in Sources */,
 				9593159E2C72175000DC50A9 /* Screen.metal in Sources */,
-				95B429D92A4EFDB100EB6A5D /* ScreenViewController.swift in Sources */,
 				95AE0B732EDB22EB0039E328 /* mcs6532.c in Sources */,
 				95BC25572A2DBECD000E9568 /* AssemblyViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		958A20992FCDD62C00642E04 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,6 +504,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		958A20A32FCDD62C00642E04 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 95A39E282ECDF3070020CEFB /* librayracer */;
+			targetProxy = 958A20A22FCDD62C00642E04 /* PBXContainerItemProxy */;
+		};
 		958DCCCA2EEFEA84008772F1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 95A39E282ECDF3070020CEFB /* librayracer */;
@@ -659,6 +728,53 @@
 			};
 			name = Release;
 		};
+		958A20A42FCDD62C00642E04 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7AGF9N4R2H;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "${SRCROOT}/librayracer";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_INCLUDE_PATHS = "${SRCROOT}/librayracer/module.modulemap";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		958A20A52FCDD62C00642E04 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7AGF9N4R2H;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "${SRCROOT}/librayracer";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tsyba.RayRacerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_INCLUDE_PATHS = "${SRCROOT}/librayracer/module.modulemap";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		95A39E2B2ECDF3070020CEFB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -702,6 +818,15 @@
 			buildConfigurations = (
 				954A186F2A1AEE5A00EBC582 /* Debug */,
 				954A18702A1AEE5A00EBC582 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		958A20A62FCDD62C00642E04 /* Build configuration list for PBXNativeTarget "RayRacerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				958A20A42FCDD62C00642E04 /* Debug */,
+				958A20A52FCDD62C00642E04 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -9,6 +9,7 @@ import Cocoa
 import Metal
 import CryptoKit
 import librayracer
+import SwiftUI
 
 @main
 class RayRacerDelegate: NSObject, NSApplicationDelegate {
@@ -179,11 +180,10 @@ extension RayRacerDelegate {
 	
 	func runProgram(at url: URL) {
 		var windowController: NSWindowController! = self.windowControllers
-			.first(where: { $0.contentViewController is ScreenViewController })
+			.first(where: { $0 is ScreenWindowController })
 		
 		if windowController == nil {
-			windowController = NSWindowController(windowNibName: "ScreenWindow")
-			windowController.contentViewController = ScreenViewController(console: self.console)
+			windowController = ScreenWindowController(console: self.console)
 		}
 		
 		// TODO: suspend console in case it is currently resumed
@@ -216,9 +216,9 @@ extension RayRacerDelegate: NSWindowDelegate {
 			return
 		}
 		
-		window.delegate = self
+//		window.delegate = self
 		window.makeKeyAndOrderFront(self)
-		window.makeFirstResponder(windowController.contentViewController)
+//		window.makeFirstResponder(windowController.contentViewController)
 		
 		self.windowControllers.insert(windowController)
 	}

@@ -14,7 +14,7 @@
 
 /// A memory address at the specified page and offset.
 #define address(high, low) \
-((high << 8) | low)
+(((high) << 8) | (low))
 
 /// `true` when both of the specified memory addresses are on the same page; `false` otherwise.
 #define is_same_page(address1, address2) \
@@ -24,7 +24,7 @@
 // MARK: -
 // MARK: Memory addressing
 
-/// Reads address, using reative addressing mode, from offset at the specified address, based on
+/// Reads address, using relative addressing mode, from offset at the specified address, based on
 /// the specified branching condition.
 ///
 /// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
@@ -32,19 +32,23 @@
 static int read_relative_address(racer_mcs6507 *cpu, int address, bool condition, int *cycles) {
 	// when branch is not taken, program counter increments to +1
 	// relative to offset operand address
-	int offset_address = address + 0x1;
+	int relative_address = address + 0x1;
 	
 	if (condition) {
 		const int offset = cpu->read_bus(cpu->bus, address);
+		int offset_address = relative_address;
 		
-		// offset address using signed 8 bit offset
+		// offset address using signed 8 bit offset and check if offsetting
+		// crosses page boundary
 		offset_address += (offset & 0x80) ? offset - 0x100 : offset;
-		*cycles = is_same_page(address, offset_address) ? 1 : 2;
+		*cycles = is_same_page(relative_address, offset_address) ? 1 : 2;
+		
+		relative_address = offset_address;
 	} else {
 		*cycles = 0;
 	}
 	
-	return offset_address;
+	return relative_address;
 }
 
 /// Reads 0-page address at the specified address in memory.
@@ -120,9 +124,13 @@ static int read_indirect_address(racer_mcs6507 *cpu, int address) {
 
 /// Reads address, using x-indexed indirect addressing mode, at the specified address in memory.
 static int read_indirect_x_indexed_address(racer_mcs6507 *cpu, int address) {
-	address = read_0_page_x_indexed_address(cpu, address);
-	address = read_address(cpu, address);
-	return address;
+	// read base address and apply indexing
+	address = cpu->read_bus(cpu->bus, address);
+	address = address + cpu->x;
+	
+	const int low = cpu->read_bus(cpu->bus, address & 0xff);
+	const int high = cpu->read_bus(cpu->bus, (address + 0x1) & 0xff);
+	return address(high, low);
 }
 
 /// Reads address, using indirect y-indexed addressing mode, at the specified address in memory.
@@ -130,10 +138,16 @@ static int read_indirect_x_indexed_address(racer_mcs6507 *cpu, int address) {
 /// Additionally returns the number of extra CPU cycles it takes to read and resolve the effective
 /// address.
 static int read_indirect_y_indexed_address(racer_mcs6507 *cpu, int address, int *cycles) {
-	address = read_0_page_address(cpu, address);
-	address = read_address(cpu, address);
-	int indexed_address = address + cpu->y;
+	// read indirect address
+	address = cpu->read_bus(cpu->bus, address);
 	
+	// read base address
+	const int low = cpu->read_bus(cpu->bus, address);
+	const int high = cpu->read_bus(cpu->bus, (address + 0x1) & 0xff);
+	address = address(high, low);
+	
+	// apply indexing
+	int indexed_address = address + cpu->y;
 	*cycles = is_same_page(address, indexed_address) ? 0 : 1;
 	return indexed_address;
 }
@@ -183,7 +197,9 @@ static void decode_operation(racer_mcs6507 *cpu) {
 			cpu->operation = (decoded){opcode, -1, 6, 1};
 			break;
 		case 0x00:
-			cpu->operation = (decoded){opcode, -1, 7, 1};
+			// NOTE: even though BRK instruction length is 1 byte, return
+			// address on the stack is program counter + 2
+			cpu->operation = (decoded){opcode, -1, 7, 2};
 			break;
 			
 			// MARK: immediate addressing
@@ -343,15 +359,22 @@ static void decode_operation(racer_mcs6507 *cpu) {
 		}
 			
 			// MARK: indirect y-indexed addressing
-		case 0x11: case 0x31: case 0x51: case 0x71: case 0x91: case 0xb1: case 0xd1: case 0xf1: {
+		case 0x11: case 0x31: case 0x51: case 0x71: case 0xb1: case 0xd1: case 0xf1: {
 			address = read_indirect_y_indexed_address(cpu, address, &cycles);
 			cpu->operation = (decoded){opcode, address, 5 + cycles, 2};
 			break;
 		}
+			// MARK: indirect y-indexed addressing (sta-only)
+		case 0x91:
+			// NOTE: sta with indirect y-indexed addressing always takes
+			// 6 clock cycles
+			address = read_indirect_y_indexed_address(cpu, address, &cycles);
+			cpu->operation = (decoded){opcode, address, 6, 2};
+			break;
 			
 		default:
-			printf("Unknown operation code: %d at %04x.\n", opcode, address);
-			cpu->operation = (decoded){};
+			printf("Unknown operation code: %02x at %04x.\n", opcode, address - 0x1);
+			cpu->operation = (decoded){opcode, 0x0000, 1, 1};
 			break;
 	}
 }
@@ -365,34 +388,38 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			const int operand = cpu->read_bus(cpu->bus, operand_address);
 			const bool carry = is_flag_set(cpu->status, MCS6507_STATUS_CARRY);
 			
-			int result;
+			int result = cpu->accumulator + operand + carry;
+			const int overflow = (cpu->accumulator ^ result) & (operand ^ result);
+			
+			// NOTE: status flags are set from intermediary result, not
+			// decimal mode corrected one
+			set_flag(cpu->status, MCS6507_STATUS_CARRY, result > 0xff);
+			set_flag(cpu->status, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
+			set_flag(cpu->status, MCS6507_STATUS_ZERO, (result & 0xff) == 0);
+			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, result & 0x80);
+			
 			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
-				int high = (cpu->accumulator / 0x10) + (operand / 0x10);
-				int low = (cpu->accumulator % 0x10) + (operand % 0x10) + carry;
+				// (accumulator % 0x10) + (operand % 0x10)
+				int low = (cpu->accumulator & 0x0f) + (operand & 0x0f) + carry;
+				// (accumulator / 0x10) + (operand / 0x10)
+				int high = (cpu->accumulator >> 4) + (operand >> 4);
 				
 				if (low > 0x9) {
-					high += 0x1;
 					low -= 0xa;
+					high += 0x1;
 				}
-				
-				result = high * 0x10 + low;
-				if (result > 0x99) {
-					result -= 0xa0;
+				if (high > 0x9) {
+					high -= 0xa;
 					add_flag(cpu->status, MCS6507_STATUS_CARRY);
 				} else {
 					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
 				}
-			} else {
-				result = cpu->accumulator + operand + carry;
-				set_flag(cpu->status, MCS6507_STATUS_CARRY, result > 0xff);
+				
+				// high * 0x10 + low
+				result = (high << 4) | (low & 0x0f);
 			}
 			
-			const int overflow = (cpu->accumulator ^ result) & (operand ^ result);
-			
 			cpu->accumulator = result & 0xff;
-			set_flag(cpu->status, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
-			set_flag(cpu->status, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
-			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
 			break;
 		}
 			
@@ -450,11 +477,13 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 		case 0x00: {
 			push_stack(cpu, cpu->program_counter >> 8);
 			push_stack(cpu, cpu->program_counter & 0xff);
-			push_stack(cpu, cpu->status);
+			push_stack(cpu, cpu->status | MCS6507_STATUS_BREAK | MCS6507_STATUS_UNUSED);
 			
 			const int low = cpu->read_bus(cpu->bus, 0xfffe);
 			const int high = cpu->read_bus(cpu->bus, 0xffff);
 			cpu->program_counter = address(high, low);
+			
+			add_flag(cpu->status, MCS6507_STATUS_INTERRUPT_DISABLE);
 			break;
 		}
 			
@@ -577,8 +606,8 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			
 			// MARK: jsr
 		case 0x20: {
-			// NOTE: JSR pushes PC+1 onto stack, but not PC+2 as it should be,
-			// and there's an extra PC+1 at the end of RTS, which then
+			// NOTE: JSR pushes next instruction address - 1 (PC+2-1) onto
+			// stack, and there's an extra PC+1 at the end of RTS, which then
 			// correctly aligns return to the beginning of next instruction;
 			const int return_address = cpu->program_counter - 0x1;
 			push_stack(cpu, return_address >> 8);
@@ -652,9 +681,14 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			break;
 			
 			// MARK: php
-		case 0x08:
-			push_stack(cpu, cpu->status);
+		case 0x08: {
+			int status = cpu->status;
+			add_flag(status, MCS6507_STATUS_BREAK);
+			add_flag(status, MCS6507_STATUS_UNUSED);
+			
+			push_stack(cpu, status);
 			break;
+		}
 			
 			// MARK: pla
 		case 0x68:
@@ -664,9 +698,14 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			break;
 			
 			// MARK: plp
-		case 0x28:
-			cpu->status = pull_stack(cpu);
+		case 0x28: {
+			const int ignored_flags = (MCS6507_STATUS_BREAK | MCS6507_STATUS_UNUSED);
+			const int status = pull_stack(cpu);
+			
+			// preserve break and unused flags in status register
+			cpu->status = (status & ~ignored_flags) | (cpu->status & ignored_flags);
 			break;
+		}
 			
 			// MARK: rol (accumulator)
 		case 0x2a: {
@@ -716,8 +755,13 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			
 			// MARK: rti
 		case 0x40: {
-			cpu->status = pull_stack(cpu);
+			const int ignored_flags = (MCS6507_STATUS_BREAK | MCS6507_STATUS_UNUSED);
+			const int status = pull_stack(cpu);
 			
+			// preserve break and unused status flags
+			cpu->status = (status & ~ignored_flags) | (cpu->status & ignored_flags);
+			
+			// pull program counter from stack
 			const int low = pull_stack(cpu);
 			const int high = pull_stack(cpu);
 			cpu->program_counter = address(high, low);
@@ -737,39 +781,36 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			const int operand = cpu->read_bus(cpu->bus, operand_address);
 			const bool borrow = !is_flag_set(cpu->status, MCS6507_STATUS_CARRY);
 			
-			int result;
-			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
-				int high = (cpu->accumulator / 0x10) - (operand / 0x10);
-				int low = (cpu->accumulator % 0x10) - (operand % 0x10) - borrow;
-				
-				if (low < 0x0) {
-					high -= 0x1;
-					low += 0xa;
-				}
-				
-				result = high * 0x10 + low;
-				if (result < 0x0) {
-					result += 0xa0;
-					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
-				} else {
-					add_flag(cpu->status, MCS6507_STATUS_CARRY);
-				}
-			} else {
-				result = cpu->accumulator - operand - borrow;
-				if (result < 0x0) {
-					result += 0x100;
-					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
-				} else {
-					add_flag(cpu->status, MCS6507_STATUS_CARRY);
-				}
-			}
-			
+			int result = cpu->accumulator - operand - borrow;
 			const int overflow = (cpu->accumulator ^ operand) & (cpu->accumulator ^ result);
 			
-			cpu->accumulator = result & 0xff;
+			set_flag(cpu->status, MCS6507_STATUS_CARRY, result >= 0x0);
 			set_flag(cpu->status, MCS6507_STATUS_OVERFLOW, overflow & 0x80);
-			set_flag(cpu->status, MCS6507_STATUS_ZERO, cpu->accumulator == 0);
-			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, cpu->accumulator & 0x80);
+			set_flag(cpu->status, MCS6507_STATUS_ZERO, (result & 0xff) == 0);
+			set_flag(cpu->status, MCS6507_STATUS_NEGATIVE, result & 0x80);
+			
+			if (is_flag_set(cpu->status, MCS6507_STATUS_DECIMAL_MODE)) {
+				// (accumulator % 0x10) - (operand % 0x10)
+				int low = (cpu->accumulator & 0x0f) - (operand & 0x0f) - borrow;
+				// (accumulator / 0x10) - (operand / 0x10)
+				int high = (cpu->accumulator >> 4) - (operand >> 4);
+				
+				if (low < 0x0) {
+					low += 0xa;
+					high -= 0x1;
+				}
+				if (high < 0x0) {
+					high += 0xa;
+					clear_flag(cpu->status, MCS6507_STATUS_CARRY);
+				} else {
+					add_flag(cpu->status, MCS6507_STATUS_CARRY);
+				}
+				
+				// high * 0x10 + low
+				result = (high << 4) | (low & 0x0f);
+			}
+			
+			cpu->accumulator = result & 0xff;
 			break;
 		}
 			
@@ -844,7 +885,7 @@ static void execute_decoded_operation(racer_mcs6507 *cpu) {
 			break;
 			
 		default:
-			printf("Unknown operation code: %d.\n", cpu->operation.code);
+			printf("Unknown operation code: %02x.\n", cpu->operation.code);
 			break;
 	}
 }
