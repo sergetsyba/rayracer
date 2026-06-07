@@ -222,7 +222,7 @@ private extension NSToolbarItem.Identifier {
 // MARK: Resume/suspend functionality
 extension DebuggerWindowController {
 	private var console: Atari2600 {
-		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
+		let delegate = NSApplication.shared.delegate as! AppDelegate
 		return delegate.console
 	}
 	

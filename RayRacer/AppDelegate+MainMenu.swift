@@ -7,7 +7,7 @@
 
 import AppKit
 
-extension RayRacerDelegate {
+extension AppDelegate {
 	@IBAction func didSelectInsertCartridgeMenuItem(_ sender: AnyObject) {
 		self.withModalFileOpenPanel() {
 			self.runProgram(at: $0)
@@ -29,7 +29,7 @@ extension RayRacerDelegate {
 
 // MARK: -
 // MARK: Console switches
-extension RayRacerDelegate {
+extension AppDelegate {
 	@IBAction func didSelectLeftDifficultyMenuItem(_ sender: NSMenuItem) {
 		self.setConsoleSwitch(.difficulty0, on: sender.menuIndex == 1)
 	}

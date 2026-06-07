@@ -27,7 +27,7 @@
 		9519F9D32EE2C5B6007D1626 /* atari2600.c in Sources */ = {isa = PBXBuildFile; fileRef = 9519F9D12EE2C5B6007D1626 /* atari2600.c */; };
 		9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */ = {isa = PBXBuildFile; fileRef = 9519F9D12EE2C5B6007D1626 /* atari2600.c */; };
 		951CC4FE2A58723300537CD1 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951CC4FD2A58723300537CD1 /* FormView.swift */; };
-		954A18672A1AEE5800EBC582 /* RayRacerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */; };
+		954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954A18662A1AEE5800EBC582 /* AppDelegate.swift */; };
 		954A18692A1AEE5A00EBC582 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 954A18682A1AEE5A00EBC582 /* Assets.xcassets */; };
 		954A186C2A1AEE5A00EBC582 /* Main.xib in Resources */ = {isa = PBXBuildFile; fileRef = 954A186A2A1AEE5A00EBC582 /* Main.xib */; };
 		954C4F702C9586E20063B170 /* RayRacer+Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 954C4F6F2C9586E20063B170 /* RayRacer+Preferences.swift */; };
@@ -119,7 +119,7 @@
 		952C11FE2FC2066B008AF4CA /* field.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = field.h; sourceTree = "<group>"; };
 		954202232CB3BB7800AFEC6C /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 		954A18642A1AEE5800EBC582 /* RayRacer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RayRacer.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RayRacerDelegate.swift; sourceTree = "<group>"; };
+		954A18662A1AEE5800EBC582 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		954A18682A1AEE5A00EBC582 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		954A186B2A1AEE5A00EBC582 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/Main.xib; sourceTree = "<group>"; };
 		954C4F6F2C9586E20063B170 /* RayRacer+Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RayRacer+Preferences.swift"; sourceTree = "<group>"; };
@@ -236,7 +236,7 @@
 		954A18652A1AEE5800EBC582 /* RayRacer */ = {
 			isa = PBXGroup;
 			children = (
-				954A18662A1AEE5800EBC582 /* RayRacerDelegate.swift */,
+				954A18662A1AEE5800EBC582 /* AppDelegate.swift */,
 				958DCCCC2EEFEBB8008772F1 /* RayRacer+Atari2600.swift */,
 				954C4F6F2C9586E20063B170 /* RayRacer+Preferences.swift */,
 				955B4BEA2CEDEFD600B1B245 /* AppDelegate+MainMenu.swift */,
@@ -467,7 +467,7 @@
 				95FB824E2FC6C9CF00E39A27 /* ScreenWindowController.swift in Sources */,
 				950A18AB2EFD6D69001C97C3 /* AssemblyViewController+Cells.swift in Sources */,
 				9519F9D52EE2C5B6007D1626 /* atari2600.c in Sources */,
-				954A18672A1AEE5800EBC582 /* RayRacerDelegate.swift in Sources */,
+				954A18672A1AEE5800EBC582 /* AppDelegate.swift in Sources */,
 				954E3CD22C285184009218CB /* DebugSectionTableCellView.swift in Sources */,
 				959E104F2C2314AE00E02CE6 /* DebugColorTableCellView.swift in Sources */,
 				95F8B1142EF3070600A637FA /* controller.c in Sources */,

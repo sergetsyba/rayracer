@@ -28,7 +28,7 @@ class SystemStateViewController: NSViewController {
 	}
 	
 	var console: Atari2600 {
-		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
+		let delegate = NSApplication.shared.delegate as! AppDelegate
 		return delegate.console
 	}
 }
@@ -59,7 +59,7 @@ struct SystemState {
 
 extension SystemState {
 	static var current: Self {
-		let delegate = NSApplication.shared.delegate as! RayRacerDelegate
+		let delegate = NSApplication.shared.delegate as! AppDelegate
 		let console = delegate.console.console!
 		
 		let memory = withUnsafePointer(to: console.pointee.riot.pointee.memory) {

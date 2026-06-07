@@ -12,7 +12,7 @@ import librayracer
 import SwiftUI
 
 @main
-class RayRacerDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate {
 	private var windowControllers = Set<NSWindowController>()
 	
 	let console = Atari2600()
@@ -25,13 +25,13 @@ class RayRacerDelegate: NSObject, NSApplicationDelegate {
 
 // MARK: -
 // MARK: Target actions
-extension RayRacerDelegate {
+extension AppDelegate {
 	@IBAction func didSelectDebuggerMenuItem(_ sender: AnyObject) {
 		self.showDebugger()
 	}
 }
 
-private extension RayRacerDelegate {
+private extension AppDelegate {
 	func postNotification(_ name: Notification.Name) {
 		NotificationCenter.default
 			.post(name: name, object: self)
@@ -45,7 +45,7 @@ extension Notification.Name {
 
 // MARK: -
 // MARK: Main menu management
-extension RayRacerDelegate: NSMenuDelegate {
+extension AppDelegate: NSMenuDelegate {
 	func menuNeedsUpdate(_ menu: NSMenu) {
 		let switches = UserDefaults.standard
 			.consoleSwitches
@@ -95,7 +95,7 @@ extension RayRacerDelegate: NSMenuDelegate {
 	}
 }
 
-extension RayRacerDelegate: NSMenuItemValidation {
+extension AppDelegate: NSMenuItemValidation {
 	func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
 		switch menuItem.identifier {
 		case .insertRecentCartridgeMenuItem:
@@ -119,7 +119,7 @@ private extension NSUserInterfaceItemIdentifier {
 
 // MARK: -
 // MARK: Toolbar item management
-extension RayRacerDelegate: NSToolbarItemValidation {
+extension AppDelegate: NSToolbarItemValidation {
 	func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
 		switch item.itemIdentifier {
 		case .resumeToolbarItem,
@@ -146,7 +146,7 @@ private extension NSToolbarItem.Identifier {
 
 // MARK: -
 // MARK: Custom functionality
-extension RayRacerDelegate {
+extension AppDelegate {
 	func withModalFileOpenPanel(_ perform: (URL) -> Void) {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
@@ -210,7 +210,7 @@ extension RayRacerDelegate {
 
 // MARK: -
 // MARK: Window management
-extension RayRacerDelegate: NSWindowDelegate {
+extension AppDelegate: NSWindowDelegate {
 	func showWindow(of windowController: NSWindowController) {
 		guard let window = windowController.window else {
 			return
