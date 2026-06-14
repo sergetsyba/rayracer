@@ -6,62 +6,87 @@
 //
 
 import Foundation
+import CryptoKit
 import librayracer
 
-struct Cartridge {
+struct Cartridge: Equatable {
+	var name: String
+	var id: String
+	var kind: CartridgeKind
+
 	var bookmark: Data
-	var url: URL
+	var program: Data?
+}
 
-	init(bookmark: Data, url: URL) {
-		self.bookmark = bookmark
-		self.url = url
-	}
-
-	var name: String {
-		self.url.fileName
+extension Cartridge {
+	static func == (lhs: Self, rhs: Self) -> Bool {
+		return lhs.id == rhs.id
 	}
 }
 
 // MARK: -
-// MARK: File system integration
+// MARK: File integration
 extension Cartridge {
 	init(at url: URL) throws {
 		let bookmark = try url.bookmarkData(options: .readOnlySecurityScope)
-		self.init(bookmark: bookmark, url: url)
+		self = try url.withSecurityScopedData {
+			let kind = try CartridgeKind(size: $0.count)
+			return Cartridge(name: url.fileName, id: $0.md5, kind: kind, bookmark: bookmark, program: $0)
+		}
 	}
 
-	init(bookmark: Data) throws {
-		var bookmark = bookmark
+	mutating func load() throws {
 		var isStale = false
+		let url = try URL(resolvingBookmarkData: self.bookmark, options: .securityScope, bookmarkDataIsStale: &isStale)
 
-		let url = try URL(resolvingBookmarkData: bookmark, options: .securityScope, bookmarkDataIsStale: &isStale)
+		// update name and bookmark when file was moved or renamed
 		if isStale {
-			bookmark = try url.bookmarkData(options: .readOnlySecurityScope)
+			self.name = url.fileName
+			self.bookmark = try url.bookmarkData(options: .readOnlySecurityScope)
 		}
 
-		self.init(bookmark: bookmark, url: url)
-	}
-
-	func load() throws -> (program: Data, kind: CartridgeKind) {
-		var isStale = false
-		let url = try URL(resolvingBookmarkData: self.bookmark, bookmarkDataIsStale: &isStale)
-		guard url.startAccessingSecurityScopedResource() else {
-			throw CartridgeError.accessDenied
+		// load program data
+		try url.withSecurityScopedData {
+			self.program = $0
 		}
-		defer {
-			url.stopAccessingSecurityScopedResource()
-		}
-
-		let program = try Data(contentsOf: url, options: [.mappedIfSafe])
-		let kind = try CartridgeKind(size: program.count)
-		return (program, kind)
 	}
 }
 
 // MARK: -
-enum CartridgeError: Error {
-	case accessDenied
-	case unsupportedKind
+// MARK: User defaults integration
+extension UserDefaults {
+	var cartridges: [Cartridge] {
+		get {
+			let decoder = PropertyListDecoder()
+			guard let data = self.data(forKey: .cartridges),
+				  let cartridges = try? decoder.decode([Cartridge].self, from: data) else {
+				return []
+			}
+			return cartridges
+		}
+		set {
+			let encoder = PropertyListEncoder()
+			if let data = try? encoder.encode(newValue) {
+				self.set(data, forKey: .cartridges)
+			}
+		}
+	}
+}
+
+extension Cartridge: Codable {
+	enum CodingKeys: CodingKey {
+		case name
+		case id
+		case kind
+		case bookmark
+	}
+}
+
+extension CartridgeKind: @retroactive Codable {
+}
+
+private extension String {
+	static let cartridges = "Cartridges"
 }
 
 // MARK: -
@@ -85,22 +110,26 @@ private extension URL {
 		self.deletingPathExtension()
 			.lastPathComponent
 	}
+
+	func withSecurityScopedData<Result>(_ perform: (Data) throws -> Result) throws -> Result {
+		guard self.startAccessingSecurityScopedResource() else {
+			fatalError("Failed to access security scoped file at \(self.absoluteString).")
+		}
+		do {
+			let data = try Data(contentsOf: self, options: [.mappedIfSafe])
+			return try perform(data)
+		} catch {
+			self.stopAccessingSecurityScopedResource()
+			throw error
+		}
+	}
 }
 
-// MARK: -
-// MARK: User defaults integration
-extension UserDefaults {
-	var recentCartridges: [Cartridge] {
-		get { self.openedFileBookmarks.compactMap({ try? Cartridge(bookmark: $0) }) }
-		set { self.openedFileBookmarks = newValue.map(\.bookmark) }
+private extension Data {
+	var md5: String {
+		Insecure.MD5
+			.hash(data: self)
+			.map({ String(format: "%02x", $0) })
+			.joined()
 	}
-
-	var openedFileBookmarks: [Data] {
-		get { self.value(forKey: .openedFileBookmarks) as? [Data] ?? [] }
-		set { self.setValue(newValue, forKey: .openedFileBookmarks) }
-	}
-}
-
-private extension String {
-	static let openedFileBookmarks = "OpenedFileBookmarks"
 }

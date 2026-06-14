@@ -13,12 +13,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	@IBOutlet private var mainMenuController: MainMenuController!
 	private var screenWindowController: ScreenWindowController?
 	private let console = Atari2600()
-	
+
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		self.mainMenuController.collection = self
 		self.mainMenuController.console = self.console
 	}
-	
+
 	func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
 		return true
 	}
@@ -30,46 +30,47 @@ extension AppDelegate: CartridgeCollection {
 	var cartridges: [Cartridge] {
 		get {
 			UserDefaults.standard
-				.openedFileBookmarks
-				.compactMap({ try? Cartridge(bookmark: $0) })
+				.cartridges
 		}
 		set {
 			// store up to 10 recently played distinct cartridges
+			let distinct = newValue.removingDuplicates()
 			UserDefaults.standard
-				.openedFileBookmarks = newValue
-				.removingDuplicates(where: { $0.name == $1.name })
-				.prefix(10)
-				.map(\.bookmark)
+				.cartridges = Array(distinct.prefix(10))
 		}
 	}
-	
+
 	func play(_ cartridge: Cartridge) {
 		// pause emulation if it is currently running
 		self.screenWindowController?
 			.view?.isPaused = true
-		
+
 		// set up console
 		self.console.cartridge = cartridge
 		self.console.reset()
-		
+
 		// resume emulation
 		if self.screenWindowController == nil {
 			self.screenWindowController = ScreenWindowController(console: self.console)
 			self.screenWindowController?
 				.window?.delegate = self
 		}
-		
+
 		self.screenWindowController?.showWindow(self)
 		self.screenWindowController?
 			.view?.isPaused = false
-		
+
 		// save cartridge in recently opened list
 		self.cartridges.insert(cartridge, at: 0)
 	}
-	
+
 	func stop() {
-		self.console.cartridge = nil
+		// TODO: view.isPaused is not enough, needs proper console suspension
+		self.screenWindowController?.view.isPaused = true
 		self.screenWindowController = nil
+
+		self.console.cartridge?.program = nil
+		self.console.cartridge = nil
 	}
 }
 
@@ -98,12 +99,7 @@ extension NSOpenPanel {
 		panel.canChooseFiles = true
 		panel.canChooseDirectories = false
 		panel.canCreateDirectories = false
-		panel.directoryURL = UserDefaults.standard
-			.openedFileBookmarks
-			.first
-			.map({ try? Cartridge(bookmark: $0) })??
-			.url
-		
+
 		let response = panel.runModal()
 		if let url = panel.url,
 		   response == .OK {
@@ -112,15 +108,15 @@ extension NSOpenPanel {
 	}
 }
 
-extension Array {
-	func removingDuplicates(where comparator: (Element, Element) -> Bool) -> Self {
+extension Array where Element: Equatable {
+	func removingDuplicates() -> Self {
 		var uniques: Self = []
 		for element in self {
-			if uniques.contains(where: { comparator(element, $0) }) == false {
+			if uniques.contains(where: { $0 == element }) == false {
 				uniques.append(element)
 			}
 		}
-		
+
 		return uniques
 	}
 }

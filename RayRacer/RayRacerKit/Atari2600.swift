@@ -11,16 +11,15 @@ import librayracer
 
 class Atari2600 {
 	let ref: UnsafeMutablePointer<racer_atari2600>!
-	var program: Data?
-
+	
 	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
 	private var state: State = .suspended(.normal)
-
+	
 	init() {
 		self.ref = racer_atari2600_create()!
 		self.switches = UserDefaults.standard.consoleSwitches
 	}
-
+	
 	var switches: Switches {
 		didSet {
 			self.ref.pointee
@@ -29,53 +28,54 @@ class Atari2600 {
 				.consoleSwitches = self.switches
 		}
 	}
-
+	
 	var cartridge: Cartridge? {
 		didSet {
 			// remove old cartridge when present
 			if let _ = oldValue {
 				racer_atari2600_remove_cartridge(self.ref)
-				self.program = nil
 			}
 			// insert new cartridge when specified
-			guard let cartridge else {
+			guard var cartridge else {
 				return
 			}
+			
+			// TODO: consider doing this somewhere else
 			// load program
-			do {
-				let (program, kind) = try cartridge.load()
-				self.program = program
-				self.program?.withUnsafeMutableBytes() {
-					racer_atari2600_insert_cartridge(self.ref, kind, $0.baseAddress)
-				}
-			} catch {
-				fatalError(error.localizedDescription)
+			if cartridge.program == nil {
+				try! cartridge.load()
+			}
+			cartridge.program?.withUnsafeBytes() {
+				racer_atari2600_insert_cartridge(
+					self.ref, cartridge.kind,
+					$0.baseAddress?
+						.assumingMemoryBound(to: UInt8.self))
 			}
 		}
 	}
-
+	
 	var controllers: (Joystick?, Joystick?) {
 		didSet {
 		}
 	}
-
+	
 	func holdSwitch(_ `switch`: Switches, for interval: Int = 500) {
 		// set switch to `on`
 		self.switches[`switch`] = true
-
+		
 		// set switch to `off` after the interval
 		let deadline: DispatchTime = .now()
 			.advanced(by: .milliseconds(interval))
-
+		
 		DispatchQueue.main
 			.asyncAfter(deadline: deadline) { [unowned self] in
 				self.switches[`switch`] = false
 			}
 	}
-
+	
 	func reset() {
 		racer_atari2600_reset(self.ref)
-
+		
 		NotificationCenter.default
 			.post(name: .reset, object: self)
 	}
@@ -110,12 +110,12 @@ extension Atari2600 {
 		case normal
 		case high
 	}
-
+	
 	private enum State {
 		case resumed
 		case suspended(SuspensionPriority)
 	}
-
+	
 	/// Returns `true` when emulation is suspended with the specified priority; returns `false`
 	/// otherwise.
 	func isSuspended(withPriority priority: SuspensionPriority = .normal) -> Bool {
@@ -125,7 +125,7 @@ extension Atari2600 {
 			return false
 		}
 	}
-
+	
 	///	Suspends emulation.
 	///
 	///	When emualtion is already suspended with a lower priority than the specified one, updates
@@ -142,7 +142,7 @@ extension Atari2600 {
 			return
 		}
 	}
-
+	
 	/// Resumes emulation when it is suspended with a priority lower or equal to the specified one.
 	func resume(priority: SuspensionPriority = .normal, until suspension: (condition: () -> Bool, callback: () -> Void)? = nil) {
 		// do not resume emulation when current suspension priority is higher
@@ -150,16 +150,16 @@ extension Atari2600 {
 			  currentPriority <= priority else {
 			return
 		}
-
+		
 		if let (condition, callback) = suspension {
 			self.suspension = (condition, callback, priority)
 		}
-
+		
 		self.state = .resumed
 		if let (condition, callback, priority) = self.suspension {
 			while case .resumed = self.state {
 				racer_atari2600_advance_clock(self.ref)
-
+				
 				if condition() {
 					self.state = .suspended(priority)
 					self.suspension = nil

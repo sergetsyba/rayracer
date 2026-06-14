@@ -21,19 +21,19 @@ extension MainMenuController {
 			self.collection.play(cartridge)
 		}
 	}
-
+	
 	@IBAction func didSelectInsertRecentCartridgeMenu(_ sender: NSMenuItem) {
-		// does nothing; enabled menu item validation
+		// does nothing; enables menu item validation
 	}
-
+	
 	@IBAction func didSelectInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
-		guard let index = sender.menu?.index(of: sender) else {
-			fatalError("Failed to find index of menu item within its menu.")
+		guard let id = sender.representedObject as? String,
+		let cartridge = self.collection.cartridges.first(where: { $0.id == id }) else {
+			fatalError("Failed to find cartridge associated with menu item.")
 		}
-		let cartridge = self.collection.cartridges[index]
 		self.collection.play(cartridge)
 	}
-
+	
 	@IBAction func didSelectClearInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
 		self.collection.cartridges = []
 	}
@@ -45,19 +45,19 @@ extension MainMenuController {
 	@IBAction func didSelectTVTypeMenuItem(_ sender: NSMenuItem) {
 		self.console.switches[.color] = sender.menuIndex == 0
 	}
-
+	
 	@IBAction func didSelectLeftDifficultyMenuItem(_ sender: NSMenuItem) {
 		self.console.switches[.difficulty0] = sender.menuIndex == 0
 	}
-
+	
 	@IBAction func didSelectRightDifficultyMenuItem(_ sender: NSMenuItem) {
 		self.console.switches[.difficulty1] = sender.menuIndex == 0
 	}
-
+	
 	@IBAction func didSelectGameSelectMenuItem(_ sender: NSMenuItem) {
 		self.console.holdSwitch(.select)
 	}
-
+	
 	@IBAction func didSelectGameResetMenuItem(_ sender: AnyObject) {
 		self.console.holdSwitch(.reset)
 	}
@@ -91,33 +91,34 @@ extension MainMenuController: NSMenuDelegate {
 			break
 		}
 	}
-
+	
 	private var insertRecentCartridgeMenuItems: [NSMenuItem] {
 		var menuItems = self.collection.cartridges
 			.map() {
 				let menuItem = NSMenuItem()
 				menuItem.title = $0.name
+				menuItem.representedObject = $0.id
 				menuItem.target = self
 				menuItem.action = #selector(self.didSelectInsertRecentCartridgeMenuItem(_:))
 				return menuItem
 			}
-
+		
 		// when there's at least one recently opened file
 		if let menuItem = menuItems.first {
 			// add key shortcut for opening the most recently opened file
 			menuItem.keyEquivalentModifierMask = [.command, .option]
 			menuItem.keyEquivalent = "o"
-
+			
 			// add menu item for clearing the recently opened files menu
 			let menuItem = NSMenuItem()
 			menuItem.title = "Clear Menu"
 			menuItem.target = self
 			menuItem.action = #selector(self.didSelectClearInsertRecentCartridgeMenuItem(_:))
-
+			
 			menuItems.append(.separator())
 			menuItems.append(menuItem)
 		}
-
+		
 		return menuItems
 	}
 }
@@ -137,7 +138,7 @@ extension MainMenuController: NSMenuItemValidation {
 private extension NSUserInterfaceItemIdentifier {
 	static let insertRecentCartridgeMenu = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenu")
 	static let insertRecentCartridgeMenuItem = NSUserInterfaceItemIdentifier("InsertRecentCartridgeMenuItem")
-
+	
 	static let tvTypeMenu = NSUserInterfaceItemIdentifier("TVTypeMenu")
 	static let leftDifficultyMenu = NSUserInterfaceItemIdentifier("LeftDifficultyMenu")
 	static let rightDifficultyMenu = NSUserInterfaceItemIdentifier("RightDifficultyMenu")
