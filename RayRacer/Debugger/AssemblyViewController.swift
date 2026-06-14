@@ -17,10 +17,7 @@ class AssemblyViewController: NSViewController, AssemblyViewDataSource {
 	var breakpoints: [Breakpoint] = []
 	var program: Program = []
 	
-	private var console: Atari2600 {
-		let delegate = NSApplication.shared.delegate as! AppDelegate
-		return delegate.console
-	}
+	private var console = Atari2600()
 	
 	private var delegate: AssemblyViewDelegate? {
 		didSet {
@@ -77,45 +74,46 @@ private extension AssemblyViewController {
 	}
 	
 	func updateView() {
-		if let cartridge = self.console.cartridge {
-			// disassemble program and load its breakpoints
-			self.program = self.disassemble(data: cartridge.data)
-			self.breakpoints = UserDefaults.standard
-				.breakpoints(forProgramIdentifier: cartridge.id)
-			
-			self.delegate = self.assemblyViewDelegate(for: cartridge)
-			self.delegate?.dataSource = self
-			
-			// switch to program view
-			self.view.setContentView(self.programView, layout: .fill)
-			self.view.window?
-				.makeFirstResponder(self.tableView)
-		} else {
-			self.delegate = nil
-			
-			// switch to no program view
-			self.view.setContentView(self.noProgramView, layout: .center)
-			self.tableView.resignFirstResponder()
-		}
-		
-		self.tableView.reloadData()
-		self.updateProgramCounterRow()
+//		if let cartridge = self.console.cartridge {
+//			// disassemble program and load its breakpoints
+//			self.program = self.disassemble(data: cartridge.data)
+//			self.breakpoints = UserDefaults.standard
+//				.breakpoints(forProgramIdentifier: cartridge.id)
+//			
+//			self.delegate = self.assemblyViewDelegate(for: cartridge)
+//			self.delegate?.dataSource = self
+//			
+//			// switch to program view
+//			self.view.setContentView(self.programView, layout: .fill)
+//			self.view.window?
+//				.makeFirstResponder(self.tableView)
+//		} else {
+//			self.delegate = nil
+//			
+//			// switch to no program view
+//			self.view.setContentView(self.noProgramView, layout: .center)
+//			self.tableView.resignFirstResponder()
+//		}
+//		
+//		self.tableView.reloadData()
+//		self.updateProgramCounterRow()
 	}
 	
 	private func assemblyViewDelegate(for cartridge: Cartridge) -> AssemblyViewDelegate {
-		switch cartridge.kind {
-		case .atari2KB:
-			return HalfBankAssemblyViewDelegate()
-		case .atari4KB:
-			return SingleBankAssemblyViewDelegate()
-		case .atari8KB,
-				.atari12KB,
-				.atari16KB,
-				.atari32KB:
-			return MultiBankAssemblyViewDelegate()
-		default:
-			fatalError("Unsupported cartridge type: \(cartridge.kind).")
-		}
+//		switch cartridge.kind {
+//		case .atari2KB:
+//			return HalfBankAssemblyViewDelegate()
+//		case .atari4KB:
+//			return SingleBankAssemblyViewDelegate()
+//		case .atari8KB,
+//				.atari12KB,
+//				.atari16KB,
+//				.atari32KB:
+//			return MultiBankAssemblyViewDelegate()
+//		default:
+//			fatalError("Unsupported cartridge type: \(cartridge.kind).")
+//		}
+		return SingleBankAssemblyViewDelegate()
 	}
 	
 	func updateProgramCounterRow() {
@@ -131,14 +129,13 @@ private extension AssemblyViewController {
 	}
 	
 	private var programCounterRow: Int? {
-		guard let cartridge = self.console.cartridge,
-			  let cpu = self.console.console?.pointee.mpu,
+		guard let cpu = self.console.ref?.pointee.mpu,
 			  let delegate = self.delegate else {
 			return nil
 		}
 		
 		let programCounter = Int(cpu.pointee.program_counter)
-		let offset = (cartridge.bankIndex * 0x1000) + programCounter % 0x1000
+		let offset = (self.console.cartridgeBankIndex * 0x1000) + programCounter % 0x1000
 		return delegate.row(forProgramOffset: offset)
 	}
 }
@@ -148,29 +145,29 @@ private extension AssemblyViewController {
 // MARK: Breakpoint management
 extension AssemblyViewController {
 	@IBAction func breakpointToggled(_ sender: BreakpointToggle) {
-		if sender.state == .on {
-			self.breakpoints.append(sender.tag)
-		} else {
-			self.breakpoints.removeAll(where: { $0 == sender.tag })
-		}
-		
-		// update defaults
-		let programId = self.console.cartridge!.id
-		UserDefaults.standard
-			.setBreakpoints(self.breakpoints, forProgramIdentifier: programId)
+//		if sender.state == .on {
+//			self.breakpoints.append(sender.tag)
+//		} else {
+//			self.breakpoints.removeAll(where: { $0 == sender.tag })
+//		}
+//		
+//		// update defaults
+//		let programId = self.console.cartridge!.id
+//		UserDefaults.standard
+//			.setBreakpoints(self.breakpoints, forProgramIdentifier: programId)
 	}
 	
 	func clearBreakpoints() {
-		let rows = self.breakpoints
-			.compactMap({ self.delegate?.row(forProgramOffset: $0) })
-		
-		self.breakpoints = []
-		self.tableView.reloadData(in: rows)
-		
-		// update defaults
-		let programId = self.console.cartridge!.id
-		UserDefaults.standard
-			.setBreakpoints(self.breakpoints, forProgramIdentifier: programId)
+//		let rows = self.breakpoints
+//			.compactMap({ self.delegate?.row(forProgramOffset: $0) })
+//		
+//		self.breakpoints = []
+//		self.tableView.reloadData(in: rows)
+//		
+//		// update defaults
+//		let programId = self.console.cartridge!.id
+//		UserDefaults.standard
+//			.setBreakpoints(self.breakpoints, forProgramIdentifier: programId)
 	}
 	
 	func showBreakpoint(_ breakpoint: Breakpoint) {
@@ -426,6 +423,13 @@ extension UserDefaults {
 
 // MARK: -
 // MARK: Convenience functionality
+private extension Atari2600 {
+	var cartridgeBankIndex: Int {
+		// TODO:
+		return 0
+	}
+}
+
 private extension BidirectionalCollection where Index: Strideable {
 	func lastIndex(where predicate: (Element) -> Bool) -> Index? {
 		for index in self.indices.reversed() {

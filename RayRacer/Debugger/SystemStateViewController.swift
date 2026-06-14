@@ -28,8 +28,7 @@ class SystemStateViewController: NSViewController {
 	}
 	
 	var console: Atari2600 {
-		let delegate = NSApplication.shared.delegate as! AppDelegate
-		return delegate.console
+		return .current
 	}
 }
 
@@ -59,9 +58,8 @@ struct SystemState {
 
 extension SystemState {
 	static var current: Self {
-		let delegate = NSApplication.shared.delegate as! AppDelegate
-		let console = delegate.console.console!
-		
+		let console: UnsafeMutablePointer<racer_atari2600> = Atari2600.current.ref
+
 		let memory = withUnsafePointer(to: console.pointee.riot.pointee.memory) {
 			return $0.withMemoryRebound(to: UInt8.self, capacity: 128) {
 				return Data(buffer: UnsafeBufferPointer(start: $0, count: 128))
@@ -258,7 +256,7 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 		if !outlineView.isItemExpanded(item) {
 			switch item {
 			case let section as DebugSection where section == .timer:
-				let riot = self.console.console.pointee.riot!
+				let riot = self.console.ref.pointee.riot!
 				let value = racer_mcs6532_read(riot, 0x4)
 				let scale = 1 << riot.pointee.timer_scale
 				view?.textField?.stringValue = String(format: "Timer = %02x×%d", value, scale)
@@ -276,8 +274,8 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forTimerDebugItem item: TimerDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-		let riot = self.console.console.pointee.riot!
-		
+//		let riot = self.console.ref.pointee.riot!
+
 		//		switch item {
 		//		case .cycles:
 		//			view?.stringValue = (item.rawValue, "\(riot.pointee.timer)")
@@ -293,8 +291,8 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	
 	private func makeView(_ outlineView: NSOutlineView, forScreenDebugItem item: ScreenDebugItem) -> NSView? {
 		let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView
-		let tia = self.console.console.pointee.tia.pointee
-		
+		let tia = self.console.ref.pointee.tia.pointee
+
 		switch item {
 		case .colorClock:
 			break
@@ -352,8 +350,8 @@ extension SystemStateViewController: NSOutlineViewDelegate {
 	//	}
 	//
 	private func makeView(_ outlineView: NSOutlineView, forPlayer1DebugItem item: Player1DebugItem) -> NSView? {
-		let player = self.console.console.pointee.tia.pointee.players.1
-		
+		let player = self.console.ref.pointee.tia.pointee.players.1
+
 		switch item {
 			//			case .graphics:
 			//				let view = outlineView.makeView(withIdentifier: .debugItemTableCellView, owner: nil) as? DebugItemTableCellView

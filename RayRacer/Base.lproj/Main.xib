@@ -7,12 +7,17 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
             <connections>
-                <outlet property="delegate" destination="Voe-Tx-rLC" id="GzC-gU-4Uq"/>
+                <outlet property="delegate" destination="Voe-Tx-rLC" id="TDf-u9-g43"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="RayRacer" customModuleProvider="target"/>
+        <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="RayRacer" customModuleProvider="target">
+            <connections>
+                <outlet property="mainMenuController" destination="nK9-BB-WJT" id="EVe-E7-i5J"/>
+            </connections>
+        </customObject>
+        <customObject id="nK9-BB-WJT" customClass="MainMenuController" customModule="RayRacer" customModuleProvider="target"/>
         <menu title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
             <items>
                 <menuItem title="RayRacer" id="1Xt-HY-uBw">
@@ -65,37 +70,62 @@
                         <items>
                             <menuItem title="Insert Cartridge" keyEquivalent="o" id="G6B-pP-Kya">
                                 <connections>
-                                    <action selector="didSelectInsertCartridgeMenuItem:" target="-1" id="iAQ-3t-6lV"/>
+                                    <action selector="didSelectInsertCartridgeMenuItem:" target="nK9-BB-WJT" id="tmg-de-ek3"/>
                                 </connections>
                             </menuItem>
                             <menuItem title="Insert Recent Cartridge" identifier="InsertRecentCartridgeMenuItem" id="82w-BQ-fYJ">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" autoenablesItems="NO" identifier="InsertRecentCartridgeMenu" id="01Z-xd-vS7">
                                     <connections>
-                                        <outlet property="delegate" destination="Voe-Tx-rLC" id="4SJ-Iz-wU4"/>
+                                        <outlet property="delegate" destination="nK9-BB-WJT" id="Jm6-mC-3gd"/>
                                     </connections>
                                 </menu>
+                                <connections>
+                                    <action selector="didSelectInsertRecentCartridgeMenu:" target="nK9-BB-WJT" id="bjG-Ul-VT1"/>
+                                </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="kK0-KW-5of"/>
-                            <menuItem title="Left Difficulty" id="iC6-1C-HiL">
+                            <menuItem title="TV Type" id="fmu-tt-wZY">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Left Difficulty" identifier="LeftDifficultyMenu" id="7yJ-gm-YJm">
+                                <menu key="submenu" identifier="TVTypeMenu" id="7my-vM-HKb">
                                     <items>
-                                        <menuItem title="Beginner" id="ZsC-Ai-7bF">
+                                        <menuItem title="Color" id="Nbz-iy-v04">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="didSelectLeftDifficultyMenuItem:" target="Voe-Tx-rLC" id="giR-Us-1zD"/>
+                                                <action selector="didSelectTVTypeMenuItem:" target="nK9-BB-WJT" id="9sp-sB-7db"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Advanced" id="sqI-4l-jbT">
+                                        <menuItem title="Black•White" id="cVR-DK-yLh">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="didSelectLeftDifficultyMenuItem:" target="Voe-Tx-rLC" id="7Tb-0t-fO4"/>
+                                                <action selector="didSelectTVTypeMenuItem:" target="nK9-BB-WJT" id="UuF-mK-ufX"/>
                                             </connections>
                                         </menuItem>
                                     </items>
                                     <connections>
-                                        <outlet property="delegate" destination="Voe-Tx-rLC" id="152-3K-vgv"/>
+                                        <outlet property="delegate" destination="nK9-BB-WJT" id="Ar6-Pe-4AD"/>
+                                    </connections>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="Left Difficulty" id="iC6-1C-HiL">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Left Difficulty" identifier="LeftDifficultyMenu" id="7yJ-gm-YJm">
+                                    <items>
+                                        <menuItem title="Advanced" id="sqI-4l-jbT">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="didSelectLeftDifficultyMenuItem:" target="nK9-BB-WJT" id="ymG-sC-pOC"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Beginner" id="ZsC-Ai-7bF">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="didSelectLeftDifficultyMenuItem:" target="nK9-BB-WJT" id="u8p-f2-pPz"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                    <connections>
+                                        <outlet property="delegate" destination="nK9-BB-WJT" id="fhQ-El-HBS"/>
                                     </connections>
                                 </menu>
                             </menuItem>
@@ -103,66 +133,44 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Right Difficulty" identifier="RightDifficultyMenu" id="wle-Gt-4Yw">
                                     <items>
-                                        <menuItem title="Beginner" id="s19-Qg-dJZ">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="didSelectRightDifficultyMenuItem:" target="Voe-Tx-rLC" id="DPI-j4-Aq6"/>
-                                            </connections>
-                                        </menuItem>
                                         <menuItem title="Advanced" id="lML-lA-Y31">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
-                                                <action selector="didSelectRightDifficultyMenuItem:" target="Voe-Tx-rLC" id="Bj7-aB-d4c"/>
+                                                <action selector="didSelectRightDifficultyMenuItem:" target="nK9-BB-WJT" id="hTT-c5-wd5"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Beginner" id="s19-Qg-dJZ">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="didSelectRightDifficultyMenuItem:" target="nK9-BB-WJT" id="CMr-NR-oEF"/>
                                             </connections>
                                         </menuItem>
                                     </items>
                                     <connections>
-                                        <outlet property="delegate" destination="Voe-Tx-rLC" id="vmh-GD-z0U"/>
+                                        <outlet property="delegate" destination="nK9-BB-WJT" id="qvv-Mp-KCM"/>
                                     </connections>
                                 </menu>
                             </menuItem>
-                            <menuItem title="TV Type" id="fmu-tt-wZY">
-                                <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" identifier="TVTypeMenu" id="7my-vM-HKb">
-                                    <items>
-                                        <menuItem title="Black•White" id="cVR-DK-yLh">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="didSelectTVTypeMenuItem:" target="Voe-Tx-rLC" id="SNl-UL-ZBh"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem title="Color" id="Nbz-iy-v04">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
-                                            <connections>
-                                                <action selector="didSelectTVTypeMenuItem:" target="Voe-Tx-rLC" id="4g9-DF-WlV"/>
-                                            </connections>
-                                        </menuItem>
-                                    </items>
-                                    <connections>
-                                        <outlet property="delegate" destination="Voe-Tx-rLC" id="474-Qv-Fa1"/>
-                                    </connections>
-                                </menu>
-                            </menuItem>
-                            <menuItem isSeparatorItem="YES" id="udC-K7-4Yk"/>
                             <menuItem title="Game Select" keyEquivalent="g" identifier="GameSelectMenuItem" id="Pg0-pC-YRK">
                                 <connections>
-                                    <action selector="didSelectGameSelectMenuItem:" target="-1" id="ynQ-kv-hCQ"/>
+                                    <action selector="didSelectGameSelectMenuItem:" target="nK9-BB-WJT" id="v5g-Ab-Hjc"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Game Reset" keyEquivalent="r" id="Qfz-Kq-MTK">
+                            <menuItem title="Game Reset" keyEquivalent="r" identifier="GameResetMenuItem" id="Qfz-Kq-MTK">
                                 <connections>
-                                    <action selector="didSelectGameResetMenuItem:" target="Voe-Tx-rLC" id="O5D-UU-eXl"/>
+                                    <action selector="didSelectGameResetMenuItem:" target="nK9-BB-WJT" id="6k6-bu-aRS"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Console Reset" alternate="YES" keyEquivalent="r" identifier="ConsoleResetMenuItem" id="S33-bq-fEN">
+                            <menuItem isSeparatorItem="YES" id="udC-K7-4Yk"/>
+                            <menuItem title="Reset" alternate="YES" keyEquivalent="r" identifier="ResetMenuItem" id="S33-bq-fEN">
                                 <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                 <connections>
-                                    <action selector="didSelectConsoleResetMenuItem:" target="-1" id="6li-yN-oih"/>
+                                    <action selector="didSelectResetMenuItem:" target="nK9-BB-WJT" id="B2I-W6-Gcd"/>
                                 </connections>
                             </menuItem>
                         </items>
                         <connections>
-                            <outlet property="delegate" destination="Voe-Tx-rLC" id="07k-c8-u3n"/>
+                            <outlet property="delegate" destination="nK9-BB-WJT" id="q0u-Hy-IrB"/>
                         </connections>
                     </menu>
                 </menuItem>

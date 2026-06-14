@@ -54,7 +54,7 @@ class ScreenWindowController: NSWindowController {
 		let data = buffer.contents()
 			.assumingMemoryBound(to: UInt8.self)
 		
-		self.racer = racer_thread_create(self.console.console, data, buffer.length)
+		self.racer = racer_thread_create(self.console.ref, data, buffer.length)
 		self.renderer.delegate = self
 	}
 	

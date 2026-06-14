@@ -80,8 +80,7 @@ class AssemblyTargetCellView: DebugValueTableCellView {
 	}
 	
 	private static var console: Atari2600 {
-		let delegate = NSApplication.shared.delegate as! AppDelegate
-		return delegate.console
+		.current
 	}
 	
 	private func formatTarget(of instruction: Instruction, at offset: Int) -> String {
@@ -100,7 +99,7 @@ class AssemblyTargetCellView: DebugValueTableCellView {
 			// for instructions with indexed addressing, return formatted
 			// operand address target only when program is currently at
 			// that instruction
-			guard let cpu = Self.console.console?.pointee.mpu?.pointee,
+			guard let cpu = Self.console.ref?.pointee.mpu?.pointee,
 				  (offset & 0xfff) == Int(cpu.program_counter & 0xfff) else {
 				return ""
 			}

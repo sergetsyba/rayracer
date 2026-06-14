@@ -17,7 +17,9 @@ class DebuggerWindowController: NSWindowController {
 	private var assemblyViewController = AssemblyViewController()
 	private var systemStateViewController = SystemStateViewController()
 	private var cancellables: Set<AnyCancellable> = []
-	
+
+	private var console = Atari2600()
+
 	init() {
 		super.init(window: nil)
 	}
@@ -67,7 +69,7 @@ private extension DebuggerWindowController {
 	
 	@IBAction func didSelectGameResumeMenuItem(_ sender: AnyObject) {
 		self.resume(until: {
-			let programAddress = $0.console.pointee.mpu.pointee.program_counter
+			let programAddress = $0.ref.pointee.mpu.pointee.program_counter
 			return self.assemblyViewController
 				.breakpoints
 				.contains(Int(programAddress))
@@ -221,11 +223,6 @@ private extension NSToolbarItem.Identifier {
 // MARK: -
 // MARK: Resume/suspend functionality
 extension DebuggerWindowController {
-	private var console: Atari2600 {
-		let delegate = NSApplication.shared.delegate as! AppDelegate
-		return delegate.console
-	}
-	
 	/// Resumes emulation until the specified condition occurs the specified number of times.
 	private func resume(until condition: @escaping (Atari2600) -> Bool, count: Int = 1) {
 		let console = self.console
@@ -253,24 +250,28 @@ extension DebuggerWindowController {
 	/// Resumes emulation until the specified condition, which receives vertical and horizontal sync
 	/// counts, is satisified.
 	private func resume(until condition: @escaping (_ syncCount: (Int, Int)) -> Bool) {
-		let console = self.console
+//		let console = self.console
 		
 		DispatchQueue.global(qos: .userInitiated)
-			.async() { [unowned console] in
-				let counter = GraphicsSyncCounter()
-				console.resume(priority: .high, until: (
-					{ [unowned console] in
-						return console.isSync && condition(counter.counts)
-					},
-					{ [unowned console, self] in
-						DispatchQueue.main.async() { [unowned self] in
-							NotificationCenter.default
-								.post(name: .break, object: self)
-						}
-					}
-				))
+			.async() {
+//				let counter = GraphicsSyncCounter()
+//				console.resume(priority: .high, until: (
+//					{ [unowned console] in
+//						return console.isSync && condition(counter.counts)
+//					},
+//					{ [unowned console, self] in
+//						DispatchQueue.main.async() { [unowned self] in
+//							NotificationCenter.default
+//								.post(name: .break, object: self)
+//						}
+//					}
+//				))
 			}
 	}
+}
+
+extension Atari2600 {
+	static let current = Atari2600()
 }
 
 extension Notification.Name {
@@ -286,9 +287,9 @@ private extension Atari2600 {
 		// cycle of MPU operation executes; this compensates for it by
 		// checking whether color clock is will to be reset at the next
 		// console clock cycle
-		self.console.pointee.mpu.pointee.operation_clock == 0
-		&& (self.console.pointee.mpu.pointee.is_ready
-			|| self.console.pointee.tia.pointee.color_clock > 228-3)
+		self.ref.pointee.mpu.pointee.operation_clock == 0
+		&& (self.ref.pointee.mpu.pointee.is_ready
+			|| self.ref.pointee.tia.pointee.color_clock > 228-3)
 	}
 }
 
