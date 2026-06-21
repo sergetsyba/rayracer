@@ -15,8 +15,8 @@ extension CartridgeKind: @retroactive OptionSet, SetAlgebra {
 	static let atari12KB = CARTRIDGE_ATARI_12KB
 	static let atari16KB = CARTRIDGE_ATARI_16KB
 	static let atari32KB = CARTRIDGE_ATARI_32KB
-	
-	init(size: Int) throws {
+
+	init(size: Int) {
 		switch size {
 		case 0x1000/2: self = .atari2KB
 		case 0x1000: self = .atari4KB
@@ -25,7 +25,7 @@ extension CartridgeKind: @retroactive OptionSet, SetAlgebra {
 		case 0x1000*4: self = .atari16KB
 		case 0x1000*8: self = .atari32KB
 		default:
-			throw CartridgeError.unsupportedKind
+			fatalError("Unsupported cartridge type of size \(size).")
 		}
 	}
 }

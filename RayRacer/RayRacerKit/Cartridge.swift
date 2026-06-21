@@ -13,7 +13,7 @@ struct Cartridge: Equatable {
 	var name: String
 	var id: String
 	var kind: CartridgeKind
-
+	
 	var bookmark: Data
 	var program: Data?
 }
@@ -30,21 +30,25 @@ extension Cartridge {
 	init(at url: URL) throws {
 		let bookmark = try url.bookmarkData(options: .readOnlySecurityScope)
 		self = try url.withSecurityScopedData {
-			let kind = try CartridgeKind(size: $0.count)
-			return Cartridge(name: url.fileName, id: $0.md5, kind: kind, bookmark: bookmark, program: $0)
+			Cartridge(
+				name: url.fileName,
+				id: $0.md5,
+				kind: CartridgeKind(size: $0.count),
+				bookmark: bookmark,
+				program: $0)
 		}
 	}
-
+	
 	mutating func load() throws {
 		var isStale = false
 		let url = try URL(resolvingBookmarkData: self.bookmark, options: .securityScope, bookmarkDataIsStale: &isStale)
-
+		
 		// update name and bookmark when file was moved or renamed
 		if isStale {
 			self.name = url.fileName
 			self.bookmark = try url.bookmarkData(options: .readOnlySecurityScope)
 		}
-
+		
 		// load program data
 		try url.withSecurityScopedData {
 			self.program = $0
@@ -110,7 +114,7 @@ private extension URL {
 		self.deletingPathExtension()
 			.lastPathComponent
 	}
-
+	
 	func withSecurityScopedData<Result>(_ perform: (Data) throws -> Result) throws -> Result {
 		guard self.startAccessingSecurityScopedResource() else {
 			fatalError("Failed to access security scoped file at \(self.absoluteString).")

@@ -11,8 +11,25 @@ import librayracer
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
 	@IBOutlet private var mainMenuController: MainMenuController!
-	private var screenWindowController: ScreenWindowController?
+
+	private var screenWindowObserver: NSObjectProtocol?
+	private var screenWindowController: ScreenWindowController? {
+		didSet {
+			let center: NotificationCenter = .default
+			if let window = self.screenWindowController?.window {
+				self.screenWindowObserver = center.addObserver(
+					forName: NSWindow.willCloseNotification,
+					object: window,
+					queue: .main,
+					using: { [weak self] _ in self?.stop() })
+			} else if let observer = self.screenWindowObserver {
+				center.removeObserver(observer)
+			}
+		}
+	}
+
 	private let console = Atari2600()
+	private var racer: OpaquePointer!
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		self.mainMenuController.collection = self
@@ -45,6 +62,11 @@ extension AppDelegate: CartridgeCollection {
 		self.screenWindowController?
 			.view?.isPaused = true
 
+		var cartridge = cartridge
+		if cartridge.program == nil {
+			try! cartridge.load()
+		}
+
 		// set up console
 		self.console.cartridge = cartridge
 		self.console.reset()
@@ -52,21 +74,15 @@ extension AppDelegate: CartridgeCollection {
 		// resume emulation
 		if self.screenWindowController == nil {
 			self.screenWindowController = ScreenWindowController(console: self.console)
-			self.screenWindowController?
-				.window?.delegate = self
 		}
 
 		self.screenWindowController?.showWindow(self)
-		self.screenWindowController?
-			.view?.isPaused = false
 
 		// save cartridge in recently opened list
 		self.cartridges.insert(cartridge, at: 0)
 	}
 
 	func stop() {
-		// TODO: view.isPaused is not enough, needs proper console suspension
-		self.screenWindowController?.view.isPaused = true
 		self.screenWindowController = nil
 
 		self.console.cartridge?.program = nil
@@ -77,17 +93,6 @@ extension AppDelegate: CartridgeCollection {
 protocol CartridgeCollection {
 	var cartridges: [Cartridge] { get set }
 	func play(_ cartridge: Cartridge)
-}
-
-// MARK: -
-// MARK: Window management
-extension AppDelegate: NSWindowDelegate {
-	func windowWillClose(_ notification: Notification) {
-		if let window = notification.object as? NSWindow,
-		   window.windowController == self.screenWindowController {
-			self.stop()
-		}
-	}
 }
 
 // MARK: -
