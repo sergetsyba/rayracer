@@ -1,23 +1,48 @@
 //
-//  RayRacer+Atari2600.swift
+//  Atari2600.swift
 //  RayRacer
 //
 //  Created by Serge Tsyba on 15.12.2025.
 //
 
 import Foundation
-import CryptoKit
 import librayracer
 
 class Atari2600 {
 	let ref: UnsafeMutablePointer<racer_atari2600>!
-
-	private var suspension: (() -> Bool, () -> Void, SuspensionPriority)?
-	private var state: State = .suspended(.normal)
+	private var program: Data!
 
 	init() {
 		self.ref = racer_atari2600_create()!
 		self.switches = UserDefaults.standard.consoleSwitches
+	}
+
+	var cartridge: Cartridge? {
+		didSet {
+			// remove old cartridge, when inserted
+			if let program {
+				racer_atari2600_remove_cartridge(self.ref)
+				self.program = nil
+			}
+
+			guard var cartridge else {
+				return
+			}
+
+			// load propgram when not yet loaded
+			self.program = cartridge.program ?? (try! cartridge.load())
+
+			// insert new cartridge
+			self.program.withUnsafeBytes() {
+				let address = $0.baseAddress?.bindMemory(to: UInt8.self, capacity: self.program.count)
+				racer_atari2600_insert_cartridge(self.ref, cartridge.kind, address)
+			}
+		}
+	}
+
+	var controllers: (Joystick?, Joystick?) {
+		didSet {
+		}
 	}
 
 	var switches: Switches {
@@ -26,30 +51,6 @@ class Atari2600 {
 				.switches.1 = UInt8(self.switches.rawValue)
 			UserDefaults.standard
 				.consoleSwitches = self.switches
-		}
-	}
-
-	var cartridge: Cartridge? {
-		didSet {
-			// remove old cartridge when present
-			if let _ = oldValue {
-				racer_atari2600_remove_cartridge(self.ref)
-			}
-			// insert new cartridge when specified
-			guard let cartridge else {
-				return
-			}
-
-			let program = cartridge.program!
-			program.withUnsafeBytes() {
-				let address = $0.baseAddress?.bindMemory(to: UInt8.self, capacity: program.count)
-				racer_atari2600_insert_cartridge(self.ref, cartridge.kind, address)
-			}
-		}
-	}
-
-	var controllers: (Joystick?, Joystick?) {
-		didSet {
 		}
 	}
 
@@ -91,78 +92,6 @@ extension OptionSet {
 				self.insert(index)
 			} else {
 				self.remove(index)
-			}
-		}
-	}
-}
-
-
-// MARK: -
-// MARK: [Legacy] Suspend/resume functionality
-extension Atari2600 {
-	enum SuspensionPriority: Comparable {
-		case normal
-		case high
-	}
-
-	private enum State {
-		case resumed
-		case suspended(SuspensionPriority)
-	}
-
-	/// Returns `true` when emulation is suspended with the specified priority; returns `false`
-	/// otherwise.
-	func isSuspended(withPriority priority: SuspensionPriority = .normal) -> Bool {
-		if case .suspended(let currentPriority) = self.state {
-			return priority == currentPriority
-		} else {
-			return false
-		}
-	}
-
-	///	Suspends emulation.
-	///
-	///	When emualtion is already suspended with a lower priority than the specified one, updates
-	///	suspension priority to the specified one.
-	func suspend(priority: SuspensionPriority = .normal) {
-		// note: it seems impossible to combine first two cases into one
-		// due to value binding on .suspended case
-		switch self.state {
-		case .resumed:
-			self.state = .suspended(priority)
-		case .suspended(let currentPriority) where currentPriority < priority:
-			self.state = .suspended(priority)
-		default:
-			return
-		}
-	}
-
-	/// Resumes emulation when it is suspended with a priority lower or equal to the specified one.
-	func resume(priority: SuspensionPriority = .normal, until suspension: (condition: () -> Bool, callback: () -> Void)? = nil) {
-		// do not resume emulation when current suspension priority is higher
-		guard case .suspended(let currentPriority) = self.state,
-			  currentPriority <= priority else {
-			return
-		}
-
-		if let (condition, callback) = suspension {
-			self.suspension = (condition, callback, priority)
-		}
-
-		self.state = .resumed
-		if let (condition, callback, priority) = self.suspension {
-			while case .resumed = self.state {
-				racer_atari2600_advance_clock(self.ref)
-
-				if condition() {
-					self.state = .suspended(priority)
-					self.suspension = nil
-					callback()
-				}
-			}
-		} else {
-			while case .resumed = self.state {
-				racer_atari2600_advance_clock(self.ref)
 			}
 		}
 	}

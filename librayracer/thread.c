@@ -127,6 +127,9 @@ void racer_thread_destroy(racer_thread *thread) {
 	pthread_join(thread->handle, NULL);
 	pthread_mutex_destroy(&thread->mutex);
 	pthread_cond_destroy(&thread->pause);
+
+	thread->console->tia->video_output = NULL;
+	thread->console->tia->sync_video = NULL;
 	free(thread);
 }
 

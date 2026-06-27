@@ -316,3 +316,34 @@ private extension NSToolbar {
 		return nil
 	}
 }
+
+// MARK: -
+// MARK: [Legacy] Suspend/resume functionality
+extension Atari2600 {
+	enum SuspensionPriority: Comparable {
+		case normal
+		case high
+	}
+
+	private enum State {
+		case resumed
+		case suspended(SuspensionPriority)
+	}
+
+	/// Returns `true` when emulation is suspended with the specified priority; returns `false`
+	/// otherwise.
+	func isSuspended(withPriority priority: SuspensionPriority = .normal) -> Bool {
+		false
+	}
+
+	///	Suspends emulation.
+	///
+	///	When emualtion is already suspended with a lower priority than the specified one, updates
+	///	suspension priority to the specified one.
+	func suspend(priority: SuspensionPriority = .normal) {
+	}
+
+	/// Resumes emulation when it is suspended with a priority lower or equal to the specified one.
+	func resume(priority: SuspensionPriority = .normal, until suspension: (condition: () -> Bool, callback: () -> Void)? = nil) {
+	}
+}

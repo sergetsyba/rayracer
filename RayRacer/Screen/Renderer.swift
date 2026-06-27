@@ -12,48 +12,41 @@ class Renderer: NSObject {
 	private let commandQueue: MTLCommandQueue = .current
 	private let pipelineState: MTLRenderPipelineState
 	let buffers: [MTLBuffer]
-	
+
 	private var geometry: FieldGeometry = .ntsc
-	var delegate: RendererDelegate!
-	
+	var delegate: RendererDelegate?
+
 	init(bufferCount: Int = 1) {
 		let device = self.commandQueue.device
 		guard let library = device.makeDefaultLibrary() else {
 			fatalError("Failed to initialize render library.")
 		}
-		
+
 		let pipelineDescriptor = Self.makePipelineDescriptor(using: library)
 		guard let pipelineState = try? device.makeRenderPipelineState(descriptor: pipelineDescriptor) else {
 			fatalError("Failed to initialize render pipeline state.")
 		}
-		
+
 		guard let buffers = device.makeBuffers(count: bufferCount, length: self.geometry.bufferLength, options: .storageModeShared) else {
 			fatalError("Failed to initialize rendering buffers.")
 		}
-		
+
 		self.pipelineState = pipelineState
 		self.buffers = buffers
 	}
-	
+
 	private class func makePipelineDescriptor(using library: MTLLibrary) -> MTLRenderPipelineDescriptor {
 		let descriptor = MTLRenderPipelineDescriptor()
 		descriptor.vertexFunction = library.makeFunction(name: "make_vertex")
 		descriptor.fragmentFunction = library.makeFunction(name: "shade_fragment")
 		descriptor.colorAttachments[0]
 			.pixelFormat = .bgra8Unorm
-		
+
 		return descriptor
 	}
 	
 	var device: MTLDevice {
 		return self.commandQueue.device
-	}
-	
-	var bufferContents: [UnsafeMutablePointer<UInt8>?] {
-		return self.buffers.map() {
-			$0.contents()
-				.assumingMemoryBound(to: UInt8.self)
-		}
 	}
 }
 
@@ -68,29 +61,32 @@ extension Renderer: MTKViewDelegate {
 	func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
 		// does nothing
 	}
-	
+
 	func draw(in view: MTKView) {
-		guard let buffer = self.delegate.rendererWillBeginRendering(self),
+		guard let buffer = self.delegate?.rendererWillBeginRendering(self),
 			  let commandBuffer = self.commandQueue.makeCommandBuffer(),
 			  let renderPassDescriptor = view.currentRenderPassDescriptor,
 			  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor),
 			  let drawable = view.currentDrawable else {
 			return
 		}
-		
+
 		// encode render pass
 		renderEncoder.setRenderPipelineState(self.pipelineState)
 		renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
 		renderEncoder.setFragmentBytes(&self.geometry, length: MemoryLayout<field_geometry>.stride, index: 1)
-		
+
 		renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
 		renderEncoder.endEncoding()
-		
+
 		commandBuffer.present(drawable)
-		commandBuffer.addCompletedHandler() { [unowned self] _ in
-			self.delegate.rendererDidEndRendering(self)
+		commandBuffer.addCompletedHandler() { [weak self] _ in
+			guard let self else {
+				return
+			}
+			self.delegate?.rendererDidEndRendering(self)
 		}
-		
+
 		commandBuffer.commit()
 	}
 }
@@ -107,7 +103,7 @@ extension MTLDevice {
 			}
 			buffers.append(buffer)
 		}
-		
+
 		return buffers
 	}
 }
@@ -127,7 +123,7 @@ private struct MTLCommandQueueWrapper {
 			  let queue = device.makeCommandQueue() else {
 			fatalError("Failed to initialize Metal.")
 		}
-		
+
 		return queue
 	}()
 }
@@ -148,7 +144,7 @@ extension FieldGeometry {
 		// first (525-480)/2 = 22 scan lines in each field are vertical blank
 		// interval in NTSC and are not shown by TVs
 		image_origin: SIMD2<UInt32>(x: 68, y: 22))
-	
+
 	var bufferLength: Int {
 		Int(self.field_size.x * self.field_size.y)
 	}

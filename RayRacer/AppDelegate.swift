@@ -1,5 +1,5 @@
 //
-//  RayRacerDelegate.swift
+//  AppDelegate.swift
 //  RayRacer
 //
 //  Created by Serge Tsyba on 22.5.2023.
@@ -16,14 +16,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	private var screenWindowController: ScreenWindowController? {
 		didSet {
 			let center: NotificationCenter = .default
-			if let window = self.screenWindowController?.window {
+			if let windowController = self.screenWindowController {
 				self.screenWindowObserver = center.addObserver(
 					forName: NSWindow.willCloseNotification,
-					object: window,
+					object: windowController.window,
 					queue: .main,
-					using: { [weak self] _ in self?.stop() })
+					using: { [weak self] _ in self?.screenWindowController = nil })
 			} else if let observer = self.screenWindowObserver {
 				center.removeObserver(observer)
+				self.screenWindowObserver = nil
 			}
 		}
 	}
@@ -51,41 +52,37 @@ extension AppDelegate: CartridgeCollection {
 		}
 		set {
 			// store up to 10 recently played distinct cartridges
-			let distinct = newValue.removingDuplicates()
+			let cartridges = newValue.removingDuplicates()
+				.prefix(10)
 			UserDefaults.standard
-				.cartridges = Array(distinct.prefix(10))
+				.cartridges = Array(cartridges)
 		}
 	}
 
 	func play(_ cartridge: Cartridge) {
 		// pause emulation if it is currently running
 		self.screenWindowController?
-			.view?.isPaused = true
+			.pause(priority: .high)
 
-		var cartridge = cartridge
-		if cartridge.program == nil {
-			try! cartridge.load()
-		}
-
-		// set up console
+		// change cartridge
 		self.console.cartridge = cartridge
 		self.console.reset()
+		self.cartridges.insert(cartridge, at: 0)
 
-		// resume emulation
 		if self.screenWindowController == nil {
 			self.screenWindowController = ScreenWindowController(console: self.console)
 		}
 
+		// show screen and resume emulation
 		self.screenWindowController?.showWindow(self)
-
-		// save cartridge in recently opened list
-		self.cartridges.insert(cartridge, at: 0)
+		self.screenWindowController?
+			.resume(priority: .high)
 	}
 
 	func stop() {
+		// clean up screen, which stops emulation
 		self.screenWindowController = nil
-
-		self.console.cartridge?.program = nil
+		// remove cartridge
 		self.console.cartridge = nil
 	}
 }

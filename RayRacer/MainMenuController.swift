@@ -28,7 +28,7 @@ extension MainMenuController {
 	
 	@IBAction func didSelectInsertRecentCartridgeMenuItem(_ sender: NSMenuItem) {
 		guard let id = sender.representedObject as? String,
-		let cartridge = self.collection.cartridges.first(where: { $0.id == id }) else {
+			  let cartridge = self.collection.cartridges.first(where: { $0.id == id }) else {
 			fatalError("Failed to find cartridge associated with menu item.")
 		}
 		self.collection.play(cartridge)
