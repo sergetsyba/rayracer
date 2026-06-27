@@ -119,13 +119,12 @@ private extension URL {
 		guard self.startAccessingSecurityScopedResource() else {
 			fatalError("Failed to access security scoped file at \(self.absoluteString).")
 		}
-		do {
-			let data = try Data(contentsOf: self, options: [.mappedIfSafe])
-			return try perform(data)
-		} catch {
+		defer {
 			self.stopAccessingSecurityScopedResource()
-			throw error
 		}
+		
+		let data = try Data(contentsOf: self, options: [.mappedIfSafe])
+		return try perform(data)
 	}
 }
 
