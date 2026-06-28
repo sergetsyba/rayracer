@@ -123,7 +123,7 @@ void racer_tia_advance_clock(racer_tia *tia) {
 // MARK: Input port
 void racer_tia_write_port(racer_tia *tia, uint8_t data) {
 	// latch 0 on pins 4,5 when port latch enabled
-	if (!(tia->input_control & TIA_INPUT_PORT_LATCH)) {
+	if (is_flag_set(tia->input_control, TIA_INPUT_PORT_LATCH)) {
 		tia->input_latch &= (data & 0xc0);
 	}
 }
