@@ -369,8 +369,8 @@ void racer_tia_write(racer_tia *tia, uint8_t address, uint8_t data) {
 			tia->players[0].graphics[3] = tia->players[0].graphics[1];
 			
 			// copy ball delayed control flag
-			tia->ball.control &= ~BALL_ENABLED_1;
-			tia->ball.control |= (bool)(tia->ball.control & BALL_ENABLED_0);
+			const bool enabled = tia->ball.control & BALL_ENABLED_0;
+			set_flag(tia->ball.control, BALL_ENABLED_1, enabled);
 			break;
 		}
 			
