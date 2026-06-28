@@ -11,6 +11,9 @@
 #define is_flag_set(flags, flag) \
 (flags & (flag))
 
+#define is_flag_clear(flags, flag) \
+!(flags & (flag))
+
 #define set_flag(flags, flag, on) \
 (flags = on ? (flags | (flag)) : (flags & ~(flag)))
 

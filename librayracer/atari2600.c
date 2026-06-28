@@ -30,7 +30,7 @@ static uint8_t read_bus(void *bus, int address) {
 
 static void write_bus(void *bus, int address, uint8_t data) {
 	racer_atari2600 *console = (racer_atari2600 *)bus;
-	if ((address & 0xf000) == 0xf000) {
+	if (address & 0x1000) {
 		console->write_cartridge(console->cartridge, address & 0xfff, data);
 	} else if ((address & 0x280) == 0x280) {
 		racer_mcs6532_write(console->riot, address & 0x1f, data);
@@ -62,7 +62,7 @@ static uint8_t riot_read_switches(const void *peripheral) {
 
 static void riot_write_switches(void *peripheral, uint8_t data) {
 	racer_atari2600 *console = (racer_atari2600 *)peripheral;
-	
+
 	// switches are supposed to be read-only, but can be written to
 	// nonetheless; writing sets the 3 unused bits
 	console->switches[1] &= ~0x34;
@@ -78,18 +78,18 @@ static uint8_t tia_read_controllers(const void *peripheral) {
 // MARK: -
 racer_atari2600 *racer_atari2600_create(void) {
 	racer_atari2600 *console = (racer_atari2600 *)malloc(sizeof(racer_atari2600));
-	
+
 	// create and wire MPU
 	console->mpu = (racer_mcs6507 *)malloc(sizeof(racer_mcs6507));
 	console->mpu->bus = console;
 	console->mpu->read_bus = read_bus;
 	console->mpu->write_bus = write_bus;
-	
+
 	// create and wire RIOT
 	console->riot = (racer_mcs6532 *)malloc(sizeof(racer_mcs6532));
 	console->riot->timer_scale = 10;
 	console->riot->timer = 0xb8 * (1<<10);
-	
+
 	memcpy(console->riot->peripherals, (void *[]){
 		console,
 		console
@@ -102,16 +102,16 @@ racer_atari2600 *racer_atari2600_create(void) {
 		riot_write_controllers,
 		riot_write_switches
 	}, sizeof(console->riot->write_port));
-	
+
 	// create and wire TIA
 	console->tia = (racer_tia *)malloc(sizeof(racer_tia));
 	console->tia->is_ready = &console->mpu->is_ready;
 	console->tia->peripheral = console;
 	console->tia->read_port = tia_read_controllers;
-	
+
 	console->tia->players[0].missile_position = &null_missile_position;
 	console->tia->players[1].missile_position = &null_missile_position;
-	
+
 	init_graphics();
 	return console;
 }
@@ -122,7 +122,7 @@ void racer_atari2600_reset(racer_atari2600 *console) {
 	// reset controller input
 	console->switches[0] = 0x00;
 	console->input = 0x00;
-	
+
 	racer_tia_reset(console->tia);
 	racer_mcs6532_reset(console->riot);
 	racer_mcs6507_reset(console->mpu);
@@ -140,79 +140,98 @@ void racer_atari2600_advance_clock(racer_atari2600 *console) {
 	racer_tia_advance_clock(console->tia);
 	racer_tia_advance_clock(console->tia);
 	racer_tia_advance_clock(console->tia);
-	
+
 	racer_mcs6507_advance_clock(console->mpu);
 	racer_mcs6532_advance_clock(console->riot);
 }
 
+// MARK: -
+// MARK: Cartridges
 void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_type type, const uint8_t *data) {
 	console->cartridge_type = type;
-	
+
 	switch (type) {
 		case CARTRIDGE_ATARI_2KB:
 			console->cartridge = (void *)data;
 			console->read_cartridge = read_atari_2kb_cartridge;
 			console->write_cartridge = write_atari_cartridge;
 			break;
-			
+
 		case CARTRIDGE_ATARI_4KB:
 			console->cartridge = (void *)data;
 			console->read_cartridge = read_atari_4kb_cartridge;
 			console->write_cartridge = write_atari_cartridge;
 			break;
-			
-		case CARTRIDGE_ATARI_8KB:
-			console->cartridge = &(atari_multi_bank_cartridge){
-				.bank_count = 8/4,
-				.bank_index = 0,
-				.bank_switch_address = 0xff8,
-				.data = data
-			};
+
+		case CARTRIDGE_ATARI_8KB: {
+			atari_multi_bank_cartridge *cartridge = malloc(sizeof(atari_multi_bank_cartridge));
+			cartridge->bank_count = 8/4;
+			cartridge->bank_switch_address = 0xff8;
+			cartridge->data = data;
+
+			console->cartridge = cartridge;
 			console->read_cartridge = read_atari_multi_bank_cartridge;
 			console->write_cartridge = write_atari_multi_bank_cartridge;
 			break;
-			
-		case CARTRIDGE_ATARI_12KB:
-			console->cartridge = &(atari_multi_bank_cartridge){
-				.bank_count = 12/4,
-				.bank_index = 0,
-				.bank_switch_address = 0xff8,
-				.data = data
-			};
+		}
+
+		case CARTRIDGE_ATARI_12KB: {
+			atari_multi_bank_cartridge *cartridge = malloc(sizeof(atari_multi_bank_cartridge));
+			cartridge->bank_count = 12/4;
+			cartridge->bank_switch_address = 0xff8;
+			cartridge->data = data;
+
+			console->cartridge = cartridge;
 			console->read_cartridge = read_atari_multi_bank_cartridge;
 			console->write_cartridge = write_atari_multi_bank_cartridge;
 			break;
-			
-		case CARTRIDGE_ATARI_16KB:
-			console->cartridge = &(atari_multi_bank_cartridge){
-				.bank_count = 16/4,
-				.bank_index = 0,
-				.bank_switch_address = 0xff6,
-				.data = data
-			};
+		}
+
+		case CARTRIDGE_ATARI_16KB: {
+			atari_multi_bank_cartridge *cartridge = malloc(sizeof(atari_multi_bank_cartridge));
+			cartridge->bank_count = 16/4;
+			cartridge->bank_switch_address = 0xff6;
+			cartridge->data = data;
+
+			console->cartridge = cartridge;
 			console->read_cartridge = read_atari_multi_bank_cartridge;
 			console->write_cartridge = write_atari_multi_bank_cartridge;
 			break;
-			
-		case CARTRIDGE_ATARI_32KB:
-			console->cartridge = &(atari_multi_bank_cartridge){
-				.bank_count = 32/4,
-				.bank_index = 0,
-				.bank_switch_address = 0xff4,
-				.data = data
-			};
+		}
+
+		case CARTRIDGE_ATARI_32KB: {
+			atari_multi_bank_cartridge *cartridge = malloc(sizeof(atari_multi_bank_cartridge));
+			cartridge->bank_count = 32/4;
+			cartridge->bank_switch_address = 0xff4;
+			cartridge->data = data;
+
+			console->cartridge = cartridge;
 			console->read_cartridge = read_atari_multi_bank_cartridge;
 			console->write_cartridge = write_atari_multi_bank_cartridge;
 			break;
-			
+		}
+
 		default:
-			printf("%s: unsupport cartridge type: %d\n", __func__, type);
+			printf("%s: unsupported cartridge type: %d\n", __func__, type);
 			exit(EXIT_FAILURE);
 			break;
 	}
 }
 
 void racer_atari2600_remove_cartridge(racer_atari2600 *console) {
+	if (console->cartridge != NULL) {
+		switch (console->cartridge_type) {
+			case CARTRIDGE_ATARI_8KB:
+			case CARTRIDGE_ATARI_12KB:
+			case CARTRIDGE_ATARI_16KB:
+			case CARTRIDGE_ATARI_32KB:
+				free(console->cartridge);
+				break;
+			default:
+				break;
+		}
+	}
+
 	console->cartridge = NULL;
 	console->read_cartridge = NULL;
 	console->write_cartridge = NULL;

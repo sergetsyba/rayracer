@@ -60,7 +60,7 @@ static bool is_playfield_visible(const racer_playfield *playfield, int position)
 	
 	// each bit of playfield graphics draws for 4 color clocks
 	const int bit = position >> 2;		// position / 4
-	return graphics & (1L << bit);
+	return graphics & (1ULL << bit);
 }
 
 uint16_t get_object_draw_state(const struct racer_tia *tia) {
