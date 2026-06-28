@@ -39,7 +39,6 @@ static void update_field_rate(racer_thread *thread) {
 	struct timespec current_time;
 	clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-	// adding 1 guards against
 	long seconds = current_time.tv_sec - thread->field_start_time.tv_sec;
 	long nanoseconds = current_time.tv_nsec - thread->field_start_time.tv_nsec;
 	long field_time = seconds * 1000000000 + nanoseconds;

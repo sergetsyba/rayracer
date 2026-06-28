@@ -142,7 +142,7 @@ int racer_mcs6532_read(racer_mcs6532 *riot, int address) {
 		}
 			
 		default:
-			printf("msc6532: invalid read address: %d.\n", address);
+			printf("mcs6532: invalid read address: %d.\n", address);
 			return 0;
 	}
 }
@@ -240,7 +240,7 @@ void racer_mcs6532_write(racer_mcs6532 *riot, int address, int data) {
 			break;
 			
 		default:
-			printf("msc6532: invalid write address: %d.\n", address);
+			printf("mcs6532: invalid write address: %d.\n", address);
 			break;
 	}
 }

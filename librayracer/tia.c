@@ -132,7 +132,7 @@ void racer_tia_write_port(racer_tia *tia, uint8_t data) {
 // MARK: -
 // MARK: Bus
 uint8_t racer_tia_read(const racer_tia *tia, uint8_t address) {
-	switch (address % 0x10) {
+	switch (address & 0x0f) {
 		case 0x00: {// MARK: cxm0p
 			const uint8_t data = (tia->collisions >> 0) & 0x3;
 			return (data << 6) | address;

@@ -212,7 +212,7 @@ void racer_atari2600_insert_cartridge(racer_atari2600 *console, racer_cartridge_
 		}
 
 		default:
-			printf("%s: unsupport cartridge type: %d\n", __func__, type);
+			printf("%s: unsupported cartridge type: %d\n", __func__, type);
 			exit(EXIT_FAILURE);
 			break;
 	}
