@@ -11,27 +11,29 @@ import librayracer
 class Atari2600 {
 	let ref: UnsafeMutablePointer<racer_atari2600>!
 	private var program: Data!
-
+	
 	init() {
+		let switches = UserDefaults.standard.consoleSwitches
 		self.ref = racer_atari2600_create()!
-		self.switches = UserDefaults.standard.consoleSwitches
+		self.ref.pointee
+			.switches.1 = UInt8(switches.rawValue)
 	}
-
+	
 	var cartridge: Cartridge? {
 		didSet {
 			// remove old cartridge, when inserted
-			if let program {
+			if program != nil {
 				racer_atari2600_remove_cartridge(self.ref)
 				self.program = nil
 			}
-
+			
 			guard var cartridge else {
 				return
 			}
-
+			
 			// load propgram when not yet loaded
 			self.program = cartridge.program ?? (try! cartridge.load())
-
+			
 			// insert new cartridge
 			self.program.withUnsafeBytes() {
 				let address = $0.baseAddress?.bindMemory(to: UInt8.self, capacity: self.program.count)
@@ -39,38 +41,42 @@ class Atari2600 {
 			}
 		}
 	}
-
+	
 	var controllers: (Joystick?, Joystick?) {
 		didSet {
 		}
 	}
-
+	
 	var switches: Switches {
-		didSet {
+		get {
+			let rawValue = UInt32(self.ref.pointee.switches.1)
+			return Switches(rawValue: rawValue)
+		}
+		set {
 			self.ref.pointee
-				.switches.1 = UInt8(self.switches.rawValue)
+				.switches.1 = UInt8(newValue.rawValue)
 			UserDefaults.standard
-				.consoleSwitches = self.switches
+				.consoleSwitches = newValue
 		}
 	}
-
+	
 	func holdSwitch(_ `switch`: Switches, for interval: Int = 500) {
 		// set switch to `on`
 		self.switches[`switch`] = true
-
+		
 		// set switch to `off` after small interval
 		let deadline: DispatchTime = .now()
 			.advanced(by: .milliseconds(interval))
-
+		
 		DispatchQueue.main
 			.asyncAfter(deadline: deadline) { [unowned self] in
 				self.switches[`switch`] = false
 			}
 	}
-
+	
 	func reset() {
 		racer_atari2600_reset(self.ref)
-
+		
 		NotificationCenter.default
 			.post(name: .reset, object: self)
 	}
